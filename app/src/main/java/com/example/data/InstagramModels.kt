@@ -1,0 +1,221 @@
+package com.example.data
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "posts")
+data class PostEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String,
+    val isVerified: Boolean = false,
+    val mediaUrl: String,
+    val mediaType: String = "IMAGE", // IMAGE or VIDEO
+    val caption: String,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false,
+    val isFollowing: Boolean = true,
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val landmark: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val distanceKm: Double? = null,
+    val isNeighbor: Boolean = false,
+    val soundTitle: String? = null,
+    val filterName: String = "Normal"
+)
+
+@Entity(tableName = "reels")
+data class ReelEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String,
+    val isVerified: Boolean = false,
+    val mediaUrl: String,
+    val caption: String,
+    val soundTitle: String = "Original audio",
+    val soundArtist: String = "",
+    val likesCount: Int,
+    val commentsCount: Int,
+    val sharesCount: Int = 120,
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false,
+    val isFollowing: Boolean = false,
+    val viewsCount: String = "245K",
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val landmark: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val distanceKm: Double? = null,
+    val isNeighbor: Boolean = false,
+    val filterName: String = "Normal"
+)
+
+@Entity(tableName = "stories")
+data class StoryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val userId: String,
+    val username: String,
+    val userAvatar: String,
+    val mediaUrl: String,
+    val caption: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val distanceKm: Double? = null,
+    val isViewed: Boolean = false,
+    val isUserStory: Boolean = false
+)
+
+@Entity(tableName = "comments")
+data class CommentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val targetType: String, // "POST" or "REEL"
+    val targetId: Long,
+    val username: String,
+    val userAvatar: String,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false
+)
+
+@Entity(tableName = "user_profile")
+data class UserProfileEntity(
+    @PrimaryKey val id: Int = 1,
+    val username: String = "alex_creative",
+    val fullName: String = "Alex Rivera",
+    val avatarUrl: String = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+    val bio: String = "Visual storyteller & digital creator 📸✨\nCapturing moments across the neighborhood & globe 🌍\nSeattle • Pike Place • Pioneer Sq",
+    val website: String = "localiiiy.com/alex",
+    val category: String = "Local Creator / Photographer",
+    val locationName: String = "Pike Place Market, Seattle",
+    val neighborhood: String = "Pike Place Market, Seattle",
+    val neighborsCount: Int = 142,
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val postsCount: Int = 42,
+    val followersCount: Int = 14200,
+    val followingCount: Int = 486,
+    val isVerified: Boolean = true
+)
+
+@Entity(tableName = "other_users")
+data class OtherUserEntity(
+    @PrimaryKey val username: String,
+    val fullName: String,
+    val avatarUrl: String,
+    val bio: String,
+    val website: String = "",
+    val category: String = "Creator",
+    val locationName: String,
+    val landmark: String? = null,
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val distanceKm: Double = 0.5,
+    val isNeighbor: Boolean = true,
+    val isFollowing: Boolean = false,
+    val isFriend: Boolean = false,
+    val followersCount: Int = 3400,
+    val followingCount: Int = 290,
+    val postsCount: Int = 18,
+    val isVerified: Boolean = false
+)
+
+@Entity(tableName = "notifications")
+data class NotificationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val actionType: String, // "LIKE", "COMMENT", "FOLLOW", "NEARBY_WAVE", "FRIEND_REQUEST"
+    val content: String,
+    val mediaPreviewUrl: String? = null,
+    val distanceKm: Double? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isRead: Boolean = false,
+    val isFollowingBack: Boolean = false
+)
+
+@Entity(tableName = "conversations")
+data class DirectMessageEntity(
+    @PrimaryKey val conversationId: String,
+    val contactUsername: String,
+    val contactAvatar: String,
+    val lastMessage: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isFromMe: Boolean = false,
+    val isRead: Boolean = true,
+    val isOnline: Boolean = false,
+    val isGroup: Boolean = false,
+    val groupMembersCount: Int = 1,
+    val distanceKm: Double? = null,
+    val landmark: String? = null
+)
+
+@Entity(tableName = "chat_messages")
+data class ChatMessageEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val conversationId: String,
+    val senderUsername: String,
+    val senderAvatar: String,
+    val text: String,
+    val sharedMediaUrl: String? = null,
+    val sharedCaption: String? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isFromMe: Boolean = false
+)
+
+@Entity(tableName = "privacy_settings")
+data class PrivacySettingsEntity(
+    @PrimaryKey val id: Int = 1,
+    // Hyperlocal Location Controls
+    val isLocationRadarEnabled: Boolean = true,
+    val isPrivateAccount: Boolean = false,
+    val allowNearbyDiscovery: Boolean = true,
+    val preciseLocationSharing: Boolean = true,
+    val allowNearbyWaves: Boolean = true,
+    // Activity & Interactions
+    val showActiveStatus: Boolean = true,
+    val readReceiptsEnabled: Boolean = true,
+    val allowCommentsFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
+    val allowDirectMessagesFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
+    val allowTagsAndMentions: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
+    // Stories & Content
+    val hideMomentsFromStrangers: Boolean = false,
+    val allowPostResharing: Boolean = true,
+    val sensitiveContentFilter: String = "STANDARD", // "STANDARD", "STRICT", "LESS"
+    val blockedAccountsCount: Int = 0
+)
+
+@Entity(tableName = "marketplace_items")
+data class MarketplaceItemEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String,
+    val price: Double,
+    val currencySymbol: String = "$",
+    val category: String, // "Tech & Gear", "Farm & Fresh", "Vintage & Style", "Home & Deco", "Mobility & Bikes", "Art & Craft", "Books & Media", "Services"
+    val condition: String = "Like New", // "Brand New", "Like New", "Good", "Fair"
+    val imageUrl: String,
+    val sellerUsername: String,
+    val sellerFullName: String,
+    val sellerAvatar: String,
+    val sellerRating: Double = 4.9,
+    val sellerReviewCount: Int = 18,
+    val location: String = "Pike Place, Seattle",
+    val landmark: String? = "Pike Place Market",
+    val distanceKm: Double = 0.4,
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val isAvailable: Boolean = true,
+    val isSaved: Boolean = false,
+    val timestamp: Long = System.currentTimeMillis(),
+    val deliveryOption: String = "Local Meetup / Pickup" // "Local Meetup", "Neighborhood Drop-off", "Contactless Pickup"
+)
+
+

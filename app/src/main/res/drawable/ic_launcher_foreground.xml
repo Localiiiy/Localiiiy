@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer Radar Pulse Arc -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#64FFDA"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M28,46 A30,30 0 0 1 80,46" />
+
+    <!-- Mid Radar Pulse Arc -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#00B4D8"
+        android:strokeWidth="3.0"
+        android:strokeLineCap="round"
+        android:pathData="M35,50 A22,22 0 0 1 73,50" />
+
+    <!-- Modern Location Pin Beacon Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 C43.5,26 35,34.5 35,45 C35,58 54,80 54,80 C54,80 73,58 73,45 C73,34.5 64.5,26 54,26 Z" />
+
+    <!-- Inner Aperture / Camera Circle in Pin -->
+    <path
+        android:fillColor="#0D3B66"
+        android:pathData="M54,44 A8,8 0 1 1 53.99,44 Z" />
+
+    <!-- Center Pulse Beacon Dot -->
+    <path
+        android:fillColor="#64FFDA"
+        android:pathData="M54,44 A3.5,3.5 0 1 1 53.99,44 Z" />
+</vector>

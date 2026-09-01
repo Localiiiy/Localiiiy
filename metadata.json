@@ -1,0 +1,7 @@
+{
+  "name": "Localiiiy",
+  "description": "Hyperlocal social discovery platform and community marketplace to explore nearby moments, live radar, local bazaar buy/sell, and proximity connections.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
