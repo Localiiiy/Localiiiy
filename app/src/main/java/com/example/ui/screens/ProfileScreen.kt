@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.data.CreatorEarningsSummary
 import com.example.data.MarketplaceItemEntity
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
@@ -51,6 +52,10 @@ import com.example.ui.theme.LocaliAccentMint
 import com.example.ui.theme.LocaliDeepNavy
 import com.example.ui.theme.LocaliPrimaryTeal
 import com.example.ui.theme.LocaliStoryGradient
+import com.example.util.CurrencyHelper
+import com.example.util.LocaliCurrency
+import com.example.util.LocaliLanguage
+import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +93,12 @@ fun ProfileScreen(
     onOpenLegalPolicy: () -> Unit = {},
     onResetDemoData: () -> Unit = {},
     onCreateContentClick: () -> Unit = {},
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    creatorEarnings: CreatorEarningsSummary? = null,
+    onOpenMonetizationHub: () -> Unit = {},
+    onOpenBoostAds: () -> Unit = {},
+    onOpenLanguageCurrency: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
@@ -214,6 +225,21 @@ fun ProfileScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
+                }
+
+                // Language & Currency Button
+                IconButton(
+                    onClick = onOpenLanguageCurrency,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .testTag("profile_language_currency_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Public,
+                        contentDescription = "Language & Currency",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp)
+                    )
                 }
 
                 // Privacy Settings Button
@@ -1142,6 +1168,20 @@ fun ProfileScreen(
                 otherUsers = otherUsers,
                 isLocationEnabled = isLocationEnabled,
                 isPrivateAccount = isPrivateAccount,
+                currentCurrency = currentCurrency,
+                currentLanguage = currentLanguage,
+                onOpenLanguageCurrency = {
+                    showMoreSettingsSheet = false
+                    onOpenLanguageCurrency()
+                },
+                onOpenMonetizationHub = {
+                    showMoreSettingsSheet = false
+                    onOpenMonetizationHub()
+                },
+                onOpenBoostAds = {
+                    showMoreSettingsSheet = false
+                    onOpenBoostAds()
+                },
                 onEditProfileClick = {
                     showMoreSettingsSheet = false
                     showEditProfileDialog = true
@@ -1523,6 +1563,11 @@ private fun ProfileSettingsSheetContent(
     otherUsers: List<OtherUserEntity>,
     isLocationEnabled: Boolean,
     isPrivateAccount: Boolean,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    onOpenLanguageCurrency: () -> Unit = {},
+    onOpenMonetizationHub: () -> Unit = {},
+    onOpenBoostAds: () -> Unit = {},
     onEditProfileClick: () -> Unit,
     onOpenPrivacySettings: () -> Unit,
     onOpenLegalPolicy: () -> Unit,
@@ -1586,6 +1631,37 @@ private fun ProfileSettingsSheetContent(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "WORLDWIDE REACH & MONETIZATION",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            color = Color(0xFF2E7D32)
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        SettingsRowItem(
+            icon = Icons.Default.Public,
+            title = "Worldwide Language & Currency",
+            subtitle = "${currentLanguage.nativeName} (${currentLanguage.code.uppercase()}) • ${currentCurrency.name} (${currentCurrency.symbol})",
+            onClick = onOpenLanguageCurrency
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.MonetizationOn,
+            title = "Creator Monetization & Payouts",
+            subtitle = "55% Creator rev-share, automated multi-currency bank/PayPal/UPI rails",
+            onClick = onOpenMonetizationHub
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.Campaign,
+            title = "Boost Post & Global Ads",
+            subtitle = "Promote your posts across 195+ countries & earn worldwide reach",
+            onClick = onOpenBoostAds
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 

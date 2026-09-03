@@ -61,6 +61,8 @@ fun ReelsScreen(
     onFollowToggle: (ReelEntity) -> Unit,
     onUserProfileClick: (String) -> Unit,
     onWaveClick: (ReelEntity) -> Unit = {},
+    onReportReel: ((ReelEntity, String) -> Unit)? = null,
+    onBlockCreator: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var showNearbyOnly by remember { mutableStateOf(false) }
@@ -114,7 +116,9 @@ fun ReelsScreen(
                 onShareReel = { onShareReel(reel) },
                 onSaveReel = { onSaveReel(reel) },
                 onFollowToggle = { onFollowToggle(reel) },
-                onUserProfileClick = { onUserProfileClick(reel.username) }
+                onUserProfileClick = { onUserProfileClick(reel.username) },
+                onReportReel = { reason -> onReportReel?.invoke(reel, reason) },
+                onBlockCreator = { onBlockCreator?.invoke(reel.username) }
             )
         }
 
@@ -203,13 +207,18 @@ private fun ReelItem(
     onShareReel: () -> Unit,
     onSaveReel: () -> Unit,
     onFollowToggle: () -> Unit,
-    onUserProfileClick: () -> Unit
+    onUserProfileClick: () -> Unit,
+    onReportReel: ((String) -> Unit)? = null,
+    onBlockCreator: (() -> Unit)? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isPlaying by remember { mutableStateOf(true) }
     var showBigHeart by remember { mutableStateOf(false) }
     var showPlayPauseOverlay by remember { mutableStateOf(false) }
     var isCaptionExpanded by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showReportSuccessSnackbar by remember { mutableStateOf(false) }
 
     val heartScale = remember { Animatable(1f) }
 
@@ -426,6 +435,53 @@ private fun ReelItem(
                 testTag = "reel_save_button_${reel.id}"
             )
 
+            // Moderation 3-Dots Menu
+            Box {
+                ReelActionButton(
+                    icon = Icons.Default.MoreVert,
+                    label = "",
+                    onClick = { showMenu = true },
+                    testTag = "reel_more_menu_button_${reel.id}"
+                )
+
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Report Reel 🚩") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Flag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            showReportDialog = true
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Block @${reel.username} 🚫") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Block,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            onBlockCreator?.invoke()
+                        }
+                    )
+                }
+            }
+
             // Rotating Audio Vinyl Disc
             Box(
                 modifier = Modifier
@@ -569,6 +625,102 @@ private fun ReelItem(
                 .align(Alignment.BottomCenter),
             color = Color.White,
             trackColor = Color.White.copy(alpha = 0.2f)
+        )
+    }
+
+    // UGC Compliance: Report Reel Dialog
+    if (showReportDialog) {
+        val reportReasons = listOf(
+            "Spam, Scam or Misleading",
+            "Harassment, Bullying or Hate Speech",
+            "Sexually Explicit or Inappropriate Content",
+            "Violence or Dangerous Behavior",
+            "Copyright or Intellectual Property Violation"
+        )
+        var selectedReason by remember { mutableStateOf(reportReasons.first()) }
+
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Text("Report Reel", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Why are you reporting this clip by @${reel.username}?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    reportReasons.forEach { reason ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedReason = reason }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = selectedReason == reason,
+                                onClick = { selectedReason = reason }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = reason, fontSize = 13.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportDialog = false
+                        onReportReel?.invoke(selectedReason)
+                        showReportSuccessSnackbar = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Submit Report", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showReportSuccessSnackbar) {
+        AlertDialog(
+            onDismissRequest = { showReportSuccessSnackbar = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = { Text("Report Received", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Thank you for reporting. This clip has been submitted for moderator review and hidden from your feed.",
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(onClick = { showReportSuccessSnackbar = false }) {
+                    Text("OK")
+                }
+            }
         )
     }
 }

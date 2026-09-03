@@ -52,6 +52,10 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.MoreVert
+
 @Composable
 fun PostCard(
     post: PostEntity,
@@ -60,11 +64,16 @@ fun PostCard(
     onShareClick: () -> Unit,
     onSaveClick: () -> Unit,
     onUserClick: () -> Unit,
+    onReportClick: ((String) -> Unit)? = null,
+    onBlockUserClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
     var showBigHeart by remember { mutableStateOf(false) }
     var isCaptionExpanded by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showReportSuccessSnackbar by remember { mutableStateOf(false) }
 
     // Heart scale animation
     val heartScale = remember { Animatable(1f) }
@@ -172,34 +181,92 @@ fun PostCard(
                     }
                 }
 
-                // Localiiiy Distance Pill Badge
-                val distanceLabel = LocationHelper.formatDistanceLabel(post.distanceKm)
-                Surface(
-                    color = if (post.isNeighbor) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(100.dp),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(100.dp))
-                        .clickable(onClick = onUserClick)
+                // Localiiiy Distance Pill Badge & Moderation Menu
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    val distanceLabel = LocationHelper.formatDistanceLabel(post.distanceKm)
+                    Surface(
+                        color = if (post.isNeighbor) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer,
+                        shape = RoundedCornerShape(100.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(100.dp))
+                            .clickable(onClick = onUserClick)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Distance",
-                            tint = if (post.isNeighbor) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(11.dp)
-                        )
-                        Text(
-                            text = distanceLabel,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            color = if (post.isNeighbor) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "Distance",
+                                tint = if (post.isNeighbor) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Text(
+                                text = distanceLabel,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = if (post.isNeighbor) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
+
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier
+                                .size(28.dp)
+                                .testTag("post_menu_button_${post.id}")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More options",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Report Post 🚩") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Flag,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    showReportDialog = true
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Block @${post.username} 🚫") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Block,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onBlockUserClick?.invoke()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -423,6 +490,103 @@ fun PostCard(
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
             )
         }
+    }
+
+    // UGC Compliance: In-App Content Reporting Dialog
+    if (showReportDialog) {
+        val reportReasons = listOf(
+            "Spam or Misleading Content",
+            "Harassment, Hate Speech or Bullying",
+            "Nudity or Inappropriate Content",
+            "Scam, Fraud or Counterfeit Goods",
+            "Dangerous or Illegal Activities",
+            "Intellectual Property Infringement"
+        )
+        var selectedReason by remember { mutableStateOf(reportReasons.first()) }
+
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Text("Report Content", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Help us keep the neighborhood safe. Why are you reporting this post by @${post.username}?",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    reportReasons.forEach { reason ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedReason = reason }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = selectedReason == reason,
+                                onClick = { selectedReason = reason }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = reason, fontSize = 13.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportDialog = false
+                        onReportClick?.invoke(selectedReason)
+                        showReportSuccessSnackbar = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Submit Report", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showReportSuccessSnackbar) {
+        AlertDialog(
+            onDismissRequest = { showReportSuccessSnackbar = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = { Text("Report Received", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "Thank you for reporting. Our moderation team reviews flagged content within 24 hours to enforce our Community Standards. This post has been hidden from your feed.",
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(onClick = { showReportSuccessSnackbar = false }) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 

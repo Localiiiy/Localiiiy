@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
@@ -34,6 +35,7 @@ fun LocaliTopBar(
     isPrivateAccount: Boolean = false,
     onLogoClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
+    onLanguageCurrencyClick: () -> Unit = {},
     onNotificationsClick: () -> Unit,
     onDirectMessagesClick: () -> Unit,
     onCreateClick: () -> Unit,
@@ -162,17 +164,33 @@ fun LocaliTopBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Broadcast Pulse",
+                            contentDescription = "Create Post",
                             tint = Color.White,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "Pulse",
+                            text = "Post",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
                     }
+                }
+
+                // Worldwide Language & Currency Switcher
+                IconButton(
+                    onClick = onLanguageCurrencyClick,
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(CircleShape)
+                        .testTag("top_bar_world_currency_button")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Public,
+                        contentDescription = "Worldwide Language & Currency",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
 
                 // Notifications
@@ -234,26 +252,4 @@ fun LocaliTopBar(
         }
     }
 }
-
-// Alias for compatibility
-@Composable
-fun InstagramTopBar(
-    hasUnreadNotifications: Boolean,
-    hasUnreadMessages: Boolean,
-    currentLocationLabel: String? = null,
-    onLocationClick: () -> Unit = {},
-    onNotificationsClick: () -> Unit,
-    onDirectMessagesClick: () -> Unit,
-    onCreateClick: () -> Unit,
-    modifier: Modifier = Modifier
-) = LocaliTopBar(
-    hasUnreadNotifications = hasUnreadNotifications,
-    hasUnreadMessages = hasUnreadMessages,
-    currentLocationLabel = currentLocationLabel,
-    onLocationClick = onLocationClick,
-    onNotificationsClick = onNotificationsClick,
-    onDirectMessagesClick = onDirectMessagesClick,
-    onCreateClick = onCreateClick,
-    modifier = modifier
-)
 

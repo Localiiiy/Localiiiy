@@ -4,7 +4,7 @@ import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface InstagramDao {
+interface LocaliDao {
     // --- Posts ---
     @Query("SELECT * FROM posts ORDER BY timestamp DESC")
     fun getAllPosts(): Flow<List<PostEntity>>
@@ -233,6 +233,100 @@ interface InstagramDao {
 
     @Query("DELETE FROM marketplace_items WHERE id = :id")
     suspend fun deleteMarketplaceItem(id: Long)
+
+    // --- Localiiiy Studio Long Videos ---
+    @Query("SELECT * FROM studio_videos ORDER BY timestamp DESC")
+    fun getAllStudioVideos(): Flow<List<StudioVideoEntity>>
+
+    @Query("SELECT * FROM studio_videos WHERE category = :category ORDER BY timestamp DESC")
+    fun getStudioVideosByCategory(category: String): Flow<List<StudioVideoEntity>>
+
+    @Query("SELECT * FROM studio_videos WHERE id = :id")
+    suspend fun getStudioVideoById(id: Long): StudioVideoEntity?
+
+    @Query("SELECT * FROM studio_videos WHERE isSaved = 1 ORDER BY timestamp DESC")
+    fun getSavedStudioVideos(): Flow<List<StudioVideoEntity>>
+
+    @Query("SELECT * FROM studio_videos WHERE creatorUsername = :username ORDER BY timestamp DESC")
+    fun getStudioVideosByCreator(username: String): Flow<List<StudioVideoEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStudioVideo(video: StudioVideoEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStudioVideos(videos: List<StudioVideoEntity>)
+
+    @Update
+    suspend fun updateStudioVideo(video: StudioVideoEntity)
+
+    @Query("UPDATE studio_videos SET isLiked = :isLiked, likesCount = likesCount + :delta WHERE id = :id")
+    suspend fun updateStudioVideoLike(id: Long, isLiked: Boolean, delta: Int)
+
+    @Query("UPDATE studio_videos SET isSaved = :isSaved WHERE id = :id")
+    suspend fun updateStudioVideoSaved(id: Long, isSaved: Boolean)
+
+    @Query("UPDATE studio_videos SET isSubscribed = :isSubscribed WHERE creatorUsername = :creatorUsername")
+    suspend fun updateStudioCreatorSubscribed(creatorUsername: String, isSubscribed: Boolean)
+
+    @Query("UPDATE studio_videos SET viewsCount = viewsCount + 1 WHERE id = :id")
+    suspend fun incrementStudioVideoViews(id: Long)
+
+    @Query("DELETE FROM studio_videos WHERE id = :id")
+    suspend fun deleteStudioVideo(id: Long)
+
+    // --- Local Cache: User Activity ---
+    @Query("SELECT * FROM user_activity_cache ORDER BY timestamp DESC")
+    fun getAllUserActivities(): Flow<List<UserActivityEntity>>
+
+    @Query("SELECT * FROM user_activity_cache ORDER BY timestamp DESC LIMIT :limit")
+    fun getRecentUserActivities(limit: Int = 20): Flow<List<UserActivityEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserActivity(activity: UserActivityEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserActivities(activities: List<UserActivityEntity>)
+
+    @Query("DELETE FROM user_activity_cache WHERE id = :id")
+    suspend fun deleteUserActivity(id: Long)
+
+    @Query("DELETE FROM user_activity_cache")
+    suspend fun clearUserActivities()
+
+    // --- Local Cache: Saved Posts ---
+    @Query("SELECT * FROM saved_posts_cache ORDER BY savedTimestamp DESC")
+    fun getAllSavedPostsCache(): Flow<List<SavedPostEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSavedPostCache(savedPost: SavedPostEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSavedPostsCache(savedPosts: List<SavedPostEntity>)
+
+    @Query("DELETE FROM saved_posts_cache WHERE postId = :postId")
+    suspend fun deleteSavedPostCache(postId: Long)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_posts_cache WHERE postId = :postId)")
+    fun isPostInSavedCache(postId: Long): Flow<Boolean>
+
+    // --- Local Cache: Studio Drafts ---
+    @Query("SELECT * FROM studio_drafts_cache ORDER BY lastEditedTimestamp DESC")
+    fun getAllStudioDrafts(): Flow<List<StudioDraftEntity>>
+
+    @Query("SELECT * FROM studio_drafts_cache WHERE id = :id")
+    suspend fun getStudioDraftById(id: Long): StudioDraftEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateStudioDraft(draft: StudioDraftEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStudioDrafts(drafts: List<StudioDraftEntity>)
+
+    @Query("DELETE FROM studio_drafts_cache WHERE id = :id")
+    suspend fun deleteStudioDraft(id: Long)
+
+    @Query("DELETE FROM studio_drafts_cache")
+    suspend fun clearStudioDrafts()
 }
 
 

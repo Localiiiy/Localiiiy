@@ -85,8 +85,6 @@ fun LiveRadarComponent(
     var inspectUser by remember { mutableStateOf<OtherUserEntity?>(null) }
     var inspectPost by remember { mutableStateOf<PostEntity?>(null) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
-    var mapTheme by remember { mutableStateOf(MapVisualTheme.DARK_RADAR) }
-    var showMapLayer by remember { mutableStateOf(true) }
 
     // Proximity Radar sweep rotation animation
     val infiniteTransition = rememberInfiniteTransition(label = "RadarSweep")
@@ -202,38 +200,8 @@ fun LiveRadarComponent(
                         }
                     }
 
-                    // Header Controls: Map Layer Toggle & Privacy Shield
+                    // Header Controls: Privacy Shield
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        // Map Toggle
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = if (showMapLayer) LocaliPrimaryTeal.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.1f),
-                            border = BorderStroke(0.8.dp, if (showMapLayer) LocaliAccentMint else Color.Transparent),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100.dp))
-                                .clickable { showMapLayer = !showMapLayer }
-                                .testTag("radar_map_layer_toggle")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Map,
-                                    contentDescription = "Toggle Map",
-                                    tint = if (showMapLayer) LocaliAccentMint else Color.White.copy(alpha = 0.6f),
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = if (showMapLayer) "MAP ON" else "GRID",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
                         // Privacy Button
                         Surface(
                             shape = RoundedCornerShape(100.dp),
@@ -267,7 +235,7 @@ fun LiveRadarComponent(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // The Circular Proximity Radar Box with Live Google Map Background
+                // The Circular Proximity Radar Box
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -277,21 +245,7 @@ fun LiveRadarComponent(
                         .testTag("radar_canvas_container"),
                     contentAlignment = Alignment.Center
                 ) {
-                    // 1. Live Google Map Layer directly behind radar
-                    if (showMapLayer) {
-                        LiveGoogleMapBackground(
-                            latitude = userProfile.latitude,
-                            longitude = userProfile.longitude,
-                            locationName = userProfile.locationName,
-                            radiusKm = selectedRadiusKm,
-                            mapTheme = mapTheme,
-                            onThemeChange = { mapTheme = it },
-                            showMapControls = true,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    // 2. Proximity Radar Rings, Sweep Beam, and Target Vectors Canvas
+                    // Proximity Radar Rings, Sweep Beam, and Target Vectors Canvas
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val center = Offset(size.width / 2f, size.height / 2f)
                         val maxRadius = (min(size.width, size.height) / 2f) * 0.88f

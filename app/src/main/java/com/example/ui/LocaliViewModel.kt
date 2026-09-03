@@ -5,6 +5,10 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.*
+import com.example.util.CurrencyHelper
+import com.example.util.LocaliCurrency
+import com.example.util.LocaliLanguage
+import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
 import com.example.util.UserLocationData
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +19,7 @@ enum class MainNavigationTab {
     FEED,
     EXPLORE,
     MARKET,
+    STUDIO,
     CREATE,
     REELS,
     PROFILE
@@ -53,24 +58,35 @@ val PhotoFilters = listOf(
     FilterPreset("Neon", 0x22FF007F, 0.20f, 1.3f, 1.4f)
 )
 
-class InstagramViewModel(application: Application) : AndroidViewModel(application) {
+class LocaliViewModel(application: Application) : AndroidViewModel(application) {
 
     private val database = AppDatabase.getDatabase(application, viewModelScope)
-    private val repository = InstagramRepository(database.instagramDao())
+    private val repository = LocaliRepository(database.localiDao())
+
+    private val _blockedUsernames = MutableStateFlow<Set<String>>(setOf("spam_bot_99", "crypto_promos"))
+    val blockedUsernames: StateFlow<Set<String>> = _blockedUsernames.asStateFlow()
+
+    private val _reportedContentRecords = MutableStateFlow<List<String>>(emptyList())
+    val reportedContentRecords: StateFlow<List<String>> = _reportedContentRecords.asStateFlow()
 
     val allPosts: StateFlow<List<PostEntity>> = repository.allPosts
+        .combine(_blockedUsernames) { posts, blocked -> posts.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val feedPosts: StateFlow<List<PostEntity>> = repository.feedPosts
+        .combine(_blockedUsernames) { posts, blocked -> posts.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val allReels: StateFlow<List<ReelEntity>> = repository.allReels
+        .combine(_blockedUsernames) { reels, blocked -> reels.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val allStories: StateFlow<List<StoryEntity>> = repository.allStories
+        .combine(_blockedUsernames) { stories, blocked -> stories.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val savedPosts: StateFlow<List<PostEntity>> = repository.savedPosts
+        .combine(_blockedUsernames) { posts, blocked -> posts.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val userProfile: StateFlow<UserProfileEntity> = repository.userProfile
@@ -78,12 +94,14 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), InitialData.defaultProfile)
 
     val otherUsers: StateFlow<List<OtherUserEntity>> = repository.otherUsers
+        .combine(_blockedUsernames) { users, blocked -> users.filter { it.username !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val notifications: StateFlow<List<NotificationEntity>> = repository.notifications
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val conversations: StateFlow<List<DirectMessageEntity>> = repository.conversations
+        .combine(_blockedUsernames) { convos, blocked -> convos.filter { it.contactUsername !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val privacySettings: StateFlow<PrivacySettingsEntity> = repository.privacySettings
@@ -91,10 +109,56 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), InitialData.defaultPrivacySettings)
 
     val allMarketplaceItems: StateFlow<List<MarketplaceItemEntity>> = repository.allMarketplaceItems
+        .combine(_blockedUsernames) { items, blocked -> items.filter { it.sellerUsername !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val savedMarketplaceItems: StateFlow<List<MarketplaceItemEntity>> = repository.savedMarketplaceItems
+        .combine(_blockedUsernames) { items, blocked -> items.filter { it.sellerUsername !in blocked } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // --- Localiiiy Studio Flows ---
+    val allStudioVideos: StateFlow<List<StudioVideoEntity>> = repository.allStudioVideos
+        .combine(_blockedUsernames) { videos, blocked -> videos.filter { it.creatorUsername !in blocked } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val savedStudioVideos: StateFlow<List<StudioVideoEntity>> = repository.savedStudioVideos
+        .combine(_blockedUsernames) { videos, blocked -> videos.filter { it.creatorUsername !in blocked } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _selectedStudioCategory = MutableStateFlow("All")
+    val selectedStudioCategory: StateFlow<String> = _selectedStudioCategory.asStateFlow()
+
+    private val _studioSearchQuery = MutableStateFlow("")
+    val studioSearchQuery: StateFlow<String> = _studioSearchQuery.asStateFlow()
+
+    private val _activeStudioVideo = MutableStateFlow<StudioVideoEntity?>(null)
+    val activeStudioVideo: StateFlow<StudioVideoEntity?> = _activeStudioVideo.asStateFlow()
+
+    private val _isStudioVideoPlaying = MutableStateFlow(true)
+    val isStudioVideoPlaying: StateFlow<Boolean> = _isStudioVideoPlaying.asStateFlow()
+
+    private val _studioPlaybackProgress = MutableStateFlow(0.12f)
+    val studioPlaybackProgress: StateFlow<Float> = _studioPlaybackProgress.asStateFlow()
+
+    private val _isStudioUploadSheetOpen = MutableStateFlow(false)
+    val isStudioUploadSheetOpen: StateFlow<Boolean> = _isStudioUploadSheetOpen.asStateFlow()
+
+    private val _showStudioCreatorDashboard = MutableStateFlow(false)
+    val showStudioCreatorDashboard: StateFlow<Boolean> = _showStudioCreatorDashboard.asStateFlow()
+
+    // --- Room Database Local Cache Flows (User Activities, Saved Posts, Studio Drafts) ---
+    val allUserActivities: StateFlow<List<UserActivityEntity>> = repository.allUserActivities
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allSavedPostsCache: StateFlow<List<SavedPostEntity>> = repository.allSavedPostsCache
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allStudioDrafts: StateFlow<List<StudioDraftEntity>> = repository.allStudioDrafts
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // --- Main Pulse Feed Pull-to-Refresh State ---
+    private val _isRefreshingFeed = MutableStateFlow(false)
+    val isRefreshingFeed: StateFlow<Boolean> = _isRefreshingFeed.asStateFlow()
 
     // --- Marketplace UI & Filter states ---
     private val _selectedMarketCategory = MutableStateFlow("All")
@@ -207,10 +271,42 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
     private val _autoDetectedLocation = MutableStateFlow<UserLocationData?>(null)
     val autoDetectedLocation: StateFlow<UserLocationData?> = _autoDetectedLocation.asStateFlow()
 
+    // --- Worldwide Currency & Multi-Language Localization State ---
+    private val _currentCurrency = MutableStateFlow(LocaliCurrency.USD)
+    val currentCurrency: StateFlow<LocaliCurrency> = _currentCurrency.asStateFlow()
+
+    private val _currentLanguage = MutableStateFlow(LocaliLanguage.EN)
+    val currentLanguage: StateFlow<LocaliLanguage> = _currentLanguage.asStateFlow()
+
+    private val _showLanguageCurrencyDialog = MutableStateFlow(false)
+    val showLanguageCurrencyDialog: StateFlow<Boolean> = _showLanguageCurrencyDialog.asStateFlow()
+
+    // --- Worldwide Creator Monetization, Ads & Global Payout State ---
+    private val _creatorEarnings = MutableStateFlow(CreatorEarningsSummary())
+    val creatorEarnings: StateFlow<CreatorEarningsSummary> = _creatorEarnings.asStateFlow()
+
+    private val _payoutAccount = MutableStateFlow(CreatorPayoutAccount())
+    val payoutAccount: StateFlow<CreatorPayoutAccount> = _payoutAccount.asStateFlow()
+
+    private val _payoutHistory = MutableStateFlow(StarterMonetizationData.starterPayoutHistory)
+    val payoutHistory: StateFlow<List<PayoutTransaction>> = _payoutHistory.asStateFlow()
+
+    private val _platformMetrics = MutableStateFlow(PlatformAdRevenueMetrics())
+    val platformMetrics: StateFlow<PlatformAdRevenueMetrics> = _platformMetrics.asStateFlow()
+
+    private val _sponsoredAds = MutableStateFlow(StarterMonetizationData.sampleSponsoredAds)
+    val sponsoredAds: StateFlow<List<AdPlacement>> = _sponsoredAds.asStateFlow()
+
+    private val _showMonetizationHub = MutableStateFlow(false)
+    val showMonetizationHub: StateFlow<Boolean> = _showMonetizationHub.asStateFlow()
+
+    private val _showBoostAdDialog = MutableStateFlow(false)
+    val showBoostAdDialog: StateFlow<Boolean> = _showBoostAdDialog.asStateFlow()
+
     init {
         // Initial DB population & location detection
         viewModelScope.launch(Dispatchers.IO) {
-            val dao = database.instagramDao()
+            val dao = database.localiDao()
             if (dao.getPostById(1) == null) {
                 dao.insertOrUpdateProfile(InitialData.defaultProfile)
                 dao.insertStories(InitialData.starterStories)
@@ -467,16 +563,39 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // --- Like / Save / Follow Operations ---
+    // --- Like / Save / Follow Operations & Local Activity Caching ---
     fun togglePostLike(post: PostEntity) {
         viewModelScope.launch {
+            val willBeLiked = !post.isLiked
             repository.togglePostLike(post.id, post.isLiked)
+            if (willBeLiked) {
+                recordUserActivity(
+                    activityType = "LIKED_POST",
+                    targetId = post.id.toString(),
+                    targetTitle = post.caption.take(80),
+                    targetPreviewUrl = post.mediaUrl,
+                    extraDetails = "Sparked post by @${post.username}"
+                )
+            }
         }
     }
 
     fun togglePostSave(post: PostEntity) {
         viewModelScope.launch {
+            val willBeSaved = !post.isSaved
             repository.togglePostSave(post.id, post.isSaved)
+            if (willBeSaved) {
+                repository.cacheSavedPost(post)
+                recordUserActivity(
+                    activityType = "SAVED_POST",
+                    targetId = post.id.toString(),
+                    targetTitle = "${post.landmark ?: post.location ?: "Neighborhood"}: ${post.caption.take(60)}",
+                    targetPreviewUrl = post.mediaUrl,
+                    extraDetails = "Saved pulse from @${post.username}"
+                )
+            } else {
+                repository.removeSavedPostFromCache(post.id)
+            }
         }
     }
 
@@ -1118,6 +1237,74 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun blockUser(username: String) {
+        if (username.isBlank()) return
+        _blockedUsernames.value = _blockedUsernames.value + username
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = privacySettings.value
+            repository.savePrivacySettings(current.copy(blockedAccountsCount = _blockedUsernames.value.size))
+        }
+    }
+
+    fun unblockUser(username: String) {
+        _blockedUsernames.value = _blockedUsernames.value - username
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = privacySettings.value
+            repository.savePrivacySettings(current.copy(blockedAccountsCount = _blockedUsernames.value.size))
+        }
+    }
+
+    fun reportPost(postId: Long, reason: String) {
+        val post = allPosts.value.firstOrNull { it.id == postId }
+        val author = post?.username ?: "unknown"
+        reportContent("POST", postId, author, reason)
+    }
+
+    fun reportUser(username: String, reason: String) {
+        reportContent("USER", 0L, username, reason)
+    }
+
+    fun reportContent(contentType: String, contentId: Long, authorUsername: String, reason: String) {
+        val record = "Reported $contentType #$contentId by @$authorUsername for '$reason' at ${System.currentTimeMillis()}"
+        _reportedContentRecords.value = _reportedContentRecords.value + record
+        // Instantly block or hide content from bad actor if offensive/harassment
+        if (reason.contains("Harassment", ignoreCase = true) || reason.contains("Hate", ignoreCase = true) || reason.contains("Scam", ignoreCase = true)) {
+            blockUser(authorUsername)
+        }
+    }
+
+    fun deleteAccountAndPurgeData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentUsername = userProfile.value.username
+            // 1. Purge all user created content
+            allPosts.value.filter { it.username == currentUsername }.forEach { repository.deletePost(it.id) }
+            allReels.value.filter { it.username == currentUsername }.forEach { repository.deleteReel(it.id) }
+            allMarketplaceItems.value.filter { it.sellerUsername == currentUsername }.forEach { repository.deleteMarketplaceItem(it.id) }
+            
+            // 2. Erase user profile data to default blank state (Apple 5.1.1(v) & GDPR Compliant)
+            val blankProfile = UserProfileEntity(
+                id = 1,
+                username = "guest_${System.currentTimeMillis() % 10000}",
+                fullName = "New Neighbor",
+                avatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&auto=format&fit=crop&q=80",
+                bio = "Fresh local account.",
+                website = "",
+                category = "Neighbor",
+                locationName = "Seattle, WA",
+                neighborhood = "Downtown",
+                latitude = 47.6062,
+                longitude = -122.3321,
+                postsCount = 0,
+                followersCount = 0,
+                followingCount = 0,
+                neighborsCount = 0,
+                isVerified = false
+            )
+            repository.updateProfile(blankProfile)
+            _isLoggedOut.value = true
+        }
+    }
+
     fun logoutUser() {
         _isLoggedOut.value = true
     }
@@ -1131,5 +1318,377 @@ class InstagramViewModel(application: Application) : AndroidViewModel(applicatio
             repository.updateProfile(InitialData.defaultProfile)
             _isLoggedOut.value = false
         }
+    }
+
+    // --- Localiiiy Studio Methods ---
+    fun setStudioCategory(category: String) {
+        _selectedStudioCategory.value = category
+    }
+
+    fun setStudioSearchQuery(query: String) {
+        _studioSearchQuery.value = query
+    }
+
+    fun openStudioVideo(video: StudioVideoEntity) {
+        _activeStudioVideo.value = video
+        _isStudioVideoPlaying.value = true
+        _studioPlaybackProgress.value = 0.05f
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.recordStudioVideoView(video.id)
+        }
+    }
+
+    fun closeStudioVideo() {
+        _activeStudioVideo.value = null
+        _isStudioVideoPlaying.value = false
+    }
+
+    fun toggleStudioPlayPause() {
+        _isStudioVideoPlaying.value = !_isStudioVideoPlaying.value
+    }
+
+    fun setStudioPlaybackProgress(progress: Float) {
+        _studioPlaybackProgress.value = progress.coerceIn(0f, 1f)
+    }
+
+    fun openStudioUploadSheet() {
+        _isStudioUploadSheetOpen.value = true
+    }
+
+    fun closeStudioUploadSheet() {
+        _isStudioUploadSheetOpen.value = false
+    }
+
+    fun toggleStudioCreatorDashboard() {
+        _showStudioCreatorDashboard.value = !_showStudioCreatorDashboard.value
+    }
+
+    fun toggleStudioVideoLike(video: StudioVideoEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.toggleStudioVideoLike(video.id, video.isLiked)
+            _activeStudioVideo.value?.let { current ->
+                if (current.id == video.id) {
+                    val delta = if (video.isLiked) -1 else 1
+                    _activeStudioVideo.value = current.copy(
+                        isLiked = !video.isLiked,
+                        likesCount = current.likesCount + delta,
+                        isDisliked = false
+                    )
+                }
+            }
+        }
+    }
+
+    fun toggleStudioVideoSave(video: StudioVideoEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.toggleStudioVideoSave(video.id, video.isSaved)
+            _activeStudioVideo.value?.let { current ->
+                if (current.id == video.id) {
+                    _activeStudioVideo.value = current.copy(isSaved = !video.isSaved)
+                }
+            }
+        }
+    }
+
+    fun toggleStudioCreatorSubscription(creatorUsername: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentSubscribed = allStudioVideos.value.firstOrNull { it.creatorUsername == creatorUsername }?.isSubscribed ?: false
+            repository.toggleStudioCreatorSubscription(creatorUsername, currentSubscribed)
+            _activeStudioVideo.value?.let { current ->
+                if (current.creatorUsername == creatorUsername) {
+                    _activeStudioVideo.value = current.copy(isSubscribed = !currentSubscribed)
+                }
+            }
+            // Keep social graph synchronized
+            otherUsers.value.find { it.username == creatorUsername }?.let { otherUser ->
+                repository.toggleOtherUserFollow(creatorUsername, otherUser.isFollowing)
+            }
+        }
+    }
+
+    fun uploadStudioVideo(
+        title: String,
+        description: String,
+        category: String,
+        durationSeconds: Int,
+        videoUrl: String,
+        thumbnailUrl: String,
+        resolution: String = "4K Ultra HD",
+        tags: String = "#Localiiiy #Studio",
+        chapters: String = ""
+    ): Boolean {
+        // Enforce YouTube long-video duration: minimum 60 seconds, maximum 240 minutes (14,400s)
+        if (durationSeconds < 60 || durationSeconds > 14400) {
+            return false
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val profile = userProfile.value
+            val minutes = durationSeconds / 60
+            val seconds = durationSeconds % 60
+            val formattedDuration = if (minutes >= 60) {
+                val hours = minutes / 60
+                val remainingMins = minutes % 60
+                String.format("%d:%02d:%02d", hours, remainingMins, seconds)
+            } else {
+                String.format("%02d:%02d", minutes, seconds)
+            }
+
+            val newVideo = StudioVideoEntity(
+                title = title.trim(),
+                description = description.trim().ifEmpty { "Created with Localiiiy Studio. Full length creator video ($formattedDuration)." },
+                videoUrl = videoUrl.trim().ifEmpty { "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+                thumbnailUrl = thumbnailUrl.trim().ifEmpty { "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80" },
+                durationSeconds = durationSeconds,
+                category = category,
+                creatorUsername = profile.username,
+                creatorFullName = profile.fullName,
+                creatorAvatar = profile.avatarUrl,
+                creatorSubscribersCount = "${profile.followersCount / 1000}K subscribers",
+                isSubscribed = true,
+                viewsCount = 1,
+                viewsFormatted = "1 view",
+                likesCount = 1,
+                isLiked = true,
+                uploadDateFormatted = "Just now",
+                tags = tags,
+                resolution = resolution,
+                chapters = chapters.ifEmpty { "00:00 - Introduction\n05:00 - Main Content\n$formattedDuration - Conclusion" },
+                isCreatorPick = false,
+                isTrending = false
+            )
+            repository.createStudioVideo(newVideo)
+            _isStudioUploadSheetOpen.value = false
+        }
+        return true
+    }
+
+    fun deleteStudioVideo(videoId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteStudioVideo(videoId)
+            if (_activeStudioVideo.value?.id == videoId) {
+                _activeStudioVideo.value = null
+            }
+        }
+    }
+
+    // --- User Activity & Studio Draft Caching Operations ---
+    fun recordUserActivity(
+        activityType: String,
+        targetId: String,
+        targetTitle: String,
+        targetPreviewUrl: String? = null,
+        extraDetails: String? = null
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.cacheUserActivity(
+                UserActivityEntity(
+                    activityType = activityType,
+                    targetId = targetId,
+                    targetTitle = targetTitle,
+                    targetPreviewUrl = targetPreviewUrl,
+                    extraDetails = extraDetails,
+                    timestamp = System.currentTimeMillis()
+                )
+            )
+        }
+    }
+
+    fun refreshPulseFeed() {
+        viewModelScope.launch {
+            _isRefreshingFeed.value = true
+            recordUserActivity(
+                activityType = "PULSE_REFRESH",
+                targetId = "feed_radar",
+                targetTitle = "Refreshed Hyperlocal Pulse Feed",
+                extraDetails = "Synchronized neighborhood radar (${_nearbyRadiusKm.value ?: 3.0} km)"
+            )
+            kotlinx.coroutines.delay(900)
+            _isRefreshingFeed.value = false
+        }
+    }
+
+    fun saveStudioDraft(
+        title: String,
+        description: String = "",
+        category: String = "Music",
+        durationSeconds: Int = 300,
+        videoUri: String = "",
+        thumbnailUri: String = "",
+        resolution: String = "4K Ultra HD",
+        tags: String = "#Localiiiy #Studio",
+        chapters: String = ""
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val draft = StudioDraftEntity(
+                title = title,
+                description = description,
+                category = category,
+                durationSeconds = durationSeconds,
+                videoUri = videoUri,
+                thumbnailUri = thumbnailUri,
+                resolution = resolution,
+                tags = tags,
+                chapters = chapters
+            )
+            val draftId = repository.saveStudioDraft(draft)
+            recordUserActivity(
+                activityType = "CREATED_DRAFT",
+                targetId = draftId.toString(),
+                targetTitle = title,
+                targetPreviewUrl = thumbnailUri.ifBlank { null },
+                extraDetails = "Category: $category • Length: ${durationSeconds / 60}m"
+            )
+        }
+    }
+
+    fun deleteStudioDraft(draftId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteStudioDraft(draftId)
+        }
+    }
+
+    // --- Worldwide Currency & Multi-Language Functions ---
+    fun setCurrency(currency: LocaliCurrency) {
+        _currentCurrency.value = currency
+    }
+
+    fun setLanguage(language: LocaliLanguage) {
+        _currentLanguage.value = language
+    }
+
+    fun openLanguageCurrencyDialog() {
+        _showLanguageCurrencyDialog.value = true
+    }
+
+    fun closeLanguageCurrencyDialog() {
+        _showLanguageCurrencyDialog.value = false
+    }
+
+    // --- Worldwide Creator Monetization & Ads Functions ---
+    fun openMonetizationHub() {
+        _showMonetizationHub.value = true
+    }
+
+    fun closeMonetizationHub() {
+        _showMonetizationHub.value = false
+    }
+
+    fun openBoostAdDialog() {
+        _showBoostAdDialog.value = true
+    }
+
+    fun closeBoostAdDialog() {
+        _showBoostAdDialog.value = false
+    }
+
+    fun recordAdImpression(adId: String) {
+        val currentAd = _sponsoredAds.value.find { it.id == adId } ?: return
+        val cpmEarn = currentAd.cpmRateUSD / 1000.0
+        val creatorCut = cpmEarn * 0.55
+        val platformCut = cpmEarn * 0.45
+
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                monetizedViews = cur.monetizedViews + 1,
+                feedSponsoredAdUSD = cur.feedSponsoredAdUSD + creatorCut,
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + creatorCut,
+                availableBalanceUSD = cur.availableBalanceUSD + creatorCut
+            )
+        }
+
+        _platformMetrics.update { cur ->
+            cur.copy(
+                grossAdRevenueWorldwideUSD = cur.grossAdRevenueWorldwideUSD + cpmEarn,
+                platformNetCommissionUSD = cur.platformNetCommissionUSD + platformCut,
+                creatorsDisbursedUSD = cur.creatorsDisbursedUSD + creatorCut,
+                totalAdImpressionsServed = cur.totalAdImpressionsServed + 1
+            )
+        }
+    }
+
+    fun recordAdClick(adId: String) {
+        val currentAd = _sponsoredAds.value.find { it.id == adId } ?: return
+        val cpcEarn = currentAd.cpcRateUSD
+        val creatorCut = cpcEarn * 0.55
+        val platformCut = cpcEarn * 0.45
+
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                feedSponsoredAdUSD = cur.feedSponsoredAdUSD + creatorCut,
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + creatorCut,
+                availableBalanceUSD = cur.availableBalanceUSD + creatorCut
+            )
+        }
+
+        _platformMetrics.update { cur ->
+            cur.copy(
+                grossAdRevenueWorldwideUSD = cur.grossAdRevenueWorldwideUSD + cpcEarn,
+                platformNetCommissionUSD = cur.platformNetCommissionUSD + platformCut,
+                creatorsDisbursedUSD = cur.creatorsDisbursedUSD + creatorCut
+            )
+        }
+    }
+
+    fun requestPayout(amountUSD: Double): Boolean {
+        val earnings = _creatorEarnings.value
+        val minPayout = _payoutAccount.value.minimumPayoutUSD
+        if (amountUSD < minPayout || amountUSD > earnings.availableBalanceUSD) {
+            return false
+        }
+
+        val targetCurr = _currentCurrency.value
+        val localAmount = CurrencyHelper.convertFromUSD(amountUSD, targetCurr)
+
+        val tx = PayoutTransaction(
+            id = "TX-${System.currentTimeMillis() % 100000}-GLB",
+            amountUSD = amountUSD,
+            targetCurrencyCode = targetCurr.code,
+            amountInLocalCurrency = localAmount,
+            status = "PROCESSING",
+            payoutMethod = _payoutAccount.value.payoutMethod,
+            referenceId = "PAY-${System.currentTimeMillis()}"
+        )
+
+        _payoutHistory.update { listOf(tx) + it }
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                availableBalanceUSD = cur.availableBalanceUSD - amountUSD,
+                pendingPayoutUSD = cur.pendingPayoutUSD + amountUSD
+            )
+        }
+        return true
+    }
+
+    fun updatePayoutAccount(updated: CreatorPayoutAccount) {
+        _payoutAccount.value = updated
+    }
+
+    fun launchBoostCampaign(campaign: BoostCampaignRequest): Boolean {
+        val grossCostUSD = campaign.dailyBudgetUSD * campaign.durationDays
+        val platformCut = grossCostUSD * 0.45
+        val creatorCut = grossCostUSD * 0.55
+
+        _platformMetrics.update { cur ->
+            cur.copy(
+                grossAdRevenueWorldwideUSD = cur.grossAdRevenueWorldwideUSD + grossCostUSD,
+                platformNetCommissionUSD = cur.platformNetCommissionUSD + platformCut,
+                creatorsDisbursedUSD = cur.creatorsDisbursedUSD + creatorCut,
+                activeGlobalAdvertisers = cur.activeGlobalAdvertisers + 1
+            )
+        }
+        return true
+    }
+
+    fun tipCreatorSuperThanks(amountUSD: Double, creatorUsername: String): Boolean {
+        if (amountUSD <= 0.0) return false
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                superThanksTipsUSD = cur.superThanksTipsUSD + amountUSD,
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + amountUSD,
+                availableBalanceUSD = cur.availableBalanceUSD + amountUSD
+            )
+        }
+        return true
     }
 }

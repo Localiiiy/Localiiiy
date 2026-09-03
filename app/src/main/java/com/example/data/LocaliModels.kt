@@ -218,4 +218,81 @@ data class MarketplaceItemEntity(
     val deliveryOption: String = "Local Meetup / Pickup" // "Local Meetup", "Neighborhood Drop-off", "Contactless Pickup"
 )
 
+@Entity(tableName = "studio_videos")
+data class StudioVideoEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String,
+    val videoUrl: String,
+    val thumbnailUrl: String,
+    val durationSeconds: Int, // Must be >= 60 seconds and <= 14400 (240 minutes)
+    val category: String, // "Music", "News", "Podcasts", "Tech & Gadgets", "Neighborhood & Culture", "Documentaries", "Food & Cooking", "Gaming", "Education", "Entertainment"
+    val creatorUsername: String,
+    val creatorFullName: String,
+    val creatorAvatar: String,
+    val creatorSubscribersCount: String = "124K subscribers",
+    val isSubscribed: Boolean = false,
+    val viewsCount: Long = 14200,
+    val viewsFormatted: String = "14.2K views",
+    val likesCount: Int = 1250,
+    val dislikesCount: Int = 12,
+    val isLiked: Boolean = false,
+    val isDisliked: Boolean = false,
+    val isSaved: Boolean = false, // Watch Later
+    val uploadDateFormatted: String = "3 days ago",
+    val timestamp: Long = System.currentTimeMillis(),
+    val tags: String = "#Localiiiy #Studio #Creators",
+    val resolution: String = "4K Ultra HD",
+    val chapters: String = "00:00 - Introduction\n05:15 - Core Story\n18:30 - Deep Dive\n35:00 - Community Q&A",
+    val isCreatorPick: Boolean = false,
+    val isTrending: Boolean = false
+)
+
+// --- Local Room Cache: User Activity ---
+@Entity(tableName = "user_activity_cache")
+data class UserActivityEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val activityType: String, // "LIKED_POST", "SAVED_POST", "WATCHED_STUDIO_VIDEO", "WAVED_NEIGHBOR", "CREATED_DRAFT", "PUBLISHED_STUDIO_VIDEO"
+    val targetId: String,
+    val targetTitle: String,
+    val targetPreviewUrl: String? = null,
+    val extraDetails: String? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// --- Local Room Cache: Saved Posts ---
+@Entity(tableName = "saved_posts_cache")
+data class SavedPostEntity(
+    @PrimaryKey val postId: Long,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String = "",
+    val mediaUrl: String,
+    val mediaType: String = "IMAGE",
+    val caption: String,
+    val location: String? = null,
+    val landmark: String? = null,
+    val distanceKm: Double? = null,
+    val likesCount: Int = 0,
+    val collectionName: String = "All Saved",
+    val savedTimestamp: Long = System.currentTimeMillis()
+)
+
+// --- Local Room Cache: Localiiiy Studio Drafts ---
+@Entity(tableName = "studio_drafts_cache")
+data class StudioDraftEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String = "",
+    val category: String = "Music",
+    val videoUri: String = "",
+    val thumbnailUri: String = "",
+    val durationSeconds: Int = 300, // Default 5 mins
+    val tags: String = "#Localiiiy #Studio",
+    val chapters: String = "00:00 - Introduction",
+    val resolution: String = "4K Ultra HD",
+    val isReadyToPublish: Boolean = false,
+    val lastEditedTimestamp: Long = System.currentTimeMillis()
+)
+
 

@@ -28,6 +28,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.util.CurrencyHelper
+import com.example.util.LocaliCurrency
+import com.example.util.LocaliLanguage
+import com.example.util.LocaliStringKey
+import com.example.util.LocalizationHelper
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -59,24 +64,35 @@ data class MarketCategoryItem(
 
 val marketCategories = listOf(
     MarketCategoryItem("All", Icons.Default.Storefront),
-    MarketCategoryItem("Tech & Gear", Icons.Default.CameraAlt),
+    MarketCategoryItem("Cars & Vehicles", Icons.Default.DirectionsCar),
+    MarketCategoryItem("Bikes & Scooters", Icons.Default.DirectionsBike),
+    MarketCategoryItem("Lands & Plots", Icons.Default.Landscape),
+    MarketCategoryItem("Mobiles & Tablets", Icons.Default.Smartphone),
+    MarketCategoryItem("Electronics & Tech", Icons.Default.Tv),
+    MarketCategoryItem("Jobs & Services", Icons.Default.Work),
+    MarketCategoryItem("Furniture & Living", Icons.Default.Weekend),
+    MarketCategoryItem("Fashion & Style", Icons.Default.Checkroom),
+    MarketCategoryItem("Home & Garden", Icons.Default.Home),
     MarketCategoryItem("Farm & Fresh", Icons.Default.LocalFlorist),
-    MarketCategoryItem("Vintage & Style", Icons.Default.Checkroom),
-    MarketCategoryItem("Home & Deco", Icons.Default.Weekend),
-    MarketCategoryItem("Mobility & Bikes", Icons.Default.DirectionsBike),
-    MarketCategoryItem("Art & Craft", Icons.Default.Palette),
-    MarketCategoryItem("Books & Media", Icons.Default.MenuBook)
+    MarketCategoryItem("Art & Collectibles", Icons.Default.Palette),
+    MarketCategoryItem("Books & Sports", Icons.Default.MenuBook),
+    MarketCategoryItem("Pets & Pet Care", Icons.Default.Pets),
+    MarketCategoryItem("Beauty & Care", Icons.Default.Spa)
 )
 
 val sampleMarketPhotos = listOf(
-    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1528825871115-3581a5387919?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop&q=80",
-    "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&auto=format&fit=crop&q=80"
+    "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=600&auto=format&fit=crop&q=80", // Car
+    "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=600&auto=format&fit=crop&q=80", // Bike
+    "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=600&auto=format&fit=crop&q=80", // Land / Plot
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80", // Mobile
+    "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&auto=format&fit=crop&q=80", // Camera / Tech
+    "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&auto=format&fit=crop&q=80", // Service / Craft
+    "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&auto=format&fit=crop&q=80", // Furniture
+    "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600&auto=format&fit=crop&q=80", // Fashion
+    "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80", // Garden / Home
+    "https://images.unsplash.com/photo-1528825871115-3581a5387919?w=600&auto=format&fit=crop&q=80", // Fresh food
+    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80", // Art
+    "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=600&auto=format&fit=crop&q=80"  // Gadget / Keyboard
 )
 
 enum class MarketSubTab {
@@ -112,6 +128,9 @@ fun MarketScreen(
     onCloseDetailSheet: () -> Unit,
     onMessageSeller: (MarketplaceItemEntity) -> Unit,
     onToggleAvailability: (MarketplaceItemEntity) -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    onUserProfileClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var activeSubTab by remember { mutableStateOf(MarketSubTab.GOODS) }
@@ -133,7 +152,10 @@ fun MarketScreen(
     // Filter items based on category, keyword search, location search, and radius scale
     val filteredItems = remember(items, selectedCategory, searchQuery, locationQuery, radiusFilterKm) {
         items.filter { item ->
-            val matchesCategory = selectedCategory == "All" || item.category.equals(selectedCategory, ignoreCase = true)
+            val matchesCategory = selectedCategory == "All" ||
+                    item.category.equals(selectedCategory, ignoreCase = true) ||
+                    item.category.contains(selectedCategory, ignoreCase = true) ||
+                    selectedCategory.contains(item.category, ignoreCase = true)
             val matchesSearch = searchQuery.isBlank() ||
                     item.title.contains(searchQuery, ignoreCase = true) ||
                     item.description.contains(searchQuery, ignoreCase = true) ||
@@ -477,7 +499,8 @@ fun MarketScreen(
                         onRadiusFilterChange = onRadiusFilterChange,
                         onItemClick = onItemClick,
                         onToggleSaveItem = onToggleSaveItem,
-                        onOpenSellDialog = onOpenSellDialog
+                        onOpenSellDialog = onOpenSellDialog,
+                        currentCurrency = currentCurrency
                     )
                 }
 
@@ -508,7 +531,8 @@ fun MarketScreen(
                         savedItems = savedItems,
                         onItemClick = onItemClick,
                         onToggleSaveItem = onToggleSaveItem,
-                        onOpenSellDialog = onOpenSellDialog
+                        onOpenSellDialog = onOpenSellDialog,
+                        currentCurrency = currentCurrency
                     )
                 }
             }
@@ -520,7 +544,8 @@ fun MarketScreen(
                 onDismiss = onCloseSellDialog,
                 onPublishListing = onPublishItem,
                 onPublishPost = onPublishBuySellPost,
-                onPublishReel = onPublishBuySellReel
+                onPublishReel = onPublishBuySellReel,
+                currentCurrency = currentCurrency
             )
         }
 
@@ -531,7 +556,10 @@ fun MarketScreen(
                 onDismiss = onCloseDetailSheet,
                 onMessageSeller = { onMessageSeller(selectedItem) },
                 onToggleSave = { onToggleSaveItem(selectedItem) },
-                onToggleAvailability = { onToggleAvailability(selectedItem) }
+                onToggleAvailability = { onToggleAvailability(selectedItem) },
+                currentCurrency = currentCurrency,
+                currentLanguage = currentLanguage,
+                onUserProfileClick = onUserProfileClick
             )
         }
     }
@@ -546,7 +574,8 @@ private fun GoodsCatalogView(
     onRadiusFilterChange: (Double?) -> Unit,
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
-    onOpenSellDialog: () -> Unit
+    onOpenSellDialog: () -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -724,7 +753,8 @@ private fun GoodsCatalogView(
             MarketItemCard(
                 item = item,
                 onClick = { onItemClick(item) },
-                onToggleSave = { onToggleSaveItem(item) }
+                onToggleSave = { onToggleSaveItem(item) },
+                currentCurrency = currentCurrency
             )
         }
     }
@@ -1118,7 +1148,8 @@ private fun WatchlistCatalogView(
     savedItems: List<MarketplaceItemEntity>,
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
-    onOpenSellDialog: () -> Unit
+    onOpenSellDialog: () -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD
 ) {
     if (savedItems.isEmpty()) {
         Box(
@@ -1161,7 +1192,8 @@ private fun WatchlistCatalogView(
                 MarketItemCard(
                     item = item,
                     onClick = { onItemClick(item) },
-                    onToggleSave = { onToggleSaveItem(item) }
+                    onToggleSave = { onToggleSaveItem(item) },
+                    currentCurrency = currentCurrency
                 )
             }
         }
@@ -1173,6 +1205,7 @@ fun MarketItemCard(
     item: MarketplaceItemEntity,
     onClick: () -> Unit,
     onToggleSave: () -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1292,7 +1325,7 @@ fun MarketItemCard(
                         .padding(6.dp)
                 ) {
                     Text(
-                        text = "$${item.price.toInt()}",
+                        text = CurrencyHelper.format(item.price, currentCurrency),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
@@ -1395,13 +1428,14 @@ fun MarketSellMultiDialog(
     onDismiss: () -> Unit,
     onPublishListing: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit,
     onPublishPost: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit,
-    onPublishReel: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit
+    onPublishReel: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD
 ) {
     var creationFormat by remember { mutableStateOf(SellCreationFormat.BUY_SELL_POST) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Tech & Gear") }
+    var selectedCategory by remember { mutableStateOf("Cars & Vehicles") }
     var selectedCondition by remember { mutableStateOf("Like New") }
     var selectedPhotoUrl by remember { mutableStateOf(sampleMarketPhotos.first()) }
     var selectedDelivery by remember { mutableStateOf("Local Meetup / Pickup") }
@@ -1576,8 +1610,8 @@ fun MarketSellMultiDialog(
                 OutlinedTextField(
                     value = priceText,
                     onValueChange = { priceText = it },
-                    label = { Text("Price in USD ($)") },
-                    leadingIcon = { Text("$", fontWeight = FontWeight.Bold) },
+                    label = { Text("Price in ${currentCurrency.code} (${currentCurrency.symbol})") },
+                    leadingIcon = { Text(currentCurrency.symbol, fontWeight = FontWeight.Bold) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
@@ -1702,7 +1736,8 @@ fun MarketSellMultiDialog(
 
                 Button(
                     onClick = {
-                        val parsedPrice = priceText.toDoubleOrNull() ?: 0.0
+                        val rawPrice = priceText.toDoubleOrNull() ?: 0.0
+                        val parsedPrice = CurrencyHelper.convertToUSD(rawPrice, currentCurrency)
                         when (creationFormat) {
                             SellCreationFormat.CATALOG_ITEM -> {
                                 onPublishListing(
@@ -1783,9 +1818,14 @@ fun MarketItemDetailDialog(
     onDismiss: () -> Unit,
     onMessageSeller: () -> Unit,
     onToggleSave: () -> Unit,
-    onToggleAvailability: () -> Unit
+    onToggleAvailability: () -> Unit,
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    onUserProfileClick: (String) -> Unit = {}
 ) {
-    var offerAmount by remember { mutableStateOf("${item.price.toInt()}") }
+    var offerAmount by remember(item, currentCurrency) {
+        mutableStateOf("${CurrencyHelper.convertFromUSD(item.price, currentCurrency).toInt()}")
+    }
     var showOfferDialog by remember { mutableStateOf(false) }
 
     Dialog(
@@ -1870,7 +1910,7 @@ fun MarketItemDetailDialog(
                             .padding(start = 16.dp)
                     ) {
                         Text(
-                            text = "$${item.price.toInt()}",
+                            text = CurrencyHelper.format(item.price, currentCurrency),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
@@ -2070,6 +2110,16 @@ fun MarketItemDetailDialog(
                                     }
                                 }
                             }
+
+                            // Unified Space ID profile navigation
+                            OutlinedButton(
+                                onClick = { onUserProfileClick(item.sellerUsername) },
+                                shape = RoundedCornerShape(100.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.testTag("market_seller_space_btn")
+                            ) {
+                                Text("Space ID", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
 
@@ -2175,7 +2225,7 @@ fun MarketItemDetailDialog(
             text = {
                 Column {
                     Text(
-                        text = "Listed price is $${item.price.toInt()}. Enter your offer below:",
+                        text = "Listed price is ${CurrencyHelper.format(item.price, currentCurrency)}. Enter your offer below:",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -2183,8 +2233,8 @@ fun MarketItemDetailDialog(
                     OutlinedTextField(
                         value = offerAmount,
                         onValueChange = { offerAmount = it },
-                        label = { Text("Your Offer ($)") },
-                        leadingIcon = { Text("$", fontWeight = FontWeight.Bold) },
+                        label = { Text("Your Offer (${currentCurrency.symbol})") },
+                        leadingIcon = { Text(currentCurrency.symbol, fontWeight = FontWeight.Bold) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
@@ -2199,7 +2249,7 @@ fun MarketItemDetailDialog(
                         onMessageSeller()
                     }
                 ) {
-                    Text("Send Offer ($$offerAmount)")
+                    Text("Send Offer (${currentCurrency.symbol}$offerAmount)")
                 }
             },
             dismissButton = {

@@ -31,7 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.CommentEntity
 import com.example.data.UserProfileEntity
-import com.example.ui.theme.IgHeartRed
+import com.example.ui.theme.LocaliHeart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -301,7 +301,7 @@ private fun CommentItemRow(
             Icon(
                 imageVector = if (comment.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
                 contentDescription = "Like comment",
-                tint = if (comment.isLiked) IgHeartRed else MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = if (comment.isLiked) LocaliHeart else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
         }

@@ -2,7 +2,7 @@ package com.example.data
 
 import kotlinx.coroutines.flow.Flow
 
-class InstagramRepository(private val dao: InstagramDao) {
+class LocaliRepository(private val dao: LocaliDao) {
 
     val allPosts: Flow<List<PostEntity>> = dao.getAllPosts()
     val feedPosts: Flow<List<PostEntity>> = dao.getFeedPosts()
@@ -16,6 +16,8 @@ class InstagramRepository(private val dao: InstagramDao) {
     val privacySettings: Flow<PrivacySettingsEntity?> = dao.getPrivacySettings()
     val allMarketplaceItems: Flow<List<MarketplaceItemEntity>> = dao.getAllMarketplaceItems()
     val savedMarketplaceItems: Flow<List<MarketplaceItemEntity>> = dao.getSavedMarketplaceItems()
+    val allStudioVideos: Flow<List<StudioVideoEntity>> = dao.getAllStudioVideos()
+    val savedStudioVideos: Flow<List<StudioVideoEntity>> = dao.getSavedStudioVideos()
 
     fun getPostsByUsername(username: String): Flow<List<PostEntity>> {
         return dao.getPostsByUsername(username)
@@ -303,6 +305,105 @@ class InstagramRepository(private val dao: InstagramDao) {
 
     suspend fun deleteMarketplaceItem(itemId: Long) {
         dao.deleteMarketplaceItem(itemId)
+    }
+
+    // --- Studio Long Videos ---
+    fun getStudioVideosByCategory(category: String): Flow<List<StudioVideoEntity>> {
+        return dao.getStudioVideosByCategory(category)
+    }
+
+    suspend fun createStudioVideo(video: StudioVideoEntity): Long {
+        return dao.insertStudioVideo(video)
+    }
+
+    suspend fun toggleStudioVideoLike(videoId: Long, currentLiked: Boolean) {
+        val delta = if (currentLiked) -1 else 1
+        dao.updateStudioVideoLike(videoId, !currentLiked, delta)
+    }
+
+    suspend fun toggleStudioVideoSave(videoId: Long, currentSaved: Boolean) {
+        dao.updateStudioVideoSaved(videoId, !currentSaved)
+    }
+
+    suspend fun toggleStudioCreatorSubscription(creatorUsername: String, isSubscribed: Boolean) {
+        dao.updateStudioCreatorSubscribed(creatorUsername, !isSubscribed)
+    }
+
+    suspend fun recordStudioVideoView(videoId: Long) {
+        dao.incrementStudioVideoViews(videoId)
+    }
+
+    suspend fun deleteStudioVideo(videoId: Long) {
+        dao.deleteStudioVideo(videoId)
+    }
+
+    // --- Local Room Cache: User Activity ---
+    val allUserActivities: Flow<List<UserActivityEntity>> = dao.getAllUserActivities()
+
+    fun getRecentUserActivities(limit: Int = 20): Flow<List<UserActivityEntity>> {
+        return dao.getRecentUserActivities(limit)
+    }
+
+    suspend fun cacheUserActivity(activity: UserActivityEntity): Long {
+        return dao.insertUserActivity(activity)
+    }
+
+    suspend fun deleteUserActivity(id: Long) {
+        dao.deleteUserActivity(id)
+    }
+
+    suspend fun clearUserActivities() {
+        dao.clearUserActivities()
+    }
+
+    // --- Local Room Cache: Saved Posts ---
+    val allSavedPostsCache: Flow<List<SavedPostEntity>> = dao.getAllSavedPostsCache()
+
+    suspend fun cacheSavedPost(post: PostEntity, collection: String = "All Saved") {
+        dao.insertSavedPostCache(
+            SavedPostEntity(
+                postId = post.id,
+                username = post.username,
+                userAvatar = post.userAvatar,
+                userHandle = post.userHandle,
+                mediaUrl = post.mediaUrl,
+                mediaType = post.mediaType,
+                caption = post.caption,
+                location = post.location,
+                landmark = post.landmark,
+                distanceKm = post.distanceKm,
+                likesCount = post.likesCount,
+                collectionName = collection,
+                savedTimestamp = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun removeSavedPostFromCache(postId: Long) {
+        dao.deleteSavedPostCache(postId)
+    }
+
+    fun isPostInSavedCache(postId: Long): Flow<Boolean> {
+        return dao.isPostInSavedCache(postId)
+    }
+
+    // --- Local Room Cache: Localiiiy Studio Drafts ---
+    val allStudioDrafts: Flow<List<StudioDraftEntity>> = dao.getAllStudioDrafts()
+
+    suspend fun getStudioDraftById(id: Long): StudioDraftEntity? {
+        return dao.getStudioDraftById(id)
+    }
+
+    suspend fun saveStudioDraft(draft: StudioDraftEntity): Long {
+        return dao.insertOrUpdateStudioDraft(draft)
+    }
+
+    suspend fun deleteStudioDraft(id: Long) {
+        dao.deleteStudioDraft(id)
+    }
+
+    suspend fun clearStudioDrafts() {
+        dao.clearStudioDrafts()
     }
 }
 

@@ -51,6 +51,7 @@ fun PrivacySettingsScreen(
     onUpdateSensitiveContentFilter: (String) -> Unit,
     onOpenLegalPolicy: () -> Unit = {},
     onResetDefaults: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showPrivateAccountConfirmDialog by remember { mutableStateOf(false) }
@@ -61,6 +62,8 @@ fun PrivacySettingsScreen(
     var showTagsDialog by remember { mutableStateOf(false) }
     var showSensitiveDialog by remember { mutableStateOf(false) }
     var showBlockedAccountsDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmDialog by remember { mutableStateOf(false) }
+    var deleteAccountConfirmationText by remember { mutableStateOf("") }
 
     // Mock blocked accounts list for user management
     var blockedUsers by remember {
@@ -541,6 +544,78 @@ fun PrivacySettingsScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // ==========================================
+            // CARD 9: ACCOUNT DELETION & DATA PURGE (Google Play & Apple Requirement)
+            // ==========================================
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.3f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("privacy_card_account_deletion")
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            text = "Account Deletion & Right to Be Forgotten",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "In compliance with Google Play Developer Policy and Apple App Store Review Guideline 5.1.1(v), you can permanently delete your account and all associated personal data (posts, clips, marketplace listings, messages, and location history) at any time.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp, lineHeight = 15.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = {
+                            deleteAccountConfirmationText = ""
+                            showDeleteAccountConfirmDialog = true
+                        },
+                        shape = RoundedCornerShape(100.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(38.dp)
+                            .testTag("privacy_delete_account_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteForever,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Permanently Delete Account & Data ⚠️",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
@@ -588,6 +663,78 @@ fun PrivacySettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showPrivateAccountConfirmDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // DIALOG: Permanent Account Deletion & Right to Be Forgotten
+    if (showDeleteAccountConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirmDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(36.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = "Delete Account Permanently?",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "This action is irreversible. In accordance with Apple Store Guideline 5.1.1(v) & Google Play Policies, proceeding will permanently erase:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "• All your published posts & stories\n• All uploaded clips & saved bookmarks\n• All marketplace classifieds & active listings\n• All chat histories & location beacons\n• Profile credentials & device tokens",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "To confirm, please type DELETE below:",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    OutlinedTextField(
+                        value = deleteAccountConfirmationText,
+                        onValueChange = { deleteAccountConfirmationText = it },
+                        placeholder = { Text("Type DELETE") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("delete_account_input")
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (deleteAccountConfirmationText.trim().equals("DELETE", ignoreCase = true)) {
+                            showDeleteAccountConfirmDialog = false
+                            onDeleteAccount()
+                        }
+                    },
+                    enabled = deleteAccountConfirmationText.trim().equals("DELETE", ignoreCase = true),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.testTag("confirm_delete_account_button")
+                ) {
+                    Text("Delete Everything", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountConfirmDialog = false }) {
                     Text("Cancel")
                 }
             }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Radar
@@ -42,13 +43,23 @@ import com.example.ui.theme.LocaliAccentCoral
 import com.example.ui.theme.LocaliAccentMint
 import com.example.ui.theme.LocaliDeepNavy
 import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.util.CurrencyHelper
+import com.example.util.LocaliCurrency
+import com.example.util.LocaliLanguage
+import com.example.util.LocaliStringKey
+import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
 
+import android.Manifest
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+
 enum class ExploreViewMode {
-    RADAR, // Circular Hyperlocal Map Interface
+    RADAR, // Circular Hyperlocal Proximity Radar Interface
     GRID   // Traditional 3-Column Stream Grid
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ExploreScreen(
     posts: List<PostEntity>,
@@ -68,8 +79,18 @@ fun ExploreScreen(
     onSavePost: (PostEntity) -> Unit,
     onUserProfileClick: (String) -> Unit = {},
     onWaveAtUser: (OtherUserEntity) -> Unit = {},
+    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
     modifier: Modifier = Modifier
 ) {
+    val locationPermissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
+    var bypassPermissionForPreview by remember { mutableStateOf(false) }
+
     var searchQuery by remember { mutableStateOf("") }
     var localRadiusKm by remember(selectedRadiusKm) { mutableStateOf(selectedRadiusKm ?: 3.0) }
     var exploreViewMode by remember { mutableStateOf(ExploreViewMode.RADAR) }
@@ -116,7 +137,7 @@ fun ExploreScreen(
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        text = "Search landmark, street, creator...",
+                        text = LocalizationHelper.getString(LocaliStringKey.SEARCH_HINT, currentLanguage),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -206,14 +227,14 @@ fun ExploreScreen(
             }
         }
 
-        // VIEW MODE: LIVE RADAR (Distinct Circular Map & Interactive Blip Interface)
-        if (exploreViewMode == ExploreViewMode.RADAR) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(androidx.compose.foundation.rememberScrollState())
-            ) {
-                // Main Interactive Live Radar Component
+        when (exploreViewMode) {
+            ExploreViewMode.RADAR -> {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                ) {
+                    // Main Interactive Live Radar Component
                 LiveRadarComponent(
                     userProfile = userProfile,
                     nearbyUsers = nearbyUsers,
@@ -383,9 +404,10 @@ fun ExploreScreen(
                     }
                 }
             }
-        } else {
-            // VIEW MODE: GRID VIEW
-            Column(modifier = Modifier.fillMaxSize()) {
+        }
+        ExploreViewMode.GRID -> {
+                // VIEW MODE: GRID VIEW
+                Column(modifier = Modifier.fillMaxSize()) {
                 // Radius Chips
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 2.dp),
@@ -495,6 +517,7 @@ fun ExploreScreen(
             }
         }
     }
+}
 
     // Detail modal
     if (selectedDetailPost != null) {

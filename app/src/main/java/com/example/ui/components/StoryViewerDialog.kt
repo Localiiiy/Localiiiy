@@ -31,7 +31,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.StoryEntity
-import com.example.ui.theme.IgHeartRed
+import com.example.ui.theme.LocaliHeart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -284,7 +284,7 @@ fun StoryViewerDialog(
                     Icon(
                         imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Like Story",
-                        tint = if (isLiked) IgHeartRed else Color.White,
+                        tint = if (isLiked) LocaliHeart else Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }

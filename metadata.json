@@ -1,6 +1,6 @@
 {
   "name": "Localiiiy",
-  "description": "Hyperlocal social discovery platform and community marketplace to explore nearby moments, live radar, local bazaar buy/sell, and proximity connections.",
+  "description": "All-in-one hyperlocal community platform: Pulse feed, Radar discovery, Marketplace, Localiiiy Studio for long-form creator videos (60s to 240 mins), Clips, and Space.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

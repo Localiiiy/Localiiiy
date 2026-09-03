@@ -33,19 +33,41 @@ import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.ui.CreationMode
-import com.example.ui.InstagramViewModel
+import com.example.ui.LocaliViewModel
 import com.example.ui.MainNavigationTab
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.ui.navigation.LocaliNavScreen
+import com.example.ui.navigation.LocaliNavigationComposeBottomBar
 import com.example.ui.components.*
 import com.example.ui.screens.*
 import com.example.ui.theme.LocaliAccentCoral
 import com.example.ui.theme.LocaliAccentMint
 import com.example.ui.theme.LocaliStoryGradient
 import com.example.ui.theme.LocaliTheme
+import com.example.util.LocaliCurrency
+import com.example.util.LocaliLanguage
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try {
+            if (FirebaseApp.getApps(this).isEmpty()) {
+                val options = FirebaseOptions.Builder()
+                    .setApplicationId("1:109876543210:android:abcdef0123456789")
+                    .setProjectId("localiiiy-app")
+                    .setApiKey("AIzaSyLocaliiiyFirebaseApiKeyMock")
+                    .build()
+                FirebaseApp.initializeApp(this, options)
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("MainActivity", "FirebaseApp init fallback: ${e.message}")
+        }
         enableEdgeToEdge()
         setContent {
             LocaliTheme {
@@ -57,7 +79,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun LocaliApp(
-    viewModel: InstagramViewModel = viewModel()
+    viewModel: LocaliViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
@@ -85,6 +107,7 @@ fun LocaliApp(
     val isLocationEnabled by viewModel.isLocationEnabled.collectAsStateWithLifecycle()
     val isPrivateAccount by viewModel.isPrivateAccount.collectAsStateWithLifecycle()
     val nearbyRadiusKm by viewModel.nearbyRadiusKm.collectAsStateWithLifecycle()
+    val isRefreshingFeed by viewModel.isRefreshingFeed.collectAsStateWithLifecycle()
 
     val selectedOtherUser by viewModel.selectedOtherUser.collectAsStateWithLifecycle()
     val activeConversation by viewModel.activeConversation.collectAsStateWithLifecycle()
@@ -109,6 +132,26 @@ fun LocaliApp(
     val selectedMarketplaceItem by viewModel.selectedMarketplaceItem.collectAsStateWithLifecycle()
     val showSellItemDialog by viewModel.showSellItemDialog.collectAsStateWithLifecycle()
 
+    val studioVideos by viewModel.allStudioVideos.collectAsStateWithLifecycle()
+    val selectedStudioCategory by viewModel.selectedStudioCategory.collectAsStateWithLifecycle()
+    val studioSearchQuery by viewModel.studioSearchQuery.collectAsStateWithLifecycle()
+    val activeStudioVideo by viewModel.activeStudioVideo.collectAsStateWithLifecycle()
+    val isStudioVideoPlaying by viewModel.isStudioVideoPlaying.collectAsStateWithLifecycle()
+    val studioPlaybackProgress by viewModel.studioPlaybackProgress.collectAsStateWithLifecycle()
+    val isStudioUploadSheetOpen by viewModel.isStudioUploadSheetOpen.collectAsStateWithLifecycle()
+    val showStudioCreatorDashboard by viewModel.showStudioCreatorDashboard.collectAsStateWithLifecycle()
+
+    val currentCurrency by viewModel.currentCurrency.collectAsStateWithLifecycle()
+    val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
+    val showLanguageCurrencyDialog by viewModel.showLanguageCurrencyDialog.collectAsStateWithLifecycle()
+    val showMonetizationHub by viewModel.showMonetizationHub.collectAsStateWithLifecycle()
+    val showBoostAdDialog by viewModel.showBoostAdDialog.collectAsStateWithLifecycle()
+    val creatorEarnings by viewModel.creatorEarnings.collectAsStateWithLifecycle()
+    val payoutAccount by viewModel.payoutAccount.collectAsStateWithLifecycle()
+    val payoutHistory by viewModel.payoutHistory.collectAsStateWithLifecycle()
+    val platformMetrics by viewModel.platformMetrics.collectAsStateWithLifecycle()
+    val sponsoredAds by viewModel.sponsoredAds.collectAsStateWithLifecycle()
+
     var showOpeningAnimation by remember { mutableStateOf(true) }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -126,6 +169,7 @@ fun LocaliApp(
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
                         onLogoClick = { showOpeningAnimation = true },
+                        onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
                         onNotificationsClick = { viewModel.openNotificationsSheet() },
                         onDirectMessagesClick = { viewModel.openDirectMessagesSheet() },
                         onCreateClick = {
@@ -179,6 +223,8 @@ fun LocaliApp(
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
+                        isRefreshing = isRefreshingFeed,
+                        onRefresh = { viewModel.refreshPulseFeed() },
                         onRadiusFilterChange = { radius -> viewModel.setNearbyRadiusFilter(radius) },
                         onLocationToggle = { enabled ->
                             viewModel.setLocationEnabled(enabled)
@@ -213,7 +259,14 @@ fun LocaliApp(
                         onMessageNeighbor = { user ->
                             viewModel.startChatWithUser(user)
                         },
-                        onPostClick = { post -> viewModel.selectExplorePost(post) }
+                        onPostClick = { post -> viewModel.selectExplorePost(post) },
+                        sponsoredAds = sponsoredAds,
+                        currentCurrency = currentCurrency,
+                        currentLanguage = currentLanguage,
+                        onAdImpression = { id -> viewModel.recordAdImpression(id) },
+                        onAdClick = { id -> viewModel.recordAdClick(id) },
+                        onBoostPostClick = { viewModel.openBoostAdDialog() },
+                        onOpenMonetizationHub = { viewModel.openMonetizationHub() }
                     )
                 }
 
@@ -293,7 +346,62 @@ fun LocaliApp(
                         },
                         onCloseDetailSheet = { viewModel.selectMarketplaceItem(null) },
                         onMessageSeller = { item -> viewModel.startChatForMarketItem(item) },
-                        onToggleAvailability = { item -> viewModel.toggleMarketItemAvailability(item) }
+                        onToggleAvailability = { item -> viewModel.toggleMarketItemAvailability(item) },
+                        currentCurrency = currentCurrency,
+                        currentLanguage = currentLanguage,
+                        onUserProfileClick = { username -> viewModel.openUserProfile(username) }
+                    )
+                }
+
+                MainNavigationTab.STUDIO -> {
+                    StudioScreen(
+                        videos = studioVideos,
+                        userProfile = userProfile,
+                        selectedCategory = selectedStudioCategory,
+                        searchQuery = studioSearchQuery,
+                        activeVideo = activeStudioVideo,
+                        isPlaying = isStudioVideoPlaying,
+                        playbackProgress = studioPlaybackProgress,
+                        isUploadSheetOpen = isStudioUploadSheetOpen,
+                        showCreatorDashboard = showStudioCreatorDashboard,
+                        onCategorySelected = { cat -> viewModel.setStudioCategory(cat) },
+                        onSearchQueryChange = { q -> viewModel.setStudioSearchQuery(q) },
+                        onVideoClick = { video -> viewModel.openStudioVideo(video) },
+                        onCloseVideo = { viewModel.closeStudioVideo() },
+                        onTogglePlayPause = { viewModel.toggleStudioPlayPause() },
+                        onSeek = { progress -> viewModel.setStudioPlaybackProgress(progress) },
+                        onLikeVideo = { video -> viewModel.toggleStudioVideoLike(video) },
+                        onSaveVideo = { video -> viewModel.toggleStudioVideoSave(video) },
+                        onSubscribeCreator = { username -> viewModel.toggleStudioCreatorSubscription(username) },
+                        onOpenUploadSheet = { viewModel.openStudioUploadSheet() },
+                        onCloseUploadSheet = { viewModel.closeStudioUploadSheet() },
+                        onToggleCreatorDashboard = { viewModel.toggleStudioCreatorDashboard() },
+                        onUploadVideo = { title, desc, cat, duration, videoUrl, thumbUrl, res, tags, chapters ->
+                            val success = viewModel.uploadStudioVideo(title, desc, cat, duration, videoUrl, thumbUrl, res, tags, chapters)
+                            if (success) {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Long-form video published to Localiiiy Studio! 🎬")
+                                }
+                            } else {
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Duration error: Studio videos must be 60 seconds to 240 minutes.")
+                                }
+                            }
+                            success
+                        },
+                        onDeleteVideo = { id ->
+                            viewModel.deleteStudioVideo(id)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Video removed from Studio.")
+                            }
+                        },
+                        currentCurrency = currentCurrency,
+                        currentLanguage = currentLanguage,
+                        creatorEarnings = creatorEarnings,
+                        onOpenMonetizationHub = { viewModel.openMonetizationHub() },
+                        onOpenBoostAds = { viewModel.openBoostAdDialog() },
+                        onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
+                        onUserProfileClick = { username -> viewModel.openUserProfile(username) }
                     )
                 }
 
@@ -359,6 +467,18 @@ fun LocaliApp(
                         onWaveClick = { reel ->
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Waved at @${reel.username}! 👋")
+                            }
+                        },
+                        onReportReel = { reel, reason ->
+                            viewModel.reportPost(reel.id, reason)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Clip reported for review.")
+                            }
+                        },
+                        onBlockCreator = { username ->
+                            viewModel.blockUser(username)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Blocked @$username and hid their content.")
                             }
                         }
                     )
@@ -465,7 +585,13 @@ fun LocaliApp(
                         },
                         onCreateContentClick = {
                             viewModel.selectTab(MainNavigationTab.CREATE)
-                        }
+                        },
+                        currentCurrency = currentCurrency,
+                        currentLanguage = currentLanguage,
+                        creatorEarnings = creatorEarnings,
+                        onOpenMonetizationHub = { viewModel.openMonetizationHub() },
+                        onOpenBoostAds = { viewModel.openBoostAdDialog() },
+                        onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() }
                     )
                 }
             }
@@ -495,7 +621,19 @@ fun LocaliApp(
                 viewModel.startChatWithUser(otherUser)
             },
             onPostClick = { post -> viewModel.openComments("POST", post.id) },
-            onReelClick = { reel -> viewModel.selectTab(MainNavigationTab.REELS) }
+            onReelClick = { reel -> viewModel.selectTab(MainNavigationTab.REELS) },
+            onReportUser = { reason ->
+                viewModel.reportUser(otherUser.username, reason)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("User @${otherUser.username} reported for moderation review.")
+                }
+            },
+            onBlockUser = {
+                viewModel.blockUser(otherUser.username)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Blocked @${otherUser.username}. Their content has been hidden.")
+                }
+            }
         )
     }
 
@@ -667,6 +805,13 @@ fun LocaliApp(
                     coroutineScope.launch {
                         snackbarHostState.showSnackbar("Privacy settings reset to defaults 🔄")
                     }
+                },
+                onDeleteAccount = {
+                    viewModel.closePrivacySettings()
+                    viewModel.deleteAccountAndPurgeData()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Account and all personal data permanently erased.")
+                    }
                 }
             )
         }
@@ -709,6 +854,80 @@ fun LocaliApp(
         )
     }
 
+    // Worldwide Multi-Language & Currency Dialog
+    if (showLanguageCurrencyDialog) {
+        GlobalLanguageCurrencyDialog(
+            currentLanguage = currentLanguage,
+            currentCurrency = currentCurrency,
+            onLanguageSelected = { lang ->
+                viewModel.setLanguage(lang)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Language switched to ${lang.nativeName} (${lang.name}) 🌐")
+                }
+            },
+            onCurrencySelected = { curr ->
+                viewModel.setCurrency(curr)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Currency set to ${curr.name} (${curr.symbol}) 💱")
+                }
+            },
+            onDismissRequest = { viewModel.closeLanguageCurrencyDialog() }
+        )
+    }
+
+    // Creator Monetization Hub & Multi-Currency Payout Sheet
+    if (showMonetizationHub) {
+        CreatorMonetizationHubSheet(
+            earnings = creatorEarnings,
+            payoutAccount = payoutAccount,
+            payoutHistory = payoutHistory,
+            platformMetrics = platformMetrics,
+            currentCurrency = currentCurrency,
+            currentLanguage = currentLanguage,
+            onOpenCurrencyLanguageSelector = { viewModel.openLanguageCurrencyDialog() },
+            onRequestPayout = { amountUSD ->
+                val ok = viewModel.requestPayout(amountUSD)
+                if (ok) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Payout request for $$amountUSD submitted! 💰 Transferred via multi-currency rails.")
+                    }
+                } else {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Payout request failed. Check minimum threshold or available balance.")
+                    }
+                }
+                ok
+            },
+            onUpdatePayoutAccount = { updatedAccount ->
+                viewModel.updatePayoutAccount(updatedAccount)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Payout destination updated: ${updatedAccount.payoutMethod} ✅")
+                }
+            },
+            onOpenBoostAdDialog = {
+                viewModel.closeMonetizationHub()
+                viewModel.openBoostAdDialog()
+            },
+            onDismissRequest = { viewModel.closeMonetizationHub() }
+        )
+    }
+
+    // Boost Post & Worldwide Sponsored Campaign Dialog
+    if (showBoostAdDialog) {
+        BoostPostDialog(
+            currentCurrency = currentCurrency,
+            onLaunchCampaign = { campaign ->
+                val ok = viewModel.launchBoostCampaign(campaign)
+                if (ok) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Boost campaign launched! Target: ${campaign.targetAudience} in 195+ countries 🚀")
+                    }
+                }
+            },
+            onDismissRequest = { viewModel.closeBoostAdDialog() }
+        )
+    }
+
     // Eyecatching Opening Animation Overlay
     if (showOpeningAnimation) {
         LocaliOpeningAnimation(
@@ -717,12 +936,6 @@ fun LocaliApp(
     }
     }
 }
-
-// Alias for compatibility
-@Composable
-fun InstagramApp(
-    viewModel: InstagramViewModel = viewModel()
-) = LocaliApp(viewModel = viewModel)
 
 @Composable
 fun LocaliBottomNavigationBar(
@@ -774,6 +987,15 @@ fun LocaliBottomNavigationBar(
                 isSelected = currentTab == MainNavigationTab.MARKET,
                 onClick = { onTabSelected(MainNavigationTab.MARKET) },
                 testTag = "nav_tab_market"
+            )
+
+            // Localiiiy Studio Tab (YouTube-style Long Videos: 60s - 240 mins)
+            LocaliNavItem(
+                icon = if (currentTab == MainNavigationTab.STUDIO) Icons.Default.VideoLibrary else Icons.Outlined.VideoLibrary,
+                label = "Studio",
+                isSelected = currentTab == MainNavigationTab.STUDIO,
+                onClick = { onTabSelected(MainNavigationTab.STUDIO) },
+                testTag = "nav_tab_studio"
             )
 
             // Vibes / Clips Tab
@@ -833,20 +1055,6 @@ fun LocaliBottomNavigationBar(
         }
     }
 }
-
-// Alias for compatibility
-@Composable
-fun InstagramBottomNavigationBar(
-    currentTab: MainNavigationTab,
-    userAvatarUrl: String,
-    onTabSelected: (MainNavigationTab) -> Unit,
-    modifier: Modifier = Modifier
-) = LocaliBottomNavigationBar(
-    currentTab = currentTab,
-    userAvatarUrl = userAvatarUrl,
-    onTabSelected = onTabSelected,
-    modifier = modifier
-)
 
 @Composable
 private fun LocaliNavItem(

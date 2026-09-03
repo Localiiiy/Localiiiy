@@ -36,6 +36,10 @@ import com.example.ui.ProfileTab
 import com.example.ui.theme.EditorialVerified
 import com.example.util.LocationHelper
 
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.MoreVert
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OtherUserProfileSheet(
@@ -48,9 +52,14 @@ fun OtherUserProfileSheet(
     onDirectMessageClick: () -> Unit,
     onPostClick: (PostEntity) -> Unit,
     onReelClick: (ReelEntity) -> Unit,
+    onReportUser: ((String) -> Unit)? = null,
+    onBlockUser: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var activeTab by remember { mutableStateOf(ProfileTab.POSTS) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var showReportSuccessSnackbar by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -91,12 +100,65 @@ fun OtherUserProfileSheet(
                     }
                 }
 
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.testTag("other_user_menu_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More options",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Report @${user.username} 🚩") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Flag,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    showReportDialog = true
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Block @${user.username} 🚫") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Block,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onBlockUser?.invoke()
+                                    onDismiss()
+                                }
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
@@ -351,5 +413,109 @@ fun OtherUserProfileSheet(
                 }
             }
         }
+    }
+
+    // UGC Compliance: Report User Dialog
+    if (showReportDialog) {
+        val reportReasons = listOf(
+            "Spam, Scam, or Counterfeit Account",
+            "Harassment, Bullying, or Hate Speech",
+            "Impersonation of Another Person/Business",
+            "Posting Inappropriate or Explicit Content",
+            "Threats, Violence, or Illegal Activity"
+        )
+        var selectedReason by remember { mutableStateOf(reportReasons.first()) }
+
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Flag,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Text("Report @${user.username}", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Why are you reporting this user? Our team reviews all reports to keep Localiiiy safe.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    reportReasons.forEach { reason ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedReason = reason }
+                                .padding(vertical = 4.dp)
+                        ) {
+                            RadioButton(
+                                selected = selectedReason == reason,
+                                onClick = { selectedReason = reason }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = reason, fontSize = 13.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportDialog = false
+                        onReportUser?.invoke(selectedReason)
+                        showReportSuccessSnackbar = true
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Submit Report", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showReportSuccessSnackbar) {
+        AlertDialog(
+            onDismissRequest = {
+                showReportSuccessSnackbar = false
+                onDismiss()
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = { Text("Report Submitted", fontWeight = FontWeight.Bold) },
+            text = {
+                Text(
+                    "We have received your report regarding @${user.username}. Thank you for helping keep Localiiiy safe and respectful for everyone.",
+                    fontSize = 13.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReportSuccessSnackbar = false
+                        onDismiss()
+                    }
+                ) {
+                    Text("Done")
+                }
+            }
+        )
     }
 }

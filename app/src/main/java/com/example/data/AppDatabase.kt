@@ -21,13 +21,17 @@ import kotlinx.coroutines.launch
         DirectMessageEntity::class,
         ChatMessageEntity::class,
         PrivacySettingsEntity::class,
-        MarketplaceItemEntity::class
+        MarketplaceItemEntity::class,
+        StudioVideoEntity::class,
+        UserActivityEntity::class,
+        SavedPostEntity::class,
+        StudioDraftEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun instagramDao(): InstagramDao
+    abstract fun localiDao(): LocaliDao
 
     companion object {
         @Volatile
@@ -55,12 +59,12 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     scope.launch(Dispatchers.IO) {
-                        populateInitialData(database.instagramDao())
+                        populateInitialData(database.localiDao())
                     }
                 }
             }
 
-            suspend fun populateInitialData(dao: InstagramDao) {
+            suspend fun populateInitialData(dao: LocaliDao) {
                 dao.insertOrUpdateProfile(InitialData.defaultProfile)
                 dao.insertStories(InitialData.starterStories)
                 dao.insertPosts(InitialData.starterPosts)
@@ -72,6 +76,10 @@ abstract class AppDatabase : RoomDatabase() {
                 dao.insertChatMessages(InitialData.starterChatMessages)
                 dao.insertOrUpdatePrivacySettings(InitialData.defaultPrivacySettings)
                 dao.insertMarketplaceItems(InitialData.starterMarketplaceItems)
+                dao.insertStudioVideos(InitialData.starterStudioVideos)
+                dao.insertUserActivities(InitialData.starterUserActivities)
+                dao.insertSavedPostsCache(InitialData.starterSavedPosts)
+                dao.insertStudioDrafts(InitialData.starterStudioDrafts)
             }
         }
     }

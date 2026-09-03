@@ -1,51 +1,86 @@
 package com.example.ui.theme
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// Locali Brand Color Palette (Unique & Original Hyperlocal Design)
-val LocaliPrimary = Color(0xFF007A78)
-val LocaliPrimaryLight = Color(0xFF4DB6AC)
-val LocaliPrimaryDark = Color(0xFF004D40)
-val LocaliPrimaryContainer = Color(0xFFE0F2F1)
-val LocaliOnPrimaryContainer = Color(0xFF00251A)
+/**
+ * ========================================================================
+ * Localiiiy Brand Color Palette
+ * ========================================================================
+ * A distinctive, hyperlocal community aesthetic blending luminous sea teal,
+ * midnight slate canvas, solar coral signals, and neon radar mint.
+ */
 
-val LocaliSecondary = Color(0xFF1E3A8A)
-val LocaliSecondaryContainer = Color(0xFFDBEAFE)
-val LocaliTertiary = Color(0xFFFF6F00)
-val LocaliTertiaryContainer = Color(0xFFFFECB3)
+// 1. Primary Tonal Spectrum (Hyperlocal Teal / Viridian)
+val LocaliPrimary = Color(0xFF00838F)           // Cyan-Teal 800: Core brand identity
+val LocaliPrimaryLight = Color(0xFF4DD0E1)      // Aqua-Teal 300: Luminous dark-theme variant & glow
+val LocaliPrimaryDark = Color(0xFF004D40)       // Deep Teal 900: High-contrast button fills
+val LocaliPrimaryContainer = Color(0xFFE0F7FA)  // Soft cyan-teal container tint
+val LocaliOnPrimaryContainer = Color(0xFF00363A)// Deep viridian text on primary container
+val LocaliPrimaryTeal = LocaliPrimary
 
-val LocaliAccentCoral = Color(0xFFFF5722)
-val LocaliAccentMint = Color(0xFF00E676)
-val LocaliAccentCyan = Color(0xFF00B4D8)
-val LocaliDeepNavy = Color(0xFF0B132B)
-val LocaliPrimaryTeal = Color(0xFF007A78)
+// 2. Secondary Tonal Spectrum (Midnight Navy & Community Slate)
+val LocaliSecondary = Color(0xFF1E293B)         // Slate 800: Grounding structural navy
+val LocaliSecondaryLight = Color(0xFF94A3B8)    // Slate 400: Dark mode secondary
+val LocaliSecondaryDark = Color(0xFF0F172A)     // Slate 900: Deep night headers
+val LocaliSecondaryContainer = Color(0xFFE2E8F0)// Slate 200: Chip backgrounds
+val LocaliOnSecondaryContainer = Color(0xFF0F172A)
 
-// Canvas & Surfaces
-val LocaliBackground = Color(0xFFF8FAFC)
-val LocaliSurface = Color(0xFFFFFFFF)
-val LocaliSurfaceVariant = Color(0xFFF1F5F9)
-val LocaliSurfaceTint = Color(0xFFE2E8F0)
-val LocaliOutline = Color(0xFFCBD5E1)
-val LocaliOutlineVariant = Color(0xFFE2E8F0)
+// 3. Tertiary Tonal Spectrum (Sunset Amber / Neighborhood Warmth)
+val LocaliTertiary = Color(0xFFF59E0B)          // Amber 500: Community warmth, story highlights
+val LocaliTertiaryLight = Color(0xFFFBBF24)     // Amber 400: Dark theme tertiary accent
+val LocaliTertiaryDark = Color(0xFFB45309)      // Amber 700: High contrast warm borders
+val LocaliTertiaryContainer = Color(0xFFFEF3C7) // Amber 100: Warm card backdrop
+val LocaliOnTertiaryContainer = Color(0xFF78350F)
 
-// Typography & Content
-val LocaliTextPrimary = Color(0xFF0F172A)
-val LocaliTextSecondary = Color(0xFF475569)
-val LocaliTextTertiary = Color(0xFF94A3B8)
+// 4. Vibrant Hyperlocal Accents
+val LocaliAccentCoral = Color(0xFFFF5722)       // Live broadcasts, urgent community updates, pulses
+val LocaliAccentCoralContainer = Color(0xFFFFECE2)
+val LocaliAccentMint = Color(0xFF00E676)        // Radar active pings, verified local neighbor, live pulse
+val LocaliAccentMintContainer = Color(0xFFD1FAE5)
+val LocaliAccentCyan = Color(0xFF00B4D8)        // Proximity beacons, street route highlights
+val LocaliAccentCyanContainer = Color(0xFFE0F2FE)
+val LocaliDeepNavy = Color(0xFF0B132B)          // Radar map canvas backdrop, midnight mode root
 
-// Accents
-val LocaliHeart = Color(0xFFFF3366)
-val LocaliVerified = Color(0xFF007A78)
-val LocaliError = Color(0xFFDC2626)
+// 5. Canvas & Neutral Surfaces (Light Theme)
+val LocaliBackground = Color(0xFFF8FAFC)        // Clean, airy off-white canvas
+val LocaliSurface = Color(0xFFFFFFFF)           // Pure white primary surface cards
+val LocaliSurfaceVariant = Color(0xFFF1F5F9)    // Elevated surface / text field fill
+val LocaliSurfaceTint = Color(0xFFE2E8F0)       // Subtle tonal highlight
+val LocaliOutline = Color(0xFFCBD5E1)           // Border dividers
+val LocaliOutlineVariant = Color(0xFFE2E8F0)    // Subtle card contours
 
-// Unique Locali Pulse & Moment Story Gradients (Original Coral-Amber-Teal & Emerald-Cyan)
+// 6. Canvas & Neutral Surfaces (Dark Theme / Radar Midnight)
+val LocaliDarkBackground = Color(0xFF0B132B)    // Immersive radar deep navy
+val LocaliDarkSurface = Color(0xFF111C38)       // Card surface in dark mode
+val LocaliDarkSurfaceVariant = Color(0xFF1B2A4A)// Interactive chip & input background in dark
+val LocaliDarkOutline = Color(0xFF2A3D66)       // Dark mode contour borders
+val LocaliDarkOutlineVariant = Color(0xFF1F2E52)
+
+// 7. Typography Semantic Tokens
+val LocaliTextPrimary = Color(0xFF0F172A)       // Slate 900: High contrast primary text
+val LocaliTextSecondary = Color(0xFF475569)     // Slate 600: Body copy & author metadata
+val LocaliTextTertiary = Color(0xFF94A3B8)      // Slate 400: Time stamps & location tags
+val LocaliDarkTextPrimary = Color(0xFFF8FAFC)   // Crisp white-slate text in dark mode
+val LocaliDarkTextSecondary = Color(0xFF94A3B8) // Muted slate in dark mode
+val LocaliDarkTextTertiary = Color(0xFF64748B)
+
+// 8. Functional & Status Colors
+val LocaliHeart = Color(0xFFFF3366)             // Vibrant rose heart for likes
+val LocaliVerified = Color(0xFF00838F)          // Verified community leader badge
+val LocaliError = Color(0xFFDC2626)             // Red 600: Alert / Error status
+val LocaliErrorContainer = Color(0xFFFEE2E2)
+val LocaliOnErrorContainer = Color(0xFF7F1D1D)
+
+// 9. Localiiiy Brand Gradients
 val LocaliStoryGradient = Brush.linearGradient(
     colors = listOf(
-        Color(0xFFFF5722),
-        Color(0xFFFFB703),
-        Color(0xFF00B4D8),
-        Color(0xFF007A78)
+        Color(0xFFFF5722), // Sunset Coral
+        Color(0xFFF59E0B), // Warm Amber
+        Color(0xFF00B4D8), // Electric Cyan
+        Color(0xFF00838F)  // Hyperlocal Teal
     )
 )
 
@@ -58,13 +93,50 @@ val LocaliSeenStoryGradient = Brush.linearGradient(
 
 val LocaliRadarPulseGradient = Brush.radialGradient(
     colors = listOf(
-        Color(0x6600E676),
-        Color(0x2200B4D8),
-        Color(0x00007A78)
+        Color(0x6600E676), // 40% Mint
+        Color(0x2200B4D8), // 13% Cyan
+        Color(0x0000838F)  // Transparent Teal
     )
 )
 
-// Legacy alias compatibility
+val LocaliHeroHeaderGradient = Brush.linearGradient(
+    colors = listOf(
+        Color(0xFF0B132B),
+        Color(0xFF0F2644),
+        Color(0xFF004D40)
+    )
+)
+
+val LocaliCardGlowGradient = Brush.verticalGradient(
+    colors = listOf(
+        Color(0x1A00838F),
+        Color(0x0500B4D8),
+        Color(0x00000000)
+    )
+)
+
+// 10. Extended Brand Colors Data Class for Composable access
+@Immutable
+data class LocaliBrandColors(
+    val primaryTeal: Color = LocaliPrimary,
+    val primaryTealLight: Color = LocaliPrimaryLight,
+    val accentCoral: Color = LocaliAccentCoral,
+    val accentMint: Color = LocaliAccentMint,
+    val accentCyan: Color = LocaliAccentCyan,
+    val sunsetAmber: Color = LocaliTertiary,
+    val deepNavy: Color = LocaliDeepNavy,
+    val storyGradient: Brush = LocaliStoryGradient,
+    val seenStoryGradient: Brush = LocaliSeenStoryGradient,
+    val radarPulseGradient: Brush = LocaliRadarPulseGradient,
+    val heroHeaderGradient: Brush = LocaliHeroHeaderGradient,
+    val cardGlowGradient: Brush = LocaliCardGlowGradient,
+    val heartActive: Color = LocaliHeart,
+    val verifiedBadge: Color = LocaliVerified
+)
+
+val LocalLocaliBrandColors = staticCompositionLocalOf { LocaliBrandColors() }
+
+// Legacy & compatibility aliases
 val EditorialPrimary = LocaliPrimary
 val EditorialPrimaryLight = LocaliPrimaryLight
 val EditorialPrimaryDark = LocaliPrimaryDark
@@ -87,26 +159,8 @@ val EditorialHeart = LocaliHeart
 val EditorialVerified = LocaliVerified
 val EditorialError = LocaliError
 
-val InstagramStoryGradient = LocaliStoryGradient
-val InstagramSeenStoryGradient = LocaliSeenStoryGradient
-
-val IgDarkBackground = Color(0xFF0B132B)
-val IgDarkSurface = Color(0xFF1C2541)
-val IgDarkSurfaceVariant = Color(0xFF243356)
-val IgDarkBorder = Color(0xFF3A4F7C)
-val IgDarkTextPrimary = Color(0xFFF8FAFC)
-val IgDarkTextSecondary = Color(0xFF94A3B8)
-val IgDarkHighlight = Color(0xFF2E4068)
-
-val IgLightBackground = LocaliBackground
-val IgLightSurface = LocaliSurface
-val IgLightSurfaceVariant = LocaliSurfaceVariant
-val IgLightBorder = LocaliOutlineVariant
-val IgLightTextPrimary = LocaliTextPrimary
-val IgLightTextSecondary = LocaliTextSecondary
-val IgLightHighlight = LocaliSurfaceTint
-
-val IgHeartRed = LocaliHeart
 val LocaliHeartRed = LocaliHeart
+
+
 
 
