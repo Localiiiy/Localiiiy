@@ -3,6 +3,7 @@ package com.example.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -27,9 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.PrivacySettingsEntity
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.components.AppAtmospherePresets
+import com.example.ui.components.AppAtmosphereSelectorDialog
+import com.example.ui.components.RadarPrivacyPresets
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,31 +54,51 @@ fun PrivacySettingsScreen(
     onUpdateHideMomentsFromStrangers: (Boolean) -> Unit,
     onUpdatePostResharing: (Boolean) -> Unit,
     onUpdateSensitiveContentFilter: (String) -> Unit,
+    onUpdateHideMobileNumber: (Boolean) -> Unit = {},
+    onUpdateHideEmailAddress: (Boolean) -> Unit = {},
+    onUpdateHideAddress: (Boolean) -> Unit = {},
+    onUpdateHidePreciseLocationOnRadar: (Boolean) -> Unit = {},
+    onUpdateRadarObfuscatedRange: (String) -> Unit = {},
+    onUpdateRadarCountryName: (String) -> Unit = {},
+    onUpdateAppThemeBackground: ((String, String) -> Unit)? = null,
     onOpenLegalPolicy: () -> Unit = {},
     onResetDefaults: () -> Unit = {},
+    onOpenBlockedAccounts: () -> Unit = {},
+    onOpenUserActivityLog: () -> Unit = {},
     onDeleteAccount: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showPrivateAccountConfirmDialog by remember { mutableStateOf(false) }
     var pendingPrivateState by remember { mutableStateOf(false) }
 
+    var showAtmosphereDialog by remember { mutableStateOf(false) }
     var showCommentsDialog by remember { mutableStateOf(false) }
     var showMessagesDialog by remember { mutableStateOf(false) }
     var showTagsDialog by remember { mutableStateOf(false) }
     var showSensitiveDialog by remember { mutableStateOf(false) }
-    var showBlockedAccountsDialog by remember { mutableStateOf(false) }
+    // Blocked accounts handled externally
+    var showChangePasswordDialog by remember { mutableStateOf(false) }
     var showDeleteAccountConfirmDialog by remember { mutableStateOf(false) }
     var deleteAccountConfirmationText by remember { mutableStateOf("") }
 
-    // Mock blocked accounts list for user management
-    var blockedUsers by remember {
-        mutableStateOf(
-            listOf(
-                Pair("spam_bot_99", "Blocked 2 days ago"),
-                Pair("crypto_promos", "Blocked 1 week ago")
-            )
+    if (showChangePasswordDialog) {
+        com.example.ui.components.ChangePasswordDialog(
+            onDismiss = { showChangePasswordDialog = false }
         )
     }
+
+    if (showAtmosphereDialog) {
+        AppAtmosphereSelectorDialog(
+            currentTheme = privacySettings.appThemeBackground,
+            currentCustomUri = privacySettings.customBackgroundImageUri,
+            onSelectTheme = { themeKey, customUri ->
+                onUpdateAppThemeBackground?.invoke(themeKey, customUri)
+                showAtmosphereDialog = false
+            },
+            onDismiss = { showAtmosphereDialog = false }
+        )
+    }
+
 
     Scaffold(
         topBar = {
@@ -95,7 +120,7 @@ fun PrivacySettingsScreen(
                                 modifier = Modifier
                                     .size(6.dp)
                                     .clip(CircleShape)
-                                    .background(LocaliAccentMint)
+                                    .background(LocaliiiyAccentMint)
                             )
                             Text(
                                 text = "Room DB Persistent",
@@ -210,7 +235,7 @@ fun PrivacySettingsScreen(
                         title = "Live Location Radar",
                         subtitle = if (privacySettings.isLocationRadarEnabled) "Broadcasting within 10 km live radar circle" else "Location off. You are hidden from neighborhood scans",
                         checked = privacySettings.isLocationRadarEnabled,
-                        iconTint = if (privacySettings.isLocationRadarEnabled) LocaliPrimaryTeal else MaterialTheme.colorScheme.error,
+                        iconTint = if (privacySettings.isLocationRadarEnabled) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.error,
                         testTag = "toggle_location_radar_switch",
                         onCheckedChange = onUpdateLocationRadar
                     )
@@ -230,6 +255,158 @@ fun PrivacySettingsScreen(
                         testTag = "toggle_precise_location_switch",
                         onCheckedChange = onUpdatePreciseLocation
                     )
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    // Hide Precise Location on 'Live Radar' Map
+                    val selectedObfuscatedOption = remember(privacySettings.radarObfuscatedRange) {
+                        RadarPrivacyPresets.getOption(privacySettings.radarObfuscatedRange)
+                    }
+
+                    PrivacyToggleItem(
+                        icon = Icons.Outlined.Shield,
+                        title = "Hide Precise Location on 'Live Radar'",
+                        subtitle = if (privacySettings.hidePreciseLocationOnRadar) {
+                            "Shield Active 🛡️ • Exact coordinates hidden. Appearing far out as '${selectedObfuscatedOption.shortLabel}' (${selectedObfuscatedOption.kmDisplay})."
+                        } else {
+                            "Disabled • Broadcasting your actual radar blip at your exact location on the Live Radar map"
+                        },
+                        checked = privacySettings.hidePreciseLocationOnRadar,
+                        enabled = privacySettings.isLocationRadarEnabled,
+                        iconTint = if (privacySettings.hidePreciseLocationOnRadar) LocaliiiyAccentMint else LocaliiiyPrimaryTeal,
+                        testTag = "toggle_hide_precise_radar_location_switch",
+                        onCheckedChange = onUpdateHidePreciseLocationOnRadar
+                    )
+
+                    // Far-out KM Range & Cosmic Privacy Options (3k, 10K, 100k, 500K, Country, Earth, Galaxy)
+                    AnimatedVisibility(
+                        visible = privacySettings.hidePreciseLocationOnRadar && privacySettings.isLocationRadarEnabled
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f))
+                                .border(1.dp, LocaliiiyAccentMint.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Public,
+                                    contentDescription = null,
+                                    tint = LocaliiiyAccentMint,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Simulate Far-Out / Out of KM Range On Radar:",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                            }
+                            Text(
+                                text = "Choose how far away you appear to other neighbors on the Live Radar scan:",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                ),
+                                modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+                            )
+
+                            // Horizontal scroll of range chips: 3k, 10K, 100k, 500K, Country, Earth, Galaxy
+                            androidx.compose.foundation.lazy.LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("radar_obfuscated_range_selector")
+                            ) {
+                                items(RadarPrivacyPresets.OBFUSCATED_RANGES.size) { index ->
+                                    val opt = RadarPrivacyPresets.OBFUSCATED_RANGES[index]
+                                    val isSelected = privacySettings.radarObfuscatedRange.equals(opt.key, ignoreCase = true)
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) LocaliiiyAccentMint else MaterialTheme.colorScheme.surface,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isSelected) LocaliiiyAccentMint else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                        ),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable { onUpdateRadarObfuscatedRange(opt.key) }
+                                            .testTag("radar_range_chip_${opt.key.lowercase()}")
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        ) {
+                                            Text(text = opt.icon, fontSize = 12.sp)
+                                            Text(
+                                                text = opt.shortLabel,
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                color = if (isSelected) LocaliiiyDeepNavy else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Info badge describing selected simulated distance
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Text(text = selectedObfuscatedOption.icon, fontSize = 14.sp)
+                                    Text(
+                                        text = "${selectedObfuscatedOption.fullLabel}: ${selectedObfuscatedOption.description}",
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
+                            }
+
+                            // If Country option is chosen, provide country name text field
+                            if (privacySettings.radarObfuscatedRange.equals("COUNTRY", ignoreCase = true)) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = privacySettings.radarCountryName,
+                                    onValueChange = onUpdateRadarCountryName,
+                                    label = { Text("Display Country Name (e.g. Canada, Japan, India, UK)") },
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .testTag("radar_country_name_field"),
+                                    leadingIcon = { Text("🏳️", modifier = Modifier.padding(start = 10.dp)) },
+                                    supportingText = {
+                                        Text(
+                                            text = "Simulates your radar position beyond this country's geographical border.",
+                                            fontSize = 10.5.sp
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
@@ -265,6 +442,106 @@ fun PrivacySettingsScreen(
                 }
             }
 
+            // SECTION: APP ATMOSPHERE & SPACE BACKGROUND
+            PrivacySectionHeader(
+                title = "App Atmosphere & Space Background",
+                icon = Icons.Outlined.Palette
+            )
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("app_atmosphere_settings_card")
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    val currentThemeInfo = AppAtmospherePresets.ALL.firstOrNull {
+                        it.key.equals(privacySettings.appThemeBackground, ignoreCase = true)
+                    } ?: AppAtmospherePresets.ALL[0]
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(text = currentThemeInfo.icon, fontSize = 20.sp)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Current Atmosphere: ${currentThemeInfo.name}",
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = currentThemeInfo.subtitle,
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Quick Selection Chips for Black Hole, Moon, Galaxy, Custom, Default
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(AppAtmospherePresets.ALL.size) { idx ->
+                            val preset = AppAtmospherePresets.ALL[idx]
+                            val isSelected = privacySettings.appThemeBackground.equals(preset.key, ignoreCase = true)
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) LocaliiiyAccentMint else MaterialTheme.colorScheme.surface,
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isSelected) LocaliiiyAccentMint else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        if (preset.key.equals("CUSTOM", ignoreCase = true)) {
+                                            showAtmosphereDialog = true
+                                        } else {
+                                            onUpdateAppThemeBackground?.invoke(preset.key, "")
+                                        }
+                                    }
+                                    .testTag("atmosphere_preset_chip_${preset.key.lowercase()}")
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)
+                                ) {
+                                    Text(text = preset.icon, fontSize = 13.sp)
+                                    Text(
+                                        text = preset.name,
+                                        fontSize = 12.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) LocaliiiyDeepNavy else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = { showAtmosphereDialog = true },
+                        shape = RoundedCornerShape(100.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .testTag("open_atmosphere_selector_button")
+                    ) {
+                        Icon(Icons.Outlined.Palette, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Customize Atmosphere & Background 🌌", fontSize = 12.5.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
             // SECTION 2: ACCOUNT PRIVACY & VISIBILITY
             PrivacySectionHeader(
                 title = "Account Visibility & Ghost Mode",
@@ -284,7 +561,7 @@ fun PrivacySettingsScreen(
                         title = "Private Account (Ghost Mode)",
                         subtitle = if (privacySettings.isPrivateAccount) "Only approved connections can see your profile & posts" else "Anyone on Localiiiy can view your public content",
                         checked = privacySettings.isPrivateAccount,
-                        iconTint = if (privacySettings.isPrivateAccount) LocaliAccentMint else LocaliPrimaryTeal,
+                        iconTint = if (privacySettings.isPrivateAccount) LocaliiiyAccentMint else LocaliiiyPrimaryTeal,
                         testTag = "toggle_private_account_switch",
                         onCheckedChange = { targetState ->
                             pendingPrivateState = targetState
@@ -301,7 +578,7 @@ fun PrivacySettingsScreen(
                     PrivacyToggleItem(
                         icon = Icons.Outlined.Visibility,
                         title = "Activity Status",
-                        subtitle = "Allow people you follow & message to see when you were last active",
+                        subtitle = "Allow accounts you are Connected with & message to see when you were last active",
                         checked = privacySettings.showActiveStatus,
                         testTag = "toggle_active_status_switch",
                         onCheckedChange = onUpdateActiveStatus
@@ -320,6 +597,50 @@ fun PrivacySettingsScreen(
                         checked = privacySettings.readReceiptsEnabled,
                         testTag = "toggle_read_receipts_switch",
                         onCheckedChange = onUpdateReadReceipts
+                    )
+                }
+            }
+
+            // SECTION: PERSONAL INFORMATION PRIVACY
+            PrivacySectionHeader(
+                title = "Personal Information Privacy",
+                icon = Icons.Outlined.Person
+            )
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    PrivacyToggleItem(
+                        icon = Icons.Outlined.Phone,
+                        title = "Hide Mobile Number",
+                        subtitle = "Hide your mobile number from Connected accounts",
+                        checked = privacySettings.hideMobileNumber,
+                        onCheckedChange = { onUpdateHideMobileNumber(it) }
+                    )
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    PrivacyToggleItem(
+                        icon = Icons.Outlined.Email,
+                        title = "Hide Email Address",
+                        subtitle = "Hide your email address from Connected accounts",
+                        checked = privacySettings.hideEmailAddress,
+                        onCheckedChange = { onUpdateHideEmailAddress(it) }
+                    )
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    PrivacyToggleItem(
+                        icon = Icons.Outlined.Home,
+                        title = "Hide Address",
+                        subtitle = "Hide your physical address from Connected accounts",
+                        checked = privacySettings.hideAddress,
+                        onCheckedChange = { onUpdateHideAddress(it) }
                     )
                 }
             }
@@ -437,14 +758,60 @@ fun PrivacySettingsScreen(
                     PrivacyChoiceItem(
                         icon = Icons.Outlined.Block,
                         title = "Blocked Accounts",
-                        currentValue = "${blockedUsers.size} accounts",
+                        currentValue = "${privacySettings.blockedAccountsCount} accounts",
                         testTag = "choice_blocked_accounts",
-                        onClick = { showBlockedAccountsDialog = true }
+                        onClick = onOpenBlockedAccounts
                     )
                 }
             }
 
-            // SECTION 5: LEGAL CHARTER & PRIVACY POLICY
+            // SECTION 5: ACCOUNT SECURITY & CREDENTIALS
+            PrivacySectionHeader(
+                title = "Security & Credentials",
+                icon = Icons.Outlined.Lock
+            )
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    PrivacyChoiceItem(
+                        icon = Icons.Default.VpnKey,
+                        title = "Change Password",
+                        currentValue = "Old to New",
+                        testTag = "choice_change_password",
+                        onClick = { showChangePasswordDialog = true }
+                    )
+                }
+            }
+
+            // SECTION: USER ACTIVITY AUDIT TRAILS & TRANSPARENCY
+            PrivacySectionHeader(
+                title = "Audit Trails & Transparency",
+                icon = Icons.Outlined.History
+            )
+
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    PrivacyChoiceItem(
+                        icon = Icons.Outlined.ManageHistory,
+                        title = "User Activity Log",
+                        currentValue = "Review Audit Trail",
+                        testTag = "choice_user_activity_log",
+                        onClick = onOpenUserActivityLog
+                    )
+                }
+            }
+
+            // SECTION 6: LEGAL CHARTER & PRIVACY POLICY
             PrivacySectionHeader(
                 title = "Legal Agreement & Privacy Policy",
                 icon = Icons.Outlined.Gavel
@@ -468,14 +835,14 @@ fun PrivacySettingsScreen(
                         ) {
                             Surface(
                                 shape = CircleShape,
-                                color = LocaliPrimaryTeal.copy(alpha = 0.18f),
+                                color = LocaliiiyPrimaryTeal.copy(alpha = 0.18f),
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Icon(
                                         imageVector = Icons.Default.Description,
                                         contentDescription = null,
-                                        tint = LocaliPrimaryTeal,
+                                        tint = LocaliiiyPrimaryTeal,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -496,7 +863,7 @@ fun PrivacySettingsScreen(
 
                         Surface(
                             shape = RoundedCornerShape(100.dp),
-                            color = LocaliAccentMint.copy(alpha = 0.2f)
+                            color = LocaliiiyAccentMint.copy(alpha = 0.2f)
                         ) {
                             Text(
                                 text = "VERIFIED",
@@ -504,7 +871,7 @@ fun PrivacySettingsScreen(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 9.sp
                                 ),
-                                color = LocaliAccentMint,
+                                color = LocaliiiyAccentMint,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
                         }
@@ -523,7 +890,7 @@ fun PrivacySettingsScreen(
                     Button(
                         onClick = onOpenLegalPolicy,
                         shape = RoundedCornerShape(100.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                        colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(38.dp)
@@ -642,7 +1009,7 @@ fun PrivacySettingsScreen(
             text = {
                 Text(
                     text = if (pendingPrivateState)
-                        "When your account is private, only people you approve can see your posts, stories, and active location on the Live Radar. Your current followers won't be affected."
+                        "When your account is private, only people you approve can see your posts, stories, and active location on the Live Radar. Your current Connected accounts won't be affected."
                     else
                         "Anyone on Localiiiy will be able to discover your posts in local hotspots and view your profile on the neighborhood radar.",
                     fontSize = 13.sp,
@@ -748,7 +1115,7 @@ fun PrivacySettingsScreen(
             currentOption = privacySettings.allowCommentsFrom,
             options = listOf(
                 Triple("EVERYONE", "Everyone", "Anyone on Localiiiy can comment on your posts"),
-                Triple("PEOPLE_YOU_FOLLOW", "People You Follow", "Only accounts you follow can comment"),
+                Triple("PEOPLE_YOU_ARE_CONNECTED_WITH", "Connected Accounts", "Only accounts you are Connected with can comment"),
                 Triple("NO_ONE", "Off", "Turn off comments across all posts")
             ),
             onSelect = { option ->
@@ -766,7 +1133,7 @@ fun PrivacySettingsScreen(
             currentOption = privacySettings.allowDirectMessagesFrom,
             options = listOf(
                 Triple("EVERYONE", "Everyone", "Receive direct messages from anyone in your locality"),
-                Triple("PEOPLE_YOU_FOLLOW", "People You Follow", "Only receive messages from accounts you follow"),
+                Triple("PEOPLE_YOU_ARE_CONNECTED_WITH", "Connected Accounts", "Only receive messages from accounts you are Connected with"),
                 Triple("NO_ONE", "Off", "Disable new message requests")
             ),
             onSelect = { option ->
@@ -784,7 +1151,7 @@ fun PrivacySettingsScreen(
             currentOption = privacySettings.allowTagsAndMentions,
             options = listOf(
                 Triple("EVERYONE", "Everyone", "Anyone can tag or mention @${privacySettings.id}"),
-                Triple("PEOPLE_YOU_FOLLOW", "People You Follow", "Only people you follow can tag you"),
+                Triple("PEOPLE_YOU_ARE_CONNECTED_WITH", "Connected Accounts", "Only accounts you are Connected with can tag you"),
                 Triple("NO_ONE", "No One", "Don't allow anyone to tag or mention you")
             ),
             onSelect = { option ->
@@ -801,7 +1168,7 @@ fun PrivacySettingsScreen(
             title = "Sensitive Content Control",
             currentOption = privacySettings.sensitiveContentFilter,
             options = listOf(
-                Triple("STANDARD", "Standard (Recommended)", "You may see some sensitive content in Explore and Reels"),
+                Triple("STANDARD", "Standard (Recommended)", "You may see some sensitive content in Explore and Clips"),
                 Triple("STRICT", "Strict", "Filter out more sensitive photos, videos, and keywords"),
                 Triple("LESS", "Less", "See more varied content across neighborhood pulses")
             ),
@@ -812,80 +1179,8 @@ fun PrivacySettingsScreen(
             onDismiss = { showSensitiveDialog = false }
         )
     }
-
-    // DIALOG: Blocked Accounts Manager
-    if (showBlockedAccountsDialog) {
-        AlertDialog(
-            onDismissRequest = { showBlockedAccountsDialog = false },
-            title = {
-                Text(
-                    text = "Blocked Accounts (${blockedUsers.size})",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    if (blockedUsers.isEmpty()) {
-                        Text(
-                            text = "No blocked accounts. Your radar is clean! ✨",
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    } else {
-                        blockedUsers.forEach { (username, date) ->
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(10.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "@$username",
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp
-                                        )
-                                        Text(
-                                            text = date,
-                                            fontSize = 11.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    FilledTonalButton(
-                                        onClick = {
-                                            blockedUsers = blockedUsers.filter { it.first != username }
-                                        },
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                                        modifier = Modifier.height(32.dp)
-                                    ) {
-                                        Text("Unblock", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showBlockedAccountsDialog = false }) {
-                    Text("Close")
-                }
-            }
-        )
-    }
 }
+
 
 @Composable
 private fun PrivacySectionHeader(
@@ -900,7 +1195,7 @@ private fun PrivacySectionHeader(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = LocaliPrimaryTeal,
+            tint = LocaliiiyPrimaryTeal,
             modifier = Modifier.size(17.dp)
         )
         Text(
@@ -1001,14 +1296,14 @@ private fun PrivacyChoiceItem(
         ) {
             Surface(
                 shape = CircleShape,
-                color = LocaliPrimaryTeal.copy(alpha = 0.12f),
+                color = LocaliiiyPrimaryTeal.copy(alpha = 0.12f),
                 modifier = Modifier.size(38.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = LocaliPrimaryTeal,
+                        tint = LocaliiiyPrimaryTeal,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -1114,7 +1409,7 @@ private fun PrivacyOptionsDialog(
 private fun formatOptionLabel(option: String): String {
     return when (option.uppercase()) {
         "EVERYONE" -> "Everyone"
-        "PEOPLE_YOU_FOLLOW", "FOLLOWERS" -> "People You Follow"
+        "PEOPLE_YOU_ARE_CONNECTED_WITH", "CONNECTIONS", "CONNECTED" -> "Connected Accounts"
         "NO_ONE", "OFF" -> "Off"
         else -> option
     }

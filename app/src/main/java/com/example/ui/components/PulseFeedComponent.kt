@@ -1,14 +1,14 @@
 package com.example.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
+import com.example.data.MarketplaceItemEntity
+import androidx.compose.ui.graphics.Color
+import coil.compose.AsyncImage
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -16,49 +16,43 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.ui.components.AdBannerComponent
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.AdPlacement
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
+import com.example.data.ClipEntity
 import com.example.data.StoryEntity
+import com.example.data.StudioVideoEntity
 import com.example.data.UserProfileEntity
-import com.example.data.firestore.FirestorePulseService
-import com.example.data.firestore.HyperlocalPulseUpdate
-import com.example.ui.screens.NeighborCreatorCard
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
-import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
-import com.example.util.LocalizationHelper
+import androidx.compose.foundation.clickable
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 
-/**
- * Dedicated 'Pulse' Feed Component for Localiiiy.
- * Fetches and displays a list of hyperlocal updates from Firestore using LazyColumn,
- * with images, location tags, interaction buttons for likes and shares, and a pull-to-refresh mechanism.
- */
+enum class PulseFeedFilter(val label: String, val icon: ImageVector) {
+    ALL("All", Icons.Default.Public),
+    TRENDING("Trending", Icons.Default.TrendingUp),
+    NEARBY("Nearby", Icons.Default.NearMe),
+    CONNECTED("Connected", Icons.Default.Person),
+    LATEST("Latest", Icons.Default.ElectricBolt)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PulseFeedComponent(
     posts: List<PostEntity>,
+    clips: List<ClipEntity> = emptyList(),
+    marketplaceItems: List<MarketplaceItemEntity> = emptyList(),
     stories: List<StoryEntity>,
     userProfile: UserProfileEntity,
     otherUsers: List<OtherUserEntity> = emptyList(),
@@ -77,8 +71,9 @@ fun PulseFeedComponent(
     onWaveAtNeighbor: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     sponsoredAds: List<AdPlacement> = emptyList(),
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    countryName: String? = null,
     onAdImpression: (String) -> Unit = {},
     onAdClick: (String) -> Unit = {},
     onBoostPostClick: () -> Unit = {},
@@ -86,66 +81,51 @@ fun PulseFeedComponent(
     modifier: Modifier = Modifier
 ) {
     val refreshState = rememberPullToRefreshState()
-    var selectedRadius by remember { mutableStateOf(selectedRadiusKm ?: 3.0) }
+    var isInitialLoad by remember { mutableStateOf(true) }
+    var selectedFilter by remember { mutableStateOf(PulseFeedFilter.ALL) }
 
-    // Fetch and collect real-time hyperlocal updates from Firestore
-    val firestoreService = remember { FirestorePulseService() }
-    val firestoreUpdates by firestoreService.getHyperlocalUpdatesFlow()
-        .collectAsState(initial = firestoreService.getFallbackSeedUpdates())
-
-    // Merge or map Firestore updates to feed
-    val combinedPosts = remember(posts, firestoreUpdates, selectedRadius) {
-        val convertedFirestorePosts = firestoreUpdates.map { update ->
-            PostEntity(
-                id = (update.id.hashCode().toLong() and 0x7FFFFFFF) + 100000L,
-                username = update.username.ifBlank { update.authorName },
-                userAvatar = update.userAvatar,
-                userHandle = "@${update.username.ifBlank { "local_creator" }}",
-                mediaUrl = update.mediaUrl,
-                caption = update.content,
-                likesCount = update.likesCount,
-                commentsCount = update.commentsCount,
-                isLiked = update.isLiked,
-                isSaved = false,
-                timestamp = update.timestamp,
-                location = update.location,
-                landmark = update.landmark,
-                latitude = update.latitude,
-                longitude = update.longitude
-            )
-        }
-
-        // Interleave posts and deduplicate
-        val allMerged = (posts + convertedFirestorePosts)
-            .distinctBy { it.mediaUrl.ifBlank { it.caption } }
-            .sortedByDescending { it.timestamp }
-
-        // Filter by radius if applicable
-        allMerged
+    val systematicOptions = remember(countryName) {
+        SystematicDistanceScale.getOptions(countryName)
+    }
+    val currentDistanceOpt = remember(selectedRadiusKm, countryName) {
+        SystematicDistanceScale.findOption(selectedRadiusKm, countryName)
     }
 
-    val radiusOptions = listOf(
-        "⚡ 1 km" to 1.0,
-        "📍 3 km" to 3.0,
-        "🏙️ 5 km" to 5.0,
-        "📡 10 km" to 10.0,
-        "🌐 All" to 50.0
-    )
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(1200)
+        isInitialLoad = false
+    }
+
+    // Filter Posts by All, Trending, Nearby, Following, Latest
+    val displayedPosts = remember(posts, selectedFilter, selectedRadiusKm) {
+        when (selectedFilter) {
+            PulseFeedFilter.ALL -> posts.sortedByDescending { it.timestamp }
+            PulseFeedFilter.TRENDING -> posts.sortedByDescending { (it.likesCount * 3) + it.commentsCount }
+            PulseFeedFilter.NEARBY -> {
+                val radius = selectedRadiusKm ?: 3.0
+                val nearby = posts.filter { (it.distanceKm ?: 99.0) <= radius }
+                if (nearby.isNotEmpty()) nearby.sortedBy { it.distanceKm ?: 99.0 }
+                else posts.sortedBy { it.distanceKm ?: 99.0 }
+            }
+            PulseFeedFilter.CONNECTED -> {
+                val connected = posts.filter { it.isFollowing }
+                if (connected.isNotEmpty()) connected.sortedByDescending { it.timestamp }
+                else posts.take(5)
+            }
+            PulseFeedFilter.LATEST -> posts.sortedByDescending { it.timestamp }
+        }
+    }
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
         state = refreshState,
-        modifier = modifier
-            .fillMaxSize()
-            .testTag("pulse_feed_container")
+        modifier = modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
     ) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("pulse_scrollable_list")
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 80.dp)
         ) {
-            // 1. Stories Tray Header (Beacon Moments)
             item {
                 StoriesTray(
                     stories = stories,
@@ -153,295 +133,323 @@ fun PulseFeedComponent(
                     onStoryClick = onStoryClick,
                     onAddStoryClick = onAddStoryClick
                 )
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                    thickness = 0.5.dp
-                )
             }
 
-            // 2. Pulse Hyperlocal Bar & Proximity Filter Pills
+            // Hyperlocal Discovery Filter Header
             item {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(LocaliAccentMint)
-                                )
-                                Text(
-                                    text = "Hyperlocal Pulse Feed",
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            // Manual refresh pill trigger
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .clickable { onRefresh() }
-                                    .testTag("pulse_refresh_button")
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Refresh,
-                                        contentDescription = "Refresh",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                    Text(
-                                        text = if (isRefreshing) "Syncing..." else "Pull / Tap",
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
-                        }
-
-                        // Radius Filter Chips
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.padding(top = 6.dp)
-                        ) {
-                            items(radiusOptions) { (label, radius) ->
-                                val isSelected = (selectedRadius == radius)
-                                Surface(
-                                    shape = RoundedCornerShape(100.dp),
-                                    color = if (isSelected) LocaliPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                    border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(100.dp))
-                                        .clickable {
-                                            selectedRadius = radius
-                                            onRadiusFilterChange(radius)
-                                        }
-                                        .testTag("pulse_radius_chip_$label")
-                                ) {
-                                    Text(
-                                        text = label,
-                                        fontSize = 11.sp,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                    thickness = 0.5.dp
-                )
-            }
-
-            // 3. Nearby Sparks Carousel
-            if (otherUsers.isNotEmpty()) {
-                item {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.22f),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ElectricBolt,
-                                        contentDescription = null,
-                                        tint = LocaliPrimaryTeal,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    Text(
-                                        text = "Orbit Allies & Live Sparks",
-                                        style = MaterialTheme.typography.titleSmall.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                                Text(
-                                    text = "Nearby creators",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-
-                            LazyRow(
-                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                modifier = Modifier.padding(top = 6.dp)
-                            ) {
-                                items(otherUsers, key = { it.username }) { user ->
-                                    NeighborCreatorCard(
-                                        user = user,
-                                        onUserClick = { onUserProfileClick(user.username) },
-                                        onFollowClick = { onFollowUser(user) },
-                                        onWaveClick = { onWaveAtNeighbor(user) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 4. Scrollable Community Posts with Images, Location Tags, Like & Share buttons
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(LocaliAccentMint)
-                        )
-                        Text(
-                            text = "Live Radar • Firestore Synced",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.SemiBold,
-                                color = LocaliPrimaryTeal
-                            )
-                        )
-                    }
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
                     Text(
-                        text = "${combinedPosts.size} Pulses nearby",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        text = "Pulse Feed",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
-                }
-            }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = when (selectedFilter) {
+                            PulseFeedFilter.ALL -> "${displayedPosts.size} Pulses • Showing all local posts"
+                            PulseFeedFilter.TRENDING -> "${displayedPosts.size} Pulses • Trending in your community"
+                            PulseFeedFilter.NEARBY -> "${displayedPosts.size} Pulses • Hyperlocal (within ${selectedRadiusKm ?: 3.0} km)"
+                            PulseFeedFilter.CONNECTED -> "${displayedPosts.size} Pulses • From accounts you are connected with"
+                            PulseFeedFilter.LATEST -> "${displayedPosts.size} Pulses • Freshly shared moments"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-            if (combinedPosts.isEmpty()) {
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp, horizontal = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Filter UI Chips
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth().testTag("pulse_feed_filter_row"),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Radar,
-                            contentDescription = null,
-                            tint = LocaliPrimaryTeal,
-                            modifier = Modifier.size(56.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        items(PulseFeedFilter.values()) { filter ->
+                            val isSelected = selectedFilter == filter
+                            FilterChip(
+                                selected = isSelected,
+                                onClick = { selectedFilter = filter },
+                                label = {
+                                    Text(
+                                        text = filter.label,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = filter.icon,
+                                        contentDescription = filter.label,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                modifier = Modifier.testTag("pulse_filter_${filter.name.lowercase()}")
+                            )
+                        }
+                    }
+
+                    // Systematic Distance Filter Row (when NEARBY is selected)
+                    if (selectedFilter == PulseFeedFilter.NEARBY) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "No pulses detected within this radius",
+                            text = "DISTANCE RANGE:",
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Expand your radar or pull down to fetch fresh local community updates.",
-                            fontSize = 12.5.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = {
-                                selectedRadius = 50.0
-                                onRadiusFilterChange(50.0)
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal)
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("pulse_feed_distance_row"),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            Text("Expand to All Pulses", color = Color.White)
+                            items(systematicOptions) { opt ->
+                                val isSelected = kotlin.math.abs((selectedRadiusKm ?: 3.0) - opt.km) < 0.1 ||
+                                        (opt.key == "COUNTRY" && selectedRadiusKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
+                                        (opt.key == "EARTH" && selectedRadiusKm == SystematicDistanceScale.EARTH_KM) ||
+                                        (opt.key == "GALAXY" && selectedRadiusKm == SystematicDistanceScale.GALAXY_KM)
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .clickable { onRadiusFilterChange(opt.km) }
+                                        .testTag("pulse_distance_pill_${opt.key.lowercase()}")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(text = opt.icon, fontSize = 11.sp)
+                                        Text(
+                                            text = opt.shortLabel,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 11.5.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (isInitialLoad || isRefreshing) {
+                items(4) {
+                    PostSkeleton()
+                }
+            } else if (displayedPosts.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                imageVector = selectedFilter.icon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(36.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "No pulses found for '${selectedFilter.label}'",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Tap 'All' to browse community pulses or create one!",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
             } else {
-                itemsIndexed(
-                    items = combinedPosts,
-                    key = { _, post -> post.id }
-                ) { index, post ->
+                itemsIndexed(items = displayedPosts, key = { _, post -> "post_${post.id}" }) { index, item ->
+                    if (index > 0 && index % 3 == 0) {
+                        AdBannerComponent()
+                    }
                     PostCard(
-                        post = post,
-                        onLikeClick = { onLikePost(post) },
-                        onCommentClick = { onCommentPost(post) },
-                        onShareClick = { onSharePost(post) },
-                        onSaveClick = { onSavePost(post) },
-                        onUserClick = { onUserProfileClick(post.username) }
+                        post = item,
+                        onLikeClick = { onLikePost(item) },
+                        onCommentClick = { onCommentPost(item) },
+                        onShareClick = { onSharePost(item) },
+                        onSaveClick = { onSavePost(item) },
+                        onUserClick = { onUserProfileClick(item.username) },
+                        modifier = Modifier.animateItem()
                     )
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                        thickness = 0.5.dp
-                    )
-
-                    // Interleave native sponsored ad post every 3rd post
-                    if (sponsoredAds.isNotEmpty() && (index == 1 || (index > 1 && (index + 1) % 3 == 0))) {
-                        val adIndex = ((index + 1) / 3) % sponsoredAds.size
+                    
+                    if (index > 0 && index % 5 == 0 && sponsoredAds.isNotEmpty()) {
+                        val adIndex = (index / 5) % sponsoredAds.size
                         val ad = sponsoredAds[adIndex]
-                        Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-                            SponsoredAdCard(
-                                ad = ad,
-                                currentCurrency = currentCurrency,
-                                currentLanguage = currentLanguage,
-                                onAdImpression = onAdImpression,
-                                onAdClick = onAdClick
-                            )
-                        }
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
-                            thickness = 0.5.dp
+                        SponsoredAdCard(
+                            ad = ad,
+                            currentCurrency = currentCurrency,
+                            currentLanguage = currentLanguage,
+                            onAdImpression = { onAdImpression(ad.id) },
+                            onAdClick = { onAdClick(ad.id) },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
             }
+        }
+    }
+}
 
-            item {
-                Spacer(modifier = Modifier.height(36.dp))
+@Composable
+fun PostSkeleton() {
+    val infiniteTransition = rememberInfiniteTransition()
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 0.2f,
+        targetValue = 0.6f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+    val shimmerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp, horizontal = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(shimmerColor)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Box(modifier = Modifier.height(14.dp).width(120.dp).background(shimmerColor, RoundedCornerShape(4.dp)))
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(modifier = Modifier.height(10.dp).width(80.dp).background(shimmerColor, RoundedCornerShape(4.dp)))
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.height(14.dp).fillMaxWidth().background(shimmerColor, RoundedCornerShape(4.dp)))
+            Spacer(modifier = Modifier.height(6.dp))
+            Box(modifier = Modifier.height(14.dp).fillMaxWidth(0.8f).background(shimmerColor, RoundedCornerShape(4.dp)))
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(220.dp).background(shimmerColor, RoundedCornerShape(12.dp)))
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Box(modifier = Modifier.size(24.dp).background(shimmerColor, CircleShape))
+                Box(modifier = Modifier.size(24.dp).background(shimmerColor, CircleShape))
+                Box(modifier = Modifier.size(24.dp).background(shimmerColor, CircleShape))
+            }
+        }
+    }
+}
+
+@Composable
+fun PulseClipCard(clip: ClipEntity, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+                    .background(Color.Black)
+            ) {
+                AsyncImage(
+                    model = coil.request.ImageRequest.Builder(androidx.compose.ui.platform.LocalContext.current)
+                        .data(clip.mediaUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Clip thumbnail",
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = "Play",
+                    tint = Color.White,
+                    modifier = Modifier.align(Alignment.Center).size(48.dp)
+                )
+            }
+            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                AsyncImage(
+                    model = clip.userAvatar,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp).clip(CircleShape),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = clip.username, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        CreatorBadgeIcon(followers = clip.creatorFollowers, showText = false)
+                    }
+                    Text(text = clip.caption, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PulseMarketItemCard(item: MarketplaceItemEntity, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+    ) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = null,
+                modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)).background(Color.Gray),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(text = item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Text(text = "@${item.sellerUsername}", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "$${item.price}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             }
         }
     }

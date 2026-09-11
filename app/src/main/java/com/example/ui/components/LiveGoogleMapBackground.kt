@@ -29,10 +29,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.LocaliAccentCoral
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentCoral
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import kotlin.math.*
 
 enum class MapVisualTheme(val label: String, val icon: String) {
@@ -157,7 +157,7 @@ fun LiveGoogleMapBackground(
                 Surface(
                     shape = RoundedCornerShape(100.dp),
                     color = Color.Black.copy(alpha = 0.65f),
-                    border = androidx.compose.foundation.BorderStroke(0.8.dp, LocaliPrimaryTeal.copy(alpha = 0.5f)),
+                    border = androidx.compose.foundation.BorderStroke(0.8.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.5f)),
                     modifier = Modifier
                         .clip(RoundedCornerShape(100.dp))
                         .clickable { showThemeMenu = !showThemeMenu }
@@ -178,7 +178,7 @@ fun LiveGoogleMapBackground(
                         Icon(
                             imageVector = Icons.Default.ArrowDropDown,
                             contentDescription = "Change Theme",
-                            tint = LocaliAccentMint,
+                            tint = LocaliiiyAccentMint,
                             modifier = Modifier.size(14.dp)
                         )
                     }
@@ -187,8 +187,8 @@ fun LiveGoogleMapBackground(
                 // Launch Live Google Maps App / Web Intent
                 Surface(
                     shape = RoundedCornerShape(100.dp),
-                    color = LocaliPrimaryTeal.copy(alpha = 0.25f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, LocaliAccentMint.copy(alpha = 0.7f)),
+                    color = LocaliiiyPrimaryTeal.copy(alpha = 0.25f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, LocaliiiyAccentMint.copy(alpha = 0.7f)),
                     modifier = Modifier
                         .clip(RoundedCornerShape(100.dp))
                         .clickable {
@@ -218,14 +218,14 @@ fun LiveGoogleMapBackground(
                         Icon(
                             imageVector = Icons.Outlined.Map,
                             contentDescription = "Google Maps",
-                            tint = LocaliAccentMint,
+                            tint = LocaliiiyAccentMint,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
                             text = "Google Maps ↗",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = LocaliAccentMint
+                            color = LocaliiiyAccentMint
                         )
                     }
                 }
@@ -235,8 +235,8 @@ fun LiveGoogleMapBackground(
             if (showThemeMenu) {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = LocaliDeepNavy.copy(alpha = 0.95f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, LocaliPrimaryTeal),
+                    color = LocaliiiyDeepNavy.copy(alpha = 0.95f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, LocaliiiyPrimaryTeal),
                     modifier = Modifier
                         .padding(start = 8.dp, top = 34.dp)
                 ) {
@@ -245,7 +245,7 @@ fun LiveGoogleMapBackground(
                             val isSelected = mapTheme == theme
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (isSelected) LocaliPrimaryTeal.copy(alpha = 0.3f) else Color.Transparent,
+                                color = if (isSelected) LocaliiiyPrimaryTeal.copy(alpha = 0.3f) else Color.Transparent,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(8.dp))
@@ -264,7 +264,7 @@ fun LiveGoogleMapBackground(
                                         text = theme.label,
                                         fontSize = 11.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (isSelected) LocaliAccentMint else Color.White
+                                        color = if (isSelected) LocaliiiyAccentMint else Color.White
                                     )
                                 }
                             }
@@ -311,7 +311,7 @@ fun LiveGoogleMapBackground(
                         radiusKm <= 5000.0 -> "Scale: 1,000 km (Country)"
                         else -> "Scale: Planetary Orbit 🌍"
                     },
-                    color = LocaliAccentMint,
+                    color = LocaliiiyAccentMint,
                     fontSize = 8.5.sp,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -486,7 +486,7 @@ private fun DrawScope.drawRegionalMap(
     val waterColor = Color(0xFF072138)
     val landColor = Color(0xFF0B1F2D)
     val mountainColor = Color(0xFF143347).copy(alpha = 0.4f)
-    val highwayColor = LocaliAccentMint.copy(alpha = 0.35f)
+    val highwayColor = LocaliiiyAccentMint.copy(alpha = 0.35f)
 
     // Regional Landmass & Puget Sound / Lake Washington Basins
     val soundPath = Path().apply {
@@ -541,8 +541,8 @@ private fun DrawScope.drawCountryScaleMap(
     radiusKm: Double,
     waveOffset: Float
 ) {
-    val borderCol = LocaliAccentMint.copy(alpha = 0.25f)
-    val hubCol = LocaliAccentMint.copy(alpha = 0.6f)
+    val borderCol = LocaliiiyAccentMint.copy(alpha = 0.25f)
+    val hubCol = LocaliiiyAccentMint.copy(alpha = 0.6f)
 
     // Simplified Continental North America Outline
     val usOutline = Path().apply {
@@ -590,7 +590,7 @@ private fun DrawScope.drawGlobalEarthMap(
 ) {
     val globeRadius = (min(w, h) / 2f) * 0.86f
     val landCol = Color(0xFF0E2E47)
-    val gridCol = LocaliAccentMint.copy(alpha = 0.18f)
+    val gridCol = LocaliiiyAccentMint.copy(alpha = 0.18f)
 
     // Outer Earth Atmosphere Glow
     drawCircle(
@@ -610,7 +610,7 @@ private fun DrawScope.drawGlobalEarthMap(
         center = center
     )
     drawCircle(
-        color = LocaliAccentMint.copy(alpha = 0.45f),
+        color = LocaliiiyAccentMint.copy(alpha = 0.45f),
         radius = globeRadius,
         center = center,
         style = Stroke(width = 1.5.dp.toPx())

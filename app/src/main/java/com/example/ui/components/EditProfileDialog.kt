@@ -42,6 +42,7 @@ fun EditProfileDialog(
 ) {
     var fullName by remember { mutableStateOf(userProfile.fullName) }
     var bio by remember { mutableStateOf(userProfile.bio) }
+    var pronouns by remember { mutableStateOf("") }
     var website by remember { mutableStateOf(userProfile.website) }
     var avatarUrl by remember { mutableStateOf(userProfile.avatarUrl) }
 
@@ -292,6 +293,15 @@ fun EditProfileDialog(
                         value = fullName,
                         onValueChange = { fullName = it },
                         label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    
+                    OutlinedTextField(
+                        value = pronouns,
+                        onValueChange = { pronouns = it },
+                        label = { Text("Pronouns (Optional)") },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true

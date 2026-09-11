@@ -31,7 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.CommentEntity
 import com.example.data.UserProfileEntity
-import com.example.ui.theme.LocaliHeart
+import com.example.ui.theme.LocaliiiyHeart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +43,7 @@ fun CommentsBottomSheet(
     onToggleCommentLike: (Long, Boolean) -> Unit
 ) {
     var newCommentText by remember { mutableStateOf("") }
-    val quickEmojis = listOf("❤️", "🙌", "🔥", "👏", "😍", "✨", "😮", "💯")
+    val quickEmojis = listOf("👌", "🙌", "🔥", "👏", "✨", "💯")
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -65,7 +65,7 @@ fun CommentsBottomSheet(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Comments",
+                    text = "✍️ Comments",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -294,16 +294,12 @@ private fun CommentItemRow(
             }
         }
 
-        IconButton(
-            onClick = onLikeClick,
-            modifier = Modifier.size(28.dp)
-        ) {
-            Icon(
-                imageVector = if (comment.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                contentDescription = "Like comment",
-                tint = if (comment.isLiked) LocaliHeart else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        AnimatedLikeButton(
+            isLiked = comment.isLiked,
+            onLikeClick = onLikeClick,
+            symbolSize = 16.sp,
+            touchTargetSize = 28.dp,
+            testTag = "comment_like_button_${comment.id}"
+        )
     }
 }

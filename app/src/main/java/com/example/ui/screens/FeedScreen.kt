@@ -40,15 +40,17 @@ import com.example.data.UserProfileEntity
 import com.example.ui.components.PostCard
 import com.example.ui.components.PulseFeedComponent
 import com.example.ui.components.StoriesTray
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.example.util.LocationHelper
 
 @Composable
 fun FeedScreen(
+    clips: List<com.example.data.ClipEntity> = emptyList(),
+    marketplaceItems: List<com.example.data.MarketplaceItemEntity> = emptyList(),
     posts: List<PostEntity>,
     stories: List<StoryEntity>,
     userProfile: UserProfileEntity,
@@ -74,15 +76,18 @@ fun FeedScreen(
     onMessageNeighbor: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     sponsoredAds: List<AdPlacement> = emptyList(),
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onAdImpression: (String) -> Unit = {},
     onAdClick: (String) -> Unit = {},
     onBoostPostClick: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
+    countryName: String? = null,
     modifier: Modifier = Modifier
 ) {
     PulseFeedComponent(
+        clips = clips,
+        marketplaceItems = marketplaceItems,
         posts = posts,
         stories = stories,
         userProfile = userProfile,
@@ -91,6 +96,7 @@ fun FeedScreen(
         onRefresh = onRefresh,
         selectedRadiusKm = selectedRadiusKm,
         onRadiusFilterChange = onRadiusFilterChange,
+        countryName = countryName,
         onStoryClick = onStoryClick,
         onAddStoryClick = onAddStoryClick,
         onLikePost = onLikePost,
@@ -197,7 +203,7 @@ fun NeighborCreatorCard(
                     onClick = onFollowClick,
                     shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (user.isFollowing) MaterialTheme.colorScheme.surfaceVariant else LocaliPrimaryTeal,
+                        containerColor = if (user.isFollowing) MaterialTheme.colorScheme.surfaceVariant else LocaliiiyPrimaryTeal,
                         contentColor = if (user.isFollowing) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
                     ),
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
@@ -206,7 +212,7 @@ fun NeighborCreatorCard(
                         .height(30.dp)
                 ) {
                     Text(
-                        text = if (user.isFollowing) "In Orbit ⚡" else "+ Pulse",
+                        text = if (user.isFollowing) "Connected" else "Connect",
                         fontSize = 9.5.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1

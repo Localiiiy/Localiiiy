@@ -26,18 +26,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.AdPlacement
 import com.example.ui.theme.EditorialVerified
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
-import com.example.util.LocaliStringKey
+import com.example.util.LocaliiiyStringKey
 
 @Composable
 fun SponsoredAdCard(
     ad: AdPlacement,
-    currentCurrency: LocaliCurrency,
-    currentLanguage: LocaliLanguage,
+    currentCurrency: LocaliiiyCurrency,
+    currentLanguage: LocaliiiyLanguage,
     onAdImpression: (String) -> Unit,
     onAdClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -108,7 +108,7 @@ fun SponsoredAdCard(
                         }
 
                         Text(
-                            text = LocalizationHelper.getString(LocaliStringKey.SPONSORED_LABEL, currentLanguage) + " • ${ad.targetRegion}",
+                            text = LocalizationHelper.getString(LocaliiiyStringKey.SPONSORED_LABEL, currentLanguage) + " • ${ad.targetRegion}",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -195,7 +195,7 @@ fun SponsoredAdCard(
                 Button(
                     onClick = { onAdClick(ad.id) },
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(42.dp)
@@ -234,7 +234,7 @@ fun SponsoredAdCard(
                         fontSize = 13.sp
                     )
                     Text(
-                        text = "Revenue Split: 55% of this ad's earnings are credited to content creators, and 45% supports Localiiiy's global cloud network.",
+                        text = "Your ad views support content creators globally.",
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

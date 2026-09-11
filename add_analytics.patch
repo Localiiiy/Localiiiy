@@ -1,0 +1,24 @@
+--- app/src/main/java/com/example/ui/components/CreatorMonetizationHubSheet.kt
++++ app/src/main/java/com/example/ui/components/CreatorMonetizationHubSheet.kt
+@@ -363,6 +363,22 @@
+                 }
+             }
+ 
++            // 4.5. Monetization Analytics Insights
++            item {
++                Column(modifier = Modifier.fillMaxWidth()) {
++                    Text(
++                        text = "ANALYTICS & VIEWS",
++                        fontSize = 11.sp,
++                        fontWeight = FontWeight.Bold,
++                        color = MaterialTheme.colorScheme.primary,
++                        letterSpacing = 0.5.sp
++                    )
++                    Spacer(modifier = Modifier.height(16.dp))
++                    
++                    com.example.ui.components.NeighborhoodPulseTrendsComponent()
++                }
++            }
++
+             // 5. Global Advertiser / Boost Post Card (App Owner & Creator Ad Spend)
+             item {

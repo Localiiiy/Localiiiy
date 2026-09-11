@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 @Database(
     entities = [
         PostEntity::class,
-        ReelEntity::class,
+        ClipEntity::class,
         StoryEntity::class,
         CommentEntity::class,
         UserProfileEntity::class,
@@ -25,13 +25,16 @@ import kotlinx.coroutines.launch
         StudioVideoEntity::class,
         UserActivityEntity::class,
         SavedPostEntity::class,
-        StudioDraftEntity::class
+        StudioDraftEntity::class,
+        PulseCacheEntity::class,
+        DraftClipEntity::class,
+        CyberstalkingIncidentEntity::class
     ],
-    version = 6,
+    version = 13,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun localiDao(): LocaliDao
+    abstract fun localiiiyDao(): LocaliiiyDao
 
     companion object {
         @Volatile
@@ -42,7 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "localiiiy_database"
+                    "Localiiiy_database"
                 )
                     .addCallback(AppDatabaseCallback(scope))
                     .fallbackToDestructiveMigration()
@@ -59,16 +62,16 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     scope.launch(Dispatchers.IO) {
-                        populateInitialData(database.localiDao())
+                        populateInitialData(database.localiiiyDao())
                     }
                 }
             }
 
-            suspend fun populateInitialData(dao: LocaliDao) {
+            suspend fun populateInitialData(dao: LocaliiiyDao) {
                 dao.insertOrUpdateProfile(InitialData.defaultProfile)
                 dao.insertStories(InitialData.starterStories)
                 dao.insertPosts(InitialData.starterPosts)
-                dao.insertReels(InitialData.starterReels)
+                dao.insertClips(InitialData.starterClips)
                 dao.insertOtherUsers(InitialData.starterOtherUsers)
                 dao.insertComments(InitialData.starterComments)
                 dao.insertNotifications(InitialData.starterNotifications)

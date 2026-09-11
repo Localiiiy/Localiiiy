@@ -25,14 +25,17 @@ import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
-import com.example.util.LocaliStringKey
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
+import com.example.util.LocaliiiyStringKey
 import com.example.util.LocalizationHelper
+import com.example.ui.components.StandardMediaSelectorBottomSheet
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -51,10 +54,11 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.MarketplaceItemEntity
 import com.example.data.PostEntity
-import com.example.data.ReelEntity
+import com.example.data.ClipEntity
 import com.example.ui.components.RadarRadiusOption
 import com.example.ui.components.RadarRadiusPresets
-import com.example.ui.theme.LocaliAccentMint
+import com.example.ui.components.SystematicDistanceScale
+import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.util.LocationHelper
 
 data class MarketCategoryItem(
@@ -98,7 +102,7 @@ val sampleMarketPhotos = listOf(
 enum class MarketSubTab {
     GOODS,
     POSTS,
-    REELS,
+    CLIPS,
     WATCHLIST
 }
 
@@ -107,7 +111,7 @@ enum class MarketSubTab {
 fun MarketScreen(
     items: List<MarketplaceItemEntity>,
     posts: List<PostEntity> = emptyList(),
-    reels: List<ReelEntity> = emptyList(),
+    clips: List<ClipEntity> = emptyList(),
     selectedCategory: String,
     searchQuery: String,
     locationQuery: String = "",
@@ -124,17 +128,24 @@ fun MarketScreen(
     onCloseSellDialog: () -> Unit,
     onPublishItem: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit,
     onPublishBuySellPost: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
-    onPublishBuySellReel: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
+    onPublishBuySellClip: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit = { _, _, _, _, _, _, _, _, _ -> },
     onCloseDetailSheet: () -> Unit,
     onMessageSeller: (MarketplaceItemEntity) -> Unit,
     onToggleAvailability: (MarketplaceItemEntity) -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    sortOption: String = "Most Popular",
+    onSortOptionChange: (String) -> Unit = {},
     onUserProfileClick: (String) -> Unit = {},
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    countryName: String? = null,
     modifier: Modifier = Modifier
 ) {
     var activeSubTab by remember { mutableStateOf(MarketSubTab.GOODS) }
     var showLocationSearchExpanded by remember { mutableStateOf(false) }
+
+    val sortOptionsList = listOf("Most Popular", "Newest Upload", "Price: Low to High", "Price: High to Low", "Distance: Nearest")
 
     // Quick popular world location search presets
     val quickLocations = listOf(
@@ -182,6 +193,17 @@ fun MarketScreen(
         }
     }
 
+    val sortedItems = remember(filteredItems, sortOption) {
+        when (sortOption) {
+            "Most Popular" -> filteredItems.sortedByDescending { it.sellerReviewCount + (if (it.isSaved) 50 else 0) }
+            "Newest Upload" -> filteredItems.sortedByDescending { it.timestamp }
+            "Price: Low to High" -> filteredItems.sortedBy { it.price }
+            "Price: High to Low" -> filteredItems.sortedByDescending { it.price }
+            "Distance: Nearest" -> filteredItems.sortedBy { it.distanceKm }
+            else -> filteredItems
+        }
+    }
+
     // Buy/Sell specific posts
     val buySellPosts = remember(posts, searchQuery, locationQuery) {
         posts.filter { post ->
@@ -198,20 +220,20 @@ fun MarketScreen(
         }.ifEmpty { posts }
     }
 
-    // Buy/Sell specific reels
-    val buySellReels = remember(reels, searchQuery, locationQuery) {
-        reels.filter { reel ->
-            val matchesSearch = searchQuery.isBlank() || reel.caption.contains(searchQuery, ignoreCase = true)
+    // Buy/Sell specific clips
+    val buySellClips = remember(clips, searchQuery, locationQuery) {
+        clips.filter { clip ->
+            val matchesSearch = searchQuery.isBlank() || clip.caption.contains(searchQuery, ignoreCase = true)
             val matchesLoc = locationQuery.isBlank() || locationQuery.equals("Anywhere (Global)", ignoreCase = true) ||
-                    (reel.location?.contains(locationQuery, ignoreCase = true) == true) ||
-                    (reel.landmark?.contains(locationQuery, ignoreCase = true) == true)
-            val isMarketTheme = reel.caption.contains("FOR SALE", ignoreCase = true) ||
-                    reel.caption.contains("BUY", ignoreCase = true) ||
-                    reel.caption.contains("SELL", ignoreCase = true) ||
-                    reel.caption.contains("$") ||
-                    reel.caption.contains("Market", ignoreCase = true)
+                    (clip.location?.contains(locationQuery, ignoreCase = true) == true) ||
+                    (clip.landmark?.contains(locationQuery, ignoreCase = true) == true)
+            val isMarketTheme = clip.caption.contains("FOR SALE", ignoreCase = true) ||
+                    clip.caption.contains("BUY", ignoreCase = true) ||
+                    clip.caption.contains("SELL", ignoreCase = true) ||
+                    clip.caption.contains("$") ||
+                    clip.caption.contains("Market", ignoreCase = true)
             isMarketTheme && matchesSearch && matchesLoc
-        }.ifEmpty { reels }
+        }.ifEmpty { clips }
     }
 
     val savedItems = remember(items) { items.filter { it.isSaved } }
@@ -251,7 +273,7 @@ fun MarketScreen(
                         )
                     }
                     Text(
-                        text = "Hyperlocal Buy, Sell, Posts & Reels",
+                        text = "Hyperlocal Buy, Sell, Posts & Clips",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -285,7 +307,7 @@ fun MarketScreen(
                 onValueChange = onSearchQueryChange,
                 placeholder = {
                     Text(
-                        "Search goods, gear, buy/sell posts & reels...",
+                        "Search goods, gear, buy/sell posts & clips...",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -442,7 +464,7 @@ fun MarketScreen(
                 }
             }
 
-            // Market Navigation Sub-Tabs (All Goods | Buy/Sell Posts | Showcase Reels | Watchlist)
+            // Market Navigation Sub-Tabs (All Goods | Buy/Sell Posts | Showcase Clips | Watchlist)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -452,7 +474,7 @@ fun MarketScreen(
                 listOf(
                     Triple(MarketSubTab.GOODS, "All Goods", Icons.Default.Storefront),
                     Triple(MarketSubTab.POSTS, "Posts", Icons.Default.PhotoLibrary),
-                    Triple(MarketSubTab.REELS, "Reels", Icons.Default.PlayCircle),
+                    Triple(MarketSubTab.CLIPS, "Clips", Icons.Default.PlayCircle),
                     Triple(MarketSubTab.WATCHLIST, "Watchlist", Icons.Default.PushPin)
                 ).forEach { (tab, label, icon) ->
                     val isSelected = activeSubTab == tab
@@ -488,52 +510,64 @@ fun MarketScreen(
                 }
             }
 
-            // Sub-Content Views
-            when (activeSubTab) {
-                MarketSubTab.GOODS -> {
-                    GoodsCatalogView(
-                        filteredItems = filteredItems,
-                        selectedCategory = selectedCategory,
-                        radiusFilterKm = radiusFilterKm,
-                        onSelectCategory = onSelectCategory,
-                        onRadiusFilterChange = onRadiusFilterChange,
-                        onItemClick = onItemClick,
-                        onToggleSaveItem = onToggleSaveItem,
-                        onOpenSellDialog = onOpenSellDialog,
-                        currentCurrency = currentCurrency
-                    )
-                }
+            // Sub-Content Views with Pull-to-Refresh
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                state = rememberPullToRefreshState(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("market_pull_to_refresh_box")
+            ) {
+                when (activeSubTab) {
+                    MarketSubTab.GOODS -> {
+                        GoodsCatalogView(
+                            filteredItems = sortedItems,
+                            selectedCategory = selectedCategory,
+                            radiusFilterKm = radiusFilterKm,
+                            sortOption = sortOption,
+                            onSortOptionChange = onSortOptionChange,
+                            onSelectCategory = onSelectCategory,
+                            onRadiusFilterChange = onRadiusFilterChange,
+                            onItemClick = onItemClick,
+                            onToggleSaveItem = onToggleSaveItem,
+                            onOpenSellDialog = onOpenSellDialog,
+                            currentCurrency = currentCurrency,
+                            countryName = countryName
+                        )
+                    }
 
-                MarketSubTab.POSTS -> {
-                    MarketPostsFeedView(
-                        posts = buySellPosts,
-                        onItemClick = { post ->
-                            val match = items.firstOrNull { it.title.contains(post.caption.take(15), ignoreCase = true) }
-                            if (match != null) onItemClick(match)
-                        },
-                        onOpenSellDialog = onOpenSellDialog
-                    )
-                }
+                    MarketSubTab.POSTS -> {
+                        MarketPostsFeedView(
+                            posts = buySellPosts,
+                            onItemClick = { post ->
+                                val match = items.firstOrNull { it.title.contains(post.caption.take(15), ignoreCase = true) }
+                                if (match != null) onItemClick(match)
+                            },
+                            onOpenSellDialog = onOpenSellDialog
+                        )
+                    }
 
-                MarketSubTab.REELS -> {
-                    MarketReelsFeedView(
-                        reels = buySellReels,
-                        onItemClick = { reel ->
-                            val match = items.firstOrNull { it.title.contains(reel.caption.take(15), ignoreCase = true) }
-                            if (match != null) onItemClick(match)
-                        },
-                        onOpenSellDialog = onOpenSellDialog
-                    )
-                }
+                    MarketSubTab.CLIPS -> {
+                        MarketClipsFeedView(
+                            clips = buySellClips,
+                            onItemClick = { clip ->
+                                val match = items.firstOrNull { it.title.contains(clip.caption.take(15), ignoreCase = true) }
+                                if (match != null) onItemClick(match)
+                            },
+                            onOpenSellDialog = onOpenSellDialog
+                        )
+                    }
 
-                MarketSubTab.WATCHLIST -> {
-                    WatchlistCatalogView(
-                        savedItems = savedItems,
-                        onItemClick = onItemClick,
-                        onToggleSaveItem = onToggleSaveItem,
-                        onOpenSellDialog = onOpenSellDialog,
-                        currentCurrency = currentCurrency
-                    )
+                    MarketSubTab.WATCHLIST -> {
+                        WatchlistCatalogView(
+                            savedItems = savedItems,
+                            onItemClick = onItemClick,
+                            onToggleSaveItem = onToggleSaveItem,
+                            onOpenSellDialog = onOpenSellDialog,
+                            currentCurrency = currentCurrency
+                        )
+                    }
                 }
             }
         }
@@ -544,7 +578,7 @@ fun MarketScreen(
                 onDismiss = onCloseSellDialog,
                 onPublishListing = onPublishItem,
                 onPublishPost = onPublishBuySellPost,
-                onPublishReel = onPublishBuySellReel,
+                onPublishClip = onPublishBuySellClip,
                 currentCurrency = currentCurrency
             )
         }
@@ -570,13 +604,20 @@ private fun GoodsCatalogView(
     filteredItems: List<MarketplaceItemEntity>,
     selectedCategory: String,
     radiusFilterKm: Double?,
+    sortOption: String = "Most Popular",
+    onSortOptionChange: (String) -> Unit = {},
     onSelectCategory: (String) -> Unit,
     onRadiusFilterChange: (Double?) -> Unit,
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
     onOpenSellDialog: () -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    countryName: String? = null
 ) {
+    val systematicOptions = remember(countryName) {
+        SystematicDistanceScale.getOptions(countryName)
+    }
+
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 6.dp, bottom = 88.dp),
@@ -635,8 +676,13 @@ private fun GoodsCatalogView(
                             }
                         }
 
-                        items(RadarRadiusPresets.ALL_OPTIONS) { opt ->
-                            val isSelected = radiusFilterKm == opt.km
+                        items(systematicOptions) { opt ->
+                            val isSelected = radiusFilterKm != null && (
+                                    kotlin.math.abs(radiusFilterKm - opt.km) < 0.1 ||
+                                    (opt.key == "COUNTRY" && radiusFilterKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
+                                    (opt.key == "EARTH" && radiusFilterKm == SystematicDistanceScale.EARTH_KM) ||
+                                    (opt.key == "GALAXY" && radiusFilterKm == SystematicDistanceScale.GALAXY_KM)
+                            )
                             Surface(
                                 shape = RoundedCornerShape(100.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -647,7 +693,7 @@ private fun GoodsCatalogView(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(100.dp))
                                     .clickable { onRadiusFilterChange(opt.km) }
-                                    .testTag("market_radius_${opt.km.toInt()}km")
+                                    .testTag("market_radius_${opt.key.lowercase()}")
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -660,6 +706,67 @@ private fun GoodsCatalogView(
                                         fontSize = 10.5.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                         color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Sort Option Chips
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Sort:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(end = 6.dp)
+                    )
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        val sortList = listOf("Most Popular", "Newest Upload", "Price: Low to High", "Price: High to Low", "Distance: Nearest")
+                        items(sortList) { sOpt ->
+                            val isSelected = sortOption == sOpt
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { onSortOptionChange(sOpt) }
+                                    .testTag("market_sort_$sOpt")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Text(
+                                        text = when (sOpt) {
+                                            "Most Popular" -> "🔥"
+                                            "Newest Upload" -> "🕒"
+                                            "Price: Low to High" -> "💵"
+                                            "Price: High to Low" -> "💎"
+                                            "Distance: Nearest" -> "📍"
+                                            else -> "🔀"
+                                        },
+                                        fontSize = 10.sp
+                                    )
+                                    Text(
+                                        text = sOpt,
+                                        fontSize = 10.5.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
@@ -954,12 +1061,8 @@ private fun MarketPostCard(
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Chat,
-                            contentDescription = null,
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("✍️", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(5.dp))
                         Text("Chat / Offer", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
 
@@ -968,13 +1071,9 @@ private fun MarketPostCard(
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PushPin,
-                            contentDescription = null,
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Save Post", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("👌", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text("Like / Save", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -983,9 +1082,9 @@ private fun MarketPostCard(
 }
 
 @Composable
-private fun MarketReelsFeedView(
-    reels: List<ReelEntity>,
-    onItemClick: (ReelEntity) -> Unit,
+private fun MarketClipsFeedView(
+    clips: List<ClipEntity>,
+    onItemClick: (ClipEntity) -> Unit,
     onOpenSellDialog: () -> Unit
 ) {
     LazyVerticalGrid(
@@ -995,7 +1094,7 @@ private fun MarketReelsFeedView(
         verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier
             .fillMaxSize()
-            .testTag("market_reels_grid")
+            .testTag("market_clips_grid")
     ) {
         item(span = { GridItemSpan(2) }) {
             Surface(
@@ -1021,7 +1120,7 @@ private fun MarketReelsFeedView(
                         )
                         Column {
                             Text(
-                                text = "Market Video Reels & Pitches",
+                                text = "Market Video Clips & Pitches",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -1039,13 +1138,13 @@ private fun MarketReelsFeedView(
                         shape = RoundedCornerShape(100.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("+ Sell Reel", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("+ Sell Clip", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
         }
 
-        items(reels, key = { it.id }) { reel ->
+        items(clips, key = { it.id }) { clip ->
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -1053,15 +1152,15 @@ private fun MarketReelsFeedView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(240.dp)
-                    .clickable { onItemClick(reel) }
+                    .clickable { onItemClick(clip) }
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(reel.mediaUrl)
+                            .data(clip.mediaUrl)
                             .crossfade(true)
                             .build(),
-                        contentDescription = reel.caption,
+                        contentDescription = clip.caption,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -1081,7 +1180,7 @@ private fun MarketReelsFeedView(
                             )
                     )
 
-                    // Top Reel Play Tag
+                    // Top Clip Play Tag
                     Surface(
                         shape = RoundedCornerShape(100.dp),
                         color = Color.Black.copy(alpha = 0.7f),
@@ -1100,7 +1199,7 @@ private fun MarketReelsFeedView(
                                 tint = Color.White,
                                 modifier = Modifier.size(12.dp)
                             )
-                            Text("Reel", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text("Clip", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -1111,13 +1210,13 @@ private fun MarketReelsFeedView(
                             .padding(10.dp)
                     ) {
                         Text(
-                            text = reel.username,
+                            text = clip.username,
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.sp,
                             color = Color.White
                         )
                         Text(
-                            text = reel.caption,
+                            text = clip.caption,
                             fontSize = 11.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -1149,7 +1248,7 @@ private fun WatchlistCatalogView(
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
     onOpenSellDialog: () -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
 ) {
     if (savedItems.isEmpty()) {
         Box(
@@ -1205,7 +1304,7 @@ fun MarketItemCard(
     item: MarketplaceItemEntity,
     onClick: () -> Unit,
     onToggleSave: () -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -1263,7 +1362,7 @@ fun MarketItemCard(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = LocaliAccentMint,
+                            tint = LocaliiiyAccentMint,
                             modifier = Modifier.size(10.dp)
                         )
                         Text(
@@ -1275,27 +1374,18 @@ fun MarketItemCard(
                     }
                 }
 
-                // Pin / Save Button (Top Right)
-                Surface(
-                    shape = CircleShape,
-                    color = Color.Black.copy(alpha = 0.6f),
+                // Like / Save Button (Top Right)
+                com.example.ui.components.AnimatedLikeButton(
+                    isLiked = item.isSaved,
+                    onLikeClick = onToggleSave,
+                    symbolSize = 16.sp,
+                    touchTargetSize = 28.dp,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(6.dp)
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .clickable(onClick = onToggleSave)
-                        .testTag("pin_item_button_${item.id}")
-                ) {
-                    Icon(
-                        imageVector = if (item.isSaved) Icons.Default.PushPin else Icons.Outlined.PushPin,
-                        contentDescription = "Pin Item",
-                        tint = if (item.isSaved) Color(0xFFFFB703) else Color.White,
-                        modifier = Modifier
-                            .padding(5.dp)
-                            .fillMaxSize()
-                    )
-                }
+                        .background(Color.Black.copy(alpha = 0.6f), CircleShape),
+                    testTag = "pin_item_button_${item.id}"
+                )
 
                 // Availability badge if not available
                 if (!item.isAvailable) {
@@ -1420,7 +1510,7 @@ fun MarketItemCard(
 enum class SellCreationFormat {
     CATALOG_ITEM,
     BUY_SELL_POST,
-    SHOWCASE_REEL
+    SHOWCASE_CLIP
 }
 
 @Composable
@@ -1428,8 +1518,8 @@ fun MarketSellMultiDialog(
     onDismiss: () -> Unit,
     onPublishListing: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit,
     onPublishPost: (title: String, desc: String, price: Double, category: String, condition: String, imageUrl: String, delivery: String, loc: String?, landmark: String?) -> Unit,
-    onPublishReel: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD
+    onPublishClip: (title: String, desc: String, price: Double, category: String, condition: String, videoUrl: String, soundTitle: String?, loc: String?, landmark: String?) -> Unit,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
 ) {
     var creationFormat by remember { mutableStateOf(SellCreationFormat.BUY_SELL_POST) }
     var title by remember { mutableStateOf("") }
@@ -1441,6 +1531,18 @@ fun MarketSellMultiDialog(
     var selectedDelivery by remember { mutableStateOf("Local Meetup / Pickup") }
     var landmark by remember { mutableStateOf("Pike Place Market") }
     var soundTrack by remember { mutableStateOf("Original Audio • Marketplace Pitch") }
+    var musicSearchQuery by remember { mutableStateOf("") }
+    var showSoundPicker by remember { mutableStateOf(false) }
+    var showStandardMediaSelector by remember { mutableStateOf(false) }
+
+    val viralMusicTracks = listOf(
+        "🔥 Seattle Summer Anthem • 2026 Viral Hit",
+        "🌊 Pacific Chillwave • Trending #1 on Charts",
+        "🎸 Pike Place Acoustic Bounce • Global Viral",
+        "⚡ Neon Nights Electronic • Global Club Viral",
+        "🌙 Midnight Sunset Lo-Fi • Chill Vibes Viral",
+        "🎧 Urban Soundscape • Trending Neighborhood Remix"
+    )
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -1473,7 +1575,7 @@ fun MarketSellMultiDialog(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Choose whether to post a catalog item, photo post, or video reel",
+                            text = "Choose whether to post a catalog item, photo post, or video clip",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1493,7 +1595,7 @@ fun MarketSellMultiDialog(
                 ) {
                     listOf(
                         SellCreationFormat.BUY_SELL_POST to ("📸 Buy/Sell Post"),
-                        SellCreationFormat.SHOWCASE_REEL to ("🎥 Video Reel"),
+                        SellCreationFormat.SHOWCASE_CLIP to ("🎥 Video Clip"),
                         SellCreationFormat.CATALOG_ITEM to ("🏷️ Catalog Item")
                     ).forEach { (format, label) ->
                         val isSelected = creationFormat == format
@@ -1522,7 +1624,7 @@ fun MarketSellMultiDialog(
 
                 // Select Media
                 Text(
-                    text = if (creationFormat == SellCreationFormat.SHOWCASE_REEL) "1. Product Video Preview" else "1. Item Photo",
+                    text = if (creationFormat == SellCreationFormat.SHOWCASE_CLIP) "1. Product Video Preview" else "1. Item Photo",
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface
@@ -1581,6 +1683,46 @@ fun MarketSellMultiDialog(
                             )
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { showStandardMediaSelector = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f).height(38.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Media Selector 📁", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = { showStandardMediaSelector = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f).height(38.dp)
+                    ) {
+                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Live Camera 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                if (showStandardMediaSelector) {
+                    StandardMediaSelectorBottomSheet(
+                        onDismiss = { showStandardMediaSelector = false },
+                        onMediaSelected = { selectedList ->
+                            if (selectedList.isNotEmpty()) {
+                                selectedPhotoUrl = selectedList.first()
+                            }
+                        }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -1703,7 +1845,7 @@ fun MarketSellMultiDialog(
                 OutlinedTextField(
                     value = landmark,
                     onValueChange = { landmark = it },
-                    label = { Text("Local Landmark / Neighborhood") },
+                    label = { Text("Local Landmark / Neighborhood (Required)") },
                     leadingIcon = {
                         Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     },
@@ -1716,7 +1858,95 @@ fun MarketSellMultiDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Description
+                if (creationFormat == SellCreationFormat.SHOWCASE_CLIP || creationFormat == SellCreationFormat.BUY_SELL_POST) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showSoundPicker = !showSoundPicker }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(imageVector = Icons.Default.MusicNote, contentDescription = "Music", tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = soundTrack, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                                Text(text = "Tap to search or pick viral music track", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            Icon(imageVector = Icons.Default.ChevronRight, contentDescription = null)
+                        }
+                    }
+
+                    if (showSoundPicker) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(text = "🎵 Search Music & Viral Tracks", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.primary)
+
+                            OutlinedTextField(
+                                value = musicSearchQuery,
+                                onValueChange = { musicSearchQuery = it },
+                                placeholder = { Text("Search music or Google audio...") },
+                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                singleLine = true,
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            if (musicSearchQuery.isNotBlank()) {
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            soundTrack = "$musicSearchQuery • Custom Audio"
+                                            showSoundPicker = false
+                                            musicSearchQuery = ""
+                                        }
+                                ) {
+                                    Text(
+                                        text = "🔍 Use Custom: \"$musicSearchQuery\"",
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                }
+                            }
+
+                            val filteredTracks = if (musicSearchQuery.isBlank()) viralMusicTracks else viralMusicTracks.filter { it.contains(musicSearchQuery, ignoreCase = true) }
+                            filteredTracks.forEach { track ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (soundTrack == track) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            soundTrack = track
+                                            showSoundPicker = false
+                                        }
+                                ) {
+                                    Text(
+                                        text = track,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = if (soundTrack == track) FontWeight.Bold else FontWeight.Normal),
+                                        color = if (soundTrack == track) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -1765,10 +1995,10 @@ fun MarketSellMultiDialog(
                                     landmark
                                 )
                             }
-                            SellCreationFormat.SHOWCASE_REEL -> {
-                                onPublishReel(
+                            SellCreationFormat.SHOWCASE_CLIP -> {
+                                onPublishClip(
                                     title,
-                                    description.ifBlank { "Showcase reel of $title near $landmark" },
+                                    description.ifBlank { "Showcase clip of $title near $landmark" },
                                     parsedPrice,
                                     selectedCategory,
                                     selectedCondition,
@@ -1791,7 +2021,7 @@ fun MarketSellMultiDialog(
                     Icon(
                         imageVector = when (creationFormat) {
                             SellCreationFormat.BUY_SELL_POST -> Icons.Default.PhotoCamera
-                            SellCreationFormat.SHOWCASE_REEL -> Icons.Default.Videocam
+                            SellCreationFormat.SHOWCASE_CLIP -> Icons.Default.Videocam
                             SellCreationFormat.CATALOG_ITEM -> Icons.Default.Storefront
                         },
                         contentDescription = null
@@ -1800,7 +2030,7 @@ fun MarketSellMultiDialog(
                     Text(
                         text = when (creationFormat) {
                             SellCreationFormat.BUY_SELL_POST -> "Broadcast Buy / Sell Post"
-                            SellCreationFormat.SHOWCASE_REEL -> "Publish Video Showcase Reel"
+                            SellCreationFormat.SHOWCASE_CLIP -> "Publish Video Showcase Clip"
                             SellCreationFormat.CATALOG_ITEM -> "Publish to Localiiiy Market"
                         },
                         fontWeight = FontWeight.Bold,
@@ -1819,8 +2049,8 @@ fun MarketItemDetailDialog(
     onMessageSeller: () -> Unit,
     onToggleSave: () -> Unit,
     onToggleAvailability: () -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onUserProfileClick: (String) -> Unit = {}
 ) {
     var offerAmount by remember(item, currentCurrency) {
@@ -1886,20 +2116,18 @@ fun MarketItemDetailDialog(
                     }
 
                     // Pin / Save Button
-                    IconButton(
-                        onClick = onToggleSave,
+                    // Like / Pin Button (Top Right)
+                    com.example.ui.components.AnimatedLikeButton(
+                        isLiked = item.isSaved,
+                        onLikeClick = onToggleSave,
+                        symbolSize = 20.sp,
+                        touchTargetSize = 40.dp,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                            .testTag("detail_pin_button")
-                    ) {
-                        Icon(
-                            imageVector = if (item.isSaved) Icons.Default.PushPin else Icons.Outlined.PushPin,
-                            contentDescription = "Pin",
-                            tint = if (item.isSaved) Color(0xFFFFB703) else Color.White
-                        )
-                    }
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                        testTag = "detail_pin_button"
+                    )
 
                     // Price overlay badge
                     Surface(
@@ -2187,11 +2415,7 @@ fun MarketItemDetailDialog(
                                 .height(48.dp)
                                 .testTag("message_seller_button")
                         ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Chat,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
+                            Text("✍️", fontSize = 16.sp)
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("Message Seller", fontWeight = FontWeight.Bold)
                         }

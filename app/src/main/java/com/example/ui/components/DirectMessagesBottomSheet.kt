@@ -10,10 +10,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.outlined.Shield
+import android.widget.Toast
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.NearMe
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +37,9 @@ import coil.request.ImageRequest
 import com.example.data.ChatMessageEntity
 import com.example.data.DirectMessageEntity
 import com.example.data.UserProfileEntity
+import com.example.data.OtherUserEntity
 import com.example.util.LocationHelper
+import com.example.util.SafetyLogManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,15 +48,56 @@ fun DirectMessagesBottomSheet(
     activeConversation: DirectMessageEntity?,
     chatMessages: List<ChatMessageEntity>,
     userProfile: UserProfileEntity,
+    otherUsers: List<OtherUserEntity> = emptyList(),
     onDismiss: () -> Unit,
     onSelectConversation: (DirectMessageEntity) -> Unit,
     onBackToInbox: () -> Unit,
-    onSendMessage: (String) -> Unit,
+    onSendMessage: (String, String?) -> Unit,
     onCreateGroupChat: (title: String) -> Unit
 ) {
     var inputMessageText by remember { mutableStateOf("") }
     var showCreateGroupDialog by remember { mutableStateOf(false) }
+    val context = androidx.compose.ui.platform.LocalContext.current
     var groupTitleInput by remember { mutableStateOf("") }
+    var showMediaSelector by remember { mutableStateOf(false) }
+    var showSafetyLogsSheet by remember { mutableStateOf(false) }
+
+    if (showSafetyLogsSheet) {
+        SafetyLogsViewerSheet(
+            onDismiss = { showSafetyLogsSheet = false },
+            onExportCurrentChat = if (activeConversation != null) {
+                {
+                    val ctx = context
+                    val res = SafetyLogManager.exportChatSafetyLog(
+                        context = ctx,
+                        currentUser = userProfile.username,
+                        targetUser = activeConversation.contactUsername,
+                        conversationId = activeConversation.conversationId,
+                        messages = chatMessages
+                    )
+                    if (res.isSuccess) {
+                        Toast.makeText(ctx, "Chat exported to internal storage (/safety_logs/)! SHA-256 sealed 🛡️", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(ctx, "Export failed: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } else null,
+            activeChatContact = activeConversation?.contactUsername
+        )
+    }
+
+    if (showMediaSelector) {
+        StandardMediaSelectorBottomSheet(
+            onDismiss = { showMediaSelector = false },
+            onMediaSelected = { mediaUrls ->
+                if (mediaUrls.isNotEmpty()) {
+                    onSendMessage(inputMessageText, mediaUrls.first())
+                    inputMessageText = ""
+                }
+                showMediaSelector = false
+            }
+        )
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -88,24 +136,43 @@ fun DirectMessagesBottomSheet(
                         )
                     }
 
-                    // Create Local Group Button
-                    Button(
-                        onClick = { showCreateGroupDialog = true },
-                        shape = RoundedCornerShape(100.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        ),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                        modifier = Modifier.height(34.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Group,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "New Group", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        // Safety Logs Archive Button
+                        OutlinedButton(
+                            onClick = { showSafetyLogsSheet = true },
+                            shape = RoundedCornerShape(100.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.height(34.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Shield,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(text = "Safety Logs", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        // Create Local Group Button
+                        Button(
+                            onClick = { showCreateGroupDialog = true },
+                            shape = RoundedCornerShape(100.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.height(34.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Group,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "New Group", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
@@ -262,6 +329,50 @@ fun DirectMessagesBottomSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+
+                    if (!conv.isGroup) {
+                        val otherUser = otherUsers.find { it.username == conv.contactUsername }
+                        val isFollowingMe = otherUser?.isFriend == true // Approximation for they follow me
+                        
+                        val context = LocalContext.current
+                        
+                        IconButton(onClick = {
+                            if (isFollowingMe) {
+                                Toast.makeText(context, "Calling ${conv.contactUsername}...", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "You can only call users who are connected with you.", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Call,
+                                contentDescription = "Call",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        
+                        IconButton(onClick = {
+                            val ctx = context
+                            val res = SafetyLogManager.exportChatSafetyLog(
+                                context = ctx,
+                                currentUser = userProfile.username,
+                                targetUser = conv.contactUsername,
+                                conversationId = conv.conversationId,
+                                messages = chatMessages
+                            )
+                            if (res.isSuccess) {
+                                Toast.makeText(ctx, "Safety Log exported to internal storage! SHA-256 sealed 🛡️", Toast.LENGTH_SHORT).show()
+                                showSafetyLogsSheet = true
+                            } else {
+                                Toast.makeText(ctx, "Export failed: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.Shield,
+                                contentDescription = "Export Safety Log (Evidence)",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
 
                 HorizontalDivider(
@@ -294,6 +405,27 @@ fun DirectMessagesBottomSheet(
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val otherUser = otherUsers.find { it.username == conv.contactUsername }
+                        val isFollowingMe = otherUser?.isFriend == true
+                        val context = LocalContext.current
+                        
+                        IconButton(
+                            onClick = { 
+                                if (isFollowingMe || conv.isGroup) {
+                                    showMediaSelector = true 
+                                } else {
+                                    Toast.makeText(context, "You can only send media to users who are connected with you.", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            modifier = Modifier.size(42.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Attach",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
                         OutlinedTextField(
                             value = inputMessageText,
                             onValueChange = { inputMessageText = it },
@@ -321,7 +453,7 @@ fun DirectMessagesBottomSheet(
                         IconButton(
                             onClick = {
                                 if (inputMessageText.isNotBlank()) {
-                                    onSendMessage(inputMessageText)
+                                    onSendMessage(inputMessageText, null)
                                     inputMessageText = ""
                                 }
                             },
@@ -425,7 +557,7 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
                 Column(modifier = Modifier.padding(10.dp)) {
-                    // If this message shares a post or reel preview
+                    // If this message shares a post or clip preview
                     if (!message.sharedMediaUrl.isNullOrBlank()) {
                         Box(
                             modifier = Modifier
@@ -464,11 +596,25 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
                 }
             }
         }
-        Text(
-            text = formatRelativeTime(message.timestamp),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.padding(top = 2.dp, start = if (!isCurrentUser) 34.dp else 0.dp)
-        )
+        ) {
+            Text(
+                text = formatRelativeTime(message.timestamp),
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+            if (isCurrentUser) {
+                // Read Receipt ticks
+                Icon(
+                    imageVector = Icons.Default.DoneAll,
+                    contentDescription = "Read",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+        }
     }
 }

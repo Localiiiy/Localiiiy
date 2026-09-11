@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Cameraswitch
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Replay
@@ -53,10 +55,10 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.ui.theme.LocaliAccentCoral
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentCoral
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.delay
@@ -72,6 +74,7 @@ import java.util.Locale
 @Composable
 fun CreatorClipsCameraScreen(
     onClipRecorded: (Uri) -> Unit = {},
+    onSaveDraft: (Uri) -> Unit = {},
     onDismiss: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -91,6 +94,7 @@ fun CreatorClipsCameraScreen(
         if (permissionsState.allPermissionsGranted) {
             CameraXRecordAndPreviewContainer(
                 onClipRecorded = onClipRecorded,
+                onSaveDraft = onSaveDraft,
                 onDismiss = onDismiss
             )
         } else {
@@ -102,9 +106,11 @@ fun CreatorClipsCameraScreen(
     }
 }
 
+@SuppressLint("MissingPermission")
 @Composable
 private fun CameraXRecordAndPreviewContainer(
     onClipRecorded: (Uri) -> Unit,
+    onSaveDraft: (Uri) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -147,6 +153,10 @@ private fun CameraXRecordAndPreviewContainer(
         // Media3 ExoPlayer Preview Playback
         CreatorClipExoPlayerPreview(
             videoUri = recordedVideoUri!!,
+            onSaveDraft = { uri ->
+                onSaveDraft(uri)
+                onDismiss()
+            },
             onRetake = {
                 recordedVideoUri = null
                 recordDurationSeconds = 0
@@ -243,7 +253,7 @@ private fun CameraXRecordAndPreviewContainer(
                 // Recording Status / Timer Badge
                 Surface(
                     shape = RoundedCornerShape(100.dp),
-                    color = if (isRecording) LocaliAccentCoral.copy(alpha = 0.9f) else Color.Black.copy(alpha = 0.5f),
+                    color = if (isRecording) LocaliiiyAccentCoral.copy(alpha = 0.9f) else Color.Black.copy(alpha = 0.5f),
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     Row(
@@ -332,7 +342,7 @@ private fun CameraXRecordAndPreviewContainer(
                         .clip(CircleShape)
                         .border(
                             width = 4.dp,
-                            color = if (isRecording) LocaliAccentCoral else Color.White,
+                            color = if (isRecording) LocaliiiyAccentCoral else Color.White,
                             shape = CircleShape
                         )
                         .clickable {
@@ -377,7 +387,7 @@ private fun CameraXRecordAndPreviewContainer(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(if (isRecording) RoundedCornerShape(8.dp) else CircleShape)
-                            .background(if (isRecording) LocaliAccentCoral else Color.White)
+                            .background(if (isRecording) LocaliiiyAccentCoral else Color.White)
                     )
                 }
             }
@@ -393,6 +403,7 @@ fun CreatorClipExoPlayerPreview(
     videoUri: Uri,
     onRetake: () -> Unit,
     onConfirmClip: (Uri) -> Unit,
+    onSaveDraft: (Uri) -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -403,6 +414,15 @@ fun CreatorClipExoPlayerPreview(
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(videoUri))
             repeatMode = Player.REPEAT_MODE_ONE
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    try {
+                        setMediaItem(MediaItem.fromUri(Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")))
+                        prepare()
+                        play()
+                    } catch (_: Exception) {}
+                }
+            })
             prepare()
             playWhenReady = true
         }
@@ -485,7 +505,7 @@ fun CreatorClipExoPlayerPreview(
 
             Surface(
                 shape = RoundedCornerShape(100.dp),
-                color = LocaliPrimaryTeal.copy(alpha = 0.9f)
+                color = LocaliiiyPrimaryTeal.copy(alpha = 0.9f)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -549,10 +569,32 @@ fun CreatorClipExoPlayerPreview(
                 }
 
                 // Confirm / Broadcast Clip Button
+                OutlinedButton(
+                    onClick = { onSaveDraft(videoUri) },
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.White
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color.White.copy(alpha = 0.7f)),
+                    modifier = Modifier.height(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Save,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Save Draft",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+
                 Button(
                     onClick = { onConfirmClip(videoUri) },
                     shape = RoundedCornerShape(100.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                     modifier = Modifier
                         .height(48.dp)
                         .testTag("broadcast_creator_clip_button")
@@ -593,25 +635,25 @@ private fun CameraPermissionRationale(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.8f))
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
-        Card(
+        Surface(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 400.dp)
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Videocam,
                     contentDescription = null,
-                    tint = LocaliPrimaryTeal,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(64.dp),
+                    tint = LocaliiiyPrimaryTeal
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -629,7 +671,7 @@ private fun CameraPermissionRationale(
                 Button(
                     onClick = onRequestPermissions,
                     shape = RoundedCornerShape(100.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Grant Permissions", color = Color.White, fontWeight = FontWeight.Bold)

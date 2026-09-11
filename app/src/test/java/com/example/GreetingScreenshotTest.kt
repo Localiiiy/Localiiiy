@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
-import com.example.ui.theme.LocaliTheme
+import com.example.ui.theme.LocaliiiyTheme
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.firebase.FirebaseApp
@@ -32,7 +32,7 @@ class GreetingScreenshotTest {
         context,
         FirebaseOptions.Builder()
           .setApplicationId("1:1234567890:android:321abc")
-          .setProjectId("localiiiy-app")
+          .setProjectId("Localiiiy-app")
           .setApiKey("fakeApiKey1234567890")
           .build()
       )
@@ -41,7 +41,7 @@ class GreetingScreenshotTest {
 
   @Test
   fun greeting_screenshot() {
-    composeTestRule.setContent { LocaliTheme { LocaliApp() } }
+    composeTestRule.setContent { LocaliiiyTheme { LocaliiiyApp() } }
 
     composeTestRule.onRoot().captureRoboImage(filePath = "src/test/screenshots/greeting.png")
   }

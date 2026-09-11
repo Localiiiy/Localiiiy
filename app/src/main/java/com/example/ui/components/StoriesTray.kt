@@ -31,8 +31,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.StoryEntity
 import com.example.data.UserProfileEntity
-import com.example.ui.theme.LocaliSeenStoryGradient
-import com.example.ui.theme.LocaliStoryGradient
+import com.example.ui.theme.LocaliiiySeenStoryGradient
+import com.example.ui.theme.LocaliiiyStoryGradient
 
 @Composable
 fun StoriesTray(
@@ -128,7 +128,7 @@ private fun UserStoryItem(
             contentAlignment = Alignment.Center
         ) {
             // Glowing ring
-            val ringBrush = if (hasStory) LocaliStoryGradient else LocaliSeenStoryGradient
+            val ringBrush = if (hasStory) LocaliiiyStoryGradient else LocaliiiySeenStoryGradient
             Box(
                 modifier = Modifier
                     .size(72.dp)
@@ -193,7 +193,7 @@ private fun FriendStoryItem(
     story: StoryEntity,
     onClick: () -> Unit
 ) {
-    val ringBrush = if (story.isViewed) LocaliSeenStoryGradient else LocaliStoryGradient
+    val ringBrush = if (story.isViewed) LocaliiiySeenStoryGradient else LocaliiiyStoryGradient
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

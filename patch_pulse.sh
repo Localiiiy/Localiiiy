@@ -1,0 +1,1 @@
+sed -i '/val refreshState = rememberPullToRefreshState()/a\    var isInitialLoad by remember { mutableStateOf(true) }\n\n    LaunchedEffect(Unit) {\n        kotlinx.coroutines.delay(1200)\n        isInitialLoad = false\n    }' app/src/main/java/com/example/ui/components/PulseFeedComponent.kt

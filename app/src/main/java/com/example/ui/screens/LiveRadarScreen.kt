@@ -31,9 +31,9 @@ import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.components.LiveRadarComponent
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -70,7 +70,7 @@ fun LiveRadarScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(LocaliDeepNavy)
+            .background(Color(0xFF010803))
             .testTag("live_radar_screen")
     ) {
         if (hasLocationPermission) {
@@ -95,8 +95,8 @@ fun LiveRadarScreen(
             // Top Status Overlay Bar
             Surface(
                 shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, LocaliPrimaryTeal.copy(alpha = 0.3f)),
+                color = Color(0xFF030D05).copy(alpha = 0.95f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00FF66).copy(alpha = 0.6f)),
                 shadowElevation = 6.dp,
                 modifier = Modifier
                     .statusBarsPadding()
@@ -112,13 +112,14 @@ fun LiveRadarScreen(
                         modifier = Modifier
                             .size(10.dp)
                             .clip(CircleShape)
-                            .background(LocaliAccentMint)
+                            .background(Color(0xFF14FF00))
                     )
                     Text(
-                        text = "Live Proximity Radar • Active Scanning",
+                        text = "LIVE PROXIMITY RADAR • ACTIVE SCANNING",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = Color(0xFF14FF00),
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
                         )
                     )
                 }
@@ -177,7 +178,7 @@ private fun LocationPermissionRationaleView(
                         .clip(CircleShape)
                         .background(
                             Brush.radialGradient(
-                                colors = listOf(LocaliPrimaryTeal, LocaliDeepNavy)
+                                colors = listOf(LocaliiiyPrimaryTeal, LocaliiiyDeepNavy)
                             )
                         ),
                     contentAlignment = Alignment.Center
@@ -233,7 +234,7 @@ private fun LocationPermissionRationaleView(
                         Icon(
                             imageVector = Icons.Outlined.Shield,
                             contentDescription = "Privacy Shield",
-                            tint = LocaliPrimaryTeal,
+                            tint = LocaliiiyPrimaryTeal,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
@@ -252,7 +253,7 @@ private fun LocationPermissionRationaleView(
                 Button(
                     onClick = onRequestPermission,
                     shape = RoundedCornerShape(100.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                    colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)

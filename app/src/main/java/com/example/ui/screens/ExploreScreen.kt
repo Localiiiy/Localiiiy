@@ -22,6 +22,8 @@ import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,17 +38,22 @@ import androidx.compose.ui.unit.sp
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
+import com.example.data.ClipEntity
+import com.example.data.MarketplaceItemEntity
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.LiveRadarComponent
+import com.example.ui.components.PulseClipCard
+import com.example.ui.components.SystematicDistanceScale
+import com.example.ui.components.PulseMarketItemCard
 import com.example.ui.components.PostCard
-import com.example.ui.theme.LocaliAccentCoral
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentCoral
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
-import com.example.util.LocaliStringKey
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
+import com.example.util.LocaliiiyStringKey
 import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
 
@@ -62,6 +69,8 @@ enum class ExploreViewMode {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ExploreScreen(
+    clips: List<ClipEntity> = emptyList(),
+    marketplaceItems: List<MarketplaceItemEntity> = emptyList(),
     posts: List<PostEntity>,
     userProfile: UserProfileEntity,
     nearbyUsers: List<OtherUserEntity> = emptyList(),
@@ -79,8 +88,13 @@ fun ExploreScreen(
     onSavePost: (PostEntity) -> Unit,
     onUserProfileClick: (String) -> Unit = {},
     onWaveAtUser: (OtherUserEntity) -> Unit = {},
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    privacySettings: com.example.data.PrivacySettingsEntity? = null,
+    onToggleHidePreciseLocation: ((Boolean) -> Unit)? = null,
+    onSelectObfuscatedRange: ((String) -> Unit)? = null,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val locationPermissionsState = rememberMultiplePermissionsState(
@@ -96,12 +110,14 @@ fun ExploreScreen(
     var exploreViewMode by remember { mutableStateOf(ExploreViewMode.RADAR) }
     var selectedDetailPost by remember { mutableStateOf<PostEntity?>(null) }
 
-    val radiusFilters = listOf(
-        Pair("🏡 < 1 km", 1.0),
-        Pair("📍 < 3 km", 3.0),
-        Pair("🏙️ < 5 km", 5.0),
-        Pair("🌐 < 10 km", 10.0)
-    )
+    val systematicOptions = remember(privacySettings?.radarCountryName) {
+        SystematicDistanceScale.getOptions(privacySettings?.radarCountryName)
+    }
+    val radiusFilters = remember(systematicOptions) {
+        systematicOptions.map { opt ->
+            Pair("${opt.icon} ${opt.shortLabel}", opt.km)
+        }
+    }
 
     // Filter posts by query or distance
     val filteredPosts = remember(posts, searchQuery, localRadiusKm, isLocationEnabled) {
@@ -137,7 +153,7 @@ fun ExploreScreen(
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        text = LocalizationHelper.getString(LocaliStringKey.SEARCH_HINT, currentLanguage),
+                        text = LocalizationHelper.getString(LocaliiiyStringKey.SEARCH_HINT, currentLanguage),
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -175,7 +191,29 @@ fun ExploreScreen(
                     .height(46.dp)
                     .testTag("explore_search_field")
             )
+        }
 
+        AnimatedVisibility(visible = searchQuery.isBlank()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val trendingTags = listOf("Coffee", "Hiking", "Farmers Market", "Live Music", "Art")
+                items(trendingTags) { tag ->
+                    SuggestionChip(
+                        onClick = { searchQuery = tag },
+                        label = { Text(tag) },
+                        icon = { Icon(Icons.Default.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp)) },
+                        shape = CircleShape
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
             // Switch between Live Radar view and Grid View
             Surface(
                 shape = RoundedCornerShape(100.dp),
@@ -193,14 +231,14 @@ fun ExploreScreen(
                             .size(38.dp)
                             .clip(CircleShape)
                             .background(
-                                if (exploreViewMode == ExploreViewMode.RADAR) LocaliDeepNavy else Color.Transparent
+                                if (exploreViewMode == ExploreViewMode.RADAR) LocaliiiyDeepNavy else Color.Transparent
                             )
                             .testTag("toggle_radar_view_button")
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Radar,
                             contentDescription = "Live Circular Radar",
-                            tint = if (exploreViewMode == ExploreViewMode.RADAR) LocaliAccentMint else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (exploreViewMode == ExploreViewMode.RADAR) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -227,21 +265,38 @@ fun ExploreScreen(
             }
         }
 
-        when (exploreViewMode) {
-            ExploreViewMode.RADAR -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(androidx.compose.foundation.rememberScrollState())
-                ) {
+        @OptIn(ExperimentalMaterial3Api::class)
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = rememberPullToRefreshState(),
+            modifier = Modifier.fillMaxSize().testTag("explore_pull_to_refresh_box")
+        ) {
+            when (exploreViewMode) {
+                ExploreViewMode.RADAR -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+                    ) {
                     // Main Interactive Live Radar Component
+                Spacer(modifier = Modifier.height(4.dp))
+
                 LiveRadarComponent(
                     userProfile = userProfile,
                     nearbyUsers = nearbyUsers,
                     nearbyPosts = posts,
+                    nearbyClips = clips,
+                    nearbyMarketItems = marketplaceItems,
                     selectedRadiusKm = localRadiusKm,
                     isLocationEnabled = isLocationEnabled,
                     isPrivateAccount = isPrivateAccount,
+                    hidePreciseLocationOnRadar = privacySettings?.hidePreciseLocationOnRadar ?: false,
+                    radarObfuscatedRange = privacySettings?.radarObfuscatedRange ?: "3k",
+                    radarCountryName = privacySettings?.radarCountryName ?: "United States",
+                    onToggleHidePreciseLocation = onToggleHidePreciseLocation,
+                    onSelectObfuscatedRange = onSelectObfuscatedRange,
+                    isRefreshing = isRefreshing,
                     onRadiusChange = { radius ->
                         localRadiusKm = radius
                         onRadiusFilterChange(radius)
@@ -269,7 +324,7 @@ fun ExploreScreen(
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = LocaliPrimaryTeal,
+                                tint = LocaliiiyPrimaryTeal,
                                 modifier = Modifier.size(15.dp)
                             )
                             Text(
@@ -282,7 +337,7 @@ fun ExploreScreen(
                             text = "${filteredPosts.size} pulses",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = LocaliPrimaryTeal
+                            color = LocaliiiyPrimaryTeal
                         )
                     }
 
@@ -328,84 +383,41 @@ fun ExploreScreen(
                     }
                 }
 
-                // Recent Pulses Detected on Radar
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = "Recent Pulses on Radar",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                Spacer(modifier = Modifier.height(16.dp))
+                // Full Detail Radar Feed
+                filteredPosts.forEach { post ->
+                    com.example.ui.components.PostCard(
+                        post = post,
+                        onLikeClick = { onLikePost(post) },
+                        onCommentClick = { onCommentPost(post) },
+                        onShareClick = { onSharePost(post) },
+                        onSaveClick = { onSavePost(post) },
+                        onUserClick = { onUserProfileClick(post.username) }
                     )
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
-                    ) {
-                        items(filteredPosts) { post ->
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                                modifier = Modifier
-                                    .width(130.dp)
-                                    .clickable { selectedDetailPost = post }
-                            ) {
-                                Column {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(130.dp)
-                                    ) {
-                                        ImageWithFilter(
-                                            mediaUrl = post.mediaUrl,
-                                            filterName = post.filterName,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop,
-                                            contentDescription = post.caption
-                                        )
-                                        Box(
-                                            modifier = Modifier
-                                                .align(Alignment.BottomStart)
-                                                .padding(6.dp)
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(Color.Black.copy(alpha = 0.7f))
-                                                .padding(horizontal = 5.dp, vertical = 2.dp)
-                                        ) {
-                                            Text(
-                                                text = LocationHelper.formatDistanceLabel(post.distanceKm),
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color.White
-                                            )
-                                        }
-                                    }
-                                    Column(modifier = Modifier.padding(6.dp)) {
-                                        Text(
-                                            text = "@${post.username}",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            maxLines = 1
-                                        )
-                                        Text(
-                                            text = post.landmark ?: post.location ?: "Nearby",
-                                            fontSize = 10.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            maxLines = 1
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
+                
+                clips.filter { it.distanceKm != null && it.distanceKm <= (localRadiusKm ?: 1000.0) }.forEach { clip ->
+                    com.example.ui.components.PulseClipCard(
+                        clip = clip,
+                        onClick = { onUserProfileClick(clip.username) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                
+                marketplaceItems.forEach { item ->
+                    com.example.ui.components.PulseMarketItemCard(
+                        item = item,
+                        onClick = { onUserProfileClick(item.sellerUsername) }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
         ExploreViewMode.GRID -> {
+
                 // VIEW MODE: GRID VIEW
                 Column(modifier = Modifier.fillMaxSize()) {
                 // Radius Chips
@@ -448,6 +460,8 @@ fun ExploreScreen(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 // Explore 3-Column Grid with Distance Badges
+                Spacer(modifier = Modifier.height(4.dp))
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier
@@ -550,4 +564,5 @@ fun ExploreScreen(
             }
         )
     }
+}
 }

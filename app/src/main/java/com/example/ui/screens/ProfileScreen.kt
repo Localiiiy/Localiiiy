@@ -18,8 +18,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,19 +45,20 @@ import com.example.data.CreatorEarningsSummary
 import com.example.data.MarketplaceItemEntity
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
-import com.example.data.ReelEntity
+import com.example.data.ClipEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.ProfileTab
 import com.example.ui.components.EditProfileDialog
+import com.example.ui.components.ForgotPasswordDialog
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.theme.EditorialVerified
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
-import com.example.ui.theme.LocaliStoryGradient
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
+import com.example.ui.theme.LocaliiiyStoryGradient
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
 
@@ -63,7 +67,7 @@ import com.example.util.LocationHelper
 fun ProfileScreen(
     userProfile: UserProfileEntity,
     posts: List<PostEntity>,
-    reels: List<ReelEntity>,
+    clips: List<ClipEntity>,
     marketplaceItems: List<MarketplaceItemEntity> = emptyList(),
     savedPosts: List<PostEntity> = emptyList(),
     activeTab: ProfileTab = ProfileTab.POSTS,
@@ -71,16 +75,18 @@ fun ProfileScreen(
     isPrivateAccount: Boolean = false,
     isLoggedOut: Boolean = false,
     otherUsers: List<OtherUserEntity> = emptyList(),
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     onTabChange: (ProfileTab) -> Unit = {},
     onLocationToggle: (Boolean) -> Unit = {},
     onPrivateToggle: (Boolean) -> Unit = {},
     onOpenPrivacySettings: () -> Unit = {},
     onEditProfile: (String, String, String, String) -> Unit = { _, _, _, _ -> },
     onPostClick: (PostEntity) -> Unit = {},
-    onReelClick: (ReelEntity) -> Unit = {},
+    onClipClick: (ClipEntity) -> Unit = {},
     onDeletePost: (Long) -> Unit = {},
-    onDeleteReel: (Long) -> Unit = {},
-    onUpdateReelDetails: (Long, String, String?, String?) -> Unit = { _, _, _, _ -> },
+    onDeleteClip: (Long) -> Unit = {},
+    onUpdateClipDetails: (Long, String, String?, String?) -> Unit = { _, _, _, _ -> },
     onDeleteMarketItem: (Long) -> Unit = {},
     onToggleMarketItemAvailability: (MarketplaceItemEntity) -> Unit = {},
     onUpdateMarketItem: (MarketplaceItemEntity) -> Unit = {},
@@ -91,11 +97,15 @@ fun ProfileScreen(
     onLogin: () -> Unit = {},
     onOpenSignUp: () -> Unit = {},
     onOpenLegalPolicy: () -> Unit = {},
+    onOpenCyberstalkingSafety: () -> Unit = {},
     onResetDemoData: () -> Unit = {},
     onCreateContentClick: () -> Unit = {},
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     creatorEarnings: CreatorEarningsSummary? = null,
+    onOpenDataAnalysis: () -> Unit = {},
+    onOpenHelp: () -> Unit = {},
+    onOpenInformation: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
     onOpenBoostAds: () -> Unit = {},
     onOpenLanguageCurrency: () -> Unit = {},
@@ -106,8 +116,8 @@ fun ProfileScreen(
     var showLogoutConfirmDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    // Reel / Clip Management State
-    var selectedClipForManage by remember { mutableStateOf<ReelEntity?>(null) }
+    // Clip / Clip Management State
+    var selectedClipForManage by remember { mutableStateOf<ClipEntity?>(null) }
     var showEditClipDialog by remember { mutableStateOf(false) }
     var showDeleteClipConfirmDialog by remember { mutableStateOf(false) }
 
@@ -118,9 +128,9 @@ fun ProfileScreen(
     // Proximity Radar Quick Range Selection
     var selectedRadiusKm by remember { mutableStateOf(5.0) }
 
-    val userClips = remember(reels, userProfile.username) {
-        val filtered = reels.filter { it.username == userProfile.username || it.userHandle == "@${userProfile.username}" }
-        if (filtered.isNotEmpty()) filtered else reels.take(2)
+    val userClips = remember(clips, userProfile.username) {
+        val filtered = clips.filter { it.username == userProfile.username || it.userHandle == "@${userProfile.username}" }
+        if (filtered.isNotEmpty()) filtered else clips.take(2)
     }
 
     val storyHighlights = listOf(
@@ -145,8 +155,15 @@ fun ProfileScreen(
         return
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = rememberPullToRefreshState(),
+        modifier = modifier.fillMaxSize().testTag("profile_pull_to_refresh_box")
+    ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .testTag("profile_screen_container")
@@ -190,13 +207,13 @@ fun ProfileScreen(
                 Surface(
                     shape = RoundedCornerShape(100.dp),
                     color = if (isLocationEnabled && !isPrivateAccount) {
-                        LocaliAccentMint.copy(alpha = 0.15f)
+                        LocaliiiyAccentMint.copy(alpha = 0.15f)
                     } else {
                         MaterialTheme.colorScheme.surfaceVariant
                     },
                     border = BorderStroke(
                         0.8.dp,
-                        if (isLocationEnabled && !isPrivateAccount) LocaliAccentMint.copy(alpha = 0.5f)
+                        if (isLocationEnabled && !isPrivateAccount) LocaliiiyAccentMint.copy(alpha = 0.5f)
                         else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     ),
                     modifier = Modifier.clickable { onOpenPrivacySettings() }
@@ -211,7 +228,7 @@ fun ProfileScreen(
                                 .size(7.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (isLocationEnabled && !isPrivateAccount) LocaliAccentMint
+                                    if (isLocationEnabled && !isPrivateAccount) LocaliiiyAccentMint
                                     else if (isPrivateAccount) Color(0xFFFF9800)
                                     else Color(0xFF9E9E9E)
                                 )
@@ -298,7 +315,7 @@ fun ProfileScreen(
                         Box(
                             modifier = Modifier
                                 .size(84.dp)
-                                .border(2.5.dp, LocaliStoryGradient, CircleShape)
+                                .border(2.5.dp, LocaliiiyStoryGradient, CircleShape)
                                 .padding(4.dp)
                         ) {
                             AsyncImage(
@@ -322,7 +339,7 @@ fun ProfileScreen(
                             ProfileStatColumn(count = posts.size.toString(), label = "Sparks 📸")
                             ProfileStatColumn(count = userClips.size.toString(), label = "Clips 🎬")
                             ProfileStatColumn(count = "${userProfile.neighborsCount}", label = "Orbit Allies")
-                            ProfileStatColumn(count = "${userProfile.followingCount}", label = "Following")
+                            ProfileStatColumn(count = "${userProfile.followingCount}", label = "Connected")
                         }
                     }
 
@@ -397,6 +414,37 @@ fun ProfileScreen(
                         )
                     }
 
+                    // Firebase Auth Security Status Pill
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.08f),
+                        border = BorderStroke(0.6.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VerifiedUser,
+                                contentDescription = null,
+                                tint = LocaliiiyPrimaryTeal,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            val authUser by com.example.auth.FirebaseAuthService.currentUserState.collectAsState()
+                            val displayEmail = authUser?.email ?: "${userProfile.username}@Localiiiy.app"
+                            Text(
+                                text = "Firebase Auth Secured • $displayEmail",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = LocaliiiyPrimaryTeal
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(10.dp))
 
                     // Primary Action Buttons Row
@@ -439,7 +487,7 @@ fun ProfileScreen(
                                         action = android.content.Intent.ACTION_SEND
                                         putExtra(
                                             android.content.Intent.EXTRA_TEXT,
-                                            "Check out @${userProfile.username}'s space on Localiiiy! https://localiiiy.app/@${userProfile.username}"
+                                            "Check out @${userProfile.username}'s space on Localiiiy! https://Localiiiy.app/@${userProfile.username}"
                                         )
                                         type = "text/plain"
                                     }
@@ -514,7 +562,7 @@ fun ProfileScreen(
                                     Icon(
                                         imageVector = Icons.Default.NearMe,
                                         contentDescription = null,
-                                        tint = if (isLocationEnabled && !isPrivateAccount) LocaliAccentMint else Color.Gray,
+                                        tint = if (isLocationEnabled && !isPrivateAccount) LocaliiiyAccentMint else Color.Gray,
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
@@ -666,9 +714,9 @@ fun ProfileScreen(
                             icon = Icons.Outlined.PlayCircle,
                             label = "Clips",
                             badgeCount = userClips.size,
-                            isSelected = activeTab == ProfileTab.REELS,
-                            onClick = { onTabChange(ProfileTab.REELS) },
-                            testTag = "profile_tab_reels"
+                            isSelected = activeTab == ProfileTab.CLIPS,
+                            onClick = { onTabChange(ProfileTab.CLIPS) },
+                            testTag = "profile_tab_clips"
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.Radar,
@@ -691,6 +739,13 @@ fun ProfileScreen(
                             isSelected = activeTab == ProfileTab.TAGGED,
                             onClick = { onTabChange(ProfileTab.TAGGED) },
                             testTag = "profile_tab_tagged"
+                        )
+                        ProfileTabItem(
+                            icon = Icons.Outlined.Analytics,
+                            label = "Analytics",
+                            isSelected = activeTab == ProfileTab.ANALYTICS,
+                            onClick = { onTabChange(ProfileTab.ANALYTICS) },
+                            testTag = "profile_tab_analytics"
                         )
                     }
 
@@ -758,11 +813,9 @@ fun ProfileScreen(
                                             .padding(horizontal = 4.dp, vertical = 2.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Favorite,
-                                            contentDescription = null,
-                                            tint = Color.Red,
-                                            modifier = Modifier.size(10.dp)
+                                        Text(
+                                            text = "👌",
+                                            fontSize = 10.sp
                                         )
                                         Spacer(modifier = Modifier.width(2.dp))
                                         Text(
@@ -778,7 +831,7 @@ fun ProfileScreen(
                     }
                 }
 
-                ProfileTab.REELS -> {
+                ProfileTab.CLIPS -> {
                     // Management banner for Neighborhood Clips
                     item(span = { GridItemSpan(3) }) {
                         Surface(
@@ -800,7 +853,7 @@ fun ProfileScreen(
                                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
                                     )
                                     Text(
-                                        text = "Manage your proximity reels, edit landmarks, or remove clips",
+                                        text = "Manage your proximity clips, edit landmarks, or remove clips",
                                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -828,19 +881,19 @@ fun ProfileScreen(
                             )
                         }
                     } else {
-                        items(userClips, key = { it.id }) { reel ->
+                        items(userClips, key = { it.id }) { clip ->
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier
                                     .aspectRatio(0.68f)
                                     .padding(2.dp)
-                                    .clickable { onReelClick(reel) }
-                                    .testTag("profile_clip_card_${reel.id}")
+                                    .clickable { onClipClick(clip) }
+                                    .testTag("profile_clip_card_${clip.id}")
                             ) {
                                 Box(modifier = Modifier.fillMaxSize()) {
                                     ImageWithFilter(
-                                        mediaUrl = reel.mediaUrl,
-                                        filterName = reel.filterName,
+                                        mediaUrl = clip.mediaUrl,
+                                        filterName = clip.filterName,
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )
@@ -875,12 +928,12 @@ fun ProfileScreen(
                                             Icon(
                                                 imageVector = Icons.Default.LocationOn,
                                                 contentDescription = null,
-                                                tint = LocaliAccentMint,
+                                                tint = LocaliiiyAccentMint,
                                                 modifier = Modifier.size(10.dp)
                                             )
                                             Spacer(modifier = Modifier.width(2.dp))
                                             Text(
-                                                text = reel.landmark?.take(12) ?: "Local Hub",
+                                                text = clip.landmark?.take(12) ?: "Local Hub",
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White
@@ -891,7 +944,7 @@ fun ProfileScreen(
                                     // Manage Menu Button
                                     IconButton(
                                         onClick = {
-                                            selectedClipForManage = reel
+                                            selectedClipForManage = clip
                                             showEditClipDialog = true
                                         },
                                         modifier = Modifier
@@ -899,7 +952,7 @@ fun ProfileScreen(
                                             .size(28.dp)
                                             .padding(4.dp)
                                             .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                                            .testTag("manage_clip_btn_${reel.id}")
+                                            .testTag("manage_clip_btn_${clip.id}")
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.MoreVert,
@@ -927,20 +980,18 @@ fun ProfileScreen(
                                                 modifier = Modifier.size(12.dp)
                                             )
                                             Text(
-                                                text = reel.viewsCount,
+                                                text = clip.viewsCount,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White
                                             )
                                             Spacer(modifier = Modifier.width(4.dp))
-                                            Icon(
-                                                imageVector = Icons.Default.Favorite,
-                                                contentDescription = "Likes",
-                                                tint = Color(0xFFFF5252),
-                                                modifier = Modifier.size(10.dp)
+                                            Text(
+                                                text = "👌",
+                                                fontSize = 10.sp
                                             )
                                             Text(
-                                                text = "${reel.likesCount}",
+                                                text = "${clip.likesCount}",
                                                 fontSize = 10.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White
@@ -948,7 +999,7 @@ fun ProfileScreen(
                                         }
 
                                         Text(
-                                            text = reel.caption,
+                                            text = clip.caption,
                                             fontSize = 10.sp,
                                             color = Color.White.copy(alpha = 0.9f),
                                             maxLines = 1,
@@ -1040,8 +1091,14 @@ fun ProfileScreen(
                         }
                     }
                 }
+                ProfileTab.ANALYTICS -> {
+                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
+                        com.example.ui.components.StudioAnalyticsComponent()
+                    }
+                }
             }
         }
+    }
     }
 
     // --- Dialogs & Sheets ---
@@ -1069,7 +1126,7 @@ fun ProfileScreen(
                 selectedClipForManage = null
             },
             onSave = { updatedCaption, updatedLocation, updatedLandmark ->
-                onUpdateReelDetails(clip.id, updatedCaption, updatedLocation, updatedLandmark)
+                onUpdateClipDetails(clip.id, updatedCaption, updatedLocation, updatedLandmark)
                 showEditClipDialog = false
                 selectedClipForManage = null
             },
@@ -1079,7 +1136,7 @@ fun ProfileScreen(
             },
             onPlayClip = {
                 showEditClipDialog = false
-                onReelClick(clip)
+                onClipClick(clip)
             }
         )
     }
@@ -1103,7 +1160,7 @@ fun ProfileScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        onDeleteReel(clip.id)
+                        onDeleteClip(clip.id)
                         showDeleteClipConfirmDialog = false
                         selectedClipForManage = null
                     },
@@ -1174,6 +1231,18 @@ fun ProfileScreen(
                     showMoreSettingsSheet = false
                     onOpenLanguageCurrency()
                 },
+                onOpenDataAnalysis = {
+                    showMoreSettingsSheet = false
+                    onOpenDataAnalysis()
+                },
+                onOpenHelp = {
+                    showMoreSettingsSheet = false
+                    onOpenHelp()
+                },
+                onOpenInformation = {
+                    showMoreSettingsSheet = false
+                    onOpenInformation()
+                },
                 onOpenMonetizationHub = {
                     showMoreSettingsSheet = false
                     onOpenMonetizationHub()
@@ -1193,6 +1262,10 @@ fun ProfileScreen(
                 onOpenLegalPolicy = {
                     showMoreSettingsSheet = false
                     onOpenLegalPolicy()
+                },
+                onOpenCyberstalkingSafety = {
+                    showMoreSettingsSheet = false
+                    onOpenCyberstalkingSafety()
                 },
                 onSwitchUser = { user ->
                     showMoreSettingsSheet = false
@@ -1411,7 +1484,7 @@ private fun ProfileProximitySettingsPanel(
                 Icon(
                     imageVector = Icons.Default.Radar,
                     contentDescription = null,
-                    tint = LocaliAccentMint,
+                    tint = LocaliiiyAccentMint,
                     modifier = Modifier.size(24.dp)
                 )
                 Column {
@@ -1563,14 +1636,18 @@ private fun ProfileSettingsSheetContent(
     otherUsers: List<OtherUserEntity>,
     isLocationEnabled: Boolean,
     isPrivateAccount: Boolean,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onOpenLanguageCurrency: () -> Unit = {},
+    onOpenDataAnalysis: () -> Unit = {},
+    onOpenHelp: () -> Unit = {},
+    onOpenInformation: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
     onOpenBoostAds: () -> Unit = {},
     onEditProfileClick: () -> Unit,
     onOpenPrivacySettings: () -> Unit,
     onOpenLegalPolicy: () -> Unit,
+    onOpenCyberstalkingSafety: () -> Unit = {},
     onSwitchUser: (OtherUserEntity) -> Unit,
     onResetDemo: () -> Unit,
     onLogoutClick: () -> Unit
@@ -1650,9 +1727,16 @@ private fun ProfileSettingsSheetContent(
         )
 
         SettingsRowItem(
-            icon = Icons.Default.MonetizationOn,
-            title = "Creator Monetization & Payouts",
-            subtitle = "55% Creator rev-share, automated multi-currency bank/PayPal/UPI rails",
+            icon = androidx.compose.material.icons.Icons.Default.Analytics,
+            title = "Data Analysis",
+            subtitle = "View account reach, connection data, and performance analytics",
+            onClick = onOpenDataAnalysis
+        )
+
+        SettingsRowItem(
+            icon = androidx.compose.material.icons.Icons.Default.MonetizationOn,
+            title = "Monetization",
+            subtitle = "View your earnings, ad revenue, and views",
             onClick = onOpenMonetizationHub
         )
 
@@ -1683,8 +1767,15 @@ private fun ProfileSettingsSheetContent(
         SettingsRowItem(
             icon = Icons.Default.Gavel,
             title = "App Agreement & Legal Policy",
-            subtitle = "Location rights, zero data selling, peer marketplace waiver (v2026.9.1)",
+            subtitle = "Location rights, zero data selling, peer marketplace waiver (v2026.9.3)",
             onClick = onOpenLegalPolicy
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.Shield,
+            title = "Zero-Tolerance Anti-Stalking Protocol",
+            subtitle = "Report offender, execute permanent ban & lock immutable electronic records",
+            onClick = onOpenCyberstalkingSafety
         )
 
         SettingsRowItem(
@@ -1699,6 +1790,29 @@ private fun ProfileSettingsSheetContent(
             title = "Storage & Cache",
             subtitle = "Clear cached clips & media (0.8 MB cached)",
             onClick = { /* Cache clear */ }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "SUPPORT & INFO",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        SettingsRowItem(
+            icon = Icons.Default.HelpOutline,
+            title = "Help & Support",
+            subtitle = "5W & 1H FAQ, advance search, app tasks",
+            onClick = onOpenHelp
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.Info,
+            title = "Information & Badges",
+            subtitle = "Creator tiers, terminology, app pages",
+            onClick = onOpenInformation
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -1855,6 +1969,7 @@ private fun SettingsRowItem(
 
 @Composable
 private fun LoggedOutProfileView(
+
     userProfile: UserProfileEntity,
     otherUsers: List<OtherUserEntity>,
     onLogin: () -> Unit,
@@ -1864,6 +1979,11 @@ private fun LoggedOutProfileView(
     onResetDemo: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showForgotPasswordDialog by remember { mutableStateOf(false) }
+    if (showForgotPasswordDialog) {
+        ForgotPasswordDialog(onDismiss = { showForgotPasswordDialog = false })
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -1878,7 +1998,7 @@ private fun LoggedOutProfileView(
                 .size(100.dp)
                 .background(
                     Brush.radialGradient(
-                        listOf(LocaliAccentMint.copy(alpha = 0.4f), Color.Transparent)
+                        listOf(LocaliiiyAccentMint.copy(alpha = 0.4f), Color.Transparent)
                     ),
                     CircleShape
                 ),
@@ -1912,35 +2032,52 @@ private fun LoggedOutProfileView(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Create New Account Button
+        // Sign In with Firebase Button
         Button(
-            onClick = onOpenSignUp,
+            onClick = onLogin,
             shape = RoundedCornerShape(100.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+            colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
+                .testTag("profile_login_button")
+        ) {
+            Icon(
+                imageVector = Icons.Default.Login,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Sign In with Firebase", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Create New Account Button
+        OutlinedButton(
+            onClick = onOpenSignUp,
+            shape = RoundedCornerShape(100.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp)
                 .testTag("profile_create_account_button")
         ) {
             Icon(
                 imageVector = Icons.Default.PersonAdd,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text("Create New Account", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Text("Register with Email & Password", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedButton(
-            onClick = onLogin,
-            shape = RoundedCornerShape(100.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(44.dp)
-                .testTag("profile_login_button")
+        TextButton(
+            onClick = { showForgotPasswordDialog = true },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Continue as @${userProfile.username}", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text("Forgot Password?", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, color = LocaliiiyPrimaryTeal)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -1967,7 +2104,7 @@ private fun LoggedOutProfileView(
                     Icon(
                         imageVector = Icons.Default.Gavel,
                         contentDescription = null,
-                        tint = LocaliPrimaryTeal,
+                        tint = LocaliiiyPrimaryTeal,
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
@@ -2044,7 +2181,7 @@ private fun LoggedOutProfileView(
 // --- Edit Neighborhood Clip Dialog ---
 @Composable
 private fun EditClipDetailsDialog(
-    clip: ReelEntity,
+    clip: ClipEntity,
     onDismiss: () -> Unit,
     onSave: (String, String?, String?) -> Unit,
     onDelete: () -> Unit,

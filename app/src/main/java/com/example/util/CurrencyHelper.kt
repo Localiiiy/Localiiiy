@@ -9,7 +9,7 @@ import java.util.Locale
  * Supports all major global currencies with symbols, exchange rates,
  * conversion calculators, and locale-aware formatting.
  */
-enum class LocaliCurrency(
+enum class LocaliiiyCurrency(
     val code: String,
     val currencyName: String,
     val symbol: String,
@@ -51,9 +51,9 @@ enum class LocaliCurrency(
     NZD("NZD", "New Zealand Dollar", "NZ$", "🇳🇿", "New Zealand", 1.64);
 
     companion object {
-        val ALL: List<LocaliCurrency> = entries.toList()
+        val ALL: List<LocaliiiyCurrency> = entries.toList()
 
-        fun fromCode(code: String?): LocaliCurrency {
+        fun fromCode(code: String?): LocaliiiyCurrency {
             if (code.isNullOrBlank()) return USD
             return entries.find { it.code.equals(code, ignoreCase = true) } ?: USD
         }
@@ -65,14 +65,14 @@ object CurrencyHelper {
     /**
      * Converts a base USD amount to the target worldwide currency using live exchange rates.
      */
-    fun convertFromUSD(amountInUSD: Double, target: LocaliCurrency): Double {
+    fun convertFromUSD(amountInUSD: Double, target: LocaliiiyCurrency): Double {
         return amountInUSD * target.rateToUSD
     }
 
     /**
      * Converts a local currency amount back to base USD.
      */
-    fun convertToUSD(localAmount: Double, source: LocaliCurrency): Double {
+    fun convertToUSD(localAmount: Double, source: LocaliiiyCurrency): Double {
         if (source.rateToUSD <= 0.0) return localAmount
         return localAmount / source.rateToUSD
     }
@@ -84,7 +84,7 @@ object CurrencyHelper {
      *      format(100.0, INR) -> "₹8,420.00"
      *      format(100.0, JPY) -> "¥15,200"
      */
-    fun format(amountInUSD: Double, target: LocaliCurrency): String {
+    fun format(amountInUSD: Double, target: LocaliiiyCurrency): String {
         val converted = convertFromUSD(amountInUSD, target)
         return formatDirect(converted, target)
     }
@@ -92,7 +92,7 @@ object CurrencyHelper {
     /**
      * Formats an amount already in the target currency.
      */
-    fun formatDirect(amount: Double, currency: LocaliCurrency): String {
+    fun formatDirect(amount: Double, currency: LocaliiiyCurrency): String {
         return if (currency.isZeroDecimal) {
             val longVal = amount.toLong()
             val formatter = DecimalFormat("#,###")
@@ -106,7 +106,18 @@ object CurrencyHelper {
     /**
      * Formats with currency code appended (e.g., "$1,250.00 USD").
      */
-    fun formatWithCode(amountInUSD: Double, target: LocaliCurrency): String {
+    fun formatWithCode(amountInUSD: Double, target: LocaliiiyCurrency): String {
         return "${format(amountInUSD, target)} ${target.code}"
+    }
+
+    /**
+     * Formats subscriber and follower counts into standard social abbreviations (e.g., 14.2K, 248K, 1.2M).
+     */
+    fun formatSubscribersCount(count: Int): String {
+        return when {
+            count >= 1_000_000 -> String.format(Locale.US, "%.1fM", count / 1_000_000.0).replace(".0M", "M")
+            count >= 1_000 -> String.format(Locale.US, "%.1fK", count / 1_000.0).replace(".0K", "K")
+            else -> count.toString()
+        }
     }
 }

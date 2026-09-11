@@ -1,4 +1,6 @@
 package com.example.ui.screens
+import androidx.compose.ui.draw.scale
+import androidx.compose.material.icons.outlined.AutoFixHigh
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -33,6 +35,7 @@ import com.example.ui.CreationMode
 import com.example.ui.FilterPreset
 import com.example.ui.PhotoFilters
 import com.example.ui.components.ImageWithFilter
+import com.example.ui.components.StandardMediaSelectorBottomSheet
 import com.example.util.LocationHelper
 import com.example.util.UserLocationData
 import kotlinx.coroutines.launch
@@ -52,11 +55,15 @@ fun CreateScreen(
     modifier: Modifier = Modifier
 ) {
     var caption by remember { mutableStateOf("") }
+    var isAiContent by remember { mutableStateOf(false) }
+    var locationOptional by remember { mutableStateOf(true) }
     var selectedLocation by remember { mutableStateOf(detectedLocation?.locationName ?: "Seattle, WA") }
     var selectedLandmark by remember { mutableStateOf(detectedLocation?.landmark ?: "Pike Place Market") }
     var selectedSound by remember { mutableStateOf<String?>("Original Audio • Locality Vibes") }
     var showLocationSelector by remember { mutableStateOf(false) }
     var showSoundSelector by remember { mutableStateOf(false) }
+
+    var showStandardMediaSelector by remember { mutableStateOf(false) }
 
     LaunchedEffect(detectedLocation) {
         if (detectedLocation != null) {
@@ -86,13 +93,19 @@ fun CreateScreen(
         Pair("South Lake Union Tech Hub", "Seattle, WA")
     )
 
-    val soundPresets = listOf(
-        "Original Audio • Locality Vibes",
-        "Pike Place Acoustic Guitar",
-        "Seattle Rain & Lofi Chill",
-        "Urban Street Beats",
-        "Neighborhood Sunset Melody"
+    val viralMusicTracks = listOf(
+        "🔥 Seattle Summer Anthem • 2026 Viral Hit",
+        "🌊 Pacific Chillwave • Trending #1 on Charts",
+        "🎸 Pike Place Acoustic Bounce • Global Viral",
+        "⚡ Neon Nights Electronic • Global Club Viral",
+        "🌙 Midnight Sunset Lo-Fi • Chill Vibes Viral",
+        "🎧 Urban Soundscape • Trending Neighborhood Remix",
+        "✨ Golden Hour Melody • Acoustic Viral",
+        "🚀 Space Needle Synthwave • Viral Track"
     )
+
+    var musicSearchQuery by remember { mutableStateOf("") }
+    var showCameraScreen by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -155,7 +168,7 @@ fun CreateScreen(
             }
         }
 
-        // Mode Switcher Tabs (POST | REEL | STORY)
+        // Mode Switcher Tabs (POST | CLIP | STORY)
         Surface(
             shape = RoundedCornerShape(100.dp),
             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -377,6 +390,55 @@ fun CreateScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        // Unrestricted Media & Camera Upload Section
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = { showStandardMediaSelector = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("upload_from_storage_button")
+            ) {
+                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Media Selector 📁", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+            }
+
+            Button(
+                onClick = { showCameraScreen = true },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(48.dp)
+                    .testTag("live_camera_button")
+            ) {
+                Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = "Live Camera 📷", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+            }
+        }
+
+        if (showStandardMediaSelector) {
+            StandardMediaSelectorBottomSheet(
+                onDismiss = { showStandardMediaSelector = false },
+                onMediaSelected = { selectedList ->
+                    if (selectedList.isNotEmpty()) {
+                        onSelectMedia(selectedList.first())
+                    }
+                }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
         // Gallery Media Selector
         Text(
             text = "CHOOSE FROM RECENT MEDIA",
@@ -433,7 +495,7 @@ fun CreateScreen(
             OutlinedTextField(
                 value = caption,
                 onValueChange = { caption = it },
-                placeholder = { Text("Write a caption for your neighbors... #locality #localiiiy") },
+                placeholder = { Text("Write a caption for your neighbors... #locality #Localiiiy") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("create_caption_input"),
@@ -462,7 +524,7 @@ fun CreateScreen(
                     Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "$selectedLandmark, $selectedLocation",
+                            text = if (locationOptional) "United States (Detected Country)" else "$selectedLandmark, $selectedLocation",
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp
@@ -484,6 +546,17 @@ fun CreateScreen(
                 }
             }
 
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Include precise location", fontSize = 12.sp, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = !locationOptional,
+                    onCheckedChange = { locationOptional = !it },
+                    modifier = Modifier.scale(0.8f)
+                )
+            }
             if (showLocationSelector) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -539,34 +612,146 @@ fun CreateScreen(
                 }
             }
 
+            // AI Content Switch
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AutoFixHigh,
+                    contentDescription = "AI Content",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("AI-Generated Content", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text("Label this post as created with AI", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(
+                    checked = isAiContent,
+                    onCheckedChange = { isAiContent = it }
+                )
+            }
             if (showSoundSelector) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                        .padding(8.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                        .padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    soundPresets.forEach { sound ->
-                        Text(
-                            text = "🎵 $sound",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = if (selectedSound == sound) FontWeight.Bold else FontWeight.Normal
-                            ),
-                            color = if (selectedSound == sound) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    Text(
+                        text = "🎵 Add Music & Viral Audio",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    OutlinedTextField(
+                        value = musicSearchQuery,
+                        onValueChange = { musicSearchQuery = it },
+                        placeholder = { Text("Search music tracks, artists, or Google vibes...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", modifier = Modifier.size(18.dp)) },
+                        trailingIcon = {
+                            if (musicSearchQuery.isNotBlank()) {
+                                IconButton(onClick = { musicSearchQuery = "" }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Clear", modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                    )
+
+                    if (musicSearchQuery.isNotBlank()) {
+                        // Custom search result / Google query result option
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    selectedSound = "$musicSearchQuery • Custom Audio"
+                                    showSoundSelector = false
+                                    musicSearchQuery = ""
+                                }
+                        ) {
+                            Text(
+                                text = "🔍 Use Custom Search: \"$musicSearchQuery\"",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = "🔥 New Viral Music (Top Charts)",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+
+                    val filteredViralTracks = if (musicSearchQuery.isBlank()) {
+                        viralMusicTracks
+                    } else {
+                        viralMusicTracks.filter { it.contains(musicSearchQuery, ignoreCase = true) }
+                    }
+
+                    filteredViralTracks.forEach { sound ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (selectedSound == sound) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
                                     selectedSound = sound
                                     showSoundSelector = false
                                 }
-                                .padding(vertical = 8.dp, horizontal = 6.dp)
-                        )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = sound,
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = if (selectedSound == sound) FontWeight.Bold else FontWeight.Normal
+                                    ),
+                                    color = if (selectedSound == sound) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                                if (selectedSound == sound) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+    if (showCameraScreen) {
+        CreatorClipsCameraScreen(
+            onClipRecorded = { uri ->
+                onSelectMedia(uri.toString())
+                showCameraScreen = false
+            },
+            onSaveDraft = { uri ->
+                // Typically you would call a viewmodel here to save to the Room DB
+                showCameraScreen = false
+            },
+            onDismiss = { showCameraScreen = false }
+        )
+    }
     }
 }

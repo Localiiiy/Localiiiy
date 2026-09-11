@@ -31,7 +31,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.StoryEntity
-import com.example.ui.theme.LocaliHeart
+import com.example.ui.theme.LocaliiiyHeart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -241,7 +241,7 @@ fun StoryViewerDialog(
                     onValueChange = { replyText = it },
                     placeholder = {
                         Text(
-                            text = "Send message...",
+                            text = "✍️ Send reply...",
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 14.sp
                         )
@@ -277,17 +277,13 @@ fun StoryViewerDialog(
                     singleLine = true
                 )
 
-                IconButton(
-                    onClick = { isLiked = !isLiked },
-                    modifier = Modifier.testTag("story_like_button")
-                ) {
-                    Icon(
-                        imageVector = if (isLiked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Like Story",
-                        tint = if (isLiked) LocaliHeart else Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+                AnimatedLikeButton(
+                    isLiked = isLiked,
+                    onLikeClick = { isLiked = !isLiked },
+                    symbolSize = 26.sp,
+                    touchTargetSize = 48.dp,
+                    testTag = "story_like_button"
+                )
             }
         }
     }

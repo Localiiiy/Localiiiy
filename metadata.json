@@ -1,6 +1,6 @@
 {
   "name": "Localiiiy",
-  "description": "All-in-one hyperlocal community platform: Pulse feed, Radar discovery, Marketplace, Localiiiy Studio for long-form creator videos (60s to 240 mins), Clips, and Space.",
+  "description": "Hyperlocal community platform with Live Radar privacy controls, atmospheric space themes (Black hole, Moon, Galaxy, Custom), unlimited long-form Studio playback, and native clip deep linking.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

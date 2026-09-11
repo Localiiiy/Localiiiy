@@ -21,21 +21,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
-import com.example.util.LocaliStringKey
+import com.example.util.LocaliiiyStringKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GlobalLanguageCurrencyDialog(
-    currentLanguage: LocaliLanguage,
-    currentCurrency: LocaliCurrency,
-    onLanguageSelected: (LocaliLanguage) -> Unit,
-    onCurrencySelected: (LocaliCurrency) -> Unit,
+    currentLanguage: LocaliiiyLanguage,
+    currentCurrency: LocaliiiyCurrency,
+    onLanguageSelected: (LocaliiiyLanguage) -> Unit,
+    onCurrencySelected: (LocaliiiyCurrency) -> Unit,
     onDismissRequest: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0 = Languages, 1 = Currencies
@@ -101,7 +101,7 @@ fun GlobalLanguageCurrencyDialog(
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                border = BorderStroke(1.dp, LocaliPrimaryTeal.copy(alpha = 0.3f)),
+                border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -116,7 +116,7 @@ fun GlobalLanguageCurrencyDialog(
                             text = "ACTIVE WORLD CONFIGURATION",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = LocaliPrimaryTeal,
+                            color = LocaliiiyPrimaryTeal,
                             letterSpacing = 0.5.sp
                         )
                         Text(
@@ -134,7 +134,7 @@ fun GlobalLanguageCurrencyDialog(
 
                     Surface(
                         shape = RoundedCornerShape(10.dp),
-                        color = LocaliPrimaryTeal.copy(alpha = 0.15f)
+                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
                     ) {
                         Column(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -149,7 +149,7 @@ fun GlobalLanguageCurrencyDialog(
                                 text = CurrencyHelper.format(100.0, currentCurrency),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = LocaliPrimaryTeal
+                                color = LocaliiiyPrimaryTeal
                             )
                         }
                     }
@@ -172,7 +172,7 @@ fun GlobalLanguageCurrencyDialog(
                     },
                     text = {
                         Text(
-                            text = "🗣️ Languages (${LocaliLanguage.ALL.size})",
+                            text = "🗣️ Languages (${LocaliiiyLanguage.ALL.size})",
                             fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
                         )
                     },
@@ -186,7 +186,7 @@ fun GlobalLanguageCurrencyDialog(
                     },
                     text = {
                         Text(
-                            text = "💵 Currencies (${LocaliCurrency.ALL.size})",
+                            text = "💵 Currencies (${LocaliiiyCurrency.ALL.size})",
                             fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
                         )
                     },
@@ -224,7 +224,7 @@ fun GlobalLanguageCurrencyDialog(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = LocaliPrimaryTeal,
+                    focusedBorderColor = LocaliiiyPrimaryTeal,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                 ),
                 modifier = Modifier
@@ -237,8 +237,8 @@ fun GlobalLanguageCurrencyDialog(
             // List Content
             if (selectedTab == 0) {
                 val filteredLanguages = remember(searchQuery) {
-                    if (searchQuery.isBlank()) LocaliLanguage.ALL
-                    else LocaliLanguage.ALL.filter {
+                    if (searchQuery.isBlank()) LocaliiiyLanguage.ALL
+                    else LocaliiiyLanguage.ALL.filter {
                         it.displayName.contains(searchQuery, ignoreCase = true) ||
                                 it.nativeName.contains(searchQuery, ignoreCase = true) ||
                                 it.code.contains(searchQuery, ignoreCase = true)
@@ -256,10 +256,10 @@ fun GlobalLanguageCurrencyDialog(
                         val isSelected = (lang == currentLanguage)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isSelected) LocaliPrimaryTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            color = if (isSelected) LocaliiiyPrimaryTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                             border = BorderStroke(
                                 1.dp,
-                                if (isSelected) LocaliPrimaryTeal else Color.Transparent
+                                if (isSelected) LocaliiiyPrimaryTeal else Color.Transparent
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -300,7 +300,7 @@ fun GlobalLanguageCurrencyDialog(
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
                                         contentDescription = "Selected",
-                                        tint = LocaliPrimaryTeal,
+                                        tint = LocaliiiyPrimaryTeal,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -310,8 +310,8 @@ fun GlobalLanguageCurrencyDialog(
                 }
             } else {
                 val filteredCurrencies = remember(searchQuery) {
-                    if (searchQuery.isBlank()) LocaliCurrency.ALL
-                    else LocaliCurrency.ALL.filter {
+                    if (searchQuery.isBlank()) LocaliiiyCurrency.ALL
+                    else LocaliiiyCurrency.ALL.filter {
                         it.code.contains(searchQuery, ignoreCase = true) ||
                                 it.currencyName.contains(searchQuery, ignoreCase = true) ||
                                 it.country.contains(searchQuery, ignoreCase = true) ||
@@ -330,10 +330,10 @@ fun GlobalLanguageCurrencyDialog(
                         val isSelected = (curr == currentCurrency)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isSelected) LocaliPrimaryTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                            color = if (isSelected) LocaliiiyPrimaryTeal.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                             border = BorderStroke(
                                 1.dp,
-                                if (isSelected) LocaliPrimaryTeal else Color.Transparent
+                                if (isSelected) LocaliiiyPrimaryTeal else Color.Transparent
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -395,14 +395,14 @@ fun GlobalLanguageCurrencyDialog(
                                         text = CurrencyHelper.format(100.0, curr),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = if (isSelected) LocaliPrimaryTeal else MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
 
                                     if (isSelected) {
                                         Icon(
                                             imageVector = Icons.Default.CheckCircle,
                                             contentDescription = "Selected",
-                                            tint = LocaliPrimaryTeal,
+                                            tint = LocaliiiyPrimaryTeal,
                                             modifier = Modifier.size(20.dp)
                                         )
                                     }
@@ -419,7 +419,7 @@ fun GlobalLanguageCurrencyDialog(
             Button(
                 onClick = onDismissRequest,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)

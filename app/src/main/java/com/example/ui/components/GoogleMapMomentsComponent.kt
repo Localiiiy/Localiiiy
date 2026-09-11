@@ -40,9 +40,9 @@ import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.theme.EditorialHeart
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.LocationHelper
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -216,7 +216,7 @@ fun GoogleMapMomentsComponent(
                                 modifier = Modifier
                                     .size(10.dp)
                                     .clip(CircleShape)
-                                    .background(LocaliAccentMint)
+                                    .background(LocaliiiyAccentMint)
                             )
                             Text(
                                 text = "Live Radar Moments Map",
@@ -230,12 +230,12 @@ fun GoogleMapMomentsComponent(
 
                         Surface(
                             shape = RoundedCornerShape(100.dp),
-                            color = LocaliPrimaryTeal.copy(alpha = 0.15f)
+                            color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
                         ) {
                             Text(
                                 text = "${posts.size} Moments active",
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = LocaliPrimaryTeal,
+                                color = LocaliiiyPrimaryTeal,
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
@@ -253,7 +253,7 @@ fun GoogleMapMomentsComponent(
                             val isSelected = selectedRadiusKm == r
                             Surface(
                                 shape = RoundedCornerShape(100.dp),
-                                color = if (isSelected) LocaliPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                                 border = if (isSelected) null else BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
                                 modifier = Modifier
                                     .weight(1f)
@@ -302,7 +302,7 @@ fun GoogleMapMomentsComponent(
                     )
                 },
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = LocaliPrimaryTeal,
+                contentColor = LocaliiiyPrimaryTeal,
                 modifier = Modifier
                     .size(46.dp)
                     .testTag("map_recenter_button"),
@@ -464,13 +464,13 @@ fun GoogleMapMomentsComponent(
                                     Icon(
                                         imageVector = Icons.Default.LocationOn,
                                         contentDescription = null,
-                                        tint = LocaliPrimaryTeal,
+                                        tint = LocaliiiyPrimaryTeal,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Text(
                                         text = "${post.landmark ?: post.location} • ${LocationHelper.formatDistanceLabel(post.distanceKm)}",
                                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
-                                        color = LocaliPrimaryTeal,
+                                        color = LocaliiiyPrimaryTeal,
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -509,33 +509,20 @@ fun GoogleMapMomentsComponent(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            OutlinedButton(
-                                onClick = { onLikePost(post) },
-                                shape = RoundedCornerShape(100.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = if (post.isLiked) EditorialHeart else MaterialTheme.colorScheme.onSurface
-                                ),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                modifier = Modifier.height(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (post.isLiked) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                                    contentDescription = "Like",
-                                    tint = if (post.isLiked) EditorialHeart else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "${post.likesCount}",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
+                            AnimatedLikeButton(
+                                isLiked = post.isLiked,
+                                onLikeClick = { onLikePost(post) },
+                                likesCount = post.likesCount,
+                                showCount = true,
+                                symbolSize = 20.sp,
+                                touchTargetSize = 36.dp,
+                                testTag = "map_post_like_${post.id}"
+                            )
 
                             Button(
                                 onClick = { onPostClick(post) },
                                 shape = RoundedCornerShape(100.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                                colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                                 modifier = Modifier
                                     .weight(1f)
@@ -599,7 +586,7 @@ fun GoogleMapMomentsComponent(
                             Text(
                                 text = "${user.landmark ?: user.locationName} • ${LocationHelper.formatDistanceLabel(user.distanceKm)}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = LocaliPrimaryTeal,
+                                color = LocaliiiyPrimaryTeal,
                                 fontWeight = FontWeight.Medium
                             )
                             Text(
@@ -614,7 +601,7 @@ fun GoogleMapMomentsComponent(
                         Button(
                             onClick = { onUserProfileClick(user.username) },
                             shape = RoundedCornerShape(100.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                            colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                             modifier = Modifier.height(34.dp)
                         ) {

@@ -107,7 +107,7 @@ dependencies {
 
   // Uncomment ALL FOUR of the following dependencies together to use Firebase Auth and Google
   // Sign-In via Credential Manager:
-  // implementation(libs.firebase.auth)
+  implementation(libs.firebase.auth)
   // implementation(libs.androidx.credentials)
   // implementation(libs.androidx.credentials.play.services)
   // implementation(libs.googleid)
@@ -119,9 +119,12 @@ dependencies {
   implementation(libs.moshi.kotlin)
   implementation(libs.okhttp)
   implementation(libs.play.services.location)
+  implementation(libs.play.services.ads)
   implementation(libs.play.services.maps)
   implementation(libs.androidx.media3.exoplayer)
   implementation(libs.androidx.media3.ui)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
   implementation(libs.retrofit)
   testImplementation(libs.androidx.compose.ui.test.junit4)
   testImplementation(libs.androidx.core)

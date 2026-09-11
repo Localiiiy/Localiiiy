@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,7 +22,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import android.content.res.Configuration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,10 +38,18 @@ import com.example.data.CreatorEarningsSummary
 import com.example.data.StudioVideoEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.components.StudioVideoPlayerComponent
+import com.example.ui.components.StudioInlinePreviewPlayer
+import com.example.ui.components.StudioDockedMiniPlayer
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
+import kotlin.math.abs
+
+import com.example.ui.components.SystematicDistanceScale
+import com.example.ui.components.SystematicDistanceOption
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 val StudioCategories = listOf(
     "All",
@@ -91,15 +102,26 @@ fun StudioScreen(
         chapters: String
     ) -> Boolean,
     onDeleteVideo: (Long) -> Unit,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
-    currentLanguage: LocaliLanguage = LocaliLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    studioSortOption: String = "Most Popular (Views)",
+    onStudioSortChange: (String) -> Unit = {},
+    studioScopeFilter: String = "All Locations",
+    onStudioScopeChange: (String) -> Unit = {},
+    countryName: String? = null,
     creatorEarnings: CreatorEarningsSummary? = null,
     onOpenMonetizationHub: () -> Unit = {},
     onOpenBoostAds: () -> Unit = {},
     onOpenLanguageCurrency: () -> Unit = {},
     onUserProfileClick: (String) -> Unit = {},
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val systematicOptions = remember(countryName) {
+        SystematicDistanceScale.getOptions(countryName)
+    }
+
     // Filter videos by category and search
     val filteredVideos = remember(videos, selectedCategory, searchQuery) {
         videos.filter { video ->
@@ -114,6 +136,38 @@ fun StudioScreen(
         }
     }
 
+    val sortedVideos = remember(filteredVideos, studioSortOption, studioScopeFilter, systematicOptions) {
+        val matchedOption = systematicOptions.firstOrNull {
+            it.shortLabel.equals(studioScopeFilter, ignoreCase = true) ||
+            it.key.equals(studioScopeFilter, ignoreCase = true)
+        }
+        val scopeFiltered = filteredVideos.filter { video ->
+            if (matchedOption != null) {
+                if (matchedOption.key == "EARTH" || matchedOption.key == "GALAXY") true
+                else video.distanceKm <= matchedOption.km
+            } else when (studioScopeFilter) {
+                "Neighborhood (3km)", "3KM" -> video.distanceKm <= 3.0
+                "5KM" -> video.distanceKm <= 5.0
+                "50KM" -> video.distanceKm <= 50.0
+                "100KM" -> video.distanceKm <= 100.0
+                "500KM" -> video.distanceKm <= 500.0
+                "1000KM" -> video.distanceKm <= 1000.0
+                "Country" -> video.distanceKm <= 5000.0
+                "Earth", "Earth 🌍", "Galaxy" -> true
+                else -> true
+            }
+        }
+        when (studioSortOption) {
+            "Most Popular (Views)" -> scopeFiltered.sortedByDescending { it.viewsCount }
+            "Newest Upload" -> scopeFiltered.sortedByDescending { it.timestamp }
+            "Duration: Longest" -> scopeFiltered.sortedByDescending { it.durationSeconds }
+            "Duration: Shortest" -> scopeFiltered.sortedBy { it.durationSeconds }
+            "Top Rated (Likes)" -> scopeFiltered.sortedByDescending { it.likesCount }
+            "Creator Connected", "Creator Connections" -> scopeFiltered.sortedByDescending { it.subscriberCountInt }
+            else -> scopeFiltered
+        }
+    }
+
     // Spotlit featured video (first trending or creator pick)
     val featuredVideo = remember(videos) {
         videos.firstOrNull { it.isCreatorPick || it.isTrending } ?: videos.firstOrNull()
@@ -123,12 +177,48 @@ fun StudioScreen(
     var showReportDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
     var showTipDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
 
+    // Video Preview on Scroll & Mini Player States
+    var isVideoPreviewOnScrollEnabled by remember { mutableStateOf(true) }
+    var isPreviewMuted by remember { mutableStateOf(true) }
+    var manualPreviewVideoId by remember { mutableStateOf<Long?>(null) }
+    var miniPlayerVideo by remember { mutableStateOf<StudioVideoEntity?>(null) }
+    var isMiniPlayerPlaying by remember { mutableStateOf(true) }
+    var isMiniPlayerMuted by remember { mutableStateOf(false) }
+
+    val studioListState = rememberLazyListState()
+
+    // Real-time tracking of which video card is currently in view while scrolling
+    val visibleVideoId by remember {
+        derivedStateOf {
+            val layoutInfo = studioListState.layoutInfo
+            val visibleItems = layoutInfo.visibleItemsInfo
+            if (visibleItems.isEmpty()) null
+            else {
+                val viewportCenter = layoutInfo.viewportStartOffset + (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
+                val centerItem = visibleItems.minByOrNull { item ->
+                    val itemCenter = item.offset + item.size / 2
+                    abs(itemCenter - viewportCenter)
+                }
+                centerItem?.key as? Long
+            }
+        }
+    }
+
+    val activePreviewVideoId = manualPreviewVideoId ?: if (isVideoPreviewOnScrollEnabled) visibleVideoId else null
+
     Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("studio_feed_list")
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = rememberPullToRefreshState(),
+            modifier = Modifier.fillMaxSize().testTag("studio_pull_to_refresh_box")
         ) {
+            LazyColumn(
+                state = studioListState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("studio_feed_list")
+            ) {
             // 1. Localiiiy Studio Brand Header & Creator Studio Switch
             item {
                 StudioHeader(
@@ -148,13 +238,309 @@ fun StudioScreen(
                 )
             }
 
-            // 3. YouTube-Style Category Filter Chips
+            // 3. Standard Category Filter Chips
             item {
                 StudioCategoryChips(
                     categories = StudioCategories,
                     selectedCategory = selectedCategory,
                     onSelect = onCategorySelected
                 )
+            }
+
+            // 3.1 Advanced Sort & Scope Filter Chips (Popularity, Duration, Neighborhood/Country/Earth)
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    // Sort options row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Sort:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val sortOptions = listOf(
+                                "Most Popular (Views)",
+                                "Newest Upload",
+                                "Duration: Longest",
+                                "Duration: Shortest",
+                                "Top Rated (Likes)",
+                                "Creator Connected"
+                            )
+                            items(sortOptions) { sOpt ->
+                                val isSelected = studioSortOption == sOpt
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable { onStudioSortChange(sOpt) }
+                                        .testTag("studio_sort_$sOpt")
+                                 ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            text = when (sOpt) {
+                                                "Most Popular (Views)" -> "🔥"
+                                                "Newest Upload" -> "🕒"
+                                                "Duration: Longest" -> "⏳"
+                                                "Duration: Shortest" -> "⚡"
+                                                "Top Rated (Likes)" -> "👌"
+                                                "Creator Connected", "Creator Connections" -> "👥"
+                                                else -> "🎬"
+                                            },
+                                            fontSize = 10.sp
+                                        )
+                                        Text(
+                                            text = sOpt,
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Geographic Scope Filter row (Neighborhood, Country, Earth)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Scope:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            item {
+                                val isAll = studioScopeFilter == "All Locations" || studioScopeFilter.isBlank()
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (isAll) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isAll) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable { onStudioScopeChange("All Locations") }
+                                        .testTag("studio_scope_all")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text("🌐", fontSize = 10.sp)
+                                        Text(
+                                            text = "All Locations",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (isAll) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isAll) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            items(systematicOptions) { opt ->
+                                val isSelected = studioScopeFilter.equals(opt.shortLabel, ignoreCase = true) ||
+                                        studioScopeFilter.equals(opt.key, ignoreCase = true)
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable { onStudioScopeChange(opt.shortLabel) }
+                                        .testTag("studio_scope_${opt.key.lowercase()}")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(opt.icon, fontSize = 10.sp)
+                                        Text(
+                                            text = opt.shortLabel,
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Playback & Video Preview Options Row (Mute/Unmute, Auto-preview on scroll, Mini Player)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Options:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // 1. Video Preview on Scroll Toggle
+                            item {
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (isVideoPreviewOnScrollEnabled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isVideoPreviewOnScrollEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable {
+                                            isVideoPreviewOnScrollEnabled = !isVideoPreviewOnScrollEnabled
+                                            if (!isVideoPreviewOnScrollEnabled) manualPreviewVideoId = null
+                                        }
+                                        .testTag("studio_toggle_video_preview")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isVideoPreviewOnScrollEnabled) Icons.Default.PlayCircle else Icons.Default.PauseCircle,
+                                            contentDescription = null,
+                                            tint = if (isVideoPreviewOnScrollEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                        Text(
+                                            text = if (isVideoPreviewOnScrollEnabled) "Video Preview: ON" else "Video Preview: OFF",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (isVideoPreviewOnScrollEnabled) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isVideoPreviewOnScrollEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            // 2. Mute / Unmute Toggle
+                            item {
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (!isPreviewMuted) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (!isPreviewMuted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable { isPreviewMuted = !isPreviewMuted }
+                                        .testTag("studio_toggle_preview_mute")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isPreviewMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                            contentDescription = null,
+                                            tint = if (!isPreviewMuted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                        Text(
+                                            text = if (isPreviewMuted) "Muted" else "Sound On",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (!isPreviewMuted) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (!isPreviewMuted) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            // 3. Mini Player in Studio Option
+                            item {
+                                val isMiniActive = miniPlayerVideo != null
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (isMiniActive) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isMiniActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable {
+                                            if (miniPlayerVideo != null) {
+                                                val v = miniPlayerVideo!!
+                                                miniPlayerVideo = null
+                                                onVideoClick(v)
+                                            } else if (sortedVideos.isNotEmpty()) {
+                                                miniPlayerVideo = sortedVideos.first()
+                                                isMiniPlayerPlaying = true
+                                                isMiniPlayerMuted = false
+                                            }
+                                        }
+                                        .testTag("studio_mini_player_toggle")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.PictureInPictureAlt,
+                                            contentDescription = null,
+                                            tint = if (isMiniActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(13.dp)
+                                        )
+                                        Text(
+                                            text = if (isMiniActive) "Mini Player: Active" else "Mini Player",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = if (isMiniActive) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isMiniActive) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // 4. Creator Studio Dashboard Banner (Expandable)
@@ -198,7 +584,7 @@ fun StudioScreen(
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "${filteredVideos.size} full-length videos (60s – 240m)",
+                            text = "${sortedVideos.size} full-length videos (60s – Unlimited)",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -231,8 +617,8 @@ fun StudioScreen(
                 }
             }
 
-            // 7. Video Feed Items (YouTube Style Large 16:9 Cards)
-            if (filteredVideos.isEmpty()) {
+            // 7. Video Feed Items (Standard Large 16:9 Cards)
+            if (sortedVideos.isEmpty()) {
                 item {
                     StudioEmptyState(
                         category = selectedCategory,
@@ -244,9 +630,21 @@ fun StudioScreen(
                     )
                 }
             } else {
-                items(filteredVideos, key = { it.id }) { video ->
+                items(sortedVideos, key = { it.id }) { video ->
+                    val isPreviewActive = (activePreviewVideoId == video.id)
                     StudioVideoCard(
                         video = video,
+                        isPreviewActive = isPreviewActive,
+                        isPreviewMuted = isPreviewMuted,
+                        onToggleMute = { isPreviewMuted = !isPreviewMuted },
+                        onStartPreview = {
+                            manualPreviewVideoId = video.id
+                        },
+                        onStartMiniPlayer = {
+                            miniPlayerVideo = video
+                            isMiniPlayerPlaying = true
+                            isMiniPlayerMuted = false
+                        },
                         onClick = { onVideoClick(video) },
                         onMenuClick = { selectedVideoForMenu = video }
                     )
@@ -255,7 +653,32 @@ fun StudioScreen(
             }
 
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(100.dp))
+            }
+        }
+        }
+
+        // Docked Studio Mini Player (Pinned to bottom of screen while browsing)
+        if (miniPlayerVideo != null && activeVideo == null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+            ) {
+                StudioDockedMiniPlayer(
+                    video = miniPlayerVideo!!,
+                    isPlaying = isMiniPlayerPlaying,
+                    isMuted = isMiniPlayerMuted,
+                    playbackProgress = 0f,
+                    onTogglePlayPause = { isMiniPlayerPlaying = !isMiniPlayerPlaying },
+                    onToggleMute = { isMiniPlayerMuted = !isMiniPlayerMuted },
+                    onExpandToFullPlayer = {
+                        val v = miniPlayerVideo!!
+                        miniPlayerVideo = null
+                        onVideoClick(v)
+                    },
+                    onCloseMiniPlayer = { miniPlayerVideo = null }
+                )
             }
         }
 
@@ -274,6 +697,13 @@ fun StudioScreen(
                 onUserProfileClick = onUserProfileClick,
                 onTip = { showTipDialog = activeVideo },
                 onReport = { showReportDialog = activeVideo },
+                onMinimizeToMiniPlayer = {
+                    val v = activeVideo
+                    onCloseVideo()
+                    miniPlayerVideo = v
+                    isMiniPlayerPlaying = isPlaying
+                    isMiniPlayerMuted = false
+                },
                 relatedVideos = videos.filter { it.id != activeVideo.id },
                 onSelectRelatedVideo = { onVideoClick(it) }
             )
@@ -681,7 +1111,7 @@ private fun StudioSearchBar(
 }
 
 // -------------------------------------------------------------
-// YouTube-Style Category Navigation Bar
+// Standard Category Navigation Bar
 // -------------------------------------------------------------
 @Composable
 fun StudioCategoryNavigationBar(
@@ -773,7 +1203,7 @@ private fun StudioCategoryChips(
 private fun CreatorStudioDashboardPanel(
     userProfile: UserProfileEntity,
     userVideos: List<StudioVideoEntity>,
-    currentCurrency: LocaliCurrency = LocaliCurrency.USD,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     creatorEarnings: CreatorEarningsSummary? = null,
     onUploadClick: () -> Unit,
     onOpenMonetizationHub: () -> Unit = {},
@@ -848,7 +1278,7 @@ private fun CreatorStudioDashboardPanel(
                     modifier = Modifier.weight(1f)
                 )
                 StudioMetricCard(
-                    title = "Subscribers",
+                    title = "Connected",
                     value = "${userProfile.followersCount / 1000}K",
                     trend = "+182 new",
                     modifier = Modifier.weight(1f)
@@ -912,7 +1342,7 @@ private fun CreatorStudioDashboardPanel(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Upload Long Video prompt with YouTube constraints
+            // Upload Long Video prompt with Standard constraints
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -931,7 +1361,7 @@ private fun CreatorStudioDashboardPanel(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Duration: 60 seconds up to 240 minutes (4 hours) with 4K UHD support.",
+                        text = "Duration: 60 seconds up to unlimited time with Media7 Galaxy 4K playback.",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1187,11 +1617,16 @@ private fun StudioSpotlightHero(
 }
 
 // -------------------------------------------------------------
-// YouTube Style Video Card (16:9 Thumbnail, Channel info, 3-dots)
+// Standard Video Card (16:9 Thumbnail / Live Inline Preview, Channel info, 3-dots)
 // -------------------------------------------------------------
 @Composable
 private fun StudioVideoCard(
     video: StudioVideoEntity,
+    isPreviewActive: Boolean = false,
+    isPreviewMuted: Boolean = true,
+    onToggleMute: () -> Unit = {},
+    onStartPreview: () -> Unit = {},
+    onStartMiniPlayer: () -> Unit = {},
     onClick: () -> Unit,
     onMenuClick: () -> Unit
 ) {
@@ -1201,7 +1636,7 @@ private fun StudioVideoCard(
             .clickable { onClick() }
             .testTag("studio_video_card_${video.id}")
     ) {
-        // 16:9 Thumbnail Container
+        // 16:9 Thumbnail or Inline Live Preview Container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1210,64 +1645,107 @@ private fun StudioVideoCard(
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color.Black)
         ) {
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(video.thumbnailUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = video.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            // Duration badge in bottom right (e.g. 48:30 or 2:15:00)
-            Surface(
-                shape = RoundedCornerShape(4.dp),
-                color = Color.Black.copy(alpha = 0.85f),
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = formatDuration(video.durationSeconds),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+            if (isPreviewActive) {
+                // Live Scrolling Video Preview with Mute/Unmute & Mini Player dock controls
+                StudioInlinePreviewPlayer(
+                    video = video,
+                    isMuted = isPreviewMuted,
+                    onToggleMute = onToggleMute,
+                    onStartMiniPlayer = onStartMiniPlayer,
+                    onOpenFullPlayer = onClick,
+                    modifier = Modifier.fillMaxSize()
                 )
-            }
+            } else {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(video.thumbnailUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = video.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
 
-            // Category & Resolution badge top left
-            Row(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+                // Quick Tap-To-Preview Chip (Top Right)
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = Color.Black.copy(alpha = 0.75f),
+                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .clickable { onStartPreview() }
+                        .testTag("card_preview_btn_${video.id}")
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Preview Video",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = "Preview",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+
+                // Duration badge in bottom right (e.g. 48:30 or 2:15:00)
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = Color.Black.copy(alpha = 0.75f)
+                    color = Color.Black.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
                 ) {
                     Text(
-                        text = video.category,
-                        fontSize = 10.sp,
+                        text = formatDuration(video.durationSeconds),
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
 
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = Color(0xFFFF3366).copy(alpha = 0.85f)
+                // Category & Resolution badge top left
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = video.resolution,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.Black.copy(alpha = 0.75f)
+                    ) {
+                        Text(
+                            text = video.category,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0xFFFF3366).copy(alpha = 0.85f)
+                    ) {
+                        Text(
+                            text = video.resolution,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
         }
@@ -1320,34 +1798,26 @@ private fun StudioVideoCard(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Verified Channel",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(13.dp)
-                    )
+                    if (video.isCreatorVerified) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Verified Creator",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
-
                 Text(
-                    text = "${video.viewsFormatted} • ${video.uploadDateFormatted} • ${video.tags.take(30)}",
+                    text = "@${video.creatorUsername} • ${video.creatorConnectedCount}",
                     fontSize = 11.5.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.85f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            IconButton(
-                onClick = onMenuClick,
-                modifier = Modifier
-                    .size(32.dp)
-                    .testTag("studio_menu_button_${video.id}")
-            ) {
+            IconButton(onClick = onMenuClick) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "More Options",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -1355,8 +1825,9 @@ private fun StudioVideoCard(
 }
 
 // -------------------------------------------------------------
-// Interactive In-App Studio Video Player (Theater Mode & Sheet)
+// Active Long Video Player Modal
 // -------------------------------------------------------------
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
 @Composable
 private fun StudioPlayerModal(
     video: StudioVideoEntity,
@@ -1368,264 +1839,103 @@ private fun StudioPlayerModal(
     onLike: () -> Unit,
     onSave: () -> Unit,
     onSubscribe: () -> Unit,
+    onUserProfileClick: (String) -> Unit,
     onTip: () -> Unit,
     onReport: () -> Unit,
+    onMinimizeToMiniPlayer: () -> Unit = {},
     relatedVideos: List<StudioVideoEntity>,
-    onSelectRelatedVideo: (StudioVideoEntity) -> Unit,
-    onUserProfileClick: (String) -> Unit = {}
+    onSelectRelatedVideo: (StudioVideoEntity) -> Unit
 ) {
     var isDescriptionExpanded by remember { mutableStateOf(false) }
-    var selectedQuality by remember { mutableStateOf(video.resolution.ifBlank { "4K 2160p" }) }
     var showComments by remember { mutableStateOf(false) }
     var newCommentText by remember { mutableStateOf("") }
-    val comments = remember {
-        mutableStateListOf(
-            "Fantastic 4K quality! The depth of storytelling here is incredible.",
-            "Watched the full 2 hours while working. So glad Localiiiy now has full-length creator videos!",
-            "Pioneer Square history is legendary. Great chapter timestamps.",
-            "Subscribed immediately! Can't wait for episode #2."
-        )
-    }
+    var comments by remember { mutableStateOf(listOf(
+        "Amazing video! The quality is insane 🔥",
+        "Keep up the great work! Can't wait for the next one.",
+        "This helped me so much, thank you!",
+        "First! 🥇",
+        "Connected! Really love your content."
+    )) }
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("studio_player_screen"),
-        color = MaterialTheme.colorScheme.background
+    Dialog(
+        onDismissRequest = onClose,
+        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 1. 16:9 Media3 Video Player & Interactive Controls
-            StudioVideoPlayerComponent(
-                video = video,
-                onClose = onClose,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
-            )
-
-            // 2. Video Details & Interactive Channel Box
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Title
-                    Text(
-                        text = video.title,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
-                            lineHeight = 22.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onBackground
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Video Player
+                Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f).background(Color.Black)) {
+                    com.example.ui.components.StudioVideoPlayerComponent(
+                        video = video,
+                        onClose = onClose,
+                        onVideoCompleted = {},
+                        onMinimizeToMiniPlayer = onMinimizeToMiniPlayer
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                // Scrollable content
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentPadding = PaddingValues(16.dp)
+                ) {
+                    item {
+                        Text(
+                            text = video.title,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "${video.viewsFormatted} views • ${video.uploadDateFormatted} • ${video.category}",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    // Stats & Category
-                    Text(
-                        text = "${video.viewsFormatted} • ${video.uploadDateFormatted} • ${video.category} • ${video.tags}",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Action Row (Like, Save, Share, Super Thanks)
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Like / Dislike pill
-                        item {
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.clickable { onLike() },
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (video.isLiked) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                                            contentDescription = "Like",
-                                            tint = if (video.isLiked) Color(0xFFFF3366) else MaterialTheme.colorScheme.onSurface,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Text(
-                                            text = "${video.likesCount}",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .width(1.dp)
-                                            .height(14.dp)
-                                            .background(MaterialTheme.colorScheme.outlineVariant)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-
-                                    Icon(
-                                        imageVector = Icons.Outlined.ThumbDown,
-                                        contentDescription = "Dislike",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
-
-                        // Save to Watch Later
-                        item {
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = if (video.isSaved) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                                modifier = Modifier.clickable { onSave() }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (video.isSaved) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                                        contentDescription = "Save",
-                                        tint = if (video.isSaved) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(
-                                        text = if (video.isSaved) "Saved" else "Save",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                }
-                            }
-                        }
-
-                        // Super Thanks / Tip
-                        item {
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = Color(0xFFE91E63).copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, Color(0xFFE91E63).copy(alpha = 0.3f)),
-                                modifier = Modifier.clickable { onTip() }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.VolunteerActivism,
-                                        contentDescription = "Tip Creator",
-                                        tint = Color(0xFFE91E63),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(
-                                        text = "Thanks",
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color(0xFFE91E63)
-                                    )
-                                }
-                            }
-                        }
-
-                        // Resolution Selector Chip
-                        item {
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-                                modifier = Modifier.clickable {
-                                    selectedQuality = when (selectedQuality) {
-                                        "4K 2160p" -> "1080p60"
-                                        "1080p60" -> "720p"
-                                        else -> "4K 2160p"
-                                    }
-                                }
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.HighQuality,
-                                        contentDescription = "Quality",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                    Text(selectedQuality, fontSize = 11.5.sp, fontWeight = FontWeight.SemiBold)
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-
-                    // Creator Channel Row: Avatar + Subscribe Button
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                         Row(
-                            modifier = Modifier.clickable { onUserProfileClick(video.creatorUsername) },
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
+                                model = coil.request.ImageRequest.Builder(LocalContext.current)
                                     .data(video.creatorAvatar)
                                     .crossfade(true)
                                     .build(),
                                 contentDescription = video.creatorFullName,
-                                contentScale = ContentScale.Crop,
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
+                                    .clickable { onUserProfileClick(video.creatorUsername) }
                             )
-
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f).clickable { onUserProfileClick(video.creatorUsername) }) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = video.creatorFullName,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
+                                        fontSize = 15.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Icon(
-                                        imageVector = Icons.Default.CheckCircle,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(14.dp)
-                                    )
+                                    if (video.isCreatorVerified) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = "Verified Creator",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
                                 }
                                 Text(
-                                    text = "@${video.creatorUsername} • ${video.creatorSubscribersCount}",
-                                    fontSize = 11.5.sp,
+                                    text = "@${video.creatorUsername} • ${video.creatorConnectedCount}",
+                                    fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                        }
-
                         Button(
                             onClick = onSubscribe,
                             shape = RoundedCornerShape(100.dp),
@@ -1637,7 +1947,7 @@ private fun StudioPlayerModal(
                             modifier = Modifier.height(36.dp)
                         ) {
                             Text(
-                                text = if (video.isSubscribed) "Subscribed 🔔" else "Subscribe",
+                                text = if (video.isSubscribed) "Connected" else "Connect",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = if (video.isSubscribed) MaterialTheme.colorScheme.onSurface else Color.White
@@ -1645,7 +1955,73 @@ private fun StudioPlayerModal(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    // Studio Video Actions Row: Like (Animated 👌), Comments (✍️), Save, Tip
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            com.example.ui.components.AnimatedLikeButton(
+                                isLiked = video.isLiked,
+                                onLikeClick = onLike,
+                                likesCount = video.likesCount,
+                                showCount = true,
+                                symbolSize = 18.sp,
+                                touchTargetSize = 36.dp,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                testTag = "studio_video_like_${video.id}"
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            com.example.ui.components.CommentActionButton(
+                                onClick = { showComments = !showComments },
+                                commentsCount = comments.size,
+                                showCount = true,
+                                symbolSize = 18.sp,
+                                touchTargetSize = 36.dp,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                testTag = "studio_video_comments_${video.id}"
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = onSave,
+                            shape = RoundedCornerShape(100.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (video.isSaved) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                                contentDescription = "Save",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(if (video.isSaved) "Saved" else "Save", fontSize = 12.sp)
+                        }
+
+                        OutlinedButton(
+                            onClick = onTip,
+                            shape = RoundedCornerShape(100.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Text("🪙 Tip", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Expandable Description & Chapters
                     Surface(
@@ -1714,7 +2090,7 @@ private fun StudioPlayerModal(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Comments (${comments.size})",
+                                    text = "✍️ Comments (${comments.size})",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp
                                 )
@@ -1752,7 +2128,7 @@ private fun StudioPlayerModal(
                                     OutlinedTextField(
                                         value = newCommentText,
                                         onValueChange = { newCommentText = it },
-                                        placeholder = { Text("Add a community comment...", fontSize = 12.sp) },
+                                        placeholder = { Text("✍️ Add a community comment...", fontSize = 12.sp) },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(100.dp)
@@ -1760,7 +2136,7 @@ private fun StudioPlayerModal(
                                     IconButton(
                                         onClick = {
                                             if (newCommentText.isNotBlank()) {
-                                                comments.add(0, newCommentText.trim())
+                                                comments = listOf(newCommentText.trim()) + comments
                                                 newCommentText = ""
                                             }
                                         }
@@ -1853,6 +2229,7 @@ private fun StudioPlayerModal(
                 }
             }
         }
+        }
     }
 }
 
@@ -1877,6 +2254,7 @@ private fun StudioUploadDialog(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Music") }
+    var durationHoursText by remember { mutableStateOf("0") }
     var durationMinutesText by remember { mutableStateOf("15") }
     var durationSecondsText by remember { mutableStateOf("00") }
     var videoUrl by remember { mutableStateOf("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4") }
@@ -1885,14 +2263,15 @@ private fun StudioUploadDialog(
     var tags by remember { mutableStateOf("#Localiiiy #Studio #Creator") }
     var chapters by remember { mutableStateOf("00:00 - Introduction\n04:15 - Main Segment\n12:30 - Conclusion") }
 
-    val totalDurationSeconds = remember(durationMinutesText, durationSecondsText) {
+    val totalDurationSeconds = remember(durationHoursText, durationMinutesText, durationSecondsText) {
+        val hrs = durationHoursText.toIntOrNull() ?: 0
         val mins = durationMinutesText.toIntOrNull() ?: 0
         val secs = durationSecondsText.toIntOrNull() ?: 0
-        (mins * 60) + secs
+        (hrs * 3600) + (mins * 60) + secs
     }
 
-    // Validation rule: Not less than 60 seconds, more up to 240 minutes (14,400s)
-    val isDurationValid = totalDurationSeconds in 60..14400
+    // Validation rule: Not less than 60 seconds, unlimited maximum time
+    val isDurationValid = totalDurationSeconds >= 60
     val isFormValid = title.isNotBlank() && isDurationValid
 
     Dialog(
@@ -1931,7 +2310,7 @@ private fun StudioUploadDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = "Long-form creator video (60s – 240 mins)",
+                                text = "Long-form creator video (60s – Unlimited time)",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1981,7 +2360,7 @@ private fun StudioUploadDialog(
                         }
                     }
 
-                    // YouTube Duration Picker (Minutes + Seconds) with Live Validation
+                    // Standard Duration Picker (Hours + Minutes + Seconds) with Live Validation
                     item {
                         Card(
                             shape = RoundedCornerShape(12.dp),
@@ -2003,7 +2382,7 @@ private fun StudioUploadDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "Video Duration (Requirement: 60s – 240 mins) *",
+                                        text = "Video Duration (Requirement: 60s minimum • Unlimited Time) *",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
                                         color = if (isDurationValid) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
@@ -2020,13 +2399,21 @@ private fun StudioUploadDialog(
 
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     OutlinedTextField(
+                                        value = durationHoursText,
+                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 4) durationHoursText = it },
+                                        label = { Text("Hours") },
+                                        singleLine = true,
+                                        modifier = Modifier.weight(1f)
+                                    )
+
+                                    OutlinedTextField(
                                         value = durationMinutesText,
-                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 3) durationMinutesText = it },
-                                        label = { Text("Minutes (1-240)") },
+                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 4) durationMinutesText = it },
+                                        label = { Text("Mins") },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f)
                                     )
@@ -2034,7 +2421,7 @@ private fun StudioUploadDialog(
                                     OutlinedTextField(
                                         value = durationSecondsText,
                                         onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 2) durationSecondsText = it },
-                                        label = { Text("Seconds (0-59)") },
+                                        label = { Text("Secs (0-59)") },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f)
                                     )
@@ -2043,10 +2430,7 @@ private fun StudioUploadDialog(
                                 if (!isDurationValid) {
                                     Spacer(modifier = Modifier.height(6.dp))
                                     Text(
-                                        text = if (totalDurationSeconds < 60)
-                                            "⚠️ Minimum Studio video duration is 60 seconds. Short clips under 60 seconds belong in the Clips tab!"
-                                        else
-                                            "⚠️ Maximum video duration is 240 minutes (4 hours).",
+                                        text = "⚠️ Minimum Studio video duration is 60 seconds. Short clips under 60 seconds belong in the Clips tab! (Unlimited maximum time supported).",
                                         fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.SemiBold
@@ -2054,7 +2438,7 @@ private fun StudioUploadDialog(
                                 } else {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "✅ Valid long video duration: ${formatDuration(totalDurationSeconds)}",
+                                        text = "✅ Valid long-form video duration: ${formatDuration(totalDurationSeconds)} (Unlimited playback enabled)",
                                         fontSize = 11.sp,
                                         color = Color(0xFF2E7D32)
                                     )
@@ -2106,15 +2490,50 @@ private fun StudioUploadDialog(
                         )
                     }
 
-                    // Video Stream URL
+                    // Video Stream URL with Unrestricted Upload & Camera buttons
                     item {
-                        OutlinedTextField(
-                            value = videoUrl,
-                            onValueChange = { videoUrl = it },
-                            label = { Text("Video MP4 / HLS Stream URL") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        // Unrestricted storage video file picker simulation
+                                        videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f).height(38.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Upload Storage 📁", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+
+                                Button(
+                                    onClick = {
+                                        // Unrestricted live camera capture video stream simulation
+                                        videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4"
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.weight(1f).height(38.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Live Camera 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = videoUrl,
+                                onValueChange = { videoUrl = it },
+                                label = { Text("Video MP4 / HLS Stream URL (Unrestricted)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
                     }
 
                     // Tags
@@ -2205,7 +2624,7 @@ private fun StudioEmptyState(
             color = MaterialTheme.colorScheme.onBackground
         )
         Text(
-            text = "Be the first creator to upload a long-form video (60s to 240 mins) to this category!",
+            text = "Be the first creator to upload a long-form video (60s to unlimited time) to this category!",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center

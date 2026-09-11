@@ -31,7 +31,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
-import com.example.data.ReelEntity
+import com.example.data.ClipEntity
 import com.example.ui.ProfileTab
 import com.example.ui.theme.EditorialVerified
 import com.example.util.LocationHelper
@@ -45,15 +45,16 @@ import androidx.compose.material.icons.filled.MoreVert
 fun OtherUserProfileSheet(
     user: OtherUserEntity,
     posts: List<PostEntity>,
-    reels: List<ReelEntity>,
+    clips: List<ClipEntity>,
     onDismiss: () -> Unit,
     onFollowToggle: () -> Unit,
     onWaveClick: () -> Unit,
     onDirectMessageClick: () -> Unit,
     onPostClick: (PostEntity) -> Unit,
-    onReelClick: (ReelEntity) -> Unit,
+    onClipClick: (ClipEntity) -> Unit,
     onReportUser: ((String) -> Unit)? = null,
     onBlockUser: (() -> Unit)? = null,
+    onReportCyberstalking: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var activeTab by remember { mutableStateOf(ProfileTab.POSTS) }
@@ -149,6 +150,29 @@ fun OtherUserProfileSheet(
                                     onDismiss()
                                 }
                             )
+
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        "Report Cyberstalking & Ban ⚖️",
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Gavel,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onDismiss()
+                                    onReportCyberstalking?.invoke(user.username)
+                                }
+                            )
                         }
                     }
 
@@ -217,7 +241,7 @@ fun OtherUserProfileSheet(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
-                                    Text(text = "Orbiters", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(text = "Connections", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
@@ -225,7 +249,7 @@ fun OtherUserProfileSheet(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
-                                    Text(text = "In Orbit", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(text = "Connected", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -285,7 +309,7 @@ fun OtherUserProfileSheet(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        // Action Buttons: Follow | Message | Wave 👋 (Make friends)
+                        // Action Buttons: Connect | Message | Wave 👋
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -302,7 +326,7 @@ fun OtherUserProfileSheet(
                                     .height(38.dp)
                             ) {
                                 Text(
-                                    text = if (user.isFollowing) "In Orbit ⚡" else "+ Pulse Link",
+                                    text = if (user.isFollowing) "Connected" else "Connect",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -351,7 +375,7 @@ fun OtherUserProfileSheet(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Tab selectors (Posts / Reels)
+                        // Tab selectors (Posts / Clips)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceAround
@@ -363,11 +387,11 @@ fun OtherUserProfileSheet(
                                     tint = if (activeTab == ProfileTab.POSTS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }
-                            IconButton(onClick = { activeTab = ProfileTab.REELS }) {
+                            IconButton(onClick = { activeTab = ProfileTab.CLIPS }) {
                                 Icon(
                                     imageVector = Icons.Outlined.PlayCircle,
-                                    contentDescription = "Reels",
-                                    tint = if (activeTab == ProfileTab.REELS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    contentDescription = "Clips",
+                                    tint = if (activeTab == ProfileTab.CLIPS) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                 )
                             }
                         }
@@ -379,7 +403,7 @@ fun OtherUserProfileSheet(
                     }
                 }
 
-                // Posts / Reels Grid
+                // Posts / Clips Grid
                 if (activeTab == ProfileTab.POSTS) {
                     items(posts, key = { it.id }) { post ->
                         Box(
@@ -396,15 +420,15 @@ fun OtherUserProfileSheet(
                         }
                     }
                 } else {
-                    items(reels, key = { it.id }) { reel ->
+                    items(clips, key = { it.id }) { clip ->
                         Box(
                             modifier = Modifier
                                 .aspectRatio(0.65f)
-                                .clickable { onReelClick(reel) }
+                                .clickable { onClipClick(clip) }
                         ) {
                             ImageWithFilter(
-                                mediaUrl = reel.mediaUrl,
-                                filterName = reel.filterName,
+                                mediaUrl = clip.mediaUrl,
+                                filterName = clip.filterName,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )

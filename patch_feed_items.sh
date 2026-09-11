@@ -1,0 +1,1 @@
+sed -i '/itemsIndexed(items = combinedPosts, key = { _, post -> post.id }) { index, post ->/i \            if (isInitialLoad || isRefreshing) {\n                items(4) {\n                    PostSkeleton()\n                }\n            } else {' app/src/main/java/com/example/ui/components/PulseFeedComponent.kt

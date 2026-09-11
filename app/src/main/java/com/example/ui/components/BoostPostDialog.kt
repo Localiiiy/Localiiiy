@@ -19,14 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.BoostCampaignRequest
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.CurrencyHelper
-import com.example.util.LocaliCurrency
+import com.example.util.LocaliiiyCurrency
 
 @Composable
 fun BoostPostDialog(
     targetPostId: Long = 1L,
-    currentCurrency: LocaliCurrency,
+    currentCurrency: LocaliiiyCurrency,
     onLaunchCampaign: (BoostCampaignRequest) -> Unit,
     onDismissRequest: () -> Unit
 ) {
@@ -70,7 +70,7 @@ fun BoostPostDialog(
             Icon(
                 imageVector = Icons.Default.Campaign,
                 contentDescription = null,
-                tint = LocaliPrimaryTeal
+                tint = LocaliiiyPrimaryTeal
             )
         },
         title = {
@@ -87,7 +87,7 @@ fun BoostPostDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Text(
-                    text = "Amplify your post to reach millions worldwide. Ad revenue generated supports creators (55%) and network delivery (45%).",
+                    text = "Amplify your post to reach millions worldwide.",
                     fontSize = 12.5.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -131,7 +131,7 @@ fun BoostPostDialog(
                         Text(
                             text = "$dailyBudgetLocal / day",
                             fontWeight = FontWeight.Bold,
-                            color = LocaliPrimaryTeal,
+                            color = LocaliiiyPrimaryTeal,
                             fontSize = 13.sp
                         )
                     }
@@ -142,8 +142,8 @@ fun BoostPostDialog(
                         valueRange = 5f..100f,
                         steps = 18,
                         colors = SliderDefaults.colors(
-                            thumbColor = LocaliPrimaryTeal,
-                            activeTrackColor = LocaliPrimaryTeal
+                            thumbColor = LocaliiiyPrimaryTeal,
+                            activeTrackColor = LocaliiiyPrimaryTeal
                         )
                     )
                 }
@@ -163,7 +163,7 @@ fun BoostPostDialog(
                             val isSelected = (durationDays == days)
                             Surface(
                                 shape = RoundedCornerShape(8.dp),
-                                color = if (isSelected) LocaliPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                                 modifier = Modifier
                                     .weight(1f)
                                     .clickable { durationDays = days }
@@ -185,8 +185,8 @@ fun BoostPostDialog(
                 // 4. Summary Card
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = LocaliPrimaryTeal.copy(alpha = 0.1f),
-                    border = BorderStroke(1.dp, LocaliPrimaryTeal.copy(alpha = 0.3f)),
+                    color = LocaliiiyPrimaryTeal.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -198,7 +198,7 @@ fun BoostPostDialog(
                             Text(
                                 text = totalBudgetLocal,
                                 fontWeight = FontWeight.Black,
-                                color = LocaliPrimaryTeal,
+                                color = LocaliiiyPrimaryTeal,
                                 fontSize = 14.sp
                             )
                         }
@@ -221,7 +221,7 @@ fun BoostPostDialog(
             Button(
                 onClick = {
                     val req = BoostCampaignRequest(
-                        postIdOrReelId = targetPostId,
+                        postIdOrClipId = targetPostId,
                         targetAudience = selectedRegion,
                         dailyBudgetUSD = dailyBudgetUSD,
                         durationDays = durationDays,
@@ -231,7 +231,7 @@ fun BoostPostDialog(
                     onLaunchCampaign(req)
                     onDismissRequest()
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
+                colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                 modifier = Modifier.testTag("launch_boost_campaign_button")
             ) {
                 Text("Launch Campaign", color = Color.White)

@@ -1,31 +1,16 @@
 package com.example.ui.components
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.Explore
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Map
-import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.Navigation
-import androidx.compose.material.icons.outlined.Public
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,41 +20,38 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
+import com.example.data.ClipEntity
+import com.example.data.MarketplaceItemEntity
 import com.example.data.UserProfileEntity
-import com.example.ui.theme.LocaliAccentCoral
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
-import com.example.util.LocationHelper
-import kotlin.math.*
+import kotlin.math.cos
+import kotlin.math.sin
 
-/**
- * Enhanced Proximity Radar component.
- * Integrates a live styled Google Map of the respected location behind the radar scanning sweep,
- * advanced polar bearing calculations, ping wave proximity highlights, target locks,
- * and scalable range limits from 1 KM up to Country (5,000 KM) and Earth / Global (20,000 KM).
- */
+data class RadarRange(val label: String, val valueKm: Double)
+
 @Composable
 fun LiveRadarComponent(
+    isRefreshing: Boolean = false,
     userProfile: UserProfileEntity,
     nearbyUsers: List<OtherUserEntity>,
     nearbyPosts: List<PostEntity>,
+    nearbyClips: List<ClipEntity> = emptyList(),
+    nearbyMarketItems: List<MarketplaceItemEntity> = emptyList(),
     selectedRadiusKm: Double = 3.0,
     isLocationEnabled: Boolean = true,
     isPrivateAccount: Boolean = false,
+    hidePreciseLocationOnRadar: Boolean = false,
+    radarObfuscatedRange: String = "3k",
+    radarCountryName: String = "United States",
+    onToggleHidePreciseLocation: ((Boolean) -> Unit)? = null,
+    onSelectObfuscatedRange: ((String) -> Unit)? = null,
     onRadiusChange: (Double) -> Unit = {},
     onLocationToggle: (Boolean) -> Unit = {},
     onPrivateToggle: (Boolean) -> Unit = {},
@@ -77,75 +59,78 @@ fun LiveRadarComponent(
     onUserClick: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onWaveAtUser: (OtherUserEntity) -> Unit = {},
-    onPulseLinkUser: (OtherUserEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-    var selectedBlipType by remember { mutableStateOf("ALL") } // "ALL", "PEOPLE", "POSTS"
-    var inspectUser by remember { mutableStateOf<OtherUserEntity?>(null) }
-    var inspectPost by remember { mutableStateOf<PostEntity?>(null) }
-    var showPrivacyDialog by remember { mutableStateOf(false) }
+    val radarColor = Color(0xFF00FF41)
+    val gridColor = Color(0xFF005511)
+    val shieldCyan = Color(0xFF00E5FF)
 
-    // Proximity Radar sweep rotation animation
-    val infiniteTransition = rememberInfiniteTransition(label = "RadarSweep")
+    val currentDistanceOption = remember(selectedRadiusKm, radarCountryName) {
+        SystematicDistanceScale.findOption(selectedRadiusKm, radarCountryName)
+    }
+    val pulseDurationMs = currentDistanceOption.pulseDurationMs
+    
+    val infiniteTransition = rememberInfiniteTransition(label = "RadarSweeper")
     val sweepAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4200, easing = LinearEasing),
+            animation = tween(4000, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "SweepAngle"
+        label = "sweepAngle"
     )
 
-    val pulseScale by infiniteTransition.animateFloat(
-        initialValue = 0.85f,
-        targetValue = 1.35f,
+    // Visual 'pulse' animation synced with user's distance range setting
+    val pulseTransition = rememberInfiniteTransition(label = "RadarPulseAnimation")
+    val pulse1 by pulseTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 2200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            animation = tween(durationMillis = pulseDurationMs, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
         ),
-        label = "PulseScale"
+        label = "pulse1"
+    )
+    val pulse2 by pulseTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = pulseDurationMs, delayMillis = pulseDurationMs / 3, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "pulse2"
+    )
+    val pulse3 by pulseTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = pulseDurationMs, delayMillis = (pulseDurationMs * 2) / 3, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "pulse3"
     )
 
-    // Filter items based on selected radius (1km to 20,000km)
-    val filteredUsers = remember(nearbyUsers, selectedRadiusKm, isLocationEnabled) {
-        if (!isLocationEnabled) emptyList()
-        else nearbyUsers.filter { it.distanceKm <= selectedRadiusKm }
+    val systematicRanges = remember(radarCountryName) {
+        SystematicDistanceScale.getOptions(radarCountryName)
     }
 
-    val filteredPosts = remember(nearbyPosts, selectedRadiusKm, isLocationEnabled) {
-        if (!isLocationEnabled) emptyList()
-        else nearbyPosts.filter { (it.distanceKm ?: 999.0) <= selectedRadiusKm }
-    }
+    var showRangePickerInRadar by remember { mutableStateOf(false) }
 
-    // Determine current radius option info
-    val currentRadiusOption = remember(selectedRadiusKm) {
-        RadarRadiusPresets.ALL_OPTIONS.firstOrNull { it.km == selectedRadiusKm }
-            ?: RadarRadiusOption(selectedRadiusKm, "${selectedRadiusKm.toInt()}km", "${selectedRadiusKm.toInt()} KM", "Custom", "📍")
-    }
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp, vertical = 4.dp)
-            .testTag("live_radar_component")
-    ) {
-        // Main Proximity Radar Container
+    Column(modifier = modifier.fillMaxWidth().background(Color.Black)) {
+        // Radar Privacy & Range Quick Bar
         Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = LocaliDeepNavy,
-            shadowElevation = 10.dp,
-            border = BorderStroke(1.5.dp, LocaliPrimaryTeal.copy(alpha = 0.45f)),
-            modifier = Modifier.fillMaxWidth()
+            color = Color(0xFF031405),
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.5f) else Color(0xFF005511)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Header: Title, Telemetry, Map Toggle, Privacy Controls
+            Column(modifier = Modifier.padding(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -153,889 +138,371 @@ fun LiveRadarComponent(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.2f) else Color(0xFF00FF41).copy(alpha = 0.2f),
+                            modifier = Modifier.size(26.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = if (hidePreciseLocationOnRadar) "🛡️" else "📡",
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                        Column {
+                            Text(
+                                text = if (hidePreciseLocationOnRadar) "GHOST MODE: PRECISE PIN HIDDEN" else "LIVE RADAR: PRECISE COORDINATES",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (hidePreciseLocationOnRadar) shieldCyan else Color(0xFF00FF41),
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                            )
+                            Text(
+                                text = if (hidePreciseLocationOnRadar) {
+                                    "Simulated as $radarObfuscatedRange far out"
+                                } else {
+                                    "Your exact street blip is broadcasting"
+                                },
+                                fontSize = 10.sp,
+                                color = Color.LightGray
+                            )
+                        }
+                    }
+
+                    // Quick Toggle Button
+                    if (onToggleHidePreciseLocation != null) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = if (hidePreciseLocationOnRadar) shieldCyan else Color(0xFF1B2E1D),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { onToggleHidePreciseLocation(!hidePreciseLocationOnRadar) }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (hidePreciseLocationOnRadar) "Hidden 🛡️" else "Hide Pin",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (hidePreciseLocationOnRadar) Color.Black else Color.White
+                            )
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFF1B2E1D),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { onOpenPrivacySettings() }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Settings ⚙️",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                }
+
+                // In-Radar Far-Out Range Picker (3k, 10K, 100k, 500K, Country, Earth, Galaxy)
+                if (hidePreciseLocationOnRadar && onSelectObfuscatedRange != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "SIMULATE DISTANCE:",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = shieldCyan,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                    )
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        items(systematicRanges) { opt ->
+                            val isSel = radarObfuscatedRange.equals(opt.key, ignoreCase = true) ||
+                                    radarObfuscatedRange.equals(opt.shortLabel, ignoreCase = true)
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (isSel) shieldCyan else Color(0xFF0F2613),
+                                border = androidx.compose.foundation.BorderStroke(0.8.dp, if (isSel) shieldCyan else Color(0xFF005511)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable { onSelectObfuscatedRange(opt.key) }
+                            ) {
+                                Text(
+                                    text = opt.shortLabel,
+                                    fontSize = 9.sp,
+                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSel) Color.Black else Color.White,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Radar Screen
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            val radarDiameterDp = minOf(maxWidth, 340.dp)
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            val radarRadiusPx = with(density) { (radarDiameterDp / 2).toPx() }
+            val centerPx = radarRadiusPx
+
+            // Radar circular display strictly clipped to CircleShape
+            Box(
+                modifier = Modifier
+                    .size(radarDiameterDp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF020E04))
+                    .border(2.dp, Brush.radialGradient(listOf(radarColor, Color(0xFF00AA29), Color(0xFF00330D))), CircleShape)
+            ) {
+                // 1. Canvas with grid, concentric rings, crosshairs, and rotating sweep
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val center = Offset(size.width / 2, size.height / 2)
+                    val radius = size.minDimension / 2
+                    
+                    // Draw Grid
+                    val step = size.width / 10
+                    for (i in 0..10) {
+                        drawLine(gridColor.copy(alpha = 0.3f), start = Offset(i * step, 0f), end = Offset(i * step, size.height), strokeWidth = 1.dp.toPx())
+                    }
+                    val stepY = size.height / 10
+                    for (i in 0..10) {
+                        drawLine(gridColor.copy(alpha = 0.3f), start = Offset(0f, i * stepY), end = Offset(size.width, i * stepY), strokeWidth = 1.dp.toPx())
+                    }
+                    
+                    // Draw Concentric Circles
+                    for (i in 1..4) {
+                        drawCircle(
+                            color = radarColor.copy(alpha = 0.45f),
+                            radius = radius * (i / 4f),
+                            center = center,
+                            style = Stroke(width = 1.dp.toPx())
+                        )
+                    }
+
+                    // --- Dynamic Visual Pulse Waves (Synced with user's distance range setting) ---
+                    val pulseColor = if (hidePreciseLocationOnRadar) shieldCyan else radarColor
+                    val pulseProgressList = listOf(pulse1, pulse2, pulse3)
+                    for (progress in pulseProgressList) {
+                        if (progress > 0.01f) {
+                            val waveRadius = radius * progress
+                            val fadeAlpha = ((1f - progress) * (if (hidePreciseLocationOnRadar) 0.70f else 0.85f)).coerceIn(0f, 1f)
+                            
+                            // Glowing shockwave ring expanding outwards
+                            drawCircle(
+                                color = pulseColor.copy(alpha = fadeAlpha),
+                                radius = waveRadius,
+                                center = center,
+                                style = Stroke(width = (4f * (1f - progress)).coerceAtLeast(1.2f).dp.toPx())
+                            )
+                            // Soft radial gradient aura wave behind leading edge
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(
+                                        pulseColor.copy(alpha = fadeAlpha * 0.22f),
+                                        pulseColor.copy(alpha = fadeAlpha * 0.04f),
+                                        Color.Transparent
+                                    ),
+                                    center = center,
+                                    radius = waveRadius.coerceAtLeast(1f)
+                                ),
+                                radius = waveRadius,
+                                center = center
+                            )
+                        }
+                    }
+
+                    // Crosshairs
+                    drawLine(radarColor.copy(alpha = 0.45f), start = Offset(center.x, 0f), end = Offset(center.x, size.height), strokeWidth = 1.dp.toPx())
+                    drawLine(radarColor.copy(alpha = 0.45f), start = Offset(0f, center.y), end = Offset(size.width, center.y), strokeWidth = 1.dp.toPx())
+                    
+                    // Sweep Beam
+                    drawArc(
+                        brush = Brush.sweepGradient(
+                            colors = listOf(Color.Transparent, radarColor.copy(alpha = 0.08f), radarColor.copy(alpha = 0.65f)),
+                            center = center
+                        ),
+                        startAngle = sweepAngle - 90f,
+                        sweepAngle = 90f,
+                        useCenter = true,
+                        topLeft = Offset(center.x - radius, center.y - radius),
+                        size = Size(radius * 2, radius * 2)
+                    )
+                    drawLine(
+                        color = radarColor,
+                        start = center,
+                        end = Offset(
+                            x = center.x + radius * cos(Math.toRadians(sweepAngle.toDouble())).toFloat(),
+                            y = center.y + radius * sin(Math.toRadians(sweepAngle.toDouble())).toFloat()
+                        ),
+                        strokeWidth = 2.dp.toPx()
+                    )
+
+                    // Center Pulse Beacon Ping (Synced heartbeat glow)
+                    val centerPulseGlow = ((1f - pulse1) * 0.45f).coerceAtLeast(0f)
+                    drawCircle(
+                        color = pulseColor.copy(alpha = centerPulseGlow),
+                        radius = (14.dp.toPx() + 8.dp.toPx() * (1f - pulse1)),
+                        center = center
+                    )
+
+                    // Center Blip
+                    if (hidePreciseLocationOnRadar) {
+                        // Masked / Shielded indicator
+                        drawCircle(color = shieldCyan.copy(alpha = 0.35f), radius = 12.dp.toPx(), center = center)
+                        drawCircle(color = shieldCyan, radius = 6.dp.toPx(), center = center)
+                        drawCircle(color = Color.White, radius = 2.5.dp.toPx(), center = center)
+                    } else {
+                        drawCircle(color = radarColor, radius = 5.dp.toPx(), center = center)
+                        drawCircle(color = Color.White, radius = 2.dp.toPx(), center = center)
+                    }
+                }
+
+                // Pulse Sync Telemetry Tag
+                Surface(
+                    color = Color.Black.copy(alpha = 0.65f),
+                    shape = RoundedCornerShape(100.dp),
+                    border = BorderStroke(0.7.dp, if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.6f) else radarColor.copy(alpha = 0.6f)),
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(10.dp)
+                                .size(5.dp)
                                 .clip(CircleShape)
-                                .background(if (isLocationEnabled && !isPrivateAccount) LocaliAccentMint else LocaliAccentCoral)
+                                .background(if (hidePreciseLocationOnRadar) shieldCyan else radarColor)
                         )
-                        Column {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = "PROXIMITY RADAR",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 14.sp,
-                                        letterSpacing = 1.sp
-                                    ),
-                                    color = Color.White
-                                )
-                                Surface(
-                                    shape = RoundedCornerShape(4.dp),
-                                    color = LocaliPrimaryTeal.copy(alpha = 0.3f),
-                                    modifier = Modifier.padding(start = 2.dp)
-                                ) {
-                                    Text(
-                                        text = "${currentRadiusOption.icon} ${currentRadiusOption.shortLabel}",
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = LocaliAccentMint,
-                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                                    )
-                                }
-                            }
-                            Text(
-                                text = if (!isLocationEnabled) "Proximity Scan Disabled (Off Grid)"
-                                else if (isPrivateAccount) "Ghost Mode • Hidden from Strangers"
-                                else "${filteredUsers.size} neighbors • ${filteredPosts.size} pulses (${userProfile.locationName})",
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
-                                color = Color.White.copy(alpha = 0.7f),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-
-                    // Header Controls: Privacy Shield
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        // Privacy Button
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = Color.White.copy(alpha = 0.12f),
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100.dp))
-                                .clickable { showPrivacyDialog = true }
-                                .testTag("radar_privacy_button")
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (!isLocationEnabled || isPrivateAccount) Icons.Outlined.Lock else Icons.Outlined.Public,
-                                    contentDescription = "Privacy Shield",
-                                    tint = if (!isLocationEnabled || isPrivateAccount) LocaliAccentCoral else LocaliAccentMint,
-                                    modifier = Modifier.size(12.dp)
-                                )
-                                Text(
-                                    text = if (!isLocationEnabled) "OFF" else if (isPrivateAccount) "PRIV" else "LIVE",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
+                        Text(
+                            text = "PULSE SYNC: ${currentDistanceOption.shortLabel} • ${(pulseDurationMs / 1000.0)}s",
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
+                        )
                     }
                 }
+                
+                // 2. Miniature Cards plotted strictly INSIDE this CircleShape Box
+                val combinedCount = minOf(nearbyUsers.size + nearbyPosts.size, 10)
+                val combinedItems = (nearbyUsers + nearbyPosts).take(combinedCount)
+                
+                val blipCardSizeDp = 34.dp
+                val blipCardRadiusPx = with(density) { 17.dp.toPx() }
+                val maxDist = radarRadiusPx - blipCardRadiusPx - with(density) { 6.dp.toPx() }
+                val minDist = blipCardRadiusPx + with(density) { 12.dp.toPx() }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // The Circular Proximity Radar Box
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color(0xFF04101E))
-                        .testTag("radar_canvas_container"),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Proximity Radar Rings, Sweep Beam, and Target Vectors Canvas
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val center = Offset(size.width / 2f, size.height / 2f)
-                        val maxRadius = (min(size.width, size.height) / 2f) * 0.88f
-
-                        // Concentric Range Rings (33%, 66%, 100%)
-                        val ringColors = listOf(
-                            LocaliAccentMint.copy(alpha = 0.18f),
-                            LocaliAccentMint.copy(alpha = 0.28f),
-                            LocaliAccentMint.copy(alpha = 0.45f)
-                        )
-
-                        for (i in 1..3) {
-                            val r = maxRadius * (i / 3f)
-                            drawCircle(
-                                color = ringColors[i - 1],
-                                radius = r,
-                                center = center,
-                                style = Stroke(
-                                    width = 1.2.dp.toPx(),
-                                    pathEffect = if (i < 3) PathEffect.dashPathEffect(floatArrayOf(8f, 8f), 0f) else null
-                                )
-                            )
-                        }
-
-                        // Compass Axes Lines (N-S, E-W, NE-SW, NW-SE diagonal vectors)
-                        val axisColor = LocaliPrimaryTeal.copy(alpha = 0.22f)
-                        drawLine(axisColor, Offset(center.x - maxRadius, center.y), Offset(center.x + maxRadius, center.y), strokeWidth = 1.dp.toPx())
-                        drawLine(axisColor, Offset(center.x, center.y - maxRadius), Offset(center.x, center.y + maxRadius), strokeWidth = 1.dp.toPx())
-
-                        val diag = maxRadius * 0.7071f
-                        val diagColor = LocaliPrimaryTeal.copy(alpha = 0.12f)
-                        drawLine(diagColor, Offset(center.x - diag, center.y - diag), Offset(center.x + diag, center.y + diag), strokeWidth = 0.8.dp.toPx())
-                        drawLine(diagColor, Offset(center.x - diag, center.y + diag), Offset(center.x + diag, center.y - diag), strokeWidth = 0.8.dp.toPx())
-
-                        // 3. Dynamic Rotating Sweep Beam with Proximity Sonar Glow
-                        if (isLocationEnabled) {
-                            val sweepBrush = Brush.sweepGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    Color(0x00028090),
-                                    Color(0x2502C39A),
-                                    Color(0x8002C39A)
-                                ),
-                                center = center
-                            )
-
-                            drawArc(
-                                brush = sweepBrush,
-                                startAngle = sweepAngle,
-                                sweepAngle = 75f,
-                                useCenter = true,
-                                topLeft = Offset(center.x - maxRadius, center.y - maxRadius),
-                                size = Size(maxRadius * 2, maxRadius * 2)
-                            )
-                        }
-
-                        // 4. Target Lock Vector Line if user is inspecting a specific blip
-                        if (inspectUser != null) {
-                            val u = inspectUser!!
-                            val bearing = LocationHelper.calculateBearing(userProfile.latitude, userProfile.longitude, u.latitude, u.longitude)
-                            val angleRad = Math.toRadians(bearing - 90.0)
-                            val fraction = (u.distanceKm / selectedRadiusKm).coerceIn(0.2, 0.92)
-                            val targetOffset = Offset(
-                                center.x + (maxRadius * fraction * cos(angleRad)).toFloat(),
-                                center.y + (maxRadius * fraction * sin(angleRad)).toFloat()
-                            )
-
-                            // Glowing vector line to locked target
-                            drawLine(
-                                color = LocaliAccentCoral,
-                                start = center,
-                                end = targetOffset,
-                                strokeWidth = 2.dp.toPx(),
-                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f)
-                            )
-                            // Lock Reticle
-                            drawCircle(
-                                color = LocaliAccentCoral.copy(alpha = 0.35f),
-                                radius = 22.dp.toPx(),
-                                center = targetOffset
-                            )
-                            drawCircle(
-                                color = LocaliAccentCoral,
-                                radius = 24.dp.toPx(),
-                                center = targetOffset,
-                                style = Stroke(1.5.dp.toPx())
-                            )
-                        }
+                combinedItems.forEachIndexed { i, item ->
+                    val angle = (i * 137.5f) % 360f
+                    val distFactor = 0.18f + 0.78f * (((i * 29 + 17) % 100) / 100f)
+                    val dist = minDist + (maxDist - minDist) * distFactor
+                    
+                    val blipCenterX = centerPx + dist * cos(Math.toRadians(angle.toDouble())).toFloat()
+                    val blipCenterY = centerPx + dist * sin(Math.toRadians(angle.toDouble())).toFloat()
+                    
+                    val offsetX = blipCenterX - blipCardRadiusPx
+                    val offsetY = blipCenterY - blipCardRadiusPx
+                    
+                    // Calculate opacity and highlight based on radar sweep
+                    val angleDiff = (sweepAngle - angle + 360f) % 360f
+                    val isSwept = angleDiff < 45f
+                    val alpha = if (isSwept) 1f else (0.45f + 0.25f * (1f - (angleDiff / 360f)))
+                    val scale = if (isSwept) 1.15f else 1f
+                    val borderGlow = if (isSwept) radarColor else radarColor.copy(alpha = 0.4f)
+                    
+                    val avatarUrl = when (item) {
+                        is OtherUserEntity -> item.avatarUrl
+                        is PostEntity -> item.userAvatar
+                        else -> ""
                     }
-
-                    // 3. User Central Position (You Are Here Anchor)
+                    
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .align(Alignment.TopStart)
+                            .offset(
+                                x = with(density) { offsetX.toDp() },
+                                y = with(density) { offsetY.toDp() }
+                            )
+                            .size(blipCardSizeDp)
                             .clip(CircleShape)
-                            .border(2.dp, LocaliAccentMint, CircleShape)
-                            .background(LocaliDeepNavy),
-                        contentAlignment = Alignment.Center
+                            .background(Color(0xFF031405))
+                            .border(1.5.dp, borderGlow, CircleShape)
+                            .clickable {
+                                if (item is OtherUserEntity) onUserClick(item)
+                                else if (item is PostEntity) onPostClick(item)
+                            }
+                            .padding(2.dp)
                     ) {
                         AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(userProfile.avatarUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "You",
+                            model = avatarUrl,
+                            contentDescription = "Radar blip",
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .clip(CircleShape)
+                            alpha = alpha
                         )
-                    }
-
-                    // 4. Interactive Proximity Radar Blips
-                    if (isLocationEnabled) {
-                        // User Blips
-                        if (selectedBlipType == "ALL" || selectedBlipType == "PEOPLE") {
-                            filteredUsers.forEach { user ->
-                                val bearing = LocationHelper.calculateBearing(
-                                    userProfile.latitude, userProfile.longitude,
-                                    user.latitude, user.longitude
-                                )
-                                val angleRad = Math.toRadians(bearing - 90.0)
-                                val distanceFraction = (user.distanceKm / selectedRadiusKm).coerceIn(0.2, 0.90)
-                                val radiusPx = (112.dp.value * distanceFraction).toFloat()
-
-                                val xOffsetDp = (radiusPx * cos(angleRad)).toInt().dp
-                                val yOffsetDp = (radiusPx * sin(angleRad)).toInt().dp
-
-                                // Check if sweep beam is actively passing over this entity (sonar ping effect)
-                                val normalizedSweep = (sweepAngle + 360f) % 360f
-                                val normalizedBearing = bearing.toFloat()
-                                val isBeamOver = abs(normalizedSweep - normalizedBearing) < 25f ||
-                                                 abs(normalizedSweep - normalizedBearing - 360f) < 25f
-
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .offset(x = xOffsetDp, y = yOffsetDp)
-                                        .clickable {
-                                            inspectUser = user
-                                            inspectPost = null
-                                        }
-                                        .testTag("radar_user_blip_${user.username}")
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(if (isBeamOver) 34.dp else 28.dp)
-                                            .clip(CircleShape)
-                                            .border(
-                                                width = if (isBeamOver) 2.5.dp else if (user.isFriend) 1.8.dp else 1.2.dp,
-                                                color = if (isBeamOver) Color.White else if (user.isFriend) LocaliAccentMint else LocaliAccentCoral,
-                                                shape = CircleShape
-                                            )
-                                            .background(LocaliDeepNavy),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        AsyncImage(
-                                            model = ImageRequest.Builder(LocalContext.current)
-                                                .data(user.avatarUrl)
-                                                .crossfade(true)
-                                                .build(),
-                                            contentDescription = user.username,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .size(if (isBeamOver) 28.dp else 22.dp)
-                                                .clip(CircleShape)
-                                        )
-                                    }
-
-                                    // Distance Mini-Badge under blip
-                                    Surface(
-                                        shape = RoundedCornerShape(4.dp),
-                                        color = Color.Black.copy(alpha = 0.75f),
-                                        modifier = Modifier.padding(top = 1.dp)
-                                    ) {
-                                        Text(
-                                            text = LocationHelper.formatDistanceLabel(user.distanceKm).replace(" away", ""),
-                                            fontSize = 7.5.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (isBeamOver) LocaliAccentMint else Color.White,
-                                            modifier = Modifier.padding(horizontal = 3.dp, vertical = 0.5.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        // Moment / Post Blips
-                        if (selectedBlipType == "ALL" || selectedBlipType == "POSTS") {
-                            filteredPosts.forEach { post ->
-                                val postLat = post.latitude ?: (userProfile.latitude + 0.005)
-                                val postLng = post.longitude ?: (userProfile.longitude + 0.005)
-                                val bearing = LocationHelper.calculateBearing(
-                                    userProfile.latitude, userProfile.longitude,
-                                    postLat, postLng
-                                )
-                                val angleRad = Math.toRadians(bearing - 90.0)
-                                val dist = post.distanceKm ?: 1.0
-                                val distanceFraction = (dist / selectedRadiusKm).coerceIn(0.25, 0.90)
-                                val radiusPx = (112.dp.value * distanceFraction).toFloat()
-
-                                val xOffsetDp = (radiusPx * cos(angleRad)).toInt().dp
-                                val yOffsetDp = (radiusPx * sin(angleRad)).toInt().dp
-
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = LocaliPrimaryTeal,
-                                    border = BorderStroke(1.dp, Color.White),
-                                    modifier = Modifier
-                                        .offset(x = xOffsetDp, y = yOffsetDp)
-                                        .size(24.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .clickable {
-                                            inspectPost = post
-                                            inspectUser = null
-                                        }
-                                        .testTag("radar_post_blip_${post.id}")
-                                ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(post.mediaUrl)
-                                            .crossfade(true)
-                                            .build(),
-                                        contentDescription = post.caption,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
-                                }
-                            }
-                        }
-                    } else {
-                        // Location Disabled State Banner
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = Color.Black.copy(alpha = 0.85f),
-                            border = BorderStroke(1.dp, LocaliAccentCoral),
-                            modifier = Modifier.padding(20.dp)
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(14.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.LocationOff,
-                                    contentDescription = null,
-                                    tint = LocaliAccentCoral,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "Location Radar Disabled",
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    fontSize = 13.sp
-                                )
-                                Text(
-                                    text = "Enable location sharing to scan proximity beacons and explore live community pulses.",
-                                    fontSize = 10.5.sp,
-                                    color = Color.White.copy(alpha = 0.7f),
-                                    textAlign = TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(
-                                    onClick = { onLocationToggle(true) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = LocaliPrimaryTeal),
-                                    shape = RoundedCornerShape(100.dp),
-                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
-                                    modifier = Modifier.height(30.dp)
-                                ) {
-                                    Text("Turn On Radar", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                    }
-
-                    // Cardinal Direction Points (N, S, E, W)
-                    Text(
-                        text = "N 0°",
-                        color = LocaliAccentMint.copy(alpha = 0.8f),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 4.dp)
-                    )
-                    Text(
-                        text = "S 180°",
-                        color = LocaliAccentMint.copy(alpha = 0.6f),
-                        fontSize = 8.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 4.dp)
-                    )
-                    Text(
-                        text = "E 90°",
-                        color = LocaliAccentMint.copy(alpha = 0.6f),
-                        fontSize = 8.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 4.dp)
-                    )
-                    Text(
-                        text = "W 270°",
-                        color = LocaliAccentMint.copy(alpha = 0.6f),
-                        fontSize = 8.5.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .padding(start = 4.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Extended KM Options Slider / Chips (1km, 3km, 5km, 10km, 50km, 100km, 500km, 1000km, Country, Earth)
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "SCAN RANGE SCALE",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White.copy(alpha = 0.8f),
-                            letterSpacing = 0.5.sp
-                        )
-
-                        // Filter Blip Type: ALL, PEOPLE, POSTS
-                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            listOf("ALL", "PEOPLE", "POSTS").forEach { type ->
-                                val isSelected = selectedBlipType == type
-                                Surface(
-                                    shape = RoundedCornerShape(100.dp),
-                                    color = if (isSelected) LocaliPrimaryTeal else Color.White.copy(alpha = 0.08f),
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(100.dp))
-                                        .clickable { selectedBlipType = type }
-                                ) {
-                                    Text(
-                                        text = type,
-                                        fontSize = 8.5.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Horizontally scrollable extended range pills (1km up to Country & Earth)
-                    LazyRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("radar_radius_preset_row"),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        items(RadarRadiusPresets.ALL_OPTIONS) { option ->
-                            val isSelected = selectedRadiusKm == option.km
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = if (isSelected) LocaliAccentMint else Color.White.copy(alpha = 0.12f),
-                                border = if (isSelected) BorderStroke(1.dp, Color.White) else null,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .clickable { onRadiusChange(option.km) }
-                                    .testTag("radar_radius_${option.km.toInt()}km")
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
-                                ) {
-                                    Text(option.icon, fontSize = 10.sp)
-                                    Text(
-                                        text = option.shortLabel,
-                                        fontSize = 10.5.sp,
-                                        fontWeight = if (isSelected) FontWeight.Black else FontWeight.SemiBold,
-                                        color = if (isSelected) LocaliDeepNavy else Color.White
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }
         }
-
-        // Proximity Target Lock & Inspection HUD Card (When a user blip is tapped)
-        if (inspectUser != null) {
-            val user = inspectUser!!
-            val bearing = LocationHelper.calculateBearing(userProfile.latitude, userProfile.longitude, user.latitude, user.longitude)
-            val compassDir = LocationHelper.getCompassDirection(bearing)
-            val travelTime = LocationHelper.getEstimatedTravelTime(user.distanceKm)
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                border = BorderStroke(1.5.dp, LocaliAccentMint),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag("radar_inspected_user_card")
-            ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    // Top Row: User Avatar, Name, Distance & Bearing
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(user.avatarUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = user.username,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(46.dp)
-                                    .clip(CircleShape)
-                                    .border(1.5.dp, LocaliAccentMint, CircleShape)
-                            )
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                    Text(
-                                        text = user.fullName,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 13.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    if (user.isVerified) {
-                                        Icon(
-                                            imageVector = Icons.Default.CheckCircle,
-                                            contentDescription = "Verified",
-                                            tint = LocaliPrimaryTeal,
-                                            modifier = Modifier.size(13.dp)
-                                        )
-                                    }
-                                }
-                                Text(
-                                    text = "@${user.username} • ${user.landmark ?: user.locationName}",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-
-                        // Proximity Telemetry Badge
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = LocaliPrimaryTeal.copy(alpha = 0.18f),
-                            border = BorderStroke(1.dp, LocaliAccentMint.copy(alpha = 0.5f))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Text(
-                                    text = "🧭 $compassDir ${bearing.toInt()}°",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = LocaliAccentMint
-                                )
-                                Text(
-                                    text = LocationHelper.formatDistanceLabel(user.distanceKm),
-                                    fontSize = 9.5.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Proximity Details & Estimated Travel Bar
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Navigation,
-                                    contentDescription = "Navigation",
-                                    tint = LocaliPrimaryTeal,
-                                    modifier = Modifier.size(13.dp)
-                                )
-                                Text(
-                                    text = "Est. travel: $travelTime",
-                                    fontSize = 10.5.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-
-                            // Open Directions in Google Maps
-                            Text(
-                                text = "Open in Maps ↗",
-                                fontSize = 10.5.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LocaliPrimaryTeal,
-                                modifier = Modifier.clickable {
-                                    try {
-                                        val uri = Uri.parse("google.navigation:q=${user.latitude},${user.longitude}")
-                                        val mapIntent = Intent(Intent.ACTION_VIEW, uri).apply {
-                                            setPackage("com.google.android.apps.maps")
-                                        }
-                                        if (mapIntent.resolveActivity(context.packageManager) != null) {
-                                            context.startActivity(mapIntent)
-                                        } else {
-                                            val webUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${user.latitude},${user.longitude}")
-                                            context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
-                                        }
-                                    } catch (_: Exception) {
-                                        val webUri = Uri.parse("https://www.google.com/maps/dir/?api=1&destination=${user.latitude},${user.longitude}")
-                                        context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
-                                    }
-                                }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Action Buttons (Wave, Pulse Link, View Profile)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        FilledTonalButton(
-                            onClick = { onWaveAtUser(user) },
-                            shape = RoundedCornerShape(100.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(34.dp)
-                        ) {
-                            Text("Wave 👋", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-
-                        Button(
-                            onClick = { onPulseLinkUser(user) },
-                            shape = RoundedCornerShape(100.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (user.isFollowing) LocaliAccentMint.copy(alpha = 0.25f) else LocaliPrimaryTeal,
-                                contentColor = if (user.isFollowing) LocaliAccentMint else Color.White
-                            ),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            modifier = Modifier
-                                .weight(1.3f)
-                                .height(34.dp)
-                        ) {
-                            Text(
-                                text = if (user.isFollowing) "In Orbit ⚡" else "+ Pulse Link",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = {
-                                onUserClick(user)
-                                inspectUser = null
-                            },
-                            shape = RoundedCornerShape(100.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                            modifier = Modifier
-                                .weight(1.1f)
-                                .height(34.dp)
-                        ) {
-                            Text("Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Proximity Post Inspection Card (When a post blip is tapped)
-        if (inspectPost != null) {
-            val post = inspectPost!!
-            val postLat = post.latitude ?: userProfile.latitude
-            val postLng = post.longitude ?: userProfile.longitude
-            val bearing = LocationHelper.calculateBearing(userProfile.latitude, userProfile.longitude, postLat, postLng)
-            val compassDir = LocationHelper.getCompassDirection(bearing)
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                border = BorderStroke(1.5.dp, LocaliAccentMint),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onPostClick(post)
-                        inspectPost = null
-                    }
-                    .testTag("radar_inspected_post_card")
-            ) {
-                Row(
+        
+        // Systematic Range Options Bar (3KM, 5KM, 50KM, 100KM, 500KM, 1000KM, Country, Earth, Galaxy)
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 16.dp)
+                .testTag("radar_systematic_ranges_row"),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(systematicRanges) { opt ->
+                val isSelected = kotlin.math.abs(selectedRadiusKm - opt.km) < 0.1 ||
+                        (opt.key == "COUNTRY" && selectedRadiusKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
+                        (opt.key == "EARTH" && selectedRadiusKm == SystematicDistanceScale.EARTH_KM) ||
+                        (opt.key == "GALAXY" && selectedRadiusKm == SystematicDistanceScale.GALAXY_KM)
+                val activeBg = if (hidePreciseLocationOnRadar) shieldCyan else radarColor
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isSelected) activeBg else Color(0xFF162518),
+                    border = BorderStroke(
+                        1.dp,
+                        if (isSelected) Color.White.copy(alpha = 0.8f) else Color(0xFF005511)
+                    ),
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { onRadiusChange(opt.km) }
+                        .testTag("radar_range_pill_${opt.key.lowercase()}")
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.size(54.dp)
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(post.mediaUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = post.caption,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = "📍 ${post.landmark ?: post.location ?: "Nearby"}",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "($compassDir • ${LocationHelper.formatDistanceLabel(post.distanceKm)})",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(text = opt.icon, fontSize = 11.sp)
                         Text(
-                            text = post.caption,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurface
+                            text = opt.shortLabel,
+                            color = if (isSelected) Color.Black else Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
                         )
                     }
-
-                    Icon(
-                        imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Open Pulse",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(22.dp)
-                    )
                 }
             }
         }
-    }
-
-    // Comprehensive Privacy & Location Controls Modal Dialog
-    if (showPrivacyDialog) {
-        AlertDialog(
-            onDismissRequest = { showPrivacyDialog = false },
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Security,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Radar & Privacy Settings",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-                    )
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Text(
-                        text = "You have full control over your visibility on Locali's Proximity Radar and nearby discovery feed.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-
-                    // 1. Enable / Disable Location Setting
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Live Location Radar",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Scan nearby creators, landmarks, and pulses within your selected radius up to Earth scale.",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = isLocationEnabled,
-                            onCheckedChange = { onLocationToggle(it) },
-                            modifier = Modifier.testTag("radar_location_switch")
-                        )
-                    }
-
-                    // 2. Private / Ghost Mode Setting
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Private Account (Ghost Mode)",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = "Hide your profile from strangers on the public radar. Only approved friends can see your distance.",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = isPrivateAccount,
-                            onCheckedChange = { onPrivateToggle(it) },
-                            modifier = Modifier.testTag("radar_private_account_switch")
-                        )
-                    }
-
-                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
-
-                    OutlinedButton(
-                        onClick = {
-                            showPrivacyDialog = false
-                            onOpenPrivacySettings()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("radar_manage_privacy_settings_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Security,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("More Privacy & Security Settings", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showPrivacyDialog = false },
-                    modifier = Modifier.testTag("radar_privacy_confirm_button")
-                ) {
-                    Text("Done", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                }
-            }
-        )
     }
 }

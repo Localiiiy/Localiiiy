@@ -39,9 +39,9 @@ import com.example.data.legal.LegalCategory
 import com.example.data.legal.LegalClause
 import com.example.data.legal.LegalConsentRecord
 import com.example.data.legal.LegalPolicyRepository
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliDeepNavy
-import com.example.ui.theme.LocaliPrimaryTeal
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyDeepNavy
+import com.example.ui.theme.LocaliiiyPrimaryTeal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +82,7 @@ fun LegalAgreementScreen(
 
     fun copyEntirePolicy() {
         val fullDoc = buildString {
-            appendLine("=== LOCALIIIY APP AGREEMENT, COMMUNITY CHARTER & PRIVACY POLICY ===")
+            appendLine("=== Localiiiy APP AGREEMENT, COMMUNITY CHARTER & PRIVACY POLICY ===")
             appendLine("Version: ${LegalPolicyRepository.CURRENT_POLICY_VERSION}")
             appendLine("Last Updated: ${LegalPolicyRepository.LAST_UPDATED_DATE}")
             appendLine("Consent Status: ${if (isAccepted) "Accepted & Binding" else "Pending Acknowledgment"}")
@@ -117,7 +117,7 @@ fun LegalAgreementScreen(
                                 modifier = Modifier
                                     .size(6.dp)
                                     .clip(CircleShape)
-                                    .background(if (isAccepted) LocaliAccentMint else MaterialTheme.colorScheme.tertiary)
+                                    .background(if (isAccepted) LocaliiiyAccentMint else MaterialTheme.colorScheme.tertiary)
                             )
                             Text(
                                 text = "Policy ${LegalPolicyRepository.CURRENT_POLICY_VERSION} • Binding Legal Charter",
@@ -175,14 +175,14 @@ fun LegalAgreementScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = if (isAccepted) LocaliAccentMint.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
+                            color = if (isAccepted) LocaliiiyAccentMint.copy(alpha = 0.2f) else MaterialTheme.colorScheme.primaryContainer,
                             modifier = Modifier.size(36.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = if (isAccepted) Icons.Default.VerifiedUser else Icons.Outlined.Gavel,
                                     contentDescription = null,
-                                    tint = if (isAccepted) LocaliAccentMint else MaterialTheme.colorScheme.primary,
+                                    tint = if (isAccepted) LocaliiiyAccentMint else MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -210,7 +210,7 @@ fun LegalAgreementScreen(
                             },
                             shape = RoundedCornerShape(100.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isAccepted) LocaliPrimaryTeal else MaterialTheme.colorScheme.primary
+                                containerColor = if (isAccepted) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier.testTag("legal_accept_confirm_button")
                         ) {
@@ -312,13 +312,13 @@ fun LegalAgreementScreen(
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = LocaliPrimaryTeal.copy(alpha = 0.2f),
-                                selectedLabelColor = LocaliPrimaryTeal
+                                selectedContainerColor = LocaliiiyPrimaryTeal.copy(alpha = 0.2f),
+                                selectedLabelColor = LocaliiiyPrimaryTeal
                             ),
                             border = FilterChipDefaults.filterChipBorder(
                                 enabled = true,
                                 selected = isSelected,
-                                borderColor = if (isSelected) LocaliPrimaryTeal else MaterialTheme.colorScheme.outlineVariant
+                                borderColor = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.outlineVariant
                             )
                         )
                     }
@@ -445,10 +445,10 @@ fun LegalAgreementScreen(
         Snackbar(
             action = {
                 TextButton(onClick = { showCopySnackbar = false }) {
-                    Text("OK", color = LocaliAccentMint, fontWeight = FontWeight.Bold)
+                    Text("OK", color = LocaliiiyAccentMint, fontWeight = FontWeight.Bold)
                 }
             },
-            containerColor = LocaliDeepNavy,
+            containerColor = LocaliiiyDeepNavy,
             contentColor = Color.White,
             modifier = Modifier
                 .padding(16.dp)
@@ -483,7 +483,7 @@ private fun LegalHeroHeaderCard(
             ) {
                 Surface(
                     shape = RoundedCornerShape(100.dp),
-                    color = LocaliPrimaryTeal.copy(alpha = 0.18f)
+                    color = LocaliiiyPrimaryTeal.copy(alpha = 0.18f)
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -496,20 +496,20 @@ private fun LegalHeroHeaderCard(
                             fontSize = 9.5.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 0.6.sp,
-                            color = LocaliPrimaryTeal
+                            color = LocaliiiyPrimaryTeal
                         )
                     }
                 }
 
                 Surface(
                     shape = RoundedCornerShape(100.dp),
-                    color = if (isAccepted) LocaliAccentMint.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+                    color = if (isAccepted) LocaliiiyAccentMint.copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
                 ) {
                     Text(
                         text = if (isAccepted) "ACTIVE & SIGNED" else "PENDING SIGNATURE",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isAccepted) LocaliAccentMint else MaterialTheme.colorScheme.error,
+                        color = if (isAccepted) LocaliiiyAccentMint else MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -592,7 +592,7 @@ private fun LegalClauseCard(
         ),
         border = BorderStroke(
             width = if (clause.isHighlighted) 1.2.dp else 1.dp,
-            color = if (clause.isHighlighted) LocaliPrimaryTeal.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            color = if (clause.isHighlighted) LocaliiiyPrimaryTeal.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         ),
         modifier = Modifier
             .fillMaxWidth()
@@ -775,7 +775,7 @@ private fun LegalDatabaseCertificateCard(
                 Icon(
                     imageVector = Icons.Default.Security,
                     contentDescription = null,
-                    tint = LocaliPrimaryTeal,
+                    tint = LocaliiiyPrimaryTeal,
                     modifier = Modifier.size(18.dp)
                 )
                 Text(

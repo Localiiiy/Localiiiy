@@ -72,7 +72,7 @@ data class PlatformAdRevenueMetrics(
 )
 
 data class BoostCampaignRequest(
-    val postIdOrReelId: Long,
+    val postIdOrClipId: Long,
     val targetAudience: String = "Worldwide", // "Worldwide", "North America", "Europe", "Asia-Pacific", "Latin America", "Local Neighborhood"
     val dailyBudgetUSD: Double = 15.0,
     val durationDays: Int = 7,
@@ -87,10 +87,10 @@ object StarterMonetizationData {
             advertiserName = "NordVPN Global",
             advertiserAvatar = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
             headline = "Protect your creative workflow worldwide with ultra-fast encryption 🛡️",
-            description = "Get 70% off + 3 extra months with creator code LOCALIIIY. Trusted in 111 countries.",
+            description = "Get 70% off + 3 extra months with creator code Localiiiy. Trusted in 111 countries.",
             mediaUrl = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1080&auto=format&fit=crop&q=80",
             callToAction = "Claim 70% Off",
-            targetUrl = "https://nordvpn.com/localiiiy",
+            targetUrl = "https://nordvpn.com/Localiiiy",
             cpmRateUSD = 6.40,
             cpcRateUSD = 0.55,
             targetRegion = "Worldwide"

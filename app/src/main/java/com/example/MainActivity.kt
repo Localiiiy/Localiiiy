@@ -1,9 +1,14 @@
 package com.example
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,35 +37,39 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
+import com.example.util.HotspotAlert
 import com.example.ui.CreationMode
-import com.example.ui.LocaliViewModel
+import com.example.ui.LocaliiiyViewModel
 import com.example.ui.MainNavigationTab
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.ui.navigation.LocaliNavScreen
-import com.example.ui.navigation.LocaliNavigationComposeBottomBar
+import com.example.ui.navigation.LocaliiiyNavScreen
+import com.example.ui.navigation.LocaliiiyNavigationComposeBottomBar
 import com.example.ui.components.*
 import com.example.ui.screens.*
-import com.example.ui.theme.LocaliAccentCoral
-import com.example.ui.theme.LocaliAccentMint
-import com.example.ui.theme.LocaliStoryGradient
-import com.example.ui.theme.LocaliTheme
-import com.example.util.LocaliCurrency
-import com.example.util.LocaliLanguage
+import com.example.ui.theme.LocaliiiyAccentCoral
+import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.ui.theme.LocaliiiyStoryGradient
+import com.example.ui.theme.LocaliiiyTheme
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private val deepLinkClipIdState = mutableStateOf<Long?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        parseDeepLink(intent)
         try {
             if (FirebaseApp.getApps(this).isEmpty()) {
                 val options = FirebaseOptions.Builder()
                     .setApplicationId("1:109876543210:android:abcdef0123456789")
-                    .setProjectId("localiiiy-app")
+                    .setProjectId("Localiiiy-app")
                     .setApiKey("AIzaSyLocaliiiyFirebaseApiKeyMock")
                     .build()
                 FirebaseApp.initializeApp(this, options)
@@ -70,22 +79,50 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         setContent {
-            LocaliTheme {
-                LocaliApp()
+            LocaliiiyTheme {
+                LocaliiiyApp(
+                    deepLinkClipId = deepLinkClipIdState.value,
+                    onClearDeepLink = { deepLinkClipIdState.value = null }
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        parseDeepLink(intent)
+    }
+
+    private fun parseDeepLink(intent: android.content.Intent?) {
+        val data = intent?.data ?: return
+        try {
+            val pathSegments = data.pathSegments
+            val clipIndex = pathSegments.indexOf("clip")
+            if (clipIndex != -1 && clipIndex + 1 < pathSegments.size) {
+                val id = pathSegments[clipIndex + 1].toLongOrNull()
+                if (id != null) deepLinkClipIdState.value = id
+            } else if (pathSegments.isNotEmpty()) {
+                val id = pathSegments.last().toLongOrNull()
+                if (id != null) deepLinkClipIdState.value = id
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error parsing deep link: ${e.message}")
         }
     }
 }
 
 @Composable
-fun LocaliApp(
-    viewModel: LocaliViewModel = viewModel()
+fun LocaliiiyApp(
+    viewModel: LocaliiiyViewModel = viewModel(),
+    deepLinkClipId: Long? = null,
+    onClearDeepLink: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
     val posts by viewModel.allPosts.collectAsStateWithLifecycle()
     val feedPosts by viewModel.feedPosts.collectAsStateWithLifecycle()
-    val reels by viewModel.allReels.collectAsStateWithLifecycle()
+    val clips by viewModel.allClips.collectAsStateWithLifecycle()
     val stories by viewModel.allStories.collectAsStateWithLifecycle()
     val savedPosts by viewModel.savedPosts.collectAsStateWithLifecycle()
     val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
@@ -103,11 +140,17 @@ fun LocaliApp(
     val isLoggedOut by viewModel.isLoggedOut.collectAsStateWithLifecycle()
 
     val currentLocation by viewModel.currentLocation.collectAsStateWithLifecycle()
+    val activeHotspotAlert by viewModel.activeHotspotAlert.collectAsStateWithLifecycle()
     val isDetectingLocation by viewModel.isDetectingLocation.collectAsStateWithLifecycle()
     val isLocationEnabled by viewModel.isLocationEnabled.collectAsStateWithLifecycle()
     val isPrivateAccount by viewModel.isPrivateAccount.collectAsStateWithLifecycle()
     val nearbyRadiusKm by viewModel.nearbyRadiusKm.collectAsStateWithLifecycle()
     val isRefreshingFeed by viewModel.isRefreshingFeed.collectAsStateWithLifecycle()
+    val isRefreshingExplore by viewModel.isRefreshingExplore.collectAsStateWithLifecycle()
+    val isRefreshingMarket by viewModel.isRefreshingMarket.collectAsStateWithLifecycle()
+    val isRefreshingStudio by viewModel.isRefreshingStudio.collectAsStateWithLifecycle()
+    val isRefreshingClips by viewModel.isRefreshingClips.collectAsStateWithLifecycle()
+    val isRefreshingProfile by viewModel.isRefreshingProfile.collectAsStateWithLifecycle()
 
     val selectedOtherUser by viewModel.selectedOtherUser.collectAsStateWithLifecycle()
     val activeConversation by viewModel.activeConversation.collectAsStateWithLifecycle()
@@ -115,8 +158,18 @@ fun LocaliApp(
 
     val privacySettings by viewModel.privacySettings.collectAsStateWithLifecycle()
     val showPrivacySettings by viewModel.showPrivacySettings.collectAsStateWithLifecycle()
+    val showUserActivityLog by viewModel.showUserActivityLog.collectAsStateWithLifecycle()
+    val allUserActivities by viewModel.allUserActivities.collectAsStateWithLifecycle()
+    val showBlockedUsersScreen by viewModel.showBlockedUsersScreen.collectAsStateWithLifecycle()
+    val blockedUsernames by viewModel.blockedUsernames.collectAsStateWithLifecycle()
     val showLegalAgreement by viewModel.showLegalAgreement.collectAsStateWithLifecycle()
+    val showCyberstalkingSafetyScreen by viewModel.showCyberstalkingSafetyScreen.collectAsStateWithLifecycle()
+    val cyberstalkingPrefilledUsername by viewModel.cyberstalkingPrefilledUsername.collectAsStateWithLifecycle()
+    val allCyberstalkingIncidents by viewModel.allCyberstalkingIncidents.collectAsStateWithLifecycle()
     val showSignUpDialog by viewModel.showSignUpDialog.collectAsStateWithLifecycle()
+    val showAuthScreen by viewModel.showAuthScreen.collectAsStateWithLifecycle()
+    val authReason by viewModel.authReason.collectAsStateWithLifecycle()
+    val authInitialMode by viewModel.authInitialMode.collectAsStateWithLifecycle()
     val legalConsentRecord by viewModel.legalConsentRecord.collectAsStateWithLifecycle()
 
     val creationMode by viewModel.creationMode.collectAsStateWithLifecycle()
@@ -126,14 +179,18 @@ fun LocaliApp(
 
     val marketplaceItems by viewModel.allMarketplaceItems.collectAsStateWithLifecycle()
     val selectedMarketCategory by viewModel.selectedMarketCategory.collectAsStateWithLifecycle()
+    val globalSearchQuery by viewModel.globalSearchQuery.collectAsStateWithLifecycle()
     val marketplaceSearchQuery by viewModel.marketplaceSearchQuery.collectAsStateWithLifecycle()
     val marketplaceLocationQuery by viewModel.marketplaceLocationQuery.collectAsStateWithLifecycle()
     val marketplaceRadiusKm by viewModel.marketplaceRadiusKm.collectAsStateWithLifecycle()
+    val marketSortOption by viewModel.marketSortOption.collectAsStateWithLifecycle()
     val selectedMarketplaceItem by viewModel.selectedMarketplaceItem.collectAsStateWithLifecycle()
     val showSellItemDialog by viewModel.showSellItemDialog.collectAsStateWithLifecycle()
 
     val studioVideos by viewModel.allStudioVideos.collectAsStateWithLifecycle()
     val selectedStudioCategory by viewModel.selectedStudioCategory.collectAsStateWithLifecycle()
+    val studioSortOption by viewModel.studioSortOption.collectAsStateWithLifecycle()
+    val studioScopeFilter by viewModel.studioScopeFilter.collectAsStateWithLifecycle()
     val studioSearchQuery by viewModel.studioSearchQuery.collectAsStateWithLifecycle()
     val activeStudioVideo by viewModel.activeStudioVideo.collectAsStateWithLifecycle()
     val isStudioVideoPlaying by viewModel.isStudioVideoPlaying.collectAsStateWithLifecycle()
@@ -144,6 +201,9 @@ fun LocaliApp(
     val currentCurrency by viewModel.currentCurrency.collectAsStateWithLifecycle()
     val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
     val showLanguageCurrencyDialog by viewModel.showLanguageCurrencyDialog.collectAsStateWithLifecycle()
+    val showHelpSheet by viewModel.showHelpSheet.collectAsStateWithLifecycle()
+    val showInformationSheet by viewModel.showInformationSheet.collectAsStateWithLifecycle()
+    val showDataAnalysis by viewModel.showDataAnalysis.collectAsStateWithLifecycle()
     val showMonetizationHub by viewModel.showMonetizationHub.collectAsStateWithLifecycle()
     val showBoostAdDialog by viewModel.showBoostAdDialog.collectAsStateWithLifecycle()
     val creatorEarnings by viewModel.creatorEarnings.collectAsStateWithLifecycle()
@@ -154,20 +214,45 @@ fun LocaliApp(
 
     var showOpeningAnimation by remember { mutableStateOf(true) }
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+        com.example.service.FavoriteProximityManager.init(context)
+    }
+
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+
+    // Handle deep link routing
+    LaunchedEffect(deepLinkClipId) {
+        if (deepLinkClipId != null) {
+            viewModel.selectTab(MainNavigationTab.CLIPS)
+            snackbarHostState.showSnackbar("Opening creator clip #$deepLinkClipId 🎥")
+        }
+    }
+
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 if (currentTab == MainNavigationTab.FEED) {
-                    LocaliTopBar(
+                    LocaliiiyTopBar(
                         hasUnreadNotifications = notifications.any { !it.isRead },
                         hasUnreadMessages = conversations.any { !it.isRead },
                         currentLocationLabel = currentLocation?.landmark ?: "Pike Place, Seattle",
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
+                        searchQuery = globalSearchQuery,
+                        onSearchQueryChange = { q -> viewModel.setGlobalSearchQuery(q) },
                         onLogoClick = { showOpeningAnimation = true },
                         onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
                         onNotificationsClick = { viewModel.openNotificationsSheet() },
@@ -194,7 +279,7 @@ fun LocaliApp(
             },
         bottomBar = {
             if (currentTab != MainNavigationTab.CREATE) {
-                LocaliBottomNavigationBar(
+                LocaliiiyBottomNavigationBar(
                     currentTab = currentTab,
                     userAvatarUrl = userProfile.avatarUrl,
                     onTabSelected = { tab ->
@@ -213,12 +298,21 @@ fun LocaliApp(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            // App Atmospheric Background (Black Hole, Moon, Galaxy, Custom Image, etc.)
+            AppAtmosphereBackground(
+                themeKey = privacySettings.appThemeBackground,
+                customImageUri = privacySettings.customBackgroundImageUri,
+                modifier = Modifier.fillMaxSize()
+            )
+
             when (currentTab) {
                 MainNavigationTab.FEED -> {
+                    val allClips by viewModel.allClips.collectAsState()
+                    val allStudioVideos by viewModel.allStudioVideos.collectAsState()
                     FeedScreen(
-                        posts = feedPosts.ifEmpty { posts },
+                        clips = allClips.filter { it.isFollowing },
+                        posts = posts,
                         stories = stories,
-                        otherUsers = otherUsers,
                         userProfile = userProfile,
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
@@ -266,19 +360,38 @@ fun LocaliApp(
                         onAdImpression = { id -> viewModel.recordAdImpression(id) },
                         onAdClick = { id -> viewModel.recordAdClick(id) },
                         onBoostPostClick = { viewModel.openBoostAdDialog() },
-                        onOpenMonetizationHub = { viewModel.openMonetizationHub() }
+                        onOpenMonetizationHub = { viewModel.openMonetizationHub() },
+                        countryName = privacySettings.radarCountryName
                     )
                 }
 
                 MainNavigationTab.EXPLORE -> {
+                    val allClips by viewModel.allClips.collectAsState()
                     ExploreScreen(
+                        clips = allClips,
+                        marketplaceItems = marketplaceItems,
                         posts = posts,
                         userProfile = userProfile,
                         nearbyUsers = otherUsers,
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
-                        onRadiusFilterChange = { radius -> viewModel.setNearbyRadiusFilter(radius) },
+                        privacySettings = privacySettings,
+                        onToggleHidePreciseLocation = { hide ->
+                            viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    if (hide) "Precise radar location hidden 🛡️ (Simulated as ${privacySettings.radarObfuscatedRange})"
+                                    else "Precise radar location visible 📡"
+                                )
+                            }
+                        },
+                        onSelectObfuscatedRange = { range ->
+                            viewModel.updatePrivacySettings(privacySettings.copy(radarObfuscatedRange = range))
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Live Radar range set to '$range' 🌌")
+                            }
+                        },
                         onLocationToggle = { enabled ->
                             viewModel.setLocationEnabled(enabled)
                             coroutineScope.launch {
@@ -303,7 +416,9 @@ fun LocaliApp(
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Waved at ${user.username}! 👋")
                             }
-                        }
+                        },
+                        isRefreshing = isRefreshingExplore,
+                        onRefresh = { viewModel.refreshExplore() }
                     )
                 }
 
@@ -311,7 +426,7 @@ fun LocaliApp(
                     MarketScreen(
                         items = marketplaceItems,
                         posts = posts,
-                        reels = reels,
+                        clips = clips,
                         selectedCategory = selectedMarketCategory,
                         searchQuery = marketplaceSearchQuery,
                         locationQuery = marketplaceLocationQuery,
@@ -324,7 +439,16 @@ fun LocaliApp(
                         onRadiusFilterChange = { r -> viewModel.setMarketplaceRadius(r) },
                         onItemClick = { item -> viewModel.selectMarketplaceItem(item) },
                         onToggleSaveItem = { item -> viewModel.toggleMarketItemSaved(item) },
-                        onOpenSellDialog = { viewModel.openSellItemDialog() },
+                        onOpenSellDialog = {
+                            if (isLoggedOut) {
+                                viewModel.openAuthScreen(
+                                    reason = "Authentication Required: Please sign in or register with Firebase to list marketplace items and protect local commerce.",
+                                    initialMode = com.example.ui.screens.AuthScreenMode.LOGIN
+                                )
+                            } else {
+                                viewModel.openSellItemDialog()
+                            }
+                        },
                         onCloseSellDialog = { viewModel.closeSellItemDialog() },
                         onPublishItem = { title, desc, price, cat, cond, img, delivery, loc, landmark ->
                             viewModel.publishMarketplaceItem(title, desc, price, cat, cond, img, delivery, loc, landmark)
@@ -338,10 +462,10 @@ fun LocaliApp(
                                 snackbarHostState.showSnackbar("Buy/Sell Post published to Local Feed! 📸")
                             }
                         },
-                        onPublishBuySellReel = { title, desc, price, cat, cond, videoUrl, soundTitle, loc, landmark ->
-                            viewModel.publishMarketBuySellReel(title, desc, price, cat, cond, videoUrl, soundTitle, loc, landmark)
+                        onPublishBuySellClip = { title, desc, price, cat, cond, videoUrl, soundTitle, loc, landmark ->
+                            viewModel.publishMarketBuySellClip(title, desc, price, cat, cond, videoUrl, soundTitle, loc, landmark)
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Market Reel published to Clips! 🎬")
+                                snackbarHostState.showSnackbar("Market Clip published to Clips! 🎬")
                             }
                         },
                         onCloseDetailSheet = { viewModel.selectMarketplaceItem(null) },
@@ -349,7 +473,12 @@ fun LocaliApp(
                         onToggleAvailability = { item -> viewModel.toggleMarketItemAvailability(item) },
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
-                        onUserProfileClick = { username -> viewModel.openUserProfile(username) }
+                        sortOption = marketSortOption,
+                        onSortOptionChange = { opt -> viewModel.setMarketSortOption(opt) },
+                        onUserProfileClick = { username -> viewModel.openUserProfile(username) },
+                        isRefreshing = isRefreshingMarket,
+                        onRefresh = { viewModel.refreshMarket() },
+                        countryName = privacySettings.radarCountryName
                     )
                 }
 
@@ -358,6 +487,11 @@ fun LocaliApp(
                         videos = studioVideos,
                         userProfile = userProfile,
                         selectedCategory = selectedStudioCategory,
+                        studioSortOption = studioSortOption,
+                        onStudioSortChange = { opt -> viewModel.setStudioSortOption(opt) },
+                        studioScopeFilter = studioScopeFilter,
+                        onStudioScopeChange = { scope -> viewModel.setStudioScopeFilter(scope) },
+                        countryName = privacySettings.radarCountryName,
                         searchQuery = studioSearchQuery,
                         activeVideo = activeStudioVideo,
                         isPlaying = isStudioVideoPlaying,
@@ -384,7 +518,7 @@ fun LocaliApp(
                                 }
                             } else {
                                 coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Duration error: Studio videos must be 60 seconds to 240 minutes.")
+                                    snackbarHostState.showSnackbar("Duration error: Studio videos must be at least 60 seconds (unlimited time supported). 🎬")
                                 }
                             }
                             success
@@ -401,76 +535,90 @@ fun LocaliApp(
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
                         onOpenBoostAds = { viewModel.openBoostAdDialog() },
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
-                        onUserProfileClick = { username -> viewModel.openUserProfile(username) }
+                        onUserProfileClick = { username -> viewModel.openUserProfile(username) },
+                        isRefreshing = isRefreshingStudio,
+                        onRefresh = { viewModel.refreshStudio() }
                     )
                 }
 
                 MainNavigationTab.CREATE -> {
-                    CreateScreen(
-                        creationMode = creationMode,
-                        selectedMediaUri = selectedMediaUri,
-                        selectedFilter = selectedFilter,
-                        detectedLocation = autoDetectedLocation ?: currentLocation,
-                        onModeChange = { mode -> viewModel.setCreationMode(mode) },
-                        onSelectMedia = { uri -> viewModel.setSelectedMediaUri(uri) },
-                        onSelectFilter = { filter -> viewModel.selectFilter(filter) },
-                        onPublish = { caption, loc, landmark, lat, lng, soundTitle ->
-                            viewModel.publishContent(caption, loc, landmark, lat, lng, soundTitle)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Broadcasting to locality... Uploaded successfully! 🎉")
-                            }
-                        },
-                        onDetectLocationClick = {
-                            viewModel.detectCurrentLocation(context)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("GPS Location auto-detected: ${currentLocation?.landmark ?: "Pike Place"}")
-                            }
-                        },
-                        onCancel = { viewModel.selectTab(MainNavigationTab.FEED) }
-                    )
+                    if (isLoggedOut) {
+                        AuthRequiredGatingView(
+                            onAuthenticateClick = {
+                                viewModel.openAuthScreen(
+                                    reason = "Sign in or register with Firebase to publish posts, broadcast clips, and protect community content.",
+                                    initialMode = com.example.ui.screens.AuthScreenMode.LOGIN
+                                )
+                            },
+                            onCancel = { viewModel.selectTab(MainNavigationTab.FEED) }
+                        )
+                    } else {
+                        CreateScreen(
+                            creationMode = creationMode,
+                            selectedMediaUri = selectedMediaUri,
+                            selectedFilter = selectedFilter,
+                            detectedLocation = autoDetectedLocation ?: currentLocation,
+                            onModeChange = { mode -> viewModel.setCreationMode(mode) },
+                            onSelectMedia = { uri -> viewModel.setSelectedMediaUri(uri) },
+                            onSelectFilter = { filter -> viewModel.selectFilter(filter) },
+                            onPublish = { caption, loc, landmark, lat, lng, soundTitle ->
+                                viewModel.publishContent(caption, loc, landmark, lat, lng, soundTitle)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Broadcasting to locality... Uploaded successfully! 🎉")
+                                }
+                            },
+                            onDetectLocationClick = {
+                                viewModel.detectCurrentLocation(context)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("GPS Location auto-detected: ${currentLocation?.landmark ?: "Pike Place"}")
+                                }
+                            },
+                            onCancel = { viewModel.selectTab(MainNavigationTab.FEED) }
+                        )
+                    }
                 }
 
-                MainNavigationTab.REELS -> {
-                    ReelsScreen(
-                        reels = reels,
+                MainNavigationTab.CLIPS -> {
+                    ClipsScreen(
+                        clips = clips,
                         isSoundMuted = isSoundMuted,
                         onToggleSound = { viewModel.toggleSoundMute() },
-                        onLikeReel = { reel -> viewModel.toggleReelLike(reel) },
-                        onCommentReel = { reel -> viewModel.openComments("REEL", reel.id) },
-                        onShareReel = { reel ->
-                            val postEquivalent = posts.firstOrNull { it.id == reel.id }
+                        onLikeClip = { clip -> viewModel.toggleClipLike(clip) },
+                        onCommentClip = { clip -> viewModel.openComments("CLIP", clip.id) },
+                        onShareClip = { clip ->
+                            val postEquivalent = posts.firstOrNull { it.id == clip.id }
                                 ?: PostEntity(
-                                    username = reel.username,
-                                    userAvatar = reel.userAvatar,
-                                    userHandle = reel.userHandle,
-                                    isVerified = reel.isVerified,
-                                    mediaUrl = reel.mediaUrl,
+                                    username = clip.username,
+                                    userAvatar = clip.userAvatar,
+                                    userHandle = clip.userHandle,
+                                    isVerified = clip.isVerified,
+                                    mediaUrl = clip.mediaUrl,
                                     mediaType = "VIDEO",
-                                    caption = reel.caption,
-                                    likesCount = reel.likesCount,
-                                    commentsCount = reel.commentsCount,
-                                    isLiked = reel.isLiked,
-                                    isSaved = reel.isSaved,
-                                    isFollowing = reel.isFollowing,
-                                    location = reel.location,
-                                    landmark = reel.landmark,
-                                    distanceKm = reel.distanceKm,
-                                    isNeighbor = reel.isNeighbor,
-                                    soundTitle = reel.soundTitle,
-                                    filterName = reel.filterName
+                                    caption = clip.caption,
+                                    likesCount = clip.likesCount,
+                                    commentsCount = clip.commentsCount,
+                                    isLiked = clip.isLiked,
+                                    isSaved = clip.isSaved,
+                                    isFollowing = clip.isFollowing,
+                                    location = clip.location,
+                                    landmark = clip.landmark,
+                                    distanceKm = clip.distanceKm,
+                                    isNeighbor = clip.isNeighbor,
+                                    soundTitle = clip.soundTitle,
+                                    filterName = clip.filterName
                                 )
                             viewModel.openShareSheet(postEquivalent)
                         },
-                        onSaveReel = { reel -> viewModel.toggleReelSave(reel) },
-                        onFollowToggle = { reel -> viewModel.toggleReelFollow(reel) },
+                        onSaveClip = { clip -> viewModel.toggleClipSave(clip) },
+                        onFollowToggle = { clip -> viewModel.toggleClipFollow(clip) },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
-                        onWaveClick = { reel ->
+                        onWaveClick = { clip ->
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Waved at @${reel.username}! 👋")
+                                snackbarHostState.showSnackbar("Waved at @${clip.username}! 👋")
                             }
                         },
-                        onReportReel = { reel, reason ->
-                            viewModel.reportPost(reel.id, reason)
+                        onReportClip = { clip, reason ->
+                            viewModel.reportPost(clip.id, reason)
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Clip reported for review.")
                             }
@@ -480,7 +628,12 @@ fun LocaliApp(
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Blocked @$username and hid their content.")
                             }
-                        }
+                        },
+                        isRefreshing = isRefreshingClips,
+                        onRefresh = { viewModel.refreshClips() },
+                        deepLinkClipId = deepLinkClipId,
+                        onClearDeepLink = onClearDeepLink,
+                        countryName = privacySettings.radarCountryName
                     )
                 }
 
@@ -488,15 +641,13 @@ fun LocaliApp(
                     ProfileScreen(
                         userProfile = userProfile,
                         posts = posts.filter { it.username == userProfile.username || it.id == 5L },
-                        reels = reels,
+                        clips = clips,
                         marketplaceItems = marketplaceItems,
                         savedPosts = savedPosts,
                         activeTab = profileTab,
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
                         isLoggedOut = isLoggedOut,
-                        otherUsers = otherUsers,
-                        onTabChange = { tab -> viewModel.setProfileTab(tab) },
                         onLocationToggle = { enabled ->
                             viewModel.setLocationEnabled(enabled)
                             coroutineScope.launch {
@@ -517,21 +668,21 @@ fun LocaliApp(
                             }
                         },
                         onPostClick = { post -> viewModel.openComments("POST", post.id) },
-                        onReelClick = { reel -> viewModel.selectTab(MainNavigationTab.REELS) },
+                        onClipClick = { clip -> viewModel.selectTab(MainNavigationTab.CLIPS) },
                         onDeletePost = { postId ->
                             viewModel.deletePost(postId)
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Post deleted from profile.")
                             }
                         },
-                        onDeleteReel = { reelId ->
-                            viewModel.deleteReel(reelId)
+                        onDeleteClip = { clipId ->
+                            viewModel.deleteClip(clipId)
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Neighborhood clip deleted.")
                             }
                         },
-                        onUpdateReelDetails = { reelId, caption, loc, landmark ->
-                            viewModel.updateReelDetails(reelId, caption, loc, landmark)
+                        onUpdateClipDetails = { clipId, caption, loc, landmark ->
+                            viewModel.updateClipDetails(clipId, caption, loc, landmark)
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Clip details updated.")
                             }
@@ -555,7 +706,16 @@ fun LocaliApp(
                                 snackbarHostState.showSnackbar("Market listing updated.")
                             }
                         },
-                        onOpenSellItemDialog = { viewModel.openSellItemDialog() },
+                        onOpenSellItemDialog = {
+                            if (isLoggedOut) {
+                                viewModel.openAuthScreen(
+                                    reason = "Authentication Required: Please sign in or register with Firebase to list marketplace items.",
+                                    initialMode = com.example.ui.screens.AuthScreenMode.LOGIN
+                                )
+                            } else {
+                                viewModel.openSellItemDialog()
+                            }
+                        },
                         onMarketItemClick = { item -> viewModel.selectMarketplaceItem(item) },
                         onSwitchUser = { user ->
                             viewModel.switchUser(user)
@@ -566,17 +726,23 @@ fun LocaliApp(
                         onLogout = {
                             viewModel.logoutUser()
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Logged out successfully.")
+                                snackbarHostState.showSnackbar("Logged out of Firebase Auth successfully.")
                             }
                         },
                         onLogin = {
-                            viewModel.loginUser()
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Welcome back, @${userProfile.username}!")
-                            }
+                            viewModel.openAuthScreen(
+                                reason = null,
+                                initialMode = com.example.ui.screens.AuthScreenMode.LOGIN
+                            )
                         },
-                        onOpenSignUp = { viewModel.openSignUpDialog() },
+                        onOpenSignUp = {
+                            viewModel.openAuthScreen(
+                                reason = null,
+                                initialMode = com.example.ui.screens.AuthScreenMode.REGISTER
+                            )
+                        },
                         onOpenLegalPolicy = { viewModel.openLegalAgreement() },
+                        onOpenCyberstalkingSafety = { viewModel.openCyberstalkingSafety() },
                         onResetDemoData = {
                             viewModel.resetDemoProfile()
                             coroutineScope.launch {
@@ -589,9 +755,14 @@ fun LocaliApp(
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
                         creatorEarnings = creatorEarnings,
+                        onOpenHelp = { viewModel.openHelp() },
+                        onOpenInformation = { viewModel.openInformation() },
+                        onOpenDataAnalysis = { viewModel.openDataAnalysis() },
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
                         onOpenBoostAds = { viewModel.openBoostAdDialog() },
-                        onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() }
+                        onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
+                        isRefreshing = isRefreshingProfile,
+                        onRefresh = { viewModel.refreshProfile() }
                     )
                 }
             }
@@ -602,12 +773,12 @@ fun LocaliApp(
     if (selectedOtherUser != null) {
         val otherUser = selectedOtherUser!!
         val userPosts by viewModel.getUserPosts(otherUser.username).collectAsStateWithLifecycle(emptyList())
-        val userReels by viewModel.getUserReels(otherUser.username).collectAsStateWithLifecycle(emptyList())
+        val userClips by viewModel.getUserClips(otherUser.username).collectAsStateWithLifecycle(emptyList())
 
         OtherUserProfileSheet(
             user = otherUser,
             posts = userPosts,
-            reels = userReels,
+            clips = userClips,
             onDismiss = { viewModel.closeOtherUserProfile() },
             onFollowToggle = { viewModel.toggleOtherUserFollow(otherUser) },
             onWaveClick = {
@@ -621,7 +792,7 @@ fun LocaliApp(
                 viewModel.startChatWithUser(otherUser)
             },
             onPostClick = { post -> viewModel.openComments("POST", post.id) },
-            onReelClick = { reel -> viewModel.selectTab(MainNavigationTab.REELS) },
+            onClipClick = { clip -> viewModel.selectTab(MainNavigationTab.CLIPS) },
             onReportUser = { reason ->
                 viewModel.reportUser(otherUser.username, reason)
                 coroutineScope.launch {
@@ -633,6 +804,9 @@ fun LocaliApp(
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar("Blocked @${otherUser.username}. Their content has been hidden.")
                 }
+            },
+            onReportCyberstalking = { accused ->
+                viewModel.openCyberstalkingSafety(accused)
             }
         )
     }
@@ -672,6 +846,9 @@ fun LocaliApp(
         val post = activeSharePost!!
         ShareBottomSheet(
             targetTitle = "Pulse by ${post.username} • ${post.landmark ?: post.location ?: "Seattle"}",
+            clipId = if (post.mediaType == "VIDEO" || post.mediaType == "CLIP") post.id else null,
+            creatorHandle = post.userHandle,
+            clipCaption = post.caption,
             onDismiss = { viewModel.closeShareSheet() },
             onShareSuccess = { message ->
                 coroutineScope.launch {
@@ -699,7 +876,7 @@ fun LocaliApp(
             onDismiss = { viewModel.closeDirectMessagesSheet() },
             onSelectConversation = { conv -> viewModel.openConversation(conv) },
             onBackToInbox = { viewModel.closeActiveConversation() },
-            onSendMessage = { text -> viewModel.sendChatMessage(text) },
+            onSendMessage = { text, media -> viewModel.sendChatMessage(text, media) },
             onCreateGroupChat = { title ->
                 viewModel.createGroupChat(title)
                 coroutineScope.launch {
@@ -710,6 +887,22 @@ fun LocaliApp(
     }
 
     // Privacy & Security Settings Screen Overlay
+    if (showBlockedUsersScreen) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { viewModel.closeBlockedUsersScreen() },
+            properties = androidx.compose.ui.window.DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            BlockedUsersScreen(
+                blockedUsers = blockedUsernames,
+                onBackClick = { viewModel.closeBlockedUsersScreen() },
+                onUnblockUser = { username -> viewModel.unblockUser(username) }
+            )
+        }
+    }
+
     if (showPrivacySettings) {
         androidx.compose.ui.window.Dialog(
             onDismissRequest = { viewModel.closePrivacySettings() },
@@ -799,6 +992,38 @@ fun LocaliApp(
                         snackbarHostState.showSnackbar("Sensitive content filter set to $filter")
                     }
                 },
+                onUpdateHideMobileNumber = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideMobileNumber = hide)) },
+                onUpdateHideEmailAddress = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideEmailAddress = hide)) },
+                onUpdateHideAddress = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideAddress = hide)) },
+                onUpdateHidePreciseLocationOnRadar = { hide ->
+                    viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            if (hide) "Precise radar location hidden 🛡️ (Simulated as ${privacySettings.radarObfuscatedRange})"
+                            else "Precise radar location visible 📡"
+                        )
+                    }
+                },
+                onUpdateRadarObfuscatedRange = { range ->
+                    viewModel.updatePrivacySettings(privacySettings.copy(radarObfuscatedRange = range))
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Live Radar range set to '$range' 🌌")
+                    }
+                },
+                onUpdateRadarCountryName = { country ->
+                    viewModel.updatePrivacySettings(privacySettings.copy(radarCountryName = country))
+                },
+                onUpdateAppThemeBackground = { themeKey, imageUri ->
+                    viewModel.updatePrivacySettings(
+                        privacySettings.copy(
+                            appThemeBackground = themeKey,
+                            customBackgroundImageUri = imageUri
+                        )
+                    )
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Atmosphere background updated to $themeKey ✨")
+                    }
+                },
                 onOpenLegalPolicy = { viewModel.openLegalAgreement() },
                 onResetDefaults = {
                     viewModel.updatePrivacySettings(com.example.data.InitialData.defaultPrivacySettings)
@@ -806,6 +1031,8 @@ fun LocaliApp(
                         snackbarHostState.showSnackbar("Privacy settings reset to defaults 🔄")
                     }
                 },
+                onOpenBlockedAccounts = { viewModel.openBlockedUsersScreen() },
+                onOpenUserActivityLog = { viewModel.openUserActivityLog() },
                 onDeleteAccount = {
                     viewModel.closePrivacySettings()
                     viewModel.deleteAccountAndPurgeData()
@@ -813,6 +1040,24 @@ fun LocaliApp(
                         snackbarHostState.showSnackbar("Account and all personal data permanently erased.")
                     }
                 }
+            )
+        }
+    }
+
+    // User Activity Log Screen Overlay (Transparency & Audit Trail)
+    if (showUserActivityLog) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { viewModel.closeUserActivityLog() },
+            properties = androidx.compose.ui.window.DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            UserActivityLogScreen(
+                activities = allUserActivities,
+                onBackClick = { viewModel.closeUserActivityLog() },
+                onDeleteActivity = { id -> viewModel.deleteUserActivity(id) },
+                onClearAllActivities = { viewModel.clearAllUserActivities() }
             )
         }
     }
@@ -832,12 +1077,44 @@ fun LocaliApp(
         )
     }
 
+    // Cyberstalking Zero-Tolerance Safety & Immutable Vault Screen Overlay (Universal Protocol)
+    if (showCyberstalkingSafetyScreen) {
+        CyberstalkingSafetyScreen(
+            currentUsername = userProfile.username,
+            incidents = allCyberstalkingIncidents,
+            otherUsers = otherUsers,
+            prefilledTargetUsername = cyberstalkingPrefilledUsername,
+            onRecordIncident = { incident ->
+                viewModel.recordCyberstalkingIncident(incident)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Offender @${incident.accusedUsername} permanently banned. Immutable record locked! 🔒")
+                }
+            },
+            onNavigateBack = { viewModel.closeCyberstalkingSafety() }
+        )
+    }
+
+    // Advance Firebase Authentication Screen
+    if (showAuthScreen) {
+        AuthScreen(
+            initialMode = authInitialMode,
+            securityReason = authReason,
+            onDismiss = { viewModel.closeAuthScreen() },
+            onAuthSuccess = { user, username, fullName, neighborhood ->
+                viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Authenticated with Firebase as @$username! Content creation unlocked. 🔒✨")
+                }
+            }
+        )
+    }
+
     // Sign Up & Account Creation Dialog with Mandatory Legal Consent
     if (showSignUpDialog) {
         SignUpDialog(
             onDismissRequest = { viewModel.closeSignUpDialog() },
             onOpenLegalPolicy = { viewModel.openLegalAgreement() },
-            onSignUpSuccess = { username, fullName, avatarUrl, bio, neighborhood, enableLocationRadar, timestamp ->
+            onSignUpSuccess = { username, fullName, avatarUrl, bio, neighborhood, enableLocationRadar, timestamp, password ->
                 viewModel.createAccount(
                     username = username,
                     fullName = fullName,
@@ -845,10 +1122,16 @@ fun LocaliApp(
                     bio = bio,
                     neighborhood = neighborhood,
                     enableLocationRadar = enableLocationRadar,
-                    legalConsentTimestamp = timestamp
+                    legalConsentTimestamp = timestamp,
+                    password = password
                 )
                 coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Welcome to Localiiiy, @$username! 🎉 Legal consent recorded.")
+                    com.example.auth.FirebaseAuthService.signUpWithEmail(
+                        email = "$username@Localiiiy.app",
+                        password = password,
+                        displayName = fullName
+                    )
+                    snackbarHostState.showSnackbar("Welcome to Localiiiy, @$username! Account secured with Firebase Auth. 🔒🎉")
                 }
             }
         )
@@ -876,7 +1159,19 @@ fun LocaliApp(
     }
 
     // Creator Monetization Hub & Multi-Currency Payout Sheet
-    if (showMonetizationHub) {
+    if (showHelpSheet) {
+            com.example.ui.components.HelpSheet(onDismiss = { viewModel.closeHelp() })
+        }
+        if (showInformationSheet) {
+            com.example.ui.components.InformationSheet(onDismiss = { viewModel.closeInformation() })
+        }
+        if (showDataAnalysis) {
+            com.example.ui.components.DataAnalysisSheet(
+                userProfile = userProfile,
+                onDismiss = { viewModel.closeDataAnalysis() }
+            )
+        }
+        if (showMonetizationHub) {
         CreatorMonetizationHubSheet(
             earnings = creatorEarnings,
             payoutAccount = payoutAccount,
@@ -930,7 +1225,7 @@ fun LocaliApp(
 
     // Eyecatching Opening Animation Overlay
     if (showOpeningAnimation) {
-        LocaliOpeningAnimation(
+        LocaliiiyOpeningAnimation(
             onAnimationFinished = { showOpeningAnimation = false }
         )
     }
@@ -938,7 +1233,7 @@ fun LocaliApp(
 }
 
 @Composable
-fun LocaliBottomNavigationBar(
+fun LocaliiiyBottomNavigationBar(
     currentTab: MainNavigationTab,
     userAvatarUrl: String,
     onTabSelected: (MainNavigationTab) -> Unit,
@@ -963,7 +1258,7 @@ fun LocaliBottomNavigationBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Pulse Feed Tab
-            LocaliNavItem(
+            LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.FEED) Icons.Default.DynamicFeed else Icons.Outlined.DynamicFeed,
                 label = "Pulse",
                 isSelected = currentTab == MainNavigationTab.FEED,
@@ -972,7 +1267,7 @@ fun LocaliBottomNavigationBar(
             )
 
             // Radar Explore Tab
-            LocaliNavItem(
+            LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.EXPLORE) Icons.Default.Radar else Icons.Outlined.Radar,
                 label = "Radar",
                 isSelected = currentTab == MainNavigationTab.EXPLORE,
@@ -981,7 +1276,7 @@ fun LocaliBottomNavigationBar(
             )
 
             // Market Tab
-            LocaliNavItem(
+            LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.MARKET) Icons.Default.Storefront else Icons.Outlined.Storefront,
                 label = "Market",
                 isSelected = currentTab == MainNavigationTab.MARKET,
@@ -989,8 +1284,8 @@ fun LocaliBottomNavigationBar(
                 testTag = "nav_tab_market"
             )
 
-            // Localiiiy Studio Tab (YouTube-style Long Videos: 60s - 240 mins)
-            LocaliNavItem(
+            // Localiiiy Studio Tab (Standard Long Videos: 60s - 240 mins)
+            LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.STUDIO) Icons.Default.VideoLibrary else Icons.Outlined.VideoLibrary,
                 label = "Studio",
                 isSelected = currentTab == MainNavigationTab.STUDIO,
@@ -999,12 +1294,12 @@ fun LocaliBottomNavigationBar(
             )
 
             // Vibes / Clips Tab
-            LocaliNavItem(
-                icon = if (currentTab == MainNavigationTab.REELS) Icons.Default.PlayCircle else Icons.Outlined.PlayCircle,
+            LocaliiiyNavItem(
+                icon = if (currentTab == MainNavigationTab.CLIPS) Icons.Default.PlayCircle else Icons.Outlined.PlayCircle,
                 label = "Clips",
-                isSelected = currentTab == MainNavigationTab.REELS,
-                onClick = { onTabSelected(MainNavigationTab.REELS) },
-                testTag = "nav_tab_reels"
+                isSelected = currentTab == MainNavigationTab.CLIPS,
+                onClick = { onTabSelected(MainNavigationTab.CLIPS) },
+                testTag = "nav_tab_clips"
             )
 
             // Profile Tab
@@ -1057,7 +1352,7 @@ fun LocaliBottomNavigationBar(
 }
 
 @Composable
-private fun LocaliNavItem(
+private fun LocaliiiyNavItem(
     icon: ImageVector,
     label: String,
     isSelected: Boolean,

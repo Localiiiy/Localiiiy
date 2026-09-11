@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
  */
 
 // 1. Core Material 3 Typography Scale
-val LocaliTypography = Typography(
+val LocaliiiyTypography = Typography(
     // Hero & Radar Display Titles
     displayLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
@@ -136,11 +136,11 @@ val LocaliTypography = Typography(
 )
 
 // Legacy alias compatibility
-val Typography = LocaliTypography
+val Typography = LocaliiiyTypography
 
 // 2. Custom Localiiiy Brand Typography Extensions
 @Immutable
-data class LocaliBrandTypography(
+data class LocaliiiyBrandTypography(
     val radarDistance: TextStyle = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.ExtraBold,
@@ -178,6 +178,6 @@ data class LocaliBrandTypography(
     )
 )
 
-val LocalLocaliBrandTypography = staticCompositionLocalOf { LocaliBrandTypography() }
+val LocalLocaliiiyBrandTypography = staticCompositionLocalOf { LocaliiiyBrandTypography() }
 
 

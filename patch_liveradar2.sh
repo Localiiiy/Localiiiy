@@ -1,0 +1,1 @@
+sed -i '/val sweepAngle/i \    var isInitialLoad by remember { mutableStateOf(true) }\n\n    LaunchedEffect(Unit) {\n        kotlinx.coroutines.delay(1200)\n        isInitialLoad = false\n    }\n' app/src/main/java/com/example/ui/components/LiveRadarComponent.kt

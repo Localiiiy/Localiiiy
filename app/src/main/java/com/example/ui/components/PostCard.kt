@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,6 +65,7 @@ fun PostCard(
     onShareClick: () -> Unit,
     onSaveClick: () -> Unit,
     onUserClick: () -> Unit,
+    onTranslateClick: (() -> Unit)? = null,
     onReportClick: ((String) -> Unit)? = null,
     onBlockUserClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
@@ -294,17 +296,15 @@ fun PostCard(
                     contentDescription = post.caption
                 )
 
-                // Animated Big Spark on Double Tap
+                // Animated Big Pop 👌 on Double Tap
                 androidx.compose.animation.AnimatedVisibility(
                     visible = showBigHeart,
                     enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
                     exit = scaleOut(tween(300)) + fadeOut()
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "Sparks",
-                        tint = Color.White.copy(alpha = 0.95f),
-                        modifier = Modifier.size(90.dp)
+                    Text(
+                        text = "👌",
+                        fontSize = 80.sp
                     )
                 }
 
@@ -345,34 +345,16 @@ fun PostCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    IconButton(
-                        onClick = { triggerLikeWithAnimation() },
-                        modifier = Modifier
-                            .scale(heartScale.value)
-                            .size(38.dp)
-                            .testTag("like_button_${post.id}")
-                    ) {
-                        Icon(
-                            imageVector = if (post.isLiked) Icons.Default.AutoAwesome else Icons.Outlined.AutoAwesome,
-                            contentDescription = if (post.isLiked) "Sparked" else "Spark",
-                            tint = if (post.isLiked) EditorialHeart else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    AnimatedLikeButton(
+                        isLiked = post.isLiked,
+                        onLikeClick = { triggerLikeWithAnimation() },
+                        testTag = "like_button_${post.id}"
+                    )
 
-                    IconButton(
+                    CommentActionButton(
                         onClick = onCommentClick,
-                        modifier = Modifier
-                            .size(38.dp)
-                            .testTag("comment_button_${post.id}")
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.Chat,
-                            contentDescription = "Discuss",
-                            tint = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                        testTag = "comment_button_${post.id}"
+                    )
 
                     IconButton(
                         onClick = onShareClick,
@@ -386,6 +368,22 @@ fun PostCard(
                             tint = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(22.dp)
                         )
+                    }
+
+                    if (onTranslateClick != null) {
+                        IconButton(
+                            onClick = onTranslateClick,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .testTag("translate_button_${post.id}")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Translate,
+                                contentDescription = "Translated by AI",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
 
@@ -450,6 +448,32 @@ fun PostCard(
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                         .clickable { isCaptionExpanded = !isCaptionExpanded }
                 )
+
+                if (onTranslateClick != null) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp, vertical = 2.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { onTranslateClick() },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Text(
+                            text = "Translated by AI • Audio & Text",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
             // --- Audio Track Info if present ---

@@ -8,7 +8,7 @@ object InitialData {
         fullName = "Alex Rivera",
         avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
         bio = "Visual storyteller & digital creator 📸✨\nCapturing moments across the neighborhood & globe 🌍\nSeattle • Pike Place • Pioneer Sq",
-        website = "localiiiy.app/alex",
+        website = "Localiiiy.app/alex",
         category = "Local Creator / Photographer",
         locationName = "Pike Place Market, Seattle",
         latitude = 47.608013,
@@ -16,7 +16,10 @@ object InitialData {
         postsCount = 6,
         followersCount = 14200,
         followingCount = 486,
-        isVerified = true
+        isVerified = true,
+        studioUsername = "alex_studio",
+        studioChannelName = "Alex Rivera Studio",
+        studioSubscribersCount = 14200
     )
 
     val starterOtherUsers = listOf(
@@ -38,7 +41,9 @@ object InitialData {
             followersCount = 8900,
             followingCount = 312,
             postsCount = 28,
-            isVerified = true
+            isVerified = true,
+            studioUsername = "elena_spaces",
+            studioSubscribersCount = 12400
         ),
         OtherUserEntity(
             username = "sora.tokyo",
@@ -58,7 +63,9 @@ object InitialData {
             followersCount = 24500,
             followingCount = 410,
             postsCount = 45,
-            isVerified = true
+            isVerified = true,
+            studioUsername = "sora_visuals",
+            studioSubscribersCount = 48200
         ),
         OtherUserEntity(
             username = "chloe.cafes",
@@ -78,7 +85,9 @@ object InitialData {
             followersCount = 5200,
             followingCount = 240,
             postsCount = 19,
-            isVerified = false
+            isVerified = false,
+            studioUsername = "chloe_brews",
+            studioSubscribersCount = 6100
         ),
         OtherUserEntity(
             username = "marcus_travels",
@@ -98,7 +107,9 @@ object InitialData {
             followersCount = 18300,
             followingCount = 510,
             postsCount = 52,
-            isVerified = true
+            isVerified = true,
+            studioUsername = "marcus_travels",
+            studioSubscribersCount = 248000
         ),
         OtherUserEntity(
             username = "kai_sound",
@@ -316,6 +327,7 @@ object InitialData {
         PostEntity(
             id = 1,
             username = "elena.design",
+            creatorFollowers = 120000000,
             userAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
             userHandle = "@elena.design",
             isVerified = true,
@@ -430,8 +442,8 @@ object InitialData {
         )
     )
 
-    val starterReels = listOf(
-        ReelEntity(
+    val starterClips = listOf(
+        ClipEntity(
             id = 1,
             username = "chloe.cafes",
             userAvatar = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80",
@@ -455,7 +467,7 @@ object InitialData {
             distanceKm = 0.9,
             isNeighbor = true
         ),
-        ReelEntity(
+        ClipEntity(
             id = 2,
             username = "elena.design",
             userAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
@@ -479,7 +491,7 @@ object InitialData {
             distanceKm = 0.6,
             isNeighbor = true
         ),
-        ReelEntity(
+        ClipEntity(
             id = 3,
             username = "sora.tokyo",
             userAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
@@ -503,7 +515,7 @@ object InitialData {
             distanceKm = 1.3,
             isNeighbor = true
         ),
-        ReelEntity(
+        ClipEntity(
             id = 4,
             username = "marcus_travels",
             userAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
@@ -527,7 +539,7 @@ object InitialData {
             distanceKm = 2.1,
             isNeighbor = false
         ),
-        ReelEntity(
+        ClipEntity(
             id = 5,
             username = "kai_sound",
             userAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
@@ -551,7 +563,7 @@ object InitialData {
             distanceKm = 4.8,
             isNeighbor = false
         ),
-        ReelEntity(
+        ClipEntity(
             id = 6,
             username = "alex_creative",
             userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
@@ -576,7 +588,7 @@ object InitialData {
             isNeighbor = true,
             filterName = "Valencia"
         ),
-        ReelEntity(
+        ClipEntity(
             id = 7,
             username = "alex_creative",
             userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
@@ -628,7 +640,7 @@ object InitialData {
         ),
         CommentEntity(
             id = 3,
-            targetType = "REEL",
+            targetType = "CLIP",
             targetId = 1,
             username = "elena.design",
             userAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
@@ -664,7 +676,7 @@ object InitialData {
             username = "sora.tokyo",
             userAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
             actionType = "LIKE",
-            content = "liked your recent reel.",
+            content = "liked your recent clip.",
             mediaPreviewUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&auto=format&fit=crop&q=80",
             distanceKm = 1.3,
             timestamp = System.currentTimeMillis() - 1000 * 60 * 45
@@ -714,7 +726,7 @@ object InitialData {
             conversationId = "dm_sora",
             contactUsername = "sora.tokyo",
             contactAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
-            lastMessage = "Sent you the neon color grading preset for your rain reel!",
+            lastMessage = "Sent you the neon color grading preset for your rain clip!",
             timestamp = System.currentTimeMillis() - 1000 * 60 * 60,
             isFromMe = false,
             isRead = true,
@@ -785,7 +797,7 @@ object InitialData {
             conversationId = "dm_sora",
             senderUsername = "sora.tokyo",
             senderAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
-            text = "Sent you the neon color grading preset for your rain reel!",
+            text = "Sent you the neon color grading preset for your rain clip!",
             timestamp = System.currentTimeMillis() - 1000 * 60 * 60,
             isFromMe = false
         ),
@@ -814,7 +826,15 @@ object InitialData {
         hideMomentsFromStrangers = false,
         allowPostResharing = true,
         sensitiveContentFilter = "STANDARD",
-        blockedAccountsCount = 0
+        blockedAccountsCount = 0,
+        hideMobileNumber = false,
+        hideEmailAddress = false,
+        hideAddress = false,
+        hidePreciseLocationOnRadar = false,
+        radarObfuscatedRange = "3k",
+        radarCountryName = "United States",
+        appThemeBackground = "DEFAULT",
+        customBackgroundImageUri = ""
     )
 
     val starterMarketplaceItems = listOf(
@@ -1409,7 +1429,7 @@ object InitialData {
             creatorUsername = "marcus_travels",
             creatorFullName = "Marcus Vance",
             creatorAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "248K subscribers",
+            creatorSubscribersCount = "248K Connected",
             isSubscribed = true,
             viewsCount = 184500,
             viewsFormatted = "184.5K views",
@@ -1436,7 +1456,7 @@ object InitialData {
             creatorUsername = "maya_soundwaves",
             creatorFullName = "Maya Lin",
             creatorAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "412K subscribers",
+            creatorSubscribersCount = "412K Connected",
             isSubscribed = false,
             viewsCount = 92400,
             viewsFormatted = "92.4K views",
@@ -1463,7 +1483,7 @@ object InitialData {
             creatorUsername = "alex_creative",
             creatorFullName = "Alex Rivera",
             creatorAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "189K subscribers",
+            creatorSubscribersCount = "189K Connected",
             isSubscribed = true,
             viewsCount = 43100,
             viewsFormatted = "43.1K views",
@@ -1490,7 +1510,7 @@ object InitialData {
             creatorUsername = "elena_crafts",
             creatorFullName = "Elena Rostova",
             creatorAvatar = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "78K subscribers",
+            creatorSubscribersCount = "78K Connected",
             isSubscribed = false,
             viewsCount = 19800,
             viewsFormatted = "19.8K views",
@@ -1517,7 +1537,7 @@ object InitialData {
             creatorUsername = "alex_creative",
             creatorFullName = "Alex Rivera",
             creatorAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "189K subscribers",
+            creatorSubscribersCount = "189K Connected",
             isSubscribed = true,
             viewsCount = 152000,
             viewsFormatted = "152K views",
@@ -1544,7 +1564,7 @@ object InitialData {
             creatorUsername = "chloe.cafes",
             creatorFullName = "Chloe Dupont",
             creatorAvatar = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "320K subscribers",
+            creatorSubscribersCount = "320K Connected",
             isSubscribed = false,
             viewsCount = 88300,
             viewsFormatted = "88.3K views",
@@ -1571,7 +1591,7 @@ object InitialData {
             creatorUsername = "marcus_travels",
             creatorFullName = "Marcus Vance",
             creatorAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "248K subscribers",
+            creatorSubscribersCount = "248K Connected",
             isSubscribed = true,
             viewsCount = 210000,
             viewsFormatted = "210K views",
@@ -1598,7 +1618,7 @@ object InitialData {
             creatorUsername = "maya_soundwaves",
             creatorFullName = "Maya Lin",
             creatorAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "412K subscribers",
+            creatorSubscribersCount = "412K Connected",
             isSubscribed = false,
             viewsCount = 345000,
             viewsFormatted = "345K views",
@@ -1625,7 +1645,7 @@ object InitialData {
             creatorUsername = "elena_crafts",
             creatorFullName = "Elena Rostova",
             creatorAvatar = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "78K subscribers",
+            creatorSubscribersCount = "78K Connected",
             isSubscribed = false,
             viewsCount = 31200,
             viewsFormatted = "31.2K views",
@@ -1652,7 +1672,7 @@ object InitialData {
             creatorUsername = "maya_lens",
             creatorFullName = "Maya Lin",
             creatorAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
-            creatorSubscribersCount = "62K subscribers",
+            creatorSubscribersCount = "62K Connected",
             isSubscribed = false,
             viewsCount = 49000,
             viewsFormatted = "49K views",
