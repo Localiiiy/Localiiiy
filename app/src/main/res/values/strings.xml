@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">Localiiiy</string>
+
+    <!-- Firebase configuration resources (resolves Missing google_app_id error) -->
+    <string name="google_app_id" translatable="false">1:109876543210:android:abcdef0123456789</string>
+    <string name="gcm_defaultSenderId" translatable="false">109876543210</string>
+    <string name="default_web_client_id" translatable="false">109876543210-mockclientid.apps.googleusercontent.com</string>
+    <string name="firebase_database_url" translatable="false">https://localiiiy-app.firebaseio.com</string>
+    <string name="google_api_key" translatable="false">AIzaSyLocaliiiyFirebaseApiKeyMock</string>
+    <string name="google_storage_bucket" translatable="false">localiiiy-app.appspot.com</string>
+    <string name="project_id" translatable="false">localiiiy-app</string>
 </resources>
 

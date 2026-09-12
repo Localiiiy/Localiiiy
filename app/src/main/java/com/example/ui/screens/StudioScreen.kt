@@ -48,6 +48,7 @@ import kotlin.math.abs
 
 import com.example.ui.components.SystematicDistanceScale
 import com.example.ui.components.SystematicDistanceOption
+import com.example.ui.components.studio.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
@@ -1293,6 +1294,31 @@ private fun CreatorStudioDashboardPanel(
                 )
             }
 
+            Spacer(modifier = Modifier.height(14.dp))
+            
+            // Dual-Velocity Analytics
+            DualVelocityAnalyticsBreakdown(
+                localSeedPercentage = 68,
+                globalWavePercentage = 32,
+                localImpressions = 8420,
+                globalImpressions = 3960
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+            
+            ContentPerformanceBenchmarkCard(
+                postTitle = "Recent Dispatch Performance",
+                percentAboveAverage = 34,
+                daysCompared = 30
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+            
+            Guaranteed100ImpressionProgress(
+                deliveredImpressions = 84,
+                targetImpressions = 100
+            )
+
             Spacer(modifier = Modifier.height(12.dp))
 
             // Monetization & Global Ads Action Bar
@@ -2257,11 +2283,24 @@ private fun StudioUploadDialog(
     var durationHoursText by remember { mutableStateOf("0") }
     var durationMinutesText by remember { mutableStateOf("15") }
     var durationSecondsText by remember { mutableStateOf("00") }
-    var videoUrl by remember { mutableStateOf("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4") }
+    var videoUrl by remember { mutableStateOf("https://media.w3.org/2010/05/sintel/trailer.mp4") }
     var thumbnailUrl by remember { mutableStateOf("https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80") }
     var resolution by remember { mutableStateOf("4K Ultra HD") }
     var tags by remember { mutableStateOf("#Localiiiy #Studio #Creator") }
     var chapters by remember { mutableStateOf("00:00 - Introduction\n04:15 - Main Segment\n12:30 - Conclusion") }
+
+    // Distribution States
+    var selectedReachMode by remember { mutableStateOf(AudienceReachMode.NEIGHBOR_FIRST) }
+    var isEvergreen by remember { mutableStateOf(false) }
+    var isLocalCommentsOnly by remember { mutableStateOf(false) }
+    var micVolume by remember { mutableStateOf(0.8f) }
+    var ambientVolume by remember { mutableStateOf(0.2f) }
+    var selectedAmbientTrack by remember { mutableStateOf("None") }
+    var geotagPrecision by remember { mutableStateOf(GeotagPrecision.NEIGHBORHOOD) }
+    var coCreators by remember { mutableStateOf(listOf<String>()) }
+    var isScheduled by remember { mutableStateOf(false) }
+    var selectedScheduleWindow by remember { mutableStateOf("12:30 PM (Lunch Pulse)") }
+    var notifyConnections by remember { mutableStateOf(true) }
 
     val totalDurationSeconds = remember(durationHoursText, durationMinutesText, durationSecondsText) {
         val hrs = durationHoursText.toIntOrNull() ?: 0
@@ -2500,7 +2539,7 @@ private fun StudioUploadDialog(
                                 Button(
                                     onClick = {
                                         // Unrestricted storage video file picker simulation
-                                        videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+                                        videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4"
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                                     shape = RoundedCornerShape(8.dp),
@@ -2514,7 +2553,7 @@ private fun StudioUploadDialog(
                                 Button(
                                     onClick = {
                                         // Unrestricted live camera capture video stream simulation
-                                        videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4"
+                                        videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4"
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                                     shape = RoundedCornerShape(8.dp),
@@ -2544,6 +2583,78 @@ private fun StudioUploadDialog(
                             label = { Text("Tags & Keywords") },
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
+                        )
+                    }
+                    
+                    // Advanced Studio Distribution Settings
+                    item {
+                        Text(
+                            text = "Advanced Distribution Settings",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    item {
+                        AudienceReachSelector(
+                            selectedMode = selectedReachMode,
+                            onModeSelected = { selectedReachMode = it }
+                        )
+                    }
+
+                    item {
+                        GeotagPrecisionSelector(
+                            selectedPrecision = geotagPrecision,
+                            onSelect = { geotagPrecision = it }
+                        )
+                    }
+
+                    item {
+                        MultiTrackAudioMixer(
+                            micVolume = micVolume,
+                            onMicVolumeChange = { micVolume = it },
+                            ambientVolume = ambientVolume,
+                            onAmbientVolumeChange = { ambientVolume = it },
+                            selectedAmbientTrack = selectedAmbientTrack,
+                            onSelectAmbientTrack = { selectedAmbientTrack = it }
+                        )
+                    }
+
+                    item {
+                        CollaborativeCoAuthorSelector(
+                            coCreators = coCreators,
+                            onAddCoCreator = { coCreators = coCreators + it },
+                            onRemoveCoCreator = { coCreators = coCreators - it }
+                        )
+                    }
+                    
+                    item {
+                        LocalTimezonePublishScheduler(
+                            isScheduled = isScheduled,
+                            onToggleScheduled = { isScheduled = it },
+                            selectedWindow = selectedScheduleWindow,
+                            onSelectWindow = { selectedScheduleWindow = it }
+                        )
+                    }
+
+                    item {
+                        DirectConnectionBroadcastCheckbox(
+                            notifyConnections = notifyConnections,
+                            onToggle = { notifyConnections = it }
+                        )
+                    }
+
+                    item {
+                        ContentLongevityToggle(
+                            isEvergreen = isEvergreen,
+                            onToggle = { isEvergreen = it }
+                        )
+                    }
+
+                    item {
+                        ProximityGatedCommentsToggle(
+                            isLocalOnly = isLocalCommentsOnly,
+                            onToggle = { isLocalCommentsOnly = it }
                         )
                     }
                 }

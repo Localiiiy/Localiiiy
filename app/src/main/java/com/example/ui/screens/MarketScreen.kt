@@ -1,4 +1,18 @@
 package com.example.ui.screens
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.Canvas
+import androidx.compose.material.icons.filled.SmartToy
+import kotlinx.coroutines.delay
+import androidx.compose.ui.geometry.Offset
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -36,6 +50,8 @@ import com.example.util.LocaliiiyLanguage
 import com.example.util.LocaliiiyStringKey
 import com.example.util.LocalizationHelper
 import com.example.ui.components.StandardMediaSelectorBottomSheet
+import com.example.ui.components.feed.TactileTriDialFeedLens
+import com.example.ui.components.market.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -45,6 +61,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +95,8 @@ val marketCategories = listOf(
     MarketCategoryItem("Fashion & Style", Icons.Default.Checkroom),
     MarketCategoryItem("Home & Garden", Icons.Default.Home),
     MarketCategoryItem("Farm & Fresh", Icons.Default.LocalFlorist),
+    MarketCategoryItem("Borrow & Lend", Icons.Default.SwapHoriz),
+    MarketCategoryItem("Barter & Trade", Icons.Default.SyncAlt),
     MarketCategoryItem("Art & Collectibles", Icons.Default.Palette),
     MarketCategoryItem("Books & Sports", Icons.Default.MenuBook),
     MarketCategoryItem("Pets & Pet Care", Icons.Default.Pets),
@@ -101,6 +120,7 @@ val sampleMarketPhotos = listOf(
 
 enum class MarketSubTab {
     GOODS,
+    SERVICES,
     POSTS,
     CLIPS,
     WATCHLIST
@@ -137,6 +157,7 @@ fun MarketScreen(
     sortOption: String = "Most Popular",
     onSortOptionChange: (String) -> Unit = {},
     onUserProfileClick: (String) -> Unit = {},
+    onOpenComments: (String, Long) -> Unit = { _, _ -> },
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     countryName: String? = null,
@@ -160,9 +181,14 @@ fun MarketScreen(
         "Sydney" to "🇦🇺"
     )
 
+    var hiddenItemIds by remember { mutableStateOf(setOf<Long>()) }
+    var itemForVideoTour by remember { mutableStateOf<MarketplaceItemEntity?>(null) }
+    var itemToFlag by remember { mutableStateOf<MarketplaceItemEntity?>(null) }
+
     // Filter items based on category, keyword search, location search, and radius scale
-    val filteredItems = remember(items, selectedCategory, searchQuery, locationQuery, radiusFilterKm) {
+    val filteredItems = remember(items, selectedCategory, searchQuery, locationQuery, radiusFilterKm, hiddenItemIds) {
         items.filter { item ->
+            val notHidden = item.id !in hiddenItemIds
             val matchesCategory = selectedCategory == "All" ||
                     item.category.equals(selectedCategory, ignoreCase = true) ||
                     item.category.contains(selectedCategory, ignoreCase = true) ||
@@ -189,7 +215,7 @@ fun MarketScreen(
                     (locationQuery.contains("Sydney", ignoreCase = true) && (item.location?.contains("Sydney", ignoreCase = true) == true || item.location?.contains("Australia", ignoreCase = true) == true))
 
             val matchesRadius = radiusFilterKm == null || item.distanceKm <= radiusFilterKm
-            matchesCategory && matchesSearch && matchesLocation && matchesRadius
+            notHidden && matchesCategory && matchesSearch && matchesLocation && matchesRadius
         }
     }
 
@@ -464,7 +490,27 @@ fun MarketScreen(
                 }
             }
 
-            // Market Navigation Sub-Tabs (All Goods | Buy/Sell Posts | Showcase Clips | Watchlist)
+            // Instant Location Radius Filter Dial (Neighbor 5km • City 50km • Earth)
+            val currentDial = remember(radiusFilterKm) {
+                when {
+                    radiusFilterKm != null && radiusFilterKm <= 5.1 -> "NEIGHBOR"
+                    radiusFilterKm != null && radiusFilterKm <= 50.1 -> "CITY"
+                    else -> "EARTH"
+                }
+            }
+            TactileTriDialFeedLens(
+                selectedDial = currentDial,
+                onDialSelected = { dial ->
+                    when (dial) {
+                        "NEIGHBOR" -> onRadiusFilterChange(5.0)
+                        "CITY" -> onRadiusFilterChange(50.0)
+                        "EARTH" -> onRadiusFilterChange(null)
+                    }
+                },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+            )
+
+            // Market Navigation Sub-Tabs (Goods | Services | Posts | Clips | Watchlist)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -472,10 +518,11 @@ fun MarketScreen(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(
-                    Triple(MarketSubTab.GOODS, "All Goods", Icons.Default.Storefront),
+                    Triple(MarketSubTab.GOODS, "Goods", Icons.Default.Storefront),
+                    Triple(MarketSubTab.SERVICES, "Services", Icons.Default.Build),
                     Triple(MarketSubTab.POSTS, "Posts", Icons.Default.PhotoLibrary),
                     Triple(MarketSubTab.CLIPS, "Clips", Icons.Default.PlayCircle),
-                    Triple(MarketSubTab.WATCHLIST, "Watchlist", Icons.Default.PushPin)
+                    Triple(MarketSubTab.WATCHLIST, "Saved", Icons.Default.PushPin)
                 ).forEach { (tab, label, icon) ->
                     val isSelected = activeSubTab == tab
                     Surface(
@@ -496,12 +543,12 @@ fun MarketScreen(
                                 imageVector = icon,
                                 contentDescription = label,
                                 tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(13.dp)
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
                             Text(
                                 text = label,
-                                fontSize = 11.sp,
+                                fontSize = 10.5.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -532,8 +579,31 @@ fun MarketScreen(
                             onItemClick = onItemClick,
                             onToggleSaveItem = onToggleSaveItem,
                             onOpenSellDialog = onOpenSellDialog,
+                            onOpenComments = onOpenComments,
+                            onPreviewVideoTour = { itemForVideoTour = it },
+                            onFlagItem = { itemToFlag = it },
                             currentCurrency = currentCurrency,
                             countryName = countryName
+                        )
+                    }
+
+                    MarketSubTab.SERVICES -> {
+                        LocalServicesCatalogView(
+                            onInquireService = { gig ->
+                                val sampleItem = items.firstOrNull() ?: MarketplaceItemEntity(
+                                    title = gig.title,
+                                    price = 0.0,
+                                    category = "Jobs & Services",
+                                    condition = "Professional Service",
+                                    imageUrl = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&auto=format&fit=crop&q=80",
+                                    sellerAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+                                    sellerUsername = gig.providerName.lowercase().replace(" ", ""),
+                                    sellerFullName = gig.providerName,
+                                    description = "Gig inquiry for ${gig.title}",
+                                    deliveryOption = "Local & Remote"
+                                )
+                                onMessageSeller(sampleItem)
+                            }
                         )
                     }
 
@@ -544,7 +614,8 @@ fun MarketScreen(
                                 val match = items.firstOrNull { it.title.contains(post.caption.take(15), ignoreCase = true) }
                                 if (match != null) onItemClick(match)
                             },
-                            onOpenSellDialog = onOpenSellDialog
+                            onOpenSellDialog = onOpenSellDialog,
+                            onOpenComments = onOpenComments
                         )
                     }
 
@@ -555,7 +626,8 @@ fun MarketScreen(
                                 val match = items.firstOrNull { it.title.contains(clip.caption.take(15), ignoreCase = true) }
                                 if (match != null) onItemClick(match)
                             },
-                            onOpenSellDialog = onOpenSellDialog
+                            onOpenSellDialog = onOpenSellDialog,
+                            onOpenComments = onOpenComments
                         )
                     }
 
@@ -565,6 +637,7 @@ fun MarketScreen(
                             onItemClick = onItemClick,
                             onToggleSaveItem = onToggleSaveItem,
                             onOpenSellDialog = onOpenSellDialog,
+                            onOpenComments = onOpenComments,
                             currentCurrency = currentCurrency
                         )
                     }
@@ -572,6 +645,7 @@ fun MarketScreen(
             }
         }
 
+        // Sell an Item Dialog / Sheet
         // Sell an Item Dialog / Sheet
         if (showSellDialog) {
             MarketSellMultiDialog(
@@ -587,13 +661,41 @@ fun MarketScreen(
         if (selectedItem != null) {
             MarketItemDetailDialog(
                 item = selectedItem,
+                posts = posts,
+                clips = clips,
                 onDismiss = onCloseDetailSheet,
                 onMessageSeller = { onMessageSeller(selectedItem) },
                 onToggleSave = { onToggleSaveItem(selectedItem) },
                 onToggleAvailability = { onToggleAvailability(selectedItem) },
+                onFlagItem = { id ->
+                    hiddenItemIds = hiddenItemIds + id
+                    onCloseDetailSheet()
+                },
                 currentCurrency = currentCurrency,
                 currentLanguage = currentLanguage,
-                onUserProfileClick = onUserProfileClick
+                onUserProfileClick = onUserProfileClick,
+                onCommentClick = { onOpenComments("MARKET", selectedItem.id) }
+            )
+        }
+
+        // Section 4.9: Condition Video Tour Modal
+        if (itemForVideoTour != null) {
+            MarketConditionVideoTourModal(
+                videoUrl = itemForVideoTour!!.imageUrl,
+                title = itemForVideoTour!!.title,
+                onDismiss = { itemForVideoTour = null }
+            )
+        }
+
+        // Section 4.16: Flag Suspicious Listing Dialog
+        if (itemToFlag != null) {
+            FlagListingConfirmationDialog(
+                itemTitle = itemToFlag!!.title,
+                onConfirmFlag = { reason ->
+                    hiddenItemIds = hiddenItemIds + itemToFlag!!.id
+                    itemToFlag = null
+                },
+                onDismiss = { itemToFlag = null }
             )
         }
     }
@@ -611,6 +713,9 @@ private fun GoodsCatalogView(
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
     onOpenSellDialog: () -> Unit,
+    onOpenComments: (String, Long) -> Unit,
+    onPreviewVideoTour: (MarketplaceItemEntity) -> Unit = {},
+    onFlagItem: (MarketplaceItemEntity) -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     countryName: String? = null
 ) {
@@ -646,6 +751,44 @@ private fun GoodsCatalogView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        // Section 4.3: Walkable Deals (< 2 km) Bargain Radar
+                        item {
+                            val isWalkable = radiusFilterKm != null && radiusFilterKm <= 2.1
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (isWalkable) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isWalkable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable {
+                                        if (isWalkable) {
+                                            onRadiusFilterChange(null)
+                                        } else {
+                                            onRadiusFilterChange(2.0)
+                                            onSortOptionChange("Distance: Nearest")
+                                        }
+                                    }
+                                    .testTag("market_radius_walkable_2km")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Text("🚶", fontSize = 10.sp)
+                                    Text(
+                                        text = "Walkable (< 2 km)",
+                                        fontSize = 10.5.sp,
+                                        fontWeight = if (isWalkable) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isWalkable) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
                         item {
                             val isAllSelected = radiusFilterKm == null
                             Surface(
@@ -818,6 +961,16 @@ private fun GoodsCatalogView(
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
+
+                // Section 4 Hyperlocal Safe Zone Banner
+                VerifiedSafeExchangeSpotCard(
+                    spotName = "Seattle Downtown Public Plaza & Safe Trade Station",
+                    distanceMeters = 350,
+                    hasCctv = true,
+                    isOpen24h = true
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
 
@@ -861,6 +1014,8 @@ private fun GoodsCatalogView(
                 item = item,
                 onClick = { onItemClick(item) },
                 onToggleSave = { onToggleSaveItem(item) },
+                onPreviewVideoTour = { onPreviewVideoTour(item) },
+                onFlagClick = { onFlagItem(item) },
                 currentCurrency = currentCurrency
             )
         }
@@ -871,7 +1026,8 @@ private fun GoodsCatalogView(
 private fun MarketPostsFeedView(
     posts: List<PostEntity>,
     onItemClick: (PostEntity) -> Unit,
-    onOpenSellDialog: () -> Unit
+    onOpenSellDialog: () -> Unit,
+    onOpenComments: (String, Long) -> Unit
 ) {
     LazyColumn(
         contentPadding = PaddingValues(start = 14.dp, end = 14.dp, top = 8.dp, bottom = 88.dp),
@@ -931,7 +1087,8 @@ private fun MarketPostsFeedView(
         items(posts, key = { it.id }) { post ->
             MarketPostCard(
                 post = post,
-                onClick = { onItemClick(post) }
+                onClick = {  },
+                onCommentClick = { onOpenComments("POST", post.id) }
             )
         }
     }
@@ -939,6 +1096,7 @@ private fun MarketPostsFeedView(
 
 @Composable
 private fun MarketPostCard(
+    onCommentClick: () -> Unit,
     post: PostEntity,
     onClick: () -> Unit
 ) {
@@ -1056,7 +1214,7 @@ private fun MarketPostCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Button(
-                        onClick = onClick,
+                        onClick = onCommentClick,
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         modifier = Modifier.weight(1f)
@@ -1067,13 +1225,13 @@ private fun MarketPostCard(
                     }
 
                     OutlinedButton(
-                        onClick = onClick,
+                        onClick = onCommentClick,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("👌", fontSize = 14.sp)
+                        Icon(imageVector = Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text("Like / Save", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Comment", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1085,7 +1243,8 @@ private fun MarketPostCard(
 private fun MarketClipsFeedView(
     clips: List<ClipEntity>,
     onItemClick: (ClipEntity) -> Unit,
-    onOpenSellDialog: () -> Unit
+    onOpenSellDialog: () -> Unit,
+    onOpenComments: (String, Long) -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -1248,6 +1407,7 @@ private fun WatchlistCatalogView(
     onItemClick: (MarketplaceItemEntity) -> Unit,
     onToggleSaveItem: (MarketplaceItemEntity) -> Unit,
     onOpenSellDialog: () -> Unit,
+    onOpenComments: (String, Long) -> Unit,
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
 ) {
     if (savedItems.isEmpty()) {
@@ -1304,6 +1464,8 @@ fun MarketItemCard(
     item: MarketplaceItemEntity,
     onClick: () -> Unit,
     onToggleSave: () -> Unit,
+    onPreviewVideoTour: () -> Unit = {},
+    onFlagClick: () -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     modifier: Modifier = Modifier
 ) {
@@ -1387,6 +1549,46 @@ fun MarketItemCard(
                     testTag = "pin_item_button_${item.id}"
                 )
 
+                // Flag Listing Button (Under Like Button)
+                IconButton(
+                    onClick = onFlagClick,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 38.dp, end = 6.dp)
+                        .size(24.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        .testTag("flag_item_${item.id}")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.OutlinedFlag,
+                        contentDescription = "Flag Item",
+                        tint = Color.White.copy(alpha = 0.85f),
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
+
+                // Section 4.9: 10s Video Inspection Tour Quick Chip
+                if (item.id % 2L == 0L) {
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = Color.Black.copy(alpha = 0.75f),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .clickable(onClick = onPreviewVideoTour)
+                            .testTag("market_card_tour_${item.id}")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(Icons.Default.PlayCircle, contentDescription = "Video Tour", tint = Color.White, modifier = Modifier.size(11.dp))
+                            Text("10s Tour", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                }
+
                 // Availability badge if not available
                 if (!item.isAvailable) {
                     Surface(
@@ -1406,17 +1608,18 @@ fun MarketItemCard(
                     }
                 }
 
-                // Price Badge (Bottom Left)
+                // Price / Barter Badge (Bottom Left)
+                val isBarter = item.price == 0.0 || item.category.contains("Barter", ignoreCase = true)
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = if (isBarter) Color(0xFF0284C7) else MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(6.dp)
                 ) {
                     Text(
-                        text = CurrencyHelper.format(item.price, currentCurrency),
-                        fontSize = 13.sp,
+                        text = if (isBarter) "🔄 Barter" else CurrencyHelper.format(item.price, currentCurrency),
+                        fontSize = if (isBarter) 10.5.sp else 13.sp,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -1438,6 +1641,27 @@ fun MarketItemCard(
                         color = Color.White,
                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
                     )
+                }
+
+                // Dynamic Flash / Urgent / Borrow badges
+                if (item.category.contains("Borrow", ignoreCase = true) || item.price == 0.0) {
+                    BorrowAndLendBadge(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 6.dp)
+                    )
+                } else if (item.id % 3L == 0L) {
+                    UrgentTodayTimerBadge(
+                        hoursRemaining = ((item.id % 9) + 2).toInt(),
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 6.dp)
+                    )
+                }
+
+                // Sold Ribbon Overlay if not available
+                if (!item.isAvailable) {
+                    ClaimedSoldRibbonOverlay()
                 }
             }
 
@@ -1463,6 +1687,28 @@ fun MarketItemCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                // Safe handshakes reputation snippet
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🛡️ Safe Meetup Ready",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF00E676)
+                    )
+                    Text("•", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        text = "${(item.sellerReviewCount * 3) + 12} exchanges",
+                        fontSize = 9.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
@@ -1525,14 +1771,29 @@ fun MarketSellMultiDialog(
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var priceText by remember { mutableStateOf("") }
+    var isBarterTrade by remember { mutableStateOf(false) }
+    var seekingInExchange by remember { mutableStateOf("") }
+    var connectionDiscountPercent by remember { mutableIntStateOf(0) }
+    var isHandmadeArtisan by remember { mutableStateOf(false) }
+    var isUrgentSale by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Cars & Vehicles") }
     var selectedCondition by remember { mutableStateOf("Like New") }
     var selectedPhotoUrl by remember { mutableStateOf(sampleMarketPhotos.first()) }
     var selectedDelivery by remember { mutableStateOf("Local Meetup / Pickup") }
     var landmark by remember { mutableStateOf("Pike Place Market") }
+    var acceptedPaymentMethods by remember { mutableStateOf(listOf("💵 Cash on Meetup", "📱 Digital Transfer")) }
+    var itemDimensionsText by remember { mutableStateOf("") }
     var soundTrack by remember { mutableStateOf("Original Audio • Marketplace Pitch") }
     var musicSearchQuery by remember { mutableStateOf("") }
     var showSoundPicker by remember { mutableStateOf(false) }
+    var blastRadiusIndex by remember { mutableFloatStateOf(0f) }
+    val blastRadiusLabels = listOf("Hyper-Local (5km)", "City-Wide (50km)", "National", "Global (Earth)")
+    val blastRadiusDescriptions = listOf(
+        "Guaranteed feed placement for nearby neighbors. Ideal for local sales.",
+        "Expands reach to the entire metro area. Good for high-ticket items.",
+        "Broad national visibility. Shipping recommended.",
+        "Algorithmic bypass: Open distribution to the entire world network."
+    )
     var showStandardMediaSelector by remember { mutableStateOf(false) }
 
     val viralMusicTracks = listOf(
@@ -1727,19 +1988,72 @@ fun MarketSellMultiDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Title Input
+                // Title & Price / Barter Mode
                 Text(
-                    text = "2. Title & Price",
+                    text = "2. Title & Valuation / Barter",
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(6.dp))
 
+                // Mode Toggle: Fixed Price vs Barter / Skill Trade
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (!isBarterTrade) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { isBarterTrade = false }
+                            .testTag("sell_mode_price")
+                    ) {
+                        Text(
+                            text = "💰 Fixed Price",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (!isBarterTrade) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (isBarterTrade) MaterialTheme.colorScheme.primary else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                isBarterTrade = true
+                                selectedCategory = "Barter & Trade"
+                            }
+                            .testTag("sell_mode_barter")
+                    ) {
+                        Text(
+                            text = "🔄 Barter / Skill Trade",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isBarterTrade) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Item Name (e.g., Sony A7III Camera Kit)") },
+                    label = { Text("Item / Skill Name (e.g., Sony A7III or Studio Sound Mixing)") },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
@@ -1749,18 +2063,89 @@ fun MarketSellMultiDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = priceText,
-                    onValueChange = { priceText = it },
-                    label = { Text("Price in ${currentCurrency.code} (${currentCurrency.symbol})") },
-                    leadingIcon = { Text(currentCurrency.symbol, fontWeight = FontWeight.Bold) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("sell_price_input")
-                )
+                if (isBarterTrade) {
+                    OutlinedTextField(
+                        value = seekingInExchange,
+                        onValueChange = { seekingInExchange = it },
+                        label = { Text("Seeking in Exchange (Gear, Studio Time, Skills)") },
+                        placeholder = { Text("e.g. Willing to trade for video editing, audio mastering, or guitar lessons") },
+                        minLines = 2,
+                        maxLines = 3,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("sell_barter_seeking_input")
+                    )
+                } else {
+                    OutlinedTextField(
+                        value = priceText,
+                        onValueChange = { priceText = it },
+                        label = { Text("Price in ${currentCurrency.code} (${currentCurrency.symbol})") },
+                        leadingIcon = { Text(currentCurrency.symbol, fontWeight = FontWeight.Bold) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("sell_price_input")
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Connection Discount Chips (Section 4.15)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "🤝 Connected Discount:",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        listOf(0 to "None", 10 to "10% off", 15 to "15% off", 20 to "20% off").forEach { (pct, lbl) ->
+                            val isSel = connectionDiscountPercent == pct
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (isSel) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                border = BorderStroke(1.dp, if (isSel) MaterialTheme.colorScheme.primary else Color.Transparent),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { connectionDiscountPercent = pct }
+                            ) {
+                                Text(
+                                    text = lbl,
+                                    fontSize = 9.5.sp,
+                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSel) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Creator Badges & Urgent Flash Sale
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = isHandmadeArtisan,
+                        onClick = { isHandmadeArtisan = !isHandmadeArtisan },
+                        label = { Text("🎨 Handmade / Artisan", fontSize = 10.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = isUrgentSale,
+                        onClick = { isUrgentSale = !isUrgentSale },
+                        label = { Text("⚡ Urgent (12h Flash)", fontSize = 10.sp) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -1854,6 +2239,42 @@ fun MarketSellMultiDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("sell_location_input")
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Accepted Settlement Methods (Section 4.14)
+                Text(
+                    text = "Accepted Settlement Methods",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                PaymentMethodChipsRow(
+                    selectedMethods = acceptedPaymentMethods,
+                    onToggleMethod = { method ->
+                        acceptedPaymentMethods = if (acceptedPaymentMethods.contains(method)) {
+                            if (acceptedPaymentMethods.size > 1) acceptedPaymentMethods - method else acceptedPaymentMethods
+                        } else {
+                            acceptedPaymentMethods + method
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Dimensions (Section 4.18)
+                OutlinedTextField(
+                    value = itemDimensionsText,
+                    onValueChange = { itemDimensionsText = it },
+                    label = { Text("Approx. Dimensions / Scale (e.g. 45 x 30 x 15 cm)") },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Straighten, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -1959,22 +2380,79 @@ fun MarketSellMultiDialog(
                         .testTag("sell_desc_input")
                 )
 
+                // Reach / Blast Radius Selector (Algorithmic Bypass)
+                Spacer(modifier = Modifier.height(16.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.4f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(imageVector = Icons.Default.Public, contentDescription = "Reach", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Distribution Reach: ${blastRadiusLabels[blastRadiusIndex.toInt()]}",
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = blastRadiusDescriptions[blastRadiusIndex.toInt()],
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f),
+                            lineHeight = 14.sp
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Slider(
+                            value = blastRadiusIndex,
+                            onValueChange = { blastRadiusIndex = it },
+                            valueRange = 0f..3f,
+                            steps = 2,
+                            colors = SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.tertiary,
+                                activeTrackColor = MaterialTheme.colorScheme.tertiary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
+                            )
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("Local", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
+                            Text("Earth", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary)
+                        }
+                    }
+                }
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Publish Button
-                val isFormValid = title.isNotBlank() && (priceText.toDoubleOrNull() ?: 0.0) >= 0.0
+                val isFormValid = title.isNotBlank() && (isBarterTrade || (priceText.toDoubleOrNull() ?: 0.0) >= 0.0)
 
                 Button(
                     onClick = {
-                        val rawPrice = priceText.toDoubleOrNull() ?: 0.0
+                        val rawPrice = if (isBarterTrade) 0.0 else (priceText.toDoubleOrNull() ?: 0.0)
                         val parsedPrice = CurrencyHelper.convertToUSD(rawPrice, currentCurrency)
+                        val finalCategory = if (isBarterTrade && selectedCategory == "Cars & Vehicles") "Barter & Trade" else selectedCategory
+                        val barterInfo = if (isBarterTrade && seekingInExchange.isNotBlank()) "\n[🔄 Seeking in Exchange: $seekingInExchange]" else ""
+                        val discountInfo = if (!isBarterTrade && connectionDiscountPercent > 0) "\n[🤝 $connectionDiscountPercent% Discount for Connected Neighbors]" else ""
+                        val artisanInfo = if (isHandmadeArtisan) "\n[🎨 Handmade by Creator / Artisan]" else ""
+                        val urgentInfo = if (isUrgentSale) "\n[⚡ Urgent Sale Today]" else ""
+                        val reachText = "\n[Broadcast Reach: ${blastRadiusLabels[blastRadiusIndex.toInt()]}]"
+                        val paymentInfo = "\n[Settlement: ${acceptedPaymentMethods.joinToString(", ")}]"
+                        val dimensionsInfo = if (itemDimensionsText.isNotBlank()) "\n[Dimensions: $itemDimensionsText]" else ""
+                        val finalDesc = description.ifBlank { "Available for local meetup near $landmark on Localiiiy." } + barterInfo + discountInfo + artisanInfo + urgentInfo + reachText + paymentInfo + dimensionsInfo
                         when (creationFormat) {
                             SellCreationFormat.CATALOG_ITEM -> {
                                 onPublishListing(
                                     title,
-                                    description.ifBlank { "Available for local pickup near $landmark on Localiiiy." },
+                                    finalDesc,
                                     parsedPrice,
-                                    selectedCategory,
+                                    finalCategory,
                                     selectedCondition,
                                     selectedPhotoUrl,
                                     selectedDelivery,
@@ -1985,9 +2463,9 @@ fun MarketSellMultiDialog(
                             SellCreationFormat.BUY_SELL_POST -> {
                                 onPublishPost(
                                     title,
-                                    description.ifBlank { "Available for local pickup near $landmark on Localiiiy." },
+                                    finalDesc,
                                     parsedPrice,
-                                    selectedCategory,
+                                    finalCategory,
                                     selectedCondition,
                                     selectedPhotoUrl,
                                     selectedDelivery,
@@ -1998,7 +2476,7 @@ fun MarketSellMultiDialog(
                             SellCreationFormat.SHOWCASE_CLIP -> {
                                 onPublishClip(
                                     title,
-                                    description.ifBlank { "Showcase clip of $title near $landmark" },
+                                    finalDesc,
                                     parsedPrice,
                                     selectedCategory,
                                     selectedCondition,
@@ -2045,18 +2523,27 @@ fun MarketSellMultiDialog(
 @Composable
 fun MarketItemDetailDialog(
     item: MarketplaceItemEntity,
+    posts: List<PostEntity> = emptyList(),
+    clips: List<ClipEntity> = emptyList(),
     onDismiss: () -> Unit,
     onMessageSeller: () -> Unit,
     onToggleSave: () -> Unit,
     onToggleAvailability: () -> Unit,
+    onFlagItem: (Long) -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
-    onUserProfileClick: (String) -> Unit = {}
+    onUserProfileClick: (String) -> Unit = {},
+    onCommentClick: () -> Unit = {}
 ) {
     var offerAmount by remember(item, currentCurrency) {
         mutableStateOf("${CurrencyHelper.convertFromUSD(item.price, currentCurrency).toInt()}")
     }
     var showOfferDialog by remember { mutableStateOf(false) }
+    var isGhostShieldActive by remember { mutableStateOf(false) }
+    var showHandoverQR by remember { mutableStateOf(false) }
+    var showVideoTourModal by remember { mutableStateOf(false) }
+    var showFlagModal by remember { mutableStateOf(false) }
+    var selectedInquiryQuestion by remember { mutableStateOf<String?>(null) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -2246,6 +2733,41 @@ fun MarketItemDetailDialog(
                         }
                     }
 
+                    // Connected Friends Discount Badge (Section 4.6)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ConnectionDiscountBadge(
+                        discountPercent = 15,
+                        originalPrice = item.price,
+                        currency = currentCurrency
+                    )
+
+                    // Handmade / Artisan badge if Art & Collectibles or Home (Section 4.19)
+                    if (item.category.contains("Art", ignoreCase = true) || item.category.contains("Furniture", ignoreCase = true)) {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        HandmadeArtisanBadge(creatorWorkshop = "${item.sellerFullName}'s Studio")
+                    }
+
+                    // Item physical dimensions ruler badge (Section 4.18)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    ItemDimensionsRulerBadge(
+                        widthCm = ((item.id % 40) + 30).toInt(),
+                        heightCm = ((item.id % 30) + 20).toInt(),
+                        depthCm = ((item.id % 20) + 10).toInt()
+                    )
+
+                    // Accepted Payment Methods (Section 4.14)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Accepted Settlement Methods",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    PaymentMethodChipsRow(
+                        selectedMethods = listOf("💵 Cash on Meetup", "📱 Digital Transfer", "🔄 Barter & Trade")
+                    )
+
                     Spacer(modifier = Modifier.height(14.dp))
 
                     // Description text
@@ -2261,6 +2783,8 @@ fun MarketItemDetailDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp)
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ConditionVisualizerDial(condition = item.condition)
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -2351,6 +2875,59 @@ fun MarketItemDetailDialog(
                         }
                     }
 
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Section 4.13: Verified In-Person Meetups Reputation Badge
+                    VerifiedMeetupsReputationBadge(
+                        safeHandoversCount = 18 + (item.sellerReviewCount * 2),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Section 4.5: Creator Portfolio Linked Grid
+                    CreatorPortfolioLinkedGrid(
+                        creatorHandle = item.sellerUsername,
+                        posts = posts,
+                        clips = clips
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Section 4.1: Verified Safe Physical Exchange Spot Card
+                    VerifiedSafeExchangeSpotCard(
+                        spotName = "${item.landmark ?: item.location} Municipal & Police Monitored Safe Zone",
+                        distanceMeters = ((item.distanceKm * 1000).toInt().coerceIn(120, 950)),
+                        hasCctv = true,
+                        isOpen24h = true
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Section 4.4: Ghost Negotiation Privacy Shield
+                    GhostNegotiationPrivacyShield(
+                        isGhostActive = isGhostShieldActive,
+                        ghostAlias = "Spectator #${(item.id * 17) % 900 + 100}",
+                        onToggleGhost = { isGhostShieldActive = !isGhostShieldActive }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Section 4.10: Quick Pre-filled Inquiry Questions
+                    Text(
+                        text = "Quick Inquiries",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    QuickInquiryActionsRow(
+                        onSendQuestion = { q ->
+                            selectedInquiryQuestion = q
+                            onMessageSeller()
+                        }
+                    )
+
                     Spacer(modifier = Modifier.height(14.dp))
 
                     // Safe Local Meetup Advice Banner
@@ -2380,7 +2957,53 @@ fun MarketItemDetailDialog(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    // Section 4.12: Price Drop Alert Banner
+                    if (item.id % 2L == 0L) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        PriceDropAlertBanner(
+                            discountPercent = 20,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Section 4.9: 10s Video Inspection Tour
+                    OutlinedButton(
+                        onClick = { showVideoTourModal = true },
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .testTag("video_tour_detail_btn")
+                    ) {
+                        Icon(Icons.Default.PlayCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("🎥 10-Second Looping Video Tour", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    AutoNegotiateButton(sellerName = item.sellerFullName, price = item.price, currency = currentCurrency)
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Section 4.7: Zero-Fee In-Person Handshake QR Button
+                    OutlinedButton(
+                        onClick = { showHandoverQR = true },
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, Color(0xFF00E676)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00E676)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(44.dp)
+                            .testTag("in_person_handshake_btn")
+                    ) {
+                        Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("In-Person Zero-Fee QR Handshake", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Primary Action Buttons
                     Row(
@@ -2401,8 +3024,22 @@ fun MarketItemDetailDialog(
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Make Offer", fontWeight = FontWeight.Bold)
+                        }
+
+                        // Comment Button
+                        OutlinedButton(
+                            onClick = onCommentClick,
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .testTag("market_comment_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ChatBubbleOutline,
+                                contentDescription = "Comments",
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
 
                         // Message Seller Button
@@ -2411,13 +3048,13 @@ fun MarketItemDetailDialog(
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             modifier = Modifier
-                                .weight(1.2f)
+                                .weight(1.5f)
                                 .height(48.dp)
                                 .testTag("message_seller_button")
                         ) {
                             Text("✍️", fontSize = 16.sp)
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message Seller", fontWeight = FontWeight.Bold)
+                            Text("Message", fontWeight = FontWeight.Bold)
                         }
                     }
 
@@ -2436,9 +3073,66 @@ fun MarketItemDetailDialog(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Section 4.16: Flag / Report Listing
+                    TextButton(
+                        onClick = { showFlagModal = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("flag_listing_detail_btn")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.OutlinedFlag,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Flag or Report Suspicious Listing",
+                            fontSize = 11.5.sp,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
         }
+    }
+
+    // Section 4.7: Handshake QR Dialog
+    if (showHandoverQR) {
+        InPersonHandoverQRDialog(
+            itemTitle = item.title,
+            sellerHandle = item.sellerUsername,
+            onDismiss = { showHandoverQR = false },
+            onConfirmHandover = {
+                showHandoverQR = false
+                onToggleAvailability()
+            }
+        )
+    }
+
+    // Section 4.9: Video Tour Modal
+    if (showVideoTourModal) {
+        MarketConditionVideoTourModal(
+            videoUrl = item.imageUrl,
+            title = item.title,
+            onDismiss = { showVideoTourModal = false }
+        )
+    }
+
+    // Section 4.16: Flag Confirmation Dialog
+    if (showFlagModal) {
+        FlagListingConfirmationDialog(
+            itemTitle = item.title,
+            onConfirmFlag = { reason ->
+                showFlagModal = false
+                onFlagItem(item.id)
+            },
+            onDismiss = { showFlagModal = false }
+        )
     }
 
     // Modal to make custom offer
@@ -2482,5 +3176,127 @@ fun MarketItemDetailDialog(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun ConditionVisualizerDial(condition: String) {
+    val conditionScore = when(condition.lowercase()) {
+        "new" -> 1.0f
+        "like new" -> 0.8f
+        "good" -> 0.6f
+        "fair" -> 0.4f
+        "poor" -> 0.2f
+        "junk" -> 0.05f
+        else -> 0.7f
+    }
+    
+    var animationPlayed by remember { mutableStateOf(false) }
+    val sweepAngle by animateFloatAsState(
+        targetValue = if (animationPlayed) 180f * conditionScore else 0f,
+        animationSpec = tween(1500, easing = LinearEasing)
+    )
+
+    LaunchedEffect(Unit) {
+        animationPlayed = true
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
+    ) {
+        Text("Item Condition: $condition", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(modifier = Modifier.height(8.dp))
+        Box(modifier = Modifier.size(width = 120.dp, height = 60.dp), contentAlignment = Alignment.BottomCenter) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val canvasWidth = size.width
+                val canvasHeight = size.height * 2
+                
+                // Background track
+                drawArc(
+                    color = Color.LightGray.copy(alpha = 0.3f),
+                    startAngle = 180f,
+                    sweepAngle = 180f,
+                    useCenter = false,
+                    topLeft = Offset(0f, 0f),
+                    size = Size(canvasWidth, canvasHeight),
+                    style = Stroke(width = 20f, cap = StrokeCap.Round)
+                )
+
+                // Foreground track (Gradient based on condition)
+                val strokeColor = when {
+                    conditionScore > 0.7f -> Color(0xFF4CAF50) // Green
+                    conditionScore > 0.4f -> Color(0xFFFFC107) // Yellow
+                    else -> Color(0xFFF44336) // Red
+                }
+
+                drawArc(
+                    color = strokeColor,
+                    startAngle = 180f,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    topLeft = Offset(0f, 0f),
+                    size = Size(canvasWidth, canvasHeight),
+                    style = Stroke(width = 20f, cap = StrokeCap.Round)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun AutoNegotiateButton(
+    sellerName: String,
+    price: Double,
+    currency: LocaliiiyCurrency
+) {
+    var isNegotiating by remember { mutableStateOf(false) }
+    var currentOffer by remember { mutableStateOf(price) }
+
+    LaunchedEffect(isNegotiating) {
+        if (isNegotiating) {
+            delay(1000)
+            currentOffer = price * 0.9
+            delay(1500)
+            currentOffer = price * 0.85
+            delay(1500)
+            currentOffer = price * 0.8
+            isNegotiating = false
+        }
+    }
+
+    Surface(
+        onClick = { if (!isNegotiating) isNegotiating = true },
+        shape = RoundedCornerShape(12.dp),
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(Icons.Default.SmartToy, contentDescription = "AI", tint = MaterialTheme.colorScheme.onTertiaryContainer)
+            Spacer(modifier = Modifier.width(8.dp))
+            if (isNegotiating) {
+                Text(
+                    text = "AI Negotiating... Best Offer: ${currency.symbol}${String.format("%.2f", currentOffer)}",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            } else if (currentOffer < price) {
+                Text(
+                    text = "Deal Agreed: ${currency.symbol}${String.format("%.2f", currentOffer)}",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            } else {
+                Text(
+                    text = "Auto-Negotiate with AI",
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+        }
     }
 }

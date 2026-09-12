@@ -176,7 +176,7 @@ fun StudioVideoPlayerComponent(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 isBuffering = false
                 try {
-                    val fallbackItem = MediaItem.fromUri(Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+                    val fallbackItem = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
                     exoPlayer.setMediaItem(fallbackItem)
                     exoPlayer.prepare()
                     exoPlayer.play()

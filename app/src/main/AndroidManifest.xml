@@ -38,6 +38,23 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyLocaliiiyMapsRadarApiKeyForDev" />
 
+        <!-- Privacy & Zero-Tracking Architecture (Deactivates background AdServices & Analytics measurement) -->
+        <meta-data
+            android:name="firebase_analytics_collection_deactivated"
+            android:value="true" />
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
+        <meta-data
+            android:name="android.adservices.MEASUREMENT_ENABLED"
+            android:value="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -63,6 +80,18 @@
                     android:host="clip" />
             </intent-filter>
         </activity>
+        <activity-alias 
+            android:name=".DecoyActivity" 
+            android:enabled="false" 
+            android:exported="true" 
+            android:icon="@mipmap/ic_launcher" 
+            android:label="Calculator" 
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Favorite Proximity Background Service (Monitors 5KM proximity for favorite creators/sellers) -->
         <service

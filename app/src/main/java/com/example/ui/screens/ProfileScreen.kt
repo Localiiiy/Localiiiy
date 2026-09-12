@@ -1,4 +1,14 @@
+
+
 package com.example.ui.screens
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.scale
+import androidx.compose.material.icons.filled.Warning
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -28,7 +38,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -51,6 +60,7 @@ import com.example.ui.ProfileTab
 import com.example.ui.components.EditProfileDialog
 import com.example.ui.components.ForgotPasswordDialog
 import com.example.ui.components.ImageWithFilter
+import com.example.ui.components.ProfileIdentityCard
 import com.example.ui.theme.EditorialVerified
 import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyDeepNavy
@@ -306,147 +316,8 @@ fun ProfileScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     // Avatar & Stats Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Avatar with Story ring
-                        Box(
-                            modifier = Modifier
-                                .size(84.dp)
-                                .border(2.5.dp, LocaliiiyStoryGradient, CircleShape)
-                                .padding(4.dp)
-                        ) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
-                                    .data(userProfile.avatarUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = userProfile.username,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape)
-                            )
-                        }
-
-                        // Dynamic Stats Row
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            ProfileStatColumn(count = posts.size.toString(), label = "Sparks 📸")
-                            ProfileStatColumn(count = userClips.size.toString(), label = "Clips 🎬")
-                            ProfileStatColumn(count = "${userProfile.neighborsCount}", label = "Orbit Allies")
-                            ProfileStatColumn(count = "${userProfile.followingCount}", label = "Connected")
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Bio Details
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = userProfile.fullName,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "• ${userProfile.category}",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        )
-                    }
-
-                    // Neighborhood location tag
-                    val neighborhood = userProfile.neighborhood
-                    Surface(
-                        shape = RoundedCornerShape(100.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = "Local in $neighborhood",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = userProfile.bio,
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
-
-                    if (userProfile.website.isNotBlank()) {
-                        Text(
-                            text = "🔗 ${userProfile.website}",
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-
-                    // Firebase Auth Security Status Pill
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.08f),
-                        border = BorderStroke(0.6.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.VerifiedUser,
-                                contentDescription = null,
-                                tint = LocaliiiyPrimaryTeal,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            val authUser by com.example.auth.FirebaseAuthService.currentUserState.collectAsState()
-                            val displayEmail = authUser?.email ?: "${userProfile.username}@Localiiiy.app"
-                            Text(
-                                text = "Firebase Auth Secured • $displayEmail",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = LocaliiiyPrimaryTeal
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
+                    ProfileIdentityCard(userProfile, posts.size, userClips.size)
+                    Spacer(modifier = Modifier.height(16.dp))
                     // Primary Action Buttons Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -596,7 +467,7 @@ fun ProfileScreen(
                                 Text(
                                     text = if (isPrivateAccount) "Ghost Mode (Hidden from nearby strangers)"
                                     else if (!isLocationEnabled) "Radar broadcast paused"
-                                    else "Broadcasting at $neighborhood (within ${selectedRadiusKm.toInt()} km)",
+                                    else "Broadcasting at ${userProfile.neighborhood} (within ${selectedRadiusKm.toInt()} km)",
                                     style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.weight(1f)
@@ -1889,6 +1760,10 @@ private fun ProfileSettingsSheetContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        GhostProtocolButton(
+            onTriggered = { onResetDemo() }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
         SettingsRowItem(
             icon = Icons.Default.Refresh,
             title = "Reset Demo Data",
@@ -2307,6 +2182,71 @@ private fun EditClipDetailsDialog(
                         Text("Save Changes")
                     }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun GhostProtocolButton(
+    onTriggered: () -> Unit
+) {
+    var isActivated by remember { mutableStateOf(false) }
+    var countdown by remember { mutableStateOf(5) }
+    val coroutineScope = rememberCoroutineScope()
+    val pulseScale = remember { Animatable(1f) }
+
+    LaunchedEffect(isActivated) {
+        if (isActivated) {
+            while (countdown > 0) {
+                pulseScale.animateTo(1.05f, tween(100, easing = LinearEasing))
+                pulseScale.animateTo(1f, tween(100, easing = LinearEasing))
+                delay(800)
+                countdown -= 1
+            }
+            onTriggered()
+            isActivated = false
+            countdown = 5
+        }
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .scale(pulseScale.value),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isActivated) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.errorContainer,
+        onClick = {
+            if (!isActivated) isActivated = true
+        }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Warning,
+                contentDescription = "Ghost Protocol",
+                tint = if (isActivated) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (isActivated) "GHOST PROTOCOL INITIATED ($countdown)" else "GHOST PROTOCOL",
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    ),
+                    color = if (isActivated) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onErrorContainer
+                )
+                Text(
+                    text = "Instantly encrypts local DB & forces absolute stealth.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = (if (isActivated) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.onErrorContainer).copy(alpha = 0.8f)
+                )
             }
         }
     }

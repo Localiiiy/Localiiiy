@@ -1,11 +1,8 @@
 package com.example.ui.components
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,6 +28,7 @@ import com.example.data.PostEntity
 import com.example.data.ClipEntity
 import com.example.data.MarketplaceItemEntity
 import com.example.data.UserProfileEntity
+import com.example.ui.components.radar.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -117,7 +115,111 @@ fun LiveRadarComponent(
 
     var showRangePickerInRadar by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier.fillMaxWidth().background(Color.Black)) {
+    // Section 3: Spatial Sonar & Live Radar Discovery State
+    var isGhostActive by remember { mutableStateOf(hidePreciseLocationOnRadar) }
+    var is3DPerspective by remember { mutableStateOf(false) }
+    var isDayTheme by remember { mutableStateOf(false) }
+    var isBatterySaver by remember { mutableStateOf(false) }
+    var sweepSpeedMultiplier by remember { mutableStateOf(1.0f) }
+    var isSoundscapePlaying by remember { mutableStateOf(false) }
+    var isOfflineCached by remember { mutableStateOf(true) }
+    var isProximityPingEnabled by remember { mutableStateOf(true) }
+    var selectedBeaconId by remember { mutableStateOf<String?>(null) }
+    var dispatchUserTarget by remember { mutableStateOf<OtherUserEntity?>(null) }
+
+    // Sample Section 3 Landmark Geo-Portal Beacons
+    val sampleGeoBeacons = remember {
+        listOf(
+            GeoPortalBeacon("b1", "Market Square Hub", "Civic", 0.4, 18, "432 Hz Ambient", 88, 37.7749, -122.4194),
+            GeoPortalBeacon("b2", "Pier Waterfront Park", "Nature", 1.2, 34, "528 Hz Solfeggio", 94, 37.7849, -122.4094),
+            GeoPortalBeacon("b3", "Arts & Sound District", "Culture", 2.1, 27, "440 Hz Pulse", 76, 37.7649, -122.4294),
+            GeoPortalBeacon("b4", "Tech Innovation Plaza", "Hub", 3.5, 12, "639 Hz Drone", 65, 37.7549, -122.4394)
+        )
+    }
+
+    Column(modifier = modifier.fillMaxWidth().background(if (isDayTheme) Color(0xFFF8FAFC) else Color.Black)) {
+        // Section 3.2: Passive Sonar Ghost Cloak Mode Banner
+        PassiveSonarGhostBanner(
+            isGhostActive = isGhostActive,
+            onToggleGhost = {
+                isGhostActive = !isGhostActive
+                onToggleHidePreciseLocation?.invoke(isGhostActive)
+            },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+        )
+
+        // Section 3.20: Master Tactical HUD Control Bar (3D Pitch, Day/Night HUD, Battery Saver)
+        Section3MasterControlBar(
+            isGhostActive = isGhostActive,
+            is3DPerspective = is3DPerspective,
+            isDayTheme = isDayTheme,
+            isBatterySaver = isBatterySaver,
+            onToggleGhost = {
+                isGhostActive = !isGhostActive
+                onToggleHidePreciseLocation?.invoke(isGhostActive)
+            },
+            onTogglePerspective = { is3DPerspective = it },
+            onToggleDayTheme = { isDayTheme = !isDayTheme },
+            onToggleBatterySaver = { isBatterySaver = !isBatterySaver }
+        )
+
+        // Section 3.8 & 3.16 & 3.17: Heading, Kalman Filter & Vibrancy Telemetry Strip
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RealTimeCompassHeadingBadge(headingDeg = sweepAngle)
+            NeighborhoodVibrancyScoreBadge(score = 82)
+            MovementKalmanFilterIndicator(isKalmanFiltered = true, speedKmh = 4.6f)
+            LocationJitterMaskIndicator(isJitterEnabled = isGhostActive, jitterRadiusMeters = 200)
+            OfflineRadarCacheBadge(isOfflineCached = isOfflineCached, onSyncCache = { isOfflineCached = !isOfflineCached })
+            ProximityPingNotificationsToggle(
+                isProximityPingEnabled = isProximityPingEnabled,
+                onToggle = { isProximityPingEnabled = !isProximityPingEnabled }
+            )
+        }
+
+        // Section 3.7: Radar Scale Zoom Slider
+        RadarScaleZoomSlider(
+            currentRadiusKm = selectedRadiusKm,
+            onRadiusChange = { onRadiusChange(it) }
+        )
+
+        // Section 3.9: Ephemeral Soundscape Radar Bar
+        EphemeralSoundscapeRadarBar(
+            soundFrequency = "432 Hz Solfeggio • Soundscape Alive",
+            isPlaying = isSoundscapePlaying,
+            onTogglePlay = { isSoundscapePlaying = !isSoundscapePlaying },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp)
+        )
+
+        // Section 3.10 & 3.13: Safe Haven & Event Geofence Indicators
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            EmergencySafeHavenMarker(
+                havenName = "Central Clinic",
+                distanceKm = 0.8,
+                onClick = {}
+            )
+            EventGeoFenceOverlayTag(
+                eventName = "Block Party",
+                radiusMeters = 300,
+                attendeesCount = 42
+            )
+            RadarSweepVelocityController(
+                sweepSpeedMultiplier = sweepSpeedMultiplier,
+                onSpeedChange = { sweepSpeedMultiplier = it }
+            )
+        }
         // Radar Privacy & Range Quick Bar
         Surface(
             color = Color(0xFF031405),
@@ -259,6 +361,11 @@ fun LiveRadarComponent(
             val radarRadiusPx = with(density) { (radarDiameterDp / 2).toPx() }
             val centerPx = radarRadiusPx
 
+            val combinedCount = minOf(nearbyUsers.size + nearbyPosts.size, 10)
+            val combinedItems = remember(nearbyUsers, nearbyPosts) {
+                (nearbyUsers + nearbyPosts).take(combinedCount)
+            }
+
             // Radar circular display strictly clipped to CircleShape
             Box(
                 modifier = Modifier
@@ -328,6 +435,29 @@ fun LiveRadarComponent(
                     drawLine(radarColor.copy(alpha = 0.45f), start = Offset(center.x, 0f), end = Offset(center.x, size.height), strokeWidth = 1.dp.toPx())
                     drawLine(radarColor.copy(alpha = 0.45f), start = Offset(0f, center.y), end = Offset(size.width, center.y), strokeWidth = 1.dp.toPx())
                     
+                    // Section 3.3: Activity Heatmap Glow Nodes Canvas Layer
+                    val heatmapList = listOf(
+                        Offset(center.x + radius * 0.35f, center.y - radius * 0.25f) to 0.9f,
+                        Offset(center.x - radius * 0.45f, center.y + radius * 0.30f) to 0.75f,
+                        Offset(center.x + radius * 0.15f, center.y + radius * 0.50f) to 0.6f
+                    )
+                    heatmapList.forEach { (offset, intensity) ->
+                        val nodeRadius = (35.dp.toPx() * intensity).coerceIn(20.dp.toPx(), 55.dp.toPx())
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    Color(0xFFFF3333).copy(alpha = 0.45f * intensity),
+                                    Color(0xFFFF9900).copy(alpha = 0.25f * intensity),
+                                    Color.Transparent
+                                ),
+                                center = offset,
+                                radius = nodeRadius
+                            ),
+                            center = offset,
+                            radius = nodeRadius
+                        )
+                    }
+
                     // Sweep Beam
                     drawArc(
                         brush = Brush.sweepGradient(
@@ -401,9 +531,6 @@ fun LiveRadarComponent(
                 }
                 
                 // 2. Miniature Cards plotted strictly INSIDE this CircleShape Box
-                val combinedCount = minOf(nearbyUsers.size + nearbyPosts.size, 10)
-                val combinedItems = (nearbyUsers + nearbyPosts).take(combinedCount)
-                
                 val blipCardSizeDp = 34.dp
                 val blipCardRadiusPx = with(density) { 17.dp.toPx() }
                 val maxDist = radarRadiusPx - blipCardRadiusPx - with(density) { 6.dp.toPx() }
@@ -445,8 +572,12 @@ fun LiveRadarComponent(
                             .background(Color(0xFF031405))
                             .border(1.5.dp, borderGlow, CircleShape)
                             .clickable {
-                                if (item is OtherUserEntity) onUserClick(item)
-                                else if (item is PostEntity) onPostClick(item)
+                                if (item is OtherUserEntity) {
+                                    dispatchUserTarget = item
+                                    onUserClick(item)
+                                } else if (item is PostEntity) {
+                                    onPostClick(item)
+                                }
                             }
                             .padding(2.dp)
                     ) {
@@ -502,6 +633,32 @@ fun LiveRadarComponent(
                         )
                     }
                 }
+            }
+        }
+        // Section 3.6: Landmark Geo-Portal Beacons Tray
+        LandmarkGeoPortalBeaconsTray(
+            beacons = sampleGeoBeacons,
+            selectedBeaconId = selectedBeaconId,
+            onSelectBeacon = { beacon ->
+                selectedBeaconId = if (selectedBeaconId == beacon.id) null else beacon.id
+            },
+            modifier = Modifier.padding(top = 4.dp)
+        )
+
+        // Section 3.15: Direct Tactical Chat Dispatch Sheet if Target Blip clicked
+        val currentTarget = dispatchUserTarget
+        AnimatedVisibility(
+            visible = currentTarget != null,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            if (currentTarget != null) {
+                DirectRadarChatDispatchSheet(
+                    targetUser = currentTarget,
+                    onSendQuickGreeting = { _ -> dispatchUserTarget = null },
+                    onClose = { dispatchUserTarget = null },
+                    modifier = Modifier.padding(14.dp)
+                )
             }
         }
     }

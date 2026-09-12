@@ -49,6 +49,7 @@ import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
+import com.example.ui.components.radar.FuzzyGeohashAuraRing
 import com.example.util.LocationHelper
 import kotlin.math.*
 
@@ -453,11 +454,18 @@ fun TacticalRadarView(
                                             .rotate(bearing.toFloat() - 90f)
                                     )
 
-                                    // Tactical Target Reticle Box [ • ]
+                                    // Tactical Target Reticle Box [ • ] with Fuzzy Geohash Aura Ring
                                     Box(
                                         modifier = Modifier.size(if (isBeamOver) 30.dp else 24.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
+                                        // Fuzzy Geohash Privacy Aura Ring (200m randomized aura)
+                                        FuzzyGeohashAuraRing(
+                                            radiusPx = if (isBeamOver) 18f else 14f,
+                                            isGhostMode = isPrivateAccount,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
                                         // Sci-Fi Bracket Corners Canvas
                                         Canvas(modifier = Modifier.fillMaxSize()) {
                                             val bracketLen = 5.dp.toPx()

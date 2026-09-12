@@ -3,6 +3,18 @@ package com.example
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.Context
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
+
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -16,14 +28,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -59,11 +70,26 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+
+
+class MainActivity : ComponentActivity(), SensorEventListener {
     private val deepLinkClipIdState = mutableStateOf<Long?>(null)
+    private var sensorManager: SensorManager? = null
+    private var accelerometer: Sensor? = null
+    
+    // Emergency Panic Cloak Gesture
+    private val isPanicCloakActive = mutableStateOf(false)
+    private var lastUpdate: Long = 0
+    private var last_x = 0f
+    private var last_y = 0f
+    private var last_z = 0f
+    private val SHAKE_THRESHOLD = 800
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        
         parseDeepLink(intent)
         try {
             if (FirebaseApp.getApps(this).isEmpty()) {
@@ -80,13 +106,65 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LocaliiiyTheme {
-                LocaliiiyApp(
-                    deepLinkClipId = deepLinkClipIdState.value,
-                    onClearDeepLink = { deepLinkClipIdState.value = null }
-                )
+                if (isPanicCloakActive.value) {
+                    // Decoy Screen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "Calculator",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                } else {
+                    LocaliiiyApp(
+                        deepLinkClipId = deepLinkClipIdState.value,
+                        onClearDeepLink = { deepLinkClipIdState.value = null }
+                    )
+                }
             }
         }
     }
+    
+    override fun onResume() {
+        super.onResume()
+        sensorManager?.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager?.unregisterListener(this)
+    }
+
+    override fun onSensorChanged(event: SensorEvent?) {
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            val curTime = System.currentTimeMillis()
+            if ((curTime - lastUpdate) > 100) {
+                val diffTime = (curTime - lastUpdate)
+                lastUpdate = curTime
+                
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+                
+                val speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000
+                if (speed > SHAKE_THRESHOLD) {
+                    // Activate Panic Cloak
+                    isPanicCloakActive.value = true
+                }
+                
+                last_x = x
+                last_y = y
+                last_z = z
+            }
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
@@ -476,6 +554,7 @@ fun LocaliiiyApp(
                         sortOption = marketSortOption,
                         onSortOptionChange = { opt -> viewModel.setMarketSortOption(opt) },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
+                        onOpenComments = { type, id -> viewModel.openComments(type, id) },
                         isRefreshing = isRefreshingMarket,
                         onRefresh = { viewModel.refreshMarket() },
                         countryName = privacySettings.radarCountryName
@@ -637,6 +716,11 @@ fun LocaliiiyApp(
                     )
                 }
 
+                MainNavigationTab.SPACES -> {
+                    SpacesScreen(
+                        currentUserId = viewModel.userProfile.value.username
+                    )
+                }
                 MainNavigationTab.PROFILE -> {
                     ProfileScreen(
                         userProfile = userProfile,
@@ -887,23 +971,11 @@ fun LocaliiiyApp(
     }
 
     // Privacy & Security Settings Screen Overlay
-    if (showBlockedUsersScreen) {
-        androidx.compose.ui.window.Dialog(
-            onDismissRequest = { viewModel.closeBlockedUsersScreen() },
-            properties = androidx.compose.ui.window.DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
-            )
-        ) {
-            BlockedUsersScreen(
-                blockedUsers = blockedUsernames,
-                onBackClick = { viewModel.closeBlockedUsersScreen() },
-                onUnblockUser = { username -> viewModel.unblockUser(username) }
-            )
-        }
-    }
 
     if (showPrivacySettings) {
+        var showBlockedUsers by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+        var showConnectionsManager by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
         androidx.compose.ui.window.Dialog(
             onDismissRequest = { viewModel.closePrivacySettings() },
             properties = androidx.compose.ui.window.DialogProperties(
@@ -911,136 +983,18 @@ fun LocaliiiyApp(
                 decorFitsSystemWindows = false
             )
         ) {
-            PrivacySettingsScreen(
-                privacySettings = privacySettings,
-                onBackClick = { viewModel.closePrivacySettings() },
-                onUpdateLocationRadar = { enabled ->
-                    viewModel.setLocationEnabled(enabled)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (enabled) "Location Radar Enabled 📡" else "Location Radar Disabled (Off Grid) 🔒")
-                    }
-                },
-                onUpdatePrivateAccount = { isPrivate ->
-                    viewModel.setPrivateAccount(isPrivate)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (isPrivate) "Private Account (Ghost Mode) Enabled 👻" else "Public Visibility Enabled 🌐")
-                    }
-                },
-                onUpdateNearbyDiscovery = { allow ->
-                    viewModel.updateNearbyDiscovery(allow)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (allow) "Nearby discovery enabled 🗺️" else "Nearby discovery hidden 🙈")
-                    }
-                },
-                onUpdatePreciseLocation = { precise ->
-                    viewModel.updatePreciseLocation(precise)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (precise) "Precise distance enabled (e.g. 0.6 km)" else "Approximate neighborhood mode enabled")
-                    }
-                },
-                onUpdateNearbyWaves = { allow ->
-                    viewModel.updateNearbyWaves(allow)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (allow) "Proximity waves enabled 👋" else "Proximity waves muted 🔕")
-                    }
-                },
-                onUpdateActiveStatus = { show ->
-                    viewModel.updateActiveStatus(show)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (show) "Active status visible 🟢" else "Active status hidden")
-                    }
-                },
-                onUpdateReadReceipts = { enabled ->
-                    viewModel.updateReadReceipts(enabled)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (enabled) "Read receipts enabled (Seen) ✓✓" else "Read receipts disabled")
-                    }
-                },
-                onUpdateCommentsPrivacy = { option ->
-                    viewModel.updateCommentsPrivacy(option)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Comments privacy updated: $option")
-                    }
-                },
-                onUpdateDirectMessagesPrivacy = { option ->
-                    viewModel.updateDirectMessagesPrivacy(option)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Messages privacy updated: $option")
-                    }
-                },
-                onUpdateTagsAndMentionsPrivacy = { option ->
-                    viewModel.updateTagsAndMentionsPrivacy(option)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Tags & Mentions updated: $option")
-                    }
-                },
-                onUpdateHideMomentsFromStrangers = { hide ->
-                    viewModel.updateHideMomentsFromStrangers(hide)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (hide) "Stories hidden from strangers 🔒" else "Stories visible to nearby feed 🌐")
-                    }
-                },
-                onUpdatePostResharing = { allow ->
-                    viewModel.updatePostResharing(allow)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(if (allow) "Post resharing enabled 🔄" else "Post resharing disabled 🚫")
-                    }
-                },
-                onUpdateSensitiveContentFilter = { filter ->
-                    viewModel.updateSensitiveContentFilter(filter)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Sensitive content filter set to $filter")
-                    }
-                },
-                onUpdateHideMobileNumber = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideMobileNumber = hide)) },
-                onUpdateHideEmailAddress = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideEmailAddress = hide)) },
-                onUpdateHideAddress = { hide -> viewModel.updatePrivacySettings(privacySettings.copy(hideAddress = hide)) },
-                onUpdateHidePreciseLocationOnRadar = { hide ->
-                    viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar(
-                            if (hide) "Precise radar location hidden 🛡️ (Simulated as ${privacySettings.radarObfuscatedRange})"
-                            else "Precise radar location visible 📡"
-                        )
-                    }
-                },
-                onUpdateRadarObfuscatedRange = { range ->
-                    viewModel.updatePrivacySettings(privacySettings.copy(radarObfuscatedRange = range))
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Live Radar range set to '$range' 🌌")
-                    }
-                },
-                onUpdateRadarCountryName = { country ->
-                    viewModel.updatePrivacySettings(privacySettings.copy(radarCountryName = country))
-                },
-                onUpdateAppThemeBackground = { themeKey, imageUri ->
-                    viewModel.updatePrivacySettings(
-                        privacySettings.copy(
-                            appThemeBackground = themeKey,
-                            customBackgroundImageUri = imageUri
-                        )
-                    )
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Atmosphere background updated to $themeKey ✨")
-                    }
-                },
-                onOpenLegalPolicy = { viewModel.openLegalAgreement() },
-                onResetDefaults = {
-                    viewModel.updatePrivacySettings(com.example.data.InitialData.defaultPrivacySettings)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Privacy settings reset to defaults 🔄")
-                    }
-                },
-                onOpenBlockedAccounts = { viewModel.openBlockedUsersScreen() },
-                onOpenUserActivityLog = { viewModel.openUserActivityLog() },
-                onDeleteAccount = {
-                    viewModel.closePrivacySettings()
-                    viewModel.deleteAccountAndPurgeData()
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Account and all personal data permanently erased.")
-                    }
-                }
-            )
+            if (showBlockedUsers) {
+                BlockedUsersScreen(onNavigateBack = { showBlockedUsers = false })
+            } else if (showConnectionsManager) {
+                ConnectionsManagerScreen(onNavigateBack = { showConnectionsManager = false })
+            } else {
+                PrivacySettingsScreen(
+                    onNavigateBack = { viewModel.closePrivacySettings() },
+                    onNavigateToBlockedUsers = { showBlockedUsers = true },
+                    onNavigateToConnections = { showConnectionsManager = true },
+                    onDeleteAccount = { viewModel.deleteAccountAndPurgeData() }
+                )
+            }
         }
     }
 
@@ -1100,6 +1054,18 @@ fun LocaliiiyApp(
             initialMode = authInitialMode,
             securityReason = authReason,
             onDismiss = { viewModel.closeAuthScreen() },
+            onGhostSpectatorSuccess = {
+                viewModel.enterAsGhostSpectator()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+                }
+            },
+            onScrubIdentity = {
+                viewModel.resetSessionAndPurge()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
+                }
+            },
             onAuthSuccess = { user, username, fullName, neighborhood ->
                 viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
                 coroutineScope.launch {
@@ -1300,6 +1266,16 @@ fun LocaliiiyBottomNavigationBar(
                 isSelected = currentTab == MainNavigationTab.CLIPS,
                 onClick = { onTabSelected(MainNavigationTab.CLIPS) },
                 testTag = "nav_tab_clips"
+            )
+
+
+            // Spaces Tab
+            LocaliiiyNavItem(
+                icon = if (currentTab == MainNavigationTab.SPACES) Icons.Default.Groups else Icons.Outlined.Groups,
+                label = "Spaces",
+                isSelected = currentTab == MainNavigationTab.SPACES,
+                onClick = { onTabSelected(MainNavigationTab.SPACES) },
+                testTag = "nav_tab_spaces"
             )
 
             // Profile Tab

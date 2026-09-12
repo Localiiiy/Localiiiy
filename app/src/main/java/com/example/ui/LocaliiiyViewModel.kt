@@ -24,6 +24,7 @@ enum class MainNavigationTab {
     STUDIO,
     CREATE,
     CLIPS,
+    SPACES,
     PROFILE
 }
 
@@ -365,6 +366,46 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             _isLoggedOut.value = false
             _showAuthScreen.value = false
             _authReason.value = null
+        }
+    }
+
+    fun enterAsGhostSpectator(
+        spectatorAlias: String = "Spectator-${(100..999).random()}",
+        anchorNeighborhood: String = "Capitol Hill (Coarse Anchor)"
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
+            val updated = current.copy(
+                username = spectatorAlias,
+                fullName = "Ghost Spectator",
+                bio = "Anonymous neighborhood explorer 👻 • Zero GPS Footprint",
+                neighborhood = anchorNeighborhood,
+                locationName = anchorNeighborhood,
+                category = "Stealth Spectator",
+                isVerified = false
+            )
+            repository.updateProfile(updated)
+            _isPrivateAccount.value = true
+            _isLocationEnabled.value = false
+            _isLoggedOut.value = false
+            _showAuthScreen.value = false
+            _authReason.value = null
+        }
+    }
+
+    fun resetSessionAndPurge() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isPrivateAccount.value = true
+            _isLocationEnabled.value = false
+            _isLoggedOut.value = true
+            val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
+            val reset = current.copy(
+                username = "Ghost-${(1000..9999).random()}",
+                fullName = "Anonymous Explorer",
+                bio = "Stealth mode active • Zero trace",
+                isVerified = false
+            )
+            repository.updateProfile(reset)
         }
     }
 
@@ -1846,7 +1887,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             val newVideo = StudioVideoEntity(
                 title = title.trim(),
                 description = description.trim().ifEmpty { "Created with Localiiiy Studio. Full length creator video ($formattedDuration)." },
-                videoUrl = videoUrl.trim().ifEmpty { "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" },
+                videoUrl = videoUrl.trim().ifEmpty { "https://media.w3.org/2010/05/sintel/trailer.mp4" },
                 thumbnailUrl = thumbnailUrl.trim().ifEmpty { "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80" },
                 durationSeconds = durationSeconds,
                 category = category,

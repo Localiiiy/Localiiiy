@@ -1,10 +1,11 @@
-with open("app/src/main/java/com/example/MainActivity.kt") as f:
+with open('app/src/main/java/com/example/MainActivity.kt', 'r') as f:
     text = f.read()
-balance = 0
-for i, c in enumerate(text):
-    if c == '{': balance += 1
-    elif c == '}': balance -= 1
-    if balance < 0:
-        print(f"Unmatched closing brace at index {i}")
-        break
-print(f"Final balance: {balance}")
+
+count = 0
+for i, char in enumerate(text):
+    if char == '{':
+        count += 1
+    elif char == '}':
+        count -= 1
+
+print(f"Brace count at end: {count}")

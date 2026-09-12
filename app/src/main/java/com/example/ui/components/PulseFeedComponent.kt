@@ -39,6 +39,19 @@ import androidx.compose.foundation.clickable
 import com.example.util.LocaliiiyCurrency
 import com.example.util.LocaliiiyLanguage
 
+import com.example.ui.components.feed.TactileTriDialFeedLens
+import com.example.ui.components.feed.ConcentricSonarRefreshIndicator
+import com.example.ui.components.feed.PriorityBanner
+import com.example.ui.components.feed.PulsePollCard
+import com.example.ui.components.feed.EphemeralPulseCard
+import com.example.ui.components.feed.AudioVoicePulseCard
+import com.example.ui.components.feed.GhostModeFeedWatermark
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.outlined.DataSaverOn
+
 enum class PulseFeedFilter(val label: String, val icon: ImageVector) {
     ALL("All", Icons.Default.Public),
     TRENDING("Trending", Icons.Default.TrendingUp),
@@ -83,6 +96,25 @@ fun PulseFeedComponent(
     val refreshState = rememberPullToRefreshState()
     var isInitialLoad by remember { mutableStateOf(true) }
     var selectedFilter by remember { mutableStateOf(PulseFeedFilter.ALL) }
+    var scaleDial by remember { mutableStateOf("NEIGHBOR") }
+    
+    // Section 2.17: Zero-Algorithm Chronological Toggle
+    var isStrictChronological by remember { mutableStateOf(false) }
+    
+    // Section 2.20: Smart Data Saver Mode Toggle
+    var isDataSaverMode by remember { mutableStateOf(false) }
+
+    // Section 2.9: Ghost Mode Feed Watermark state
+    var showGhostWatermark by remember { mutableStateOf(true) }
+
+    // Section 2.10: Priority Alert Banner state
+    var showPriorityBanner by remember { mutableStateOf(true) }
+
+    // Section 2.4: Ephemeral Pulse Card state
+    var showEphemeralCard by remember { mutableStateOf(true) }
+
+    // Section 2.19: Dismissed posts set for swipe to dismiss
+    var dismissedPostIds by remember { mutableStateOf(setOf<Long>()) }
 
     val systematicOptions = remember(countryName) {
         SystematicDistanceScale.getOptions(countryName)
@@ -96,227 +128,389 @@ fun PulseFeedComponent(
         isInitialLoad = false
     }
 
-    // Filter Posts by All, Trending, Nearby, Following, Latest
-    val displayedPosts = remember(posts, selectedFilter, selectedRadiusKm) {
-        when (selectedFilter) {
-            PulseFeedFilter.ALL -> posts.sortedByDescending { it.timestamp }
-            PulseFeedFilter.TRENDING -> posts.sortedByDescending { (it.likesCount * 3) + it.commentsCount }
-            PulseFeedFilter.NEARBY -> {
-                val radius = selectedRadiusKm ?: 3.0
-                val nearby = posts.filter { (it.distanceKm ?: 99.0) <= radius }
-                if (nearby.isNotEmpty()) nearby.sortedBy { it.distanceKm ?: 99.0 }
-                else posts.sortedBy { it.distanceKm ?: 99.0 }
+    // Filter Posts by All, Trending, Nearby, Following, Latest + Blast Radius Dial + Strict Chronological
+    val displayedPosts = remember(posts, selectedFilter, selectedRadiusKm, scaleDial, isStrictChronological, dismissedPostIds) {
+        val baseFiltered = posts.filter { post ->
+            if (dismissedPostIds.contains(post.id)) return@filter false
+            when (scaleDial) {
+                "NEIGHBOR" -> (post.distanceKm ?: 999.0) <= 5.0
+                "CITY" -> (post.distanceKm ?: 999.0) <= 50.0
+                "EARTH" -> true
+                else -> true
             }
-            PulseFeedFilter.CONNECTED -> {
-                val connected = posts.filter { it.isFollowing }
-                if (connected.isNotEmpty()) connected.sortedByDescending { it.timestamp }
-                else posts.take(5)
+        }
+        
+        if (isStrictChronological) {
+            baseFiltered.sortedByDescending { it.timestamp }
+        } else {
+            when (selectedFilter) {
+                PulseFeedFilter.ALL -> baseFiltered.sortedByDescending { it.timestamp }
+                PulseFeedFilter.TRENDING -> baseFiltered.sortedByDescending { (it.likesCount * 3) + it.commentsCount }
+                PulseFeedFilter.NEARBY -> {
+                    val radius = selectedRadiusKm ?: 3.0
+                    val nearby = baseFiltered.filter { (it.distanceKm ?: 99.0) <= radius }
+                    if (nearby.isNotEmpty()) nearby.sortedBy { it.distanceKm ?: 99.0 }
+                    else baseFiltered.sortedBy { it.distanceKm ?: 99.0 }
+                }
+                PulseFeedFilter.CONNECTED -> {
+                    val connected = baseFiltered.filter { it.isFollowing || it.isConnected }
+                    if (connected.isNotEmpty()) connected.sortedByDescending { it.timestamp }
+                    else baseFiltered.take(5)
+                }
+                PulseFeedFilter.LATEST -> baseFiltered.sortedByDescending { it.timestamp }
             }
-            PulseFeedFilter.LATEST -> posts.sortedByDescending { it.timestamp }
         }
     }
 
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
-        state = refreshState,
-        modifier = modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
-    ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp)
+    Box(modifier = modifier.fillMaxSize()) {
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            state = refreshState,
+            modifier = Modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
         ) {
-            item {
-                StoriesTray(
-                    stories = stories,
-                    userProfile = userProfile,
-                    onStoryClick = onStoryClick,
-                    onAddStoryClick = onAddStoryClick
-                )
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 80.dp)
+            ) {
+                // Section 2.13: Pull-to-Sonar Concentric Refresh Indicator
+                if (isRefreshing) {
+                    item {
+                        ConcentricSonarRefreshIndicator(isRefreshing = true)
+                    }
+                }
 
-            // Hyperlocal Discovery Filter Header
-            item {
-                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
-                    Text(
-                        text = "Pulse Feed",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                // Section 2.1: Tactile Tri-Dial Feed Lens (Neighbor 5km • City 50km • Earth Global)
+                item {
+                    TactileTriDialFeedLens(
+                        selectedDial = scaleDial,
+                        onDialSelected = { scaleDial = it }
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = when (selectedFilter) {
-                            PulseFeedFilter.ALL -> "${displayedPosts.size} Pulses • Showing all local posts"
-                            PulseFeedFilter.TRENDING -> "${displayedPosts.size} Pulses • Trending in your community"
-                            PulseFeedFilter.NEARBY -> "${displayedPosts.size} Pulses • Hyperlocal (within ${selectedRadiusKm ?: 3.0} km)"
-                            PulseFeedFilter.CONNECTED -> "${displayedPosts.size} Pulses • From accounts you are connected with"
-                            PulseFeedFilter.LATEST -> "${displayedPosts.size} Pulses • Freshly shared moments"
-                        },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                }
+
+                // Section 2.10: Priority Alert Banner (Weather/Emergency notice)
+                if (showPriorityBanner) {
+                    item {
+                        PriorityBanner(
+                            title = "⚠️ Flash Flood Advisory • Capitol Hill",
+                            description = "Coarse radius: Capitol Hill / Central District. Stay alert near low-elevation crossings.",
+                            onDismiss = { showPriorityBanner = false }
+                        )
+                    }
+                }
+
+                item {
+                    StoriesTray(
+                        stories = stories,
+                        userProfile = userProfile,
+                        onStoryClick = onStoryClick,
+                        onAddStoryClick = onAddStoryClick
                     )
+                }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                // Hyperlocal Discovery Filter Header
+                item {
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Pulse Feed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = when {
+                                        isStrictChronological -> "${displayedPosts.size} Pulses • Pure Chronological Feed (Zero Algorithmic Bias)"
+                                        selectedFilter == PulseFeedFilter.ALL -> "${displayedPosts.size} Pulses • Showing all local posts"
+                                        selectedFilter == PulseFeedFilter.TRENDING -> "${displayedPosts.size} Pulses • Trending in your community"
+                                        selectedFilter == PulseFeedFilter.NEARBY -> "${displayedPosts.size} Pulses • Hyperlocal (within ${selectedRadiusKm ?: 3.0} km)"
+                                        selectedFilter == PulseFeedFilter.CONNECTED -> "${displayedPosts.size} Pulses • Strict Connection isolation"
+                                        else -> "${displayedPosts.size} Pulses • Freshly shared moments"
+                                    },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
 
-                    // Filter UI Chips
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth().testTag("pulse_feed_filter_row"),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(PulseFeedFilter.values()) { filter ->
-                            val isSelected = selectedFilter == filter
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = { selectedFilter = filter },
-                                label = {
-                                    Text(
-                                        text = filter.label,
-                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                },
-                                leadingIcon = {
+                            // Section 2.17 & 2.20 Controls (Zero Algorithm & Smart Data Saver)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                IconButton(
+                                    onClick = { isStrictChronological = !isStrictChronological },
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isStrictChronological) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
+                                        .testTag("btn_chronological_toggle")
+                                ) {
                                     Icon(
-                                        imageVector = filter.icon,
-                                        contentDescription = filter.label,
+                                        imageVector = Icons.Outlined.Timer,
+                                        contentDescription = "Strict Chronological",
+                                        tint = if (isStrictChronological) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp)
                                     )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                ),
-                                modifier = Modifier.testTag("pulse_filter_${filter.name.lowercase()}")
-                            )
-                        }
-                    }
+                                }
 
-                    // Systematic Distance Filter Row (when NEARBY is selected)
-                    if (selectedFilter == PulseFeedFilter.NEARBY) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "DISTANCE RANGE:",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("pulse_feed_distance_row"),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            items(systematicOptions) { opt ->
-                                val isSelected = kotlin.math.abs((selectedRadiusKm ?: 3.0) - opt.km) < 0.1 ||
-                                        (opt.key == "COUNTRY" && selectedRadiusKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
-                                        (opt.key == "EARTH" && selectedRadiusKm == SystematicDistanceScale.EARTH_KM) ||
-                                        (opt.key == "GALAXY" && selectedRadiusKm == SystematicDistanceScale.GALAXY_KM)
-                                Surface(
-                                    shape = RoundedCornerShape(14.dp),
-                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                                    border = BorderStroke(
-                                        1.dp,
-                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                                    ),
+                                IconButton(
+                                    onClick = { isDataSaverMode = !isDataSaverMode },
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .clickable { onRadiusFilterChange(opt.km) }
-                                        .testTag("pulse_distance_pill_${opt.key.lowercase()}")
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(if (isDataSaverMode) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant)
+                                        .testTag("btn_data_saver_toggle")
                                 ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text(text = opt.icon, fontSize = 11.sp)
+                                    Icon(
+                                        imageVector = Icons.Outlined.DataSaverOn,
+                                        contentDescription = "Data Saver",
+                                        tint = if (isDataSaverMode) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Filter UI Chips
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth().testTag("pulse_feed_filter_row"),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(PulseFeedFilter.values()) { filter ->
+                                val isSelected = selectedFilter == filter && !isStrictChronological
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = {
+                                        selectedFilter = filter
+                                        isStrictChronological = false
+                                    },
+                                    label = {
                                         Text(
-                                            text = opt.shortLabel,
-                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                            fontSize = 11.5.sp,
+                                            text = filter.label,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                         )
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = filter.icon,
+                                            contentDescription = filter.label,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    ),
+                                    modifier = Modifier.testTag("pulse_filter_${filter.name.lowercase()}")
+                                )
+                            }
+                        }
+
+                        // Systematic Distance Filter Row (when NEARBY is selected)
+                        if (selectedFilter == PulseFeedFilter.NEARBY && !isStrictChronological) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "DISTANCE RANGE:",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("pulse_feed_distance_row"),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                items(systematicOptions) { opt ->
+                                    val isSelected = kotlin.math.abs((selectedRadiusKm ?: 3.0) - opt.km) < 0.1 ||
+                                            (opt.key == "COUNTRY" && selectedRadiusKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
+                                            (opt.key == "EARTH" && selectedRadiusKm == SystematicDistanceScale.EARTH_KM) ||
+                                            (opt.key == "GALAXY" && selectedRadiusKm == SystematicDistanceScale.GALAXY_KM)
+                                    Surface(
+                                        shape = RoundedCornerShape(14.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                        ),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .clickable { onRadiusFilterChange(opt.km) }
+                                            .testTag("pulse_distance_pill_${opt.key.lowercase()}")
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(text = opt.icon, fontSize = 11.sp)
+                                            Text(
+                                                text = opt.shortLabel,
+                                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                fontSize = 11.5.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if (isInitialLoad || isRefreshing) {
-                items(4) {
-                    PostSkeleton()
-                }
-            } else if (displayedPosts.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                // Section 2.4: Decaying Flash Pulse Card
+                if (showEphemeralCard && posts.isNotEmpty()) {
+                    item {
+                        EphemeralPulseCard(
+                            post = posts.first(),
+                            totalDurationHours = 8,
+                            remainingMinutesInitial = 265,
+                            onDismiss = { showEphemeralCard = false }
                         )
-                    ) {
-                        Column(
+                    }
+                }
+
+                // Section 2.11: Interactive Community Poll Pulse Card
+                item {
+                    PulsePollCard()
+                }
+
+                // Section 2.15: Audio Voice Pulse Card
+                if (posts.size > 1) {
+                    item {
+                        AudioVoicePulseCard(post = posts[1])
+                    }
+                }
+
+                if (isInitialLoad || isRefreshing) {
+                    items(4) {
+                        PostSkeleton()
+                    }
+                } else if (displayedPosts.isEmpty()) {
+                    item {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            )
                         ) {
-                            Icon(
-                                imageVector = selectedFilter.icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(36.dp)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = selectedFilter.icon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "No pulses found for '${selectedFilter.label}'",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Tap 'All' to browse community pulses or create one!",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    itemsIndexed(items = displayedPosts, key = { _, post -> "post_${post.id}" }) { index, item ->
+                        if (index > 0 && index % 3 == 0) {
+                            AdBannerComponent()
+                        }
+
+                        // Section 2.19: Haptic Swipe to Dismiss for Read Pulses
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            confirmValueChange = { dismissValue ->
+                                if (dismissValue == SwipeToDismissBoxValue.EndToStart || dismissValue == SwipeToDismissBoxValue.StartToEnd) {
+                                    dismissedPostIds = dismissedPostIds + item.id
+                                    true
+                                } else false
+                            }
+                        )
+
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp)
+                                        .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+                                    contentAlignment = Alignment.CenterEnd
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(end = 20.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.DeleteOutline,
+                                            contentDescription = "Dismiss Pulse",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                        Text(
+                                            text = "Dismiss Pulse",
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onErrorContainer,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                            }
+                        ) {
+                            PostCard(
+                                post = item,
+                                onLikeClick = { onLikePost(item) },
+                                onCommentClick = { onCommentPost(item) },
+                                onShareClick = { onSharePost(item) },
+                                onSaveClick = { onSavePost(item) },
+                                onUserClick = { onUserProfileClick(item.username) },
+                                modifier = Modifier.animateItem()
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "No pulses found for '${selectedFilter.label}'",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "Tap 'All' to browse community pulses or create one!",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        
+                        if (index > 0 && index % 5 == 0 && sponsoredAds.isNotEmpty()) {
+                            val adIndex = (index / 5) % sponsoredAds.size
+                            val ad = sponsoredAds[adIndex]
+                            SponsoredAdCard(
+                                ad = ad,
+                                currentCurrency = currentCurrency,
+                                currentLanguage = currentLanguage,
+                                onAdImpression = { onAdImpression(ad.id) },
+                                onAdClick = { onAdClick(ad.id) },
+                                modifier = Modifier.animateItem()
                             )
                         }
                     }
                 }
-            } else {
-                itemsIndexed(items = displayedPosts, key = { _, post -> "post_${post.id}" }) { index, item ->
-                    if (index > 0 && index % 3 == 0) {
-                        AdBannerComponent()
-                    }
-                    PostCard(
-                        post = item,
-                        onLikeClick = { onLikePost(item) },
-                        onCommentClick = { onCommentPost(item) },
-                        onShareClick = { onSharePost(item) },
-                        onSaveClick = { onSavePost(item) },
-                        onUserClick = { onUserProfileClick(item.username) },
-                        modifier = Modifier.animateItem()
-                    )
-                    
-                    if (index > 0 && index % 5 == 0 && sponsoredAds.isNotEmpty()) {
-                        val adIndex = (index / 5) % sponsoredAds.size
-                        val ad = sponsoredAds[adIndex]
-                        SponsoredAdCard(
-                            ad = ad,
-                            currentCurrency = currentCurrency,
-                            currentLanguage = currentLanguage,
-                            onAdImpression = { onAdImpression(ad.id) },
-                            onAdClick = { onAdClick(ad.id) },
-                            modifier = Modifier.animateItem()
-                        )
-                    }
-                }
             }
         }
+
+        // Section 2.9: Ghost Mode Floating Watermark Pill
+        GhostModeFeedWatermark(
+            isVisible = showGhostWatermark,
+            onDismiss = { showGhostWatermark = false },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

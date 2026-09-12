@@ -1422,7 +1422,7 @@ object InitialData {
             id = 1L,
             title = "Seattle Underground: 120-Year Secret History Beneath Pioneer Square (Full 4K Documentary)",
             description = "Explore the subterranean world beneath Seattle's cobblestone streets following the Great Seattle Fire of 1889. Journey through forgotten storefronts, hidden brick archways, and the pioneer origins of the Pacific Northwest.\n\nCHAPTERS:\n00:00 - Introduction & The Great Fire\n08:30 - Raising the Streets 22 Feet\n21:40 - The Lost Hotel & Bank Vaults\n36:15 - Forgotten Saloons & Prohibition\n44:10 - Preserving Underground History",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1502175353174-a7a70e73b362?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 2910, // 48m 30s
             category = "Documentaries",
@@ -1449,7 +1449,7 @@ object InitialData {
             id = 2L,
             title = "Pike Place Sunset Acoustic Live Session - Full Album Premiere & Behind the Chords",
             description = "Recorded live on the rooftop deck overlooking Elliott Bay during golden hour. Featuring original folk and indie-acoustic compositions with warm cello accompaniment.\n\nSETLIST:\n00:00 - Emerald Haze (Intro)\n06:20 - Rain on Cobblestone\n18:45 - The Sound & The Ferry\n32:10 - Mount Rainier Twilight\n48:30 - Midnight at the Market\n59:00 - Acoustic Encore",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 3855, // 64m 15s
             category = "Music",
@@ -1476,7 +1476,7 @@ object InitialData {
             id = 3L,
             title = "The Localiiiy Tech & Creator Podcast #42: Autonomous Urban Transit, Drone Deliveries & Decentralized Social",
             description = "In this deep dive episode, we sit down with leading civic technologists and autonomous vehicle engineers to discuss the upcoming 2026 light-rail expansions, AI-assisted neighborhood zoning, and open-protocol creator platforms.\n\nTIMESTAMPS:\n00:00 - Opening & Seattle Transit Today\n12:30 - Autonomous Shuttles on Waterfront\n34:15 - Urban Air Mobility & Delivery Drones\n58:20 - Decentralized Social & Creator Economy\n1:18:40 - Audience Q&A from Localiiiy Chat",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 5530, // 92m 10s
             category = "Podcasts",
@@ -1503,7 +1503,7 @@ object InitialData {
             id = 4L,
             title = "Localiiiy Daily Metro Dispatch: Puget Sound Ferry Upgrades, Weather Outlook & Weekend Events",
             description = "Your comprehensive 18-minute community news roundup. Updates on the new hybrid-electric Washington State Ferries, downtown civic revitalization, Ballard locks salmon migration, and weekend community farmers market schedules.\n\nTOPICS:\n00:00 - Headline Summary\n03:15 - Hybrid Ferry Fleet Updates\n08:40 - Puget Sound Weather & Marine Forecast\n12:20 - Weekend Art Walks & Neighborhood Markets\n16:10 - Localiiiy Community Announcements",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 1125, // 18m 45s
             category = "News",
@@ -1530,7 +1530,7 @@ object InitialData {
             id = 5L,
             title = "Ultimate 2026 Camera Rig & Drone Setup for Indie Filmmakers - Complete 2-Hour Masterclass",
             description = "A thorough, hands-on production guide for solo video creators and cinematographers. We break down cinema lenses, dual-native ISO exposure techniques, gimbal balancing, wireless audio transmitters, and log color grading workflows in DaVinci Resolve.\n\nBREAKDOWN:\n00:00 - Rig Building Philosophy\n15:20 - Sensor Selection & Lens Packages\n38:00 - Dynamic Lighting on Location\n1:04:10 - Drone Cinematography & ND Filters\n1:35:40 - Professional Audio & Timecode Sync\n1:52:00 - Color Grading in ACES & Rec.709",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 7485, // 124m 45s
             category = "Tech",
@@ -1557,7 +1557,7 @@ object InitialData {
             id = 6L,
             title = "Waterfront to Table: 10 Historic Pacific Northwest Seafood Recipes Masterclass",
             description = "Join chef Chloe Dupont at Pike Place Market as we source wild king salmon, Dungeness crab, Penn Cove mussels, and spot prawns directly from local fishmongers, followed by an in-depth cooking workshop with cedar plank roasting and saffron broth reduction.\n\nRECIPES:\n00:00 - Sourcing Fresh at Pike Place\n08:15 - King Salmon with Crispy Skin\n18:40 - Steamed Dungeness Crab with Herb Butter\n29:20 - Penn Cove Mussels in White Wine\n38:00 - Spot Prawn Ceviche",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 2720, // 45m 20s
             category = "Food & Cooking",
@@ -1584,7 +1584,7 @@ object InitialData {
             id = 7L,
             title = "Pacific Northwest Indie Game Showcase & 3-Hour Developer Playthrough (Unreal Engine 5)",
             description = "A massive 3-hour deep dive into 6 brand new indie titles developed by Pacific Northwest studios. We test live gameplay, analyze procedural terrain generation in Unreal Engine 5, interview developers, and explore ray-traced atmospheric lighting.\n\nGAMES COVERED:\n00:00 - Showcase Intro & Studio Tours\n25:00 - Title 1: Mist of the Cascades\n55:20 - Title 2: Puget Sound Cyberpunk 2099\n1:30:10 - Title 3: Subterranean Metro Explorer\n2:10:45 - Title 4: Pine & Shadow Horror\n2:45:00 - Final Thoughts & Release Dates",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 10800, // 180m 00s (3 hours)
             category = "Gaming",
@@ -1611,7 +1611,7 @@ object InitialData {
             id = 8L,
             title = "Walking Every Street in Downtown Seattle: 4-Hour Ambient Binaural Walking Tour (Max Length)",
             description = "The ultimate 4-hour (240 minutes) continuous walking documentary. Recorded in 4K 60fps HDR with 3D binaural spatial audio. Experience the sights and natural sounds from Pioneer Square to Pike Place, Belltown, Denny Triangle, and the Seattle Center Waterfront at sunset.\n\nTIMESTAMPS:\n00:00 - Pioneer Square Historic Cobblestones\n45:00 - Central Waterfront & Ferry Docks\n1:30:00 - Pike Place Market & Flower Row\n2:15:00 - Belltown Cafes & Wall Street\n3:00:00 - Denny Triangle & Spheres Architecture\n3:40:00 - Seattle Center Monorail & Space Needle",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 14400, // 240m 00s (Maximum 4 hours allowed)
             category = "Neighborhood & Culture",
@@ -1638,7 +1638,7 @@ object InitialData {
             id = 9L,
             title = "Urban Architecture & Modern Sustainable Cities: Complete 75-Minute University Masterclass",
             description = "A university-level lecture covering passive solar design, mass timber high-rises, green roof biodiversity, transit-oriented development, and 15-minute neighborhood zoning principles.\n\nMODULES:\n00:00 - Course Overview & History of Modern Density\n14:20 - Mass Timber vs Structural Steel\n32:10 - Sponge Cities & Stormwater Systems\n48:30 - Pedestrian Corridors & Micro-Mobility\n1:05:00 - Future Cities Case Studies",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 4530, // 75m 30s
             category = "Education",
@@ -1665,7 +1665,7 @@ object InitialData {
             id = 10L,
             title = "Pacific Northwest Slow Living & Artisan Coffee Tour - 45 Minutes of Cozy Seattle Moments",
             description = "Experience the slower rhythms of the Emerald City. We visit hidden roasteries across Ballard, Queen Anne, and Capitol Hill, discussing pour-over rituals, local ceramics, indie bookstores, and seasonal wellness practices in the rainy season.\n\nCHAPTERS:\n00:00 - Morning Light in Ballard\n08:45 - Single-Origin Pour-Over Ritual\n21:30 - Indie Bookshop Crawl\n34:10 - Japanese Garden Tea Ceremony\n41:00 - Evening Sound Reflections",
-            videoUrl = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUrl = "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 2700, // 45m
             category = "Lifestyle",
@@ -1771,7 +1771,7 @@ object InitialData {
             title = "Sound & Timber: Acoustic Architecture of Seattle Concert Halls (Episode 1)",
             description = "Drafting an in-depth documentary examining cedar acoustics, reverberation engineering, and intimate live performances in historical Pacific Northwest music halls.",
             category = "Music",
-            videoUri = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            videoUri = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUri = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 1920, // 32m
             tags = "#Music #Acoustics #SeattleSound #StudioDraft",
@@ -1785,7 +1785,7 @@ object InitialData {
             title = "Decentralized Hyperlocal Networks: The Future of City Civic Feeds",
             description = "A tech deep dive on P2P wireless mesh grids, local device encryption, and civic transparency tools.",
             category = "Tech",
-            videoUri = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUri = "https://media.w3.org/2010/05/sintel/trailer.mp4",
             thumbnailUri = "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80",
             durationSeconds = 3600, // 60m
             tags = "#Tech #Networks #CivicTech #StudioDraft",

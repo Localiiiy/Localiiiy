@@ -42,12 +42,14 @@ import com.example.auth.FirebaseAuthService
 import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyDeepNavy
 import com.example.ui.theme.LocaliiiyPrimaryTeal
+import com.example.ui.screens.onboarding.*
 import com.example.util.PasswordSecurityHelper
 import kotlinx.coroutines.launch
 
 enum class AuthScreenMode {
     LOGIN,
-    REGISTER
+    REGISTER,
+    ZERO_KNOWLEDGE_ONBOARDING
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +58,8 @@ fun AuthScreen(
     initialMode: AuthScreenMode = AuthScreenMode.LOGIN,
     securityReason: String? = null,
     onDismiss: () -> Unit,
+    onGhostSpectatorSuccess: () -> Unit = {},
+    onScrubIdentity: () -> Unit = {},
     onAuthSuccess: (user: AuthUserState, username: String, fullName: String, neighborhood: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -83,6 +87,27 @@ fun AuthScreen(
     var acceptedNDA by remember { mutableStateOf(false) }
     var acceptedLawDisclosure by remember { mutableStateOf(false) }
     var showFullNdaModal by remember { mutableStateOf(false) }
+
+    // Section 1: Zero-Knowledge & Identity Setup State
+    var selectedAnchor by remember { mutableStateOf(defaultAnchorOptions[0]) }
+    var ghostAlias by remember { mutableStateOf("MetroSparrow-842") }
+    var activePersona by remember { mutableStateOf("CREATOR") }
+    var localCircles by remember { mutableStateOf(defaultLocalCircles) }
+    var isBiometricVaultEnabled by remember { mutableStateOf(false) }
+    var isProximityScanning by remember { mutableStateOf(false) }
+    var selectedInterests by remember { mutableStateOf(listOf("Local Food & Coffee", "Indie Film & Clips", "Urban Photography", "Maker Crafts")) }
+    var startInGhostMode by remember { mutableStateOf(false) }
+    var publicHeadline by remember { mutableStateOf("Visual storyteller & local explorer 🌿📸") }
+    var connectionValue by remember { mutableStateOf("Sharing neighborhood hidden spots, equipment lending & local collaborations.") }
+    var birthYear by remember { mutableStateOf(2000) }
+    var creatorCategory by remember { mutableStateOf("Filmmaker 🎬") }
+    var selectedTheme by remember { mutableStateOf(OnboardingThemePalette.NEON_CYBER) }
+    var isPanicCloakEnabled by remember { mutableStateOf(true) }
+    var hasAcceptedCovenant by remember { mutableStateOf(true) }
+    var referralCode by remember { mutableStateOf("") }
+    var welcomeCreators by remember { mutableStateOf(defaultLocalWelcomeCreators) }
+    var showWelcomeModal by remember { mutableStateOf(false) }
+    var pendingAuthSuccessUser by remember { mutableStateOf<AuthUserState?>(null) }
 
     // Status & Loading State
     var isLoading by remember { mutableStateOf(false) }
@@ -142,6 +167,21 @@ fun AuthScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Close Authentication"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            onScrubIdentity()
+                            statusSuccessMessage = "Session scrubbed & local caches purged. 🧹"
+                        },
+                        modifier = Modifier.testTag("auth_topbar_scrub_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteSweep,
+                            contentDescription = "One-Tap Identity Scrub",
+                            tint = MaterialTheme.colorScheme.error
                         )
                     }
                 },
@@ -208,6 +248,17 @@ fun AuthScreen(
                 }
             }
 
+            // Section 1: Ephemeral Spectator Entrance Banner
+            EphemeralSpectatorBanner(
+                onEnterAsGhostSpectator = {
+                    onGhostSpectatorSuccess()
+                    onDismiss()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+
             // Top Visual Emblem
             Box(
                 modifier = Modifier
@@ -230,7 +281,11 @@ fun AuthScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (mode == AuthScreenMode.LOGIN) Icons.Default.LockPerson else Icons.Default.VerifiedUser,
+                        imageVector = when (mode) {
+                            AuthScreenMode.LOGIN -> Icons.Default.LockPerson
+                            AuthScreenMode.REGISTER -> Icons.Default.VerifiedUser
+                            AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING -> Icons.Default.Shield
+                        },
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
@@ -241,7 +296,11 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = if (mode == AuthScreenMode.LOGIN) "Welcome to Localiiiy" else "Join Verified Neighborhood",
+                text = when (mode) {
+                    AuthScreenMode.LOGIN -> "Welcome to Localiiiy"
+                    AuthScreenMode.REGISTER -> "Join Verified Neighborhood"
+                    AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING -> "Zero-Knowledge Identity Setup"
+                },
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
@@ -250,18 +309,19 @@ fun AuthScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = if (mode == AuthScreenMode.LOGIN)
-                    "Sign in with your Firebase credentials to manage your posts and pulses."
-                else
-                    "Register with email to publish clips, broadcast radar pulses, and secure your content.",
+                text = when (mode) {
+                    AuthScreenMode.LOGIN -> "Sign in with your Firebase credentials to manage your posts and pulses."
+                    AuthScreenMode.REGISTER -> "Register with email to publish clips, broadcast radar pulses, and secure your content."
+                    AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING -> "Configure dual personas, fuzzy geohash anchors, and sovereign privacy dials."
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
-            // Dual Mode Pill Switcher
+            // Tri-Mode Pill Switcher
             Surface(
                 shape = RoundedCornerShape(100.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
@@ -280,7 +340,7 @@ fun AuthScreen(
                         color = if (mode == AuthScreenMode.LOGIN) LocaliiiyPrimaryTeal else Color.Transparent,
                         modifier = Modifier
                             .weight(1f)
-                            .height(40.dp)
+                            .height(38.dp)
                             .clickable {
                                 mode = AuthScreenMode.LOGIN
                                 errorMessage = null
@@ -297,13 +357,13 @@ fun AuthScreen(
                                 imageVector = Icons.Default.Login,
                                 contentDescription = null,
                                 tint = if (mode == AuthScreenMode.LOGIN) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(15.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "Sign In",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 12.5.sp,
                                 color = if (mode == AuthScreenMode.LOGIN) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -315,7 +375,7 @@ fun AuthScreen(
                         color = if (mode == AuthScreenMode.REGISTER) LocaliiiyPrimaryTeal else Color.Transparent,
                         modifier = Modifier
                             .weight(1f)
-                            .height(40.dp)
+                            .height(38.dp)
                             .clickable {
                                 mode = AuthScreenMode.REGISTER
                                 errorMessage = null
@@ -332,14 +392,49 @@ fun AuthScreen(
                                 imageVector = Icons.Default.PersonAdd,
                                 contentDescription = null,
                                 tint = if (mode == AuthScreenMode.REGISTER) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(15.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "Register",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
+                                fontSize = 12.5.sp,
                                 color = if (mode == AuthScreenMode.REGISTER) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // Zero-Knowledge Tab
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = if (mode == AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING) LocaliiiyPrimaryTeal else Color.Transparent,
+                        modifier = Modifier
+                            .weight(1.1f)
+                            .height(38.dp)
+                            .clickable {
+                                mode = AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING
+                                errorMessage = null
+                                statusSuccessMessage = null
+                            }
+                            .testTag("auth_mode_zk_tab")
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = if (mode == AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "ZK Setup",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.5.sp,
+                                color = if (mode == AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -418,7 +513,7 @@ fun AuthScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    if (currentMode == AuthScreenMode.REGISTER) {
+                    if (currentMode != AuthScreenMode.LOGIN) {
                         // Full Name
                         OutlinedTextField(
                             value = fullName,
@@ -560,14 +655,14 @@ fun AuthScreen(
                     )
 
                     // Live Password Strength Indicator (For Registration)
-                    if (currentMode == AuthScreenMode.REGISTER && password.isNotEmpty()) {
+                    if (currentMode != AuthScreenMode.LOGIN && password.isNotEmpty()) {
                         PasswordStrengthMeter(
                             strength = passwordStrength,
                             password = password
                         )
                     }
 
-                    if (currentMode == AuthScreenMode.REGISTER) {
+                    if (currentMode != AuthScreenMode.LOGIN) {
                         // Confirm Password
                         OutlinedTextField(
                             value = confirmPassword,
@@ -618,27 +713,150 @@ fun AuthScreen(
                                 .testTag("auth_confirm_password_input")
                         )
 
-                        // Neighborhood Locality Field
-                        OutlinedTextField(
-                            value = neighborhood,
-                            onValueChange = { neighborhood = it },
-                            label = { Text("Primary Neighborhood") },
-                            placeholder = { Text("e.g. Capitol Hill, Seattle") },
-                            leadingIcon = {
-                                Icon(Icons.Outlined.LocationOn, contentDescription = null)
+                        // Section 1.2: Zero-Knowledge Anchor Selection (Fuzzy Geohash Coarse Bounds)
+                        ZeroKnowledgeAnchorPicker(
+                            selectedAnchor = selectedAnchor,
+                            onAnchorSelected = { anchor ->
+                                selectedAnchor = anchor
+                                neighborhood = "${anchor.name}, ${anchor.city}"
                             },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Done
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onDone = { focusManager.clearFocus() }
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .testTag("auth_neighborhood_input")
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.3 & 1.6: Dual-Persona Setup & Localized Alias Generator
+                        DualPersonaCardSetup(
+                            creatorHandle = username.ifEmpty { "alex_creator" },
+                            onCreatorHandleChange = { username = it },
+                            ghostAlias = ghostAlias,
+                            onGhostAliasChange = { ghostAlias = it },
+                            onRegenerateGhostAlias = {
+                                val prefixes = listOf("MetroSparrow", "BayFalcon", "TimberLynx", "HarborSeal", "HighlandHawk", "CascadeFox", "UrbanOwl", "CanyonWolf")
+                                ghostAlias = "${prefixes.random()}-${(100..999).random()}"
+                            },
+                            activePersona = activePersona,
+                            onPersonaToggle = { activePersona = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        LocalizedAliasGenerator(
+                            currentAlias = ghostAlias,
+                            onAliasGenerated = { ghostAlias = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.16: Creator Category Certification
+                        CreatorCategoryCertification(
+                            selectedCategory = creatorCategory,
+                            onCategorySelected = { creatorCategory = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.14: Custom Connection Pitch Bio
+                        CustomConnectionPitchBioField(
+                            headline = publicHeadline,
+                            onHeadlineChange = { publicHeadline = it },
+                            connectionValue = connectionValue,
+                            onConnectionValueChange = { connectionValue = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.11: Interest Constellation Mapping
+                        InterestConstellationMapping(
+                            selectedInterests = selectedInterests,
+                            onToggleInterest = { interest ->
+                                selectedInterests = if (selectedInterests.contains(interest)) {
+                                    selectedInterests - interest
+                                } else {
+                                    selectedInterests + interest
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.5: No-Tracking Privacy Guarantee Badge
+                        NoTrackingPrivacyGuaranteeBadge(
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.7: Creator Distribution Primer Carousel
+                        CreatorDistributionPrimerCarousel(
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.4: Mutual Connection Rings Genesis
+                        MutualConnectionRingsCard(
+                            circles = localCircles,
+                            onToggleConnection = { circle ->
+                                localCircles = localCircles.map {
+                                    if (it.id == circle.id) it.copy(isConnected = !it.isConnected) else it
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.12: Ghost Mode Default Pre-Selection
+                        GhostModePreSelectionToggle(
+                            isGhostModeDefault = startInGhostMode,
+                            onToggle = { startInGhostMode = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.15: Age-Appropriate Geographic Gating
+                        AgeAppropriateGatingCard(
+                            birthYear = birthYear,
+                            onBirthYearChange = { birthYear = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.17: Dynamic Visual Theme Selection
+                        DynamicVisualThemeSelector(
+                            selectedTheme = selectedTheme,
+                            onThemeSelected = { selectedTheme = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.8: Biometric Vault Protection
+                        BiometricVaultProtectionCard(
+                            isBiometricVaultEnabled = isBiometricVaultEnabled,
+                            onToggleBiometricVault = { isBiometricVaultEnabled = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.18: Stealth Quick-Exit Gesture Setup ("Panic Cloak")
+                        StealthQuickExitGestureCard(
+                            isPanicCloakEnabled = isPanicCloakEnabled,
+                            onToggle = { isPanicCloakEnabled = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.10: Proximity Connection Discovery
+                        ProximityConnectionDiscoveryView(
+                            isScanning = isProximityScanning,
+                            onStartScan = { isProximityScanning = !isProximityScanning },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.20: Seamless Deep-Link Referral Handshake
+                        SeamlessDeepLinkReferralField(
+                            referralCode = referralCode,
+                            onReferralCodeChange = { referralCode = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.19: Terms of Respect & Anti-Harassment Compact
+                        TermsOfRespectCompactCard(
+                            hasAccepted = hasAcceptedCovenant,
+                            onToggleAcceptance = { hasAcceptedCovenant = it },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        // Section 1.9: One-Tap Identity Scrub
+                        OneTapIdentityScrubButton(
+                            onScrubIdentity = {
+                                onScrubIdentity()
+                                statusSuccessMessage = "Session data purged and caches cleared. 🧹✨"
+                            },
+                            modifier = Modifier.fillMaxWidth()
                         )
 
                         // Mandatory NDA & Confidentiality Agreement Card
@@ -932,12 +1150,8 @@ fun AuthScreen(
                                         is AuthResult.Success -> {
                                             statusSuccessMessage = result.message
                                             PasswordSecurityHelper.savePassword(context, password)
-                                            onAuthSuccess(
-                                                result.user,
-                                                username,
-                                                fullName,
-                                                neighborhood
-                                            )
+                                            pendingAuthSuccessUser = result.user
+                                            showWelcomeModal = true
                                         }
                                         is AuthResult.Error -> {
                                             errorMessage = result.errorMessage
@@ -1069,6 +1283,69 @@ fun AuthScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+
+    // Section 1.13: Neighborhood Welcome Dispatch Modal (Shown upon successful account creation)
+    if (showWelcomeModal && pendingAuthSuccessUser != null) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = {
+                showWelcomeModal = false
+                onAuthSuccess(
+                    pendingAuthSuccessUser!!,
+                    username,
+                    fullName,
+                    "${selectedAnchor.name}, ${selectedAnchor.city}"
+                )
+            },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth(0.95f)
+                    .wrapContentHeight(),
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    NeighborhoodWelcomeDispatchCard(
+                        welcomeCreators = welcomeCreators,
+                        onToggleConnect = { creator ->
+                            welcomeCreators = welcomeCreators.map {
+                                if (it.username == creator.username) it.copy(isConnected = !it.isConnected) else it
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            showWelcomeModal = false
+                            onAuthSuccess(
+                                pendingAuthSuccessUser!!,
+                                username,
+                                fullName,
+                                "${selectedAnchor.name}, ${selectedAnchor.city}"
+                            )
+                        },
+                        shape = RoundedCornerShape(100.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp)
+                            .testTag("btn_proceed_to_neighborhood")
+                    ) {
+                        Text("Proceed to My Neighborhood →", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }

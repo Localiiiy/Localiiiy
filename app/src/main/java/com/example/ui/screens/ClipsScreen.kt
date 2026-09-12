@@ -1,5 +1,11 @@
 package com.example.ui.screens
 
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.graphics.graphicsLayer
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -130,6 +136,20 @@ fun ClipsScreen(
         }
     }
 
+
+    // Background Video Preloading Queue
+    LaunchedEffect(pagerState.currentPage, displayedClips) {
+        val nextIndices = listOf(
+            pagerState.currentPage + 1,
+            pagerState.currentPage + 2
+        ).filter { it < displayedClips.size }
+        
+        val urlsToCache = nextIndices.map { displayedClips[it].mediaUrl }
+        if (urlsToCache.isNotEmpty()) {
+            com.example.util.ExoPlayerCacheHelper.preCacheVideos(context, urlsToCache)
+        }
+    }
+
     if (isAutoScrollEnabled && displayedClips.isNotEmpty()) {
         LaunchedEffect(isAutoScrollEnabled, pagerState.settledPage) {
             delay(11000L) // Auto scroll 1 second before completion of clip (11s out of 12s)
@@ -153,8 +173,10 @@ fun ClipsScreen(
             state = rememberPullToRefreshState(),
             modifier = Modifier.fillMaxSize()
         ) {
+
             VerticalPager(
                 state = pagerState,
+                flingBehavior = androidx.compose.foundation.pager.PagerDefaults.flingBehavior(state = pagerState),
                 modifier = Modifier.fillMaxSize()
             ) { page ->
             val clip = displayedClips[page]
@@ -350,6 +372,14 @@ private fun ClipItem(
     var showReportDialog by remember { mutableStateOf(false) }
     var showReportSuccessSnackbar by remember { mutableStateOf(false) }
 
+
+    val haptic = LocalHapticFeedback.current
+    var isCinemaMode by remember { mutableStateOf(false) }
+    var playbackSpeed by remember { mutableStateOf(1f) }
+    var showCaptionsSheet by remember { mutableStateOf(false) }
+    var showSoundtrackSheet by remember { mutableStateOf(false) }
+    
+    // Modify video progress tween based on playbackSpeed (mock behavior)
     val heartScale = remember { Animatable(1f) }
 
     val infiniteTransition = rememberInfiniteTransition(label = "disc_rotation")
@@ -379,8 +409,11 @@ private fun ClipItem(
         }
     }
 
+
     fun handleDoubleTap() {
         showBigHeart = true
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+
         if (!clip.isLiked) {
             coroutineScope.launch {
                 heartScale.animateTo(1.3f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
@@ -409,8 +442,23 @@ private fun ClipItem(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onDoubleTap = { handleDoubleTap() },
-                    onTap = { togglePlayPause() }
+                    onTap = { 
+                        if (isCinemaMode) isCinemaMode = false else togglePlayPause() 
+                    },
+                    onPress = {
+                        playbackSpeed = 2f
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        tryAwaitRelease()
+                        playbackSpeed = 1f
+                    }
                 )
+            }
+            .pointerInput(Unit) {
+                detectTransformGestures { _, _, zoom, _ ->
+                    if (zoom > 1.2f && !isCinemaMode) {
+                        isCinemaMode = true
+                    }
+                }
             }
             .testTag("clip_item_${clip.id}")
     ) {
@@ -423,20 +471,27 @@ private fun ClipItem(
         )
 
         // Gradient overlay
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Black.copy(alpha = 0.45f),
-                            Color.Transparent,
-                            Color.Transparent,
-                            Color.Black.copy(alpha = 0.88f)
+        AnimatedVisibility(
+            visible = !isCinemaMode,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.45f),
+                                Color.Transparent,
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.88f)
+                            )
                         )
                     )
-                )
-        )
+            )
+        }
 
         // Center Play/Pause
         AnimatedVisibility(
@@ -469,7 +524,7 @@ private fun ClipItem(
             modifier = Modifier.align(Alignment.Center)
         ) {
             Text(
-                text = "👌",
+                text = "❤️",
                 fontSize = 96.sp
             )
         }
@@ -478,13 +533,14 @@ private fun ClipItem(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
                 .padding(end = 12.dp, bottom = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Like Action (Animated 👌)
             ClipActionButton(
-                symbolText = "👌",
+                symbolText = "❤️",
                 label = formatCount(clip.likesCount),
                 scale = heartScale.value,
                 onClick = {
@@ -503,6 +559,15 @@ private fun ClipItem(
                 label = formatCount(clip.commentsCount),
                 onClick = onCommentClip,
                 testTag = "clip_comments_button_${clip.id}"
+            )
+
+            
+            // Quick Reply Ephemeral Video Reaction
+            ClipActionButton(
+                icon = Icons.Default.Videocam,
+                label = "React",
+                onClick = { /* Launch circular camera */ },
+                testTag = "clip_react_button_${clip.id}"
             )
 
             // Share / Relay Action
@@ -560,6 +625,25 @@ private fun ClipItem(
                         }
                     )
 
+                    
+                    DropdownMenuItem(
+                        text = { Text("Save Video ⬇️") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Download,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            // Download with Creator Attribution Watermark
+                            // Downloads MP4 embedding @${clip.userHandle} and ${clip.location} in metadata
+                            onSaveClip()
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Report Clip 🚩") },
                         leadingIcon = {
@@ -601,7 +685,8 @@ private fun ClipItem(
                     .clip(CircleShape)
                     .background(Color.DarkGray)
                     .border(2.dp, Color.White.copy(alpha = 0.8f), CircleShape)
-                    .rotate(if (isPlaying) rotationAngle else 0f),
+                    .rotate(if (isPlaying) rotationAngle else 0f)
+                    .clickable { showSoundtrackSheet = true },
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -622,6 +707,7 @@ private fun ClipItem(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomStart)
+                .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
                 .fillMaxWidth(0.78f)
                 .padding(start = 16.dp, bottom = 28.dp)
         ) {
@@ -709,6 +795,59 @@ private fun ClipItem(
                 }
             }
 
+            
+            // Dual-Reach Overlay Indicator & Featured Gear
+            Row(
+                modifier = Modifier.padding(bottom = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                val isCitySeed = (clip.distanceKm ?: 99.0) <= 50.0
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = Color.Black.copy(alpha = 0.6f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                ) {
+                    Text(
+                        text = if (isCitySeed) "📍 City Seed" else "🌐 Earth Reach",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCitySeed) Color(0xFF00C853) else Color(0xFF2979FF),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = Color.Black.copy(alpha = 0.6f),
+                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                    modifier = Modifier.clickable { /* Open market */ }
+                ) {
+                    Text(
+                        text = "🛍️ Featured Gear",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFFB703),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+                
+                if ((clip.distanceKm ?: 99.0) <= 3.0) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.Black.copy(alpha = 0.6f),
+                        border = BorderStroke(1.dp, Color(0xFFFF9800).copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            text = "🔊 Hyperlocal Audio",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFFF9800),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+
             // Creator Row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -774,16 +913,16 @@ private fun ClipItem(
 
             // Clip Caption with Location & Landmark Tag
             Text(
-                text = clip.caption,
+                text = clip.caption + " ...more",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontSize = 13.sp,
                     lineHeight = 18.sp
                 ),
                 color = Color.White,
-                maxLines = if (isCaptionExpanded) Int.MAX_VALUE else 2,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .clickable { isCaptionExpanded = !isCaptionExpanded }
+                    .clickable { showCaptionsSheet = true }
                     .padding(bottom = 8.dp)
             )
 
@@ -812,16 +951,95 @@ private fun ClipItem(
             }
         }
 
-        // Live Video Progress Bar
-        LinearProgressIndicator(
-            progress = { videoProgress.value },
+        // Live Video Progress Bar with Chapters
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(2.dp)
-                .align(Alignment.BottomCenter),
-            color = Color.White,
-            trackColor = Color.White.copy(alpha = 0.2f)
-        )
+                .height(12.dp)
+                .align(Alignment.BottomCenter)
+                .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
+        ) {
+            val isHyperlocalAudio = (clip.distanceKm ?: 99.0) <= 3.0
+            val barColor = if (isHyperlocalAudio) Color(0xFFFF9800) else Color.White
+            
+            LinearProgressIndicator(
+                progress = { videoProgress.value },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .align(Alignment.BottomCenter),
+                color = barColor,
+                trackColor = Color.White.copy(alpha = 0.2f)
+            )
+            
+            // Chapter markers (Mock positions)
+            val chapterPositions = listOf(0.2f, 0.5f, 0.8f)
+            chapterPositions.forEach { pos ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(pos)
+                        .align(Alignment.BottomStart)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(4.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
+                            .align(Alignment.CenterEnd)
+                    )
+                }
+            }
+        }
+    }
+
+
+    if (showCaptionsSheet) {
+        @OptIn(ExperimentalMaterial3Api::class)
+        ModalBottomSheet(
+            onDismissRequest = { showCaptionsSheet = false },
+            scrimColor = Color.Transparent,
+            containerColor = Color.Black.copy(alpha = 0.65f),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text("Caption", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = clip.caption,
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp)
+                )
+                Spacer(modifier = Modifier.height(48.dp))
+            }
+        }
+    }
+
+
+    if (showSoundtrackSheet) {
+        @OptIn(ExperimentalMaterial3Api::class)
+        ModalBottomSheet(
+            onDismissRequest = { showSoundtrackSheet = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(modifier = Modifier.padding(24.dp).fillMaxWidth()) {
+                Text(
+                    text = "${clip.soundTitle} • ${clip.soundArtist}",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "342 clips recorded with this ambient stem nearby",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                // Mock grid of clips would go here
+                Box(modifier = Modifier.fillMaxWidth().height(200.dp).background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                    Text("Related Clips Grid", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(modifier = Modifier.height(48.dp))
+            }
+        }
     }
 
     // UGC Compliance: Report Clip Dialog
@@ -831,7 +1049,8 @@ private fun ClipItem(
             "Harassment, Bullying or Hate Speech",
             "Sexually Explicit or Inappropriate Content",
             "Violence or Dangerous Behavior",
-            "Copyright or Intellectual Property Violation"
+            "Copyright or Intellectual Property Violation",
+            "Exposes Private Physical Address / Privacy Violation"
         )
         var selectedReason by remember { mutableStateOf(reportReasons.first()) }
 

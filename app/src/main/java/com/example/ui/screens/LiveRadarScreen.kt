@@ -64,6 +64,7 @@ fun LiveRadarScreen(
 
     var exploreBypassAllowed by remember { mutableStateOf(false) }
     var currentRadius by remember { mutableStateOf(selectedRadiusKm ?: 3.0) }
+    var isGhostModeActive by remember { mutableStateOf(false) }
 
     val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed
 
@@ -77,11 +78,13 @@ fun LiveRadarScreen(
             // Main Live Proximity Radar view
             LiveRadarComponent(
                 userProfile = userProfile,
-                nearbyUsers = nearbyUsers,
+                nearbyUsers = if (isGhostModeActive) nearbyUsers else nearbyUsers,
                 nearbyPosts = posts,
                 selectedRadiusKm = currentRadius,
                 isLocationEnabled = true,
-                isPrivateAccount = false,
+                isPrivateAccount = isGhostModeActive,
+                hidePreciseLocationOnRadar = isGhostModeActive,
+                onToggleHidePreciseLocation = { isGhostModeActive = it },
                 onRadiusChange = { radius ->
                     currentRadius = radius
                     onRadiusFilterChange(radius)

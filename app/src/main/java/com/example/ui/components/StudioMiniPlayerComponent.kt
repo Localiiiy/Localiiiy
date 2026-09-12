@@ -111,7 +111,7 @@ fun StudioInlinePreviewPlayer(
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 isBuffering = false
                 try {
-                    val fallback = MediaItem.fromUri(Uri.parse("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"))
+                    val fallback = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
                     exoPlayer.setMediaItem(fallback)
                     exoPlayer.prepare()
                     exoPlayer.play()
