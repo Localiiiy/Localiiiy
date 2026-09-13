@@ -52,6 +52,9 @@ fun WalletScreen(
     var showWithdrawDialog by remember { mutableStateOf(false) }
     var selectedTransactionForReceipt by remember { mutableStateOf<PayoutTransaction?>(null) }
     var historyFilter by remember { mutableStateOf("ALL") } // "ALL", "COMPLETED", "PROCESSING"
+    var viewInLocalCurrency by remember { mutableStateOf(false) }
+
+    val displayCurrency = if (viewInLocalCurrency) currentCurrency else LocaliiiyCurrency.USD
 
     val minPayoutThresholdUSD = payoutAccount.minimumPayoutUSD // $1,000.00
     val isEligibleForWithdrawal = earnings.availableBalanceUSD >= minPayoutThresholdUSD
@@ -118,30 +121,44 @@ fun WalletScreen(
                                     letterSpacing = 1.sp
                                 )
                             }
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = Color(0xFF1E293B)
-                            ) {
-                                Text(
-                                    text = currentCurrency.code,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.LightGray,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("Local Currency", fontSize = 11.sp, color = Color.Gray)
+                                Switch(
+                                    checked = viewInLocalCurrency,
+                                    onCheckedChange = { viewInLocalCurrency = it },
+                                    modifier = Modifier.height(24.dp)
                                 )
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = Color(0xFF1E293B)
+                                ) {
+                                    Text(
+                                        text = displayCurrency.code,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.LightGray,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                    )
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = CurrencyHelper.format(earnings.availableBalanceUSD, currentCurrency),
+                            text = CurrencyHelper.format(earnings.availableBalanceUSD, displayCurrency),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White
                         )
-                        if (currentCurrency != LocaliiiyCurrency.USD) {
+                        if (displayCurrency != LocaliiiyCurrency.USD) {
                             Text(
                                 text = "≈ $${String.format(Locale.US, "%,.2f", earnings.availableBalanceUSD)} USD",
+                                fontSize = 12.5.sp,
+                                color = Color.Gray
+                            )
+                        } else if (currentCurrency != LocaliiiyCurrency.USD) {
+                            Text(
+                                text = "≈ ${CurrencyHelper.format(earnings.availableBalanceUSD, currentCurrency)} ${currentCurrency.code}",
                                 fontSize = 12.5.sp,
                                 color = Color.Gray
                             )
@@ -157,7 +174,7 @@ fun WalletScreen(
                             Column {
                                 Text("Total Gross Earned", fontSize = 10.5.sp, color = Color.Gray)
                                 Text(
-                                    CurrencyHelper.format(earnings.totalGrossEarnedUSD, currentCurrency),
+                                    CurrencyHelper.format(earnings.totalGrossEarnedUSD, displayCurrency),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
@@ -166,7 +183,7 @@ fun WalletScreen(
                             Column {
                                 Text("Pending Payouts", fontSize = 10.5.sp, color = Color.Gray)
                                 Text(
-                                    CurrencyHelper.format(earnings.pendingPayoutUSD, currentCurrency),
+                                    CurrencyHelper.format(earnings.pendingPayoutUSD, displayCurrency),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFFBBF24)
@@ -175,7 +192,7 @@ fun WalletScreen(
                             Column {
                                 Text("Lifetime Disbursed", fontSize = 10.5.sp, color = Color.Gray)
                                 Text(
-                                    CurrencyHelper.format(earnings.lifetimePayoutsUSD, currentCurrency),
+                                    CurrencyHelper.format(earnings.lifetimePayoutsUSD, displayCurrency),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4ADE80)
@@ -235,8 +252,8 @@ fun WalletScreen(
                             progress = { progressToThreshold },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
+                                .height(16.dp)
+                                .clip(RoundedCornerShape(8.dp)),
                             color = if (isEligibleForWithdrawal) Color(0xFF00FF41) else MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant
                         )
@@ -253,12 +270,21 @@ fun WalletScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (isEligibleForWithdrawal) Color(0xFF81C784) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(
-                                text = "Threshold: $1,000.00 USD",
-                                fontSize = 11.5.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            if (!isEligibleForWithdrawal) {
+                                Text(
+                                    text = "$${String.format(Locale.US, "%,.2f", minPayoutThresholdUSD - earnings.availableBalanceUSD)} USD to go!",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            } else {
+                                Text(
+                                    text = "Threshold: $1,000.00 USD",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))

@@ -27,12 +27,13 @@ fun HelpSheet(onDismiss: () -> Unit) {
     
     val faqs = listOf(
         HelpFaq("What is Localiiiy?", "Localiiiy is a hyperlocal proximity network linking neighbors, posts, clips, and markets within a dynamic, adjustable physical radius."),
-        HelpFaq("Who uses Localiiiy?", "Localiiiy is designed for local creators, community members, buyers, and sellers who want to connect directly with people immediately around them."),
+        HelpFaq("How do I optimize my profile visibility?", "To maximize visibility on the Live Radar, maintain a Daily Check-in streak. Consistent daily active users unlock algorithmic visibility perks which translate directly to more profile views and higher ad revenue payouts. Using the 'Boost Ads' dashboard to promote a glowing Radar Pin can also drastically increase local discovery."),
+        HelpFaq("How does the monetization payout process work globally?", "Localiiiy supports global creators. Once your Creator Wallet reaches the $1,000 USD minimum threshold, you can request a withdrawal. Payout methods include Stripe Global Connect (140+ countries), PayPal Worldwide Instant Disbursal, SWIFT/BIC Wire Transfer, SEPA Direct Debit (EU), UPI (India), and PIX (Brazil). Processing typically takes 1-3 business days."),
+        HelpFaq("Troubleshooting: My location or radar isn't updating properly.", "1. Ensure GPS / Location permissions are granted for Localiiiy in your phone settings.\n2. Verify you aren't currently using 'Ghost Mode' in Privacy Settings (which hides your pin).\n3. Check your network connection. If issues persist, try force-closing the app and reopening."),
+        HelpFaq("Troubleshooting: I am not receiving referral bonus points.", "Referral bonuses require the invited user to complete a verified signup using your exact unique code. Additionally, you must complete the mandatory sponsored video ad flow to successfully claim the points to your Creator Wallet."),
         HelpFaq("Where is my data stored?", "Localiiiy prioritizes privacy. Your app data, including saved posts and settings, is stored securely on your local device's database."),
         HelpFaq("Why use the Live Radar?", "The Live Radar visually sweeps your physical surroundings to show you nearby users, clips, posts, and market items in real-time, helping you discover local activity spatially."),
         HelpFaq("When do items disappear from Radar?", "Items disappear if the user moves outside your selected physical radius, or if they activate Ghost Mode in Privacy Settings."),
-        HelpFaq("How do I monetize my account?", "By accumulating views and connections. Once you grow your audience, you can check your Analytics & Monetization hub to track Ad Revenue and Fan Tips."),
-        HelpFaq("What is a Pulse Feed?", "The Pulse Feed is your primary timeline. It aggregates standard Posts, short-form video Clips, and Marketplace items exclusively from your connected neighbors."),
         HelpFaq("How do I use Advanced Search?", "Simply type keywords above. The advanced search instantly filters through all Help topics, 5W & 1H questions, and terminology instructions.")
     )
     

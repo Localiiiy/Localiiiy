@@ -164,6 +164,7 @@ fun MarketScreen(
     countryName: String? = null,
     modifier: Modifier = Modifier
 ) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     var activeSubTab by remember { mutableStateOf(MarketSubTab.GOODS) }
     var showLocationSearchExpanded by remember { mutableStateOf(false) }
 
@@ -648,6 +649,7 @@ fun MarketScreen(
                 onToggleSave = { onToggleSaveItem(selectedItem) },
                 onToggleAvailability = { onToggleAvailability(selectedItem) },
                 onFlagItem = { id, reason ->
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                     onFlagItem(selectedItem, reason)
                     hiddenItemIds = hiddenItemIds + id
                     onCloseDetailSheet()
@@ -673,6 +675,7 @@ fun MarketScreen(
             FlagListingConfirmationDialog(
                 itemTitle = itemToFlag!!.title,
                 onConfirmFlag = { reason ->
+                    haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                     onFlagItem(itemToFlag!!, reason)
                     hiddenItemIds = hiddenItemIds + itemToFlag!!.id
                     itemToFlag = null
@@ -2572,6 +2575,7 @@ fun MarketItemDetailDialog(
     var showVideoTourModal by remember { mutableStateOf(false) }
     var showFlagModal by remember { mutableStateOf(false) }
     var selectedInquiryQuestion by remember { mutableStateOf<String?>(null) }
+    var showCheckoutDialog by remember { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -3087,13 +3091,24 @@ fun MarketItemDetailDialog(
                             shape = RoundedCornerShape(14.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             modifier = Modifier
-                                .weight(1.5f)
+                                .weight(1f)
                                 .height(48.dp)
                                 .testTag("message_seller_button")
                         ) {
-                            Text("✍️", fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Message", fontWeight = FontWeight.Bold)
+                            Icon(imageVector = Icons.Default.ChatBubble, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                        
+                        // Buy Now / Checkout Button
+                        Button(
+                            onClick = { showCheckoutDialog = true },
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
+                            modifier = Modifier
+                                .weight(1.5f)
+                                .height(48.dp)
+                                .testTag("buy_now_button")
+                        ) {
+                            Text("💳 Buy Now", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
 
@@ -3213,6 +3228,19 @@ fun MarketItemDetailDialog(
                 TextButton(onClick = { showOfferDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+    
+    // Checkout Escrow Dialog
+    if (showCheckoutDialog) {
+        MarketCheckoutEscrowDialog(
+            item = item,
+            currentCurrency = currentCurrency,
+            onDismiss = { showCheckoutDialog = false },
+            onConfirmPurchase = {
+                showCheckoutDialog = false
+                // Complete purchase logic...
             }
         )
     }
@@ -3338,4 +3366,94 @@ fun AutoNegotiateButton(
             }
         }
     }
+}
+
+@Composable
+fun MarketCheckoutEscrowDialog(
+    item: com.example.data.MarketplaceItemEntity,
+    currentCurrency: LocaliiiyCurrency,
+    onDismiss: () -> Unit,
+    onConfirmPurchase: () -> Unit
+) {
+    val basePrice = CurrencyHelper.convertFromUSD(item.price, currentCurrency)
+    // 5% Platform Fee
+    val platformFee = basePrice * 0.05
+    val totalAmount = basePrice + platformFee
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(Icons.Default.Security, contentDescription = "Escrow", tint = MaterialTheme.colorScheme.primary)
+                Text("Secure Digital Escrow", fontWeight = FontWeight.Bold)
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "You are purchasing ${item.title} from @${item.sellerUsername}.",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Item Price", fontSize = 13.sp)
+                            Text(CurrencyHelper.format(item.price, currentCurrency), fontWeight = FontWeight.SemiBold)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Platform Escrow Fee (5%)", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                text = "${currentCurrency.symbol}${String.format("%.2f", platformFee)}",
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total to Pay", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(
+                                text = "${currentCurrency.symbol}${String.format("%.2f", totalAmount)}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+                
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Funds are held securely in escrow until you physically inspect the item and confirm the handover.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(8.dp),
+                        lineHeight = 14.sp
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirmPurchase,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Pay ${currentCurrency.symbol}${String.format("%.2f", totalAmount)}")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

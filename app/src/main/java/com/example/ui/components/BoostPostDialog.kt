@@ -22,6 +22,7 @@ import com.example.data.BoostCampaignRequest
 import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.util.CurrencyHelper
 import com.example.util.LocaliiiyCurrency
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 
 @Composable
 fun BoostPostDialog(
@@ -30,28 +31,11 @@ fun BoostPostDialog(
     onLaunchCampaign: (BoostCampaignRequest) -> Unit,
     onDismissRequest: () -> Unit
 ) {
-    var selectedRegion by remember { mutableStateOf("Worldwide (195 Countries)") }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedRegion by remember { mutableStateOf("Hyperlocal (Within 25 km)") }
     var dailyBudgetUSD by remember { mutableDoubleStateOf(10.0) }
     var durationDays by remember { mutableIntStateOf(7) }
-    var selectedCTA by remember { mutableStateOf("Visit Profile") }
     var isSubmitting by remember { mutableStateOf(false) }
-
-    val regions = listOf(
-        "Worldwide (195 Countries)",
-        "North America (USA & Canada)",
-        "Europe & UK",
-        "Asia-Pacific & India",
-        "Latin America",
-        "Middle East & Africa",
-        "Hyperlocal (Within 25 km)"
-    )
-
-    val ctaOptions = listOf(
-        "Visit Profile",
-        "Shop Marketplace",
-        "Watch Full Studio Video",
-        "Send Direct Message"
-    )
 
     val totalBudgetUSD = dailyBudgetUSD * durationDays
     val totalBudgetLocal = CurrencyHelper.format(totalBudgetUSD, currentCurrency)
@@ -70,13 +54,14 @@ fun BoostPostDialog(
             Icon(
                 imageVector = Icons.Default.Campaign,
                 contentDescription = null,
-                tint = LocaliiiyPrimaryTeal
+                tint = LocaliiiyPrimaryTeal,
+                modifier = Modifier.size(36.dp)
             )
         },
         title = {
             Text(
-                text = "Boost Content Worldwide",
-                fontWeight = FontWeight.Bold
+                text = "Boost & Sponsor Dashboard",
+                fontWeight = FontWeight.Black
             )
         },
         text = {
@@ -84,40 +69,51 @@ fun BoostPostDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Amplify your post to reach millions worldwide.",
-                    fontSize = 12.5.sp,
+                    text = "Promote your content or business directly to the community.",
+                    fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // 1. Target Region
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = "Target Territory",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
-                    regions.forEach { region ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedRegion = region }
-                                .padding(vertical = 3.dp)
-                        ) {
-                            RadioButton(
-                                selected = (selectedRegion == region),
-                                onClick = { selectedRegion = region }
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = region, fontSize = 12.5.sp)
-                        }
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = Color.Transparent,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.SecondaryIndicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                            color = LocaliiiyPrimaryTeal
+                        )
                     }
+                ) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text("Market Listing", fontSize = 12.sp, fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) }
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text("Radar Pin", fontSize = 12.sp, fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) }
+                    )
                 }
 
-                // 2. Daily Budget Slider
+                if (selectedTab == 0) {
+                    Text(
+                        text = "Pay to promote your market listings to the top of the feed.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    Text(
+                        text = "Buy a glowing sponsored pin on the Live Radar for your local business.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                // Budget Slider
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -222,10 +218,10 @@ fun BoostPostDialog(
                 onClick = {
                     val req = BoostCampaignRequest(
                         postIdOrClipId = targetPostId,
-                        targetAudience = selectedRegion,
+                        targetAudience = if (selectedTab == 0) "Market Listing" else "Radar Pin",
                         dailyBudgetUSD = dailyBudgetUSD,
                         durationDays = durationDays,
-                        callToAction = selectedCTA,
+                        callToAction = if (selectedTab == 0) "Shop Now" else "Get Directions",
                         estimatedReach = estimatedReach
                     )
                     onLaunchCampaign(req)
@@ -234,7 +230,7 @@ fun BoostPostDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                 modifier = Modifier.testTag("launch_boost_campaign_button")
             ) {
-                Text("Launch Campaign", color = Color.White)
+                Text(if (selectedTab == 0) "Boost Listing" else "Buy Radar Pin", color = Color.White)
             }
         },
         dismissButton = {

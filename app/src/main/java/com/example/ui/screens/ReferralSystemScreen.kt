@@ -46,9 +46,46 @@ fun ReferralSystemScreen(
     var inputFriendCode by remember { mutableStateOf("") }
     var redeemMessage by remember { mutableStateOf<String?>(null) }
     var isRedeemSuccess by remember { mutableStateOf(false) }
+    var showAdSimulationDialog by remember { mutableStateOf(false) }
 
     val milestones = remember(referralState.totalNeighborsInvited) {
         referralState.getMilestones()
+    }
+
+    if (showAdSimulationDialog) {
+        var progress by remember { mutableStateOf(0f) }
+        LaunchedEffect(Unit) {
+            val totalTime = 3000L
+            val interval = 50L
+            for (i in 0..(totalTime / interval)) {
+                kotlinx.coroutines.delay(interval)
+                progress = i.toFloat() / (totalTime / interval).toFloat()
+            }
+            showAdSimulationDialog = false
+            
+            val success = onRedeemFriendCode(inputFriendCode)
+            if (success) {
+                isRedeemSuccess = true
+                redeemMessage = "+100 Bonus points and 12h Radar boost claimed! 🎉"
+                Toast.makeText(context, redeemMessage, Toast.LENGTH_LONG).show()
+            } else {
+                isRedeemSuccess = false
+                redeemMessage = "Invalid code or already redeemed."
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Sponsored Ad", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                    Text("Watching a short video to claim your referral rewards...")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                }
+            },
+            confirmButton = {}
+        )
     }
 
     Scaffold(
@@ -322,15 +359,7 @@ fun ReferralSystemScreen(
                                 Button(
                                     onClick = {
                                         if (inputFriendCode.isNotBlank()) {
-                                            val success = onRedeemFriendCode(inputFriendCode)
-                                            if (success) {
-                                                isRedeemSuccess = true
-                                                redeemMessage = "+100 Bonus points and 12h Radar boost claimed! 🎉"
-                                                Toast.makeText(context, redeemMessage, Toast.LENGTH_LONG).show()
-                                            } else {
-                                                isRedeemSuccess = false
-                                                redeemMessage = "Invalid code or already redeemed."
-                                            }
+                                            showAdSimulationDialog = true
                                         }
                                     },
                                     enabled = inputFriendCode.isNotBlank(),

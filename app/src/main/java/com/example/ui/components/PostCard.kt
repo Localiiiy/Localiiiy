@@ -97,6 +97,7 @@ fun PostCard(
     var translatedCaption by remember { mutableStateOf<String?>(null) }
     var isTranslating by remember { mutableStateOf(false) }
     var isAmplifiedToCity by remember { mutableStateOf(false) }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     // Section 2.5: Luminous Connection Aura Borders for connected users
     val isConnectedUser = post.isFollowing || post.isConnected
@@ -768,6 +769,7 @@ fun PostCard(
                 Button(
                     onClick = {
                         showReportDialog = false
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         onReportClick?.invoke(selectedReason)
                         showReportSuccessSnackbar = true
                     },

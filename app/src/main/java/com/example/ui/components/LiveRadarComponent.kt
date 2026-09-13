@@ -114,6 +114,8 @@ fun LiveRadarComponent(
         label = "pulse3"
     )
 
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
     val systematicRanges = remember(radarCountryName) {
         SystematicDistanceScale.getOptions(radarCountryName)
     }
@@ -201,7 +203,10 @@ fun LiveRadarComponent(
                 }
 
                 Button(
-                    onClick = { onLocationToggle(!isLocationEnabled) },
+                    onClick = { 
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onLocationToggle(!isLocationEnabled) 
+                    },
                     shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isLocationEnabled) Color(0xFF1B2E1D) else Color(0xFF00FF41),

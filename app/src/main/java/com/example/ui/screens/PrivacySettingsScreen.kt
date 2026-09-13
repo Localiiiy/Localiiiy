@@ -108,6 +108,8 @@ fun PrivacySettingsScreen(
     var showWalletScreen by remember { mutableStateOf(false) }
     var showDailyCheckInScreen by remember { mutableStateOf(false) }
     var showReferralScreen by remember { mutableStateOf(false) }
+    var showPremiumScreen by remember { mutableStateOf(false) }
+    var showTermsScreen by remember { mutableStateOf(false) }
     
     val haptic = LocalHapticFeedback.current
 
@@ -136,6 +138,20 @@ fun PrivacySettingsScreen(
             onRedeemFriendCode = onRedeemFriendCode,
             onNavigateBack = { showReferralScreen = false }
         )
+    } else if (showPremiumScreen) {
+        PremiumSubscriptionScreen(
+            onNavigateBack = { showPremiumScreen = false },
+            onSubscribe = {
+                isGhostMode = true
+                hideLocation = true
+                hideInNeighborhood = true
+                syncSettings(ghost = true, hideLoc = true, hideNeigh = true)
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                showPremiumScreen = false
+            }
+        )
+    } else if (showTermsScreen) {
+        TermsAndConditionsScreen(onNavigateBack = { showTermsScreen = false })
     } else {
         Scaffold(
             topBar = {
@@ -321,13 +337,13 @@ fun PrivacySettingsScreen(
                         Switch(
                             checked = isGhostMode,
                             onCheckedChange = { 
-                                isGhostMode = it
                                 if (it) {
-                                    hideLocation = true
-                                    hideInNeighborhood = true
+                                    showPremiumScreen = true
+                                } else {
+                                    isGhostMode = false
+                                    syncSettings(ghost = false)
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 }
-                                syncSettings(ghost = it, hideLoc = if (it) true else hideLocation, hideNeigh = if (it) true else hideInNeighborhood)
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             }
                         )
                     }
@@ -536,6 +552,14 @@ fun PrivacySettingsScreen(
                     "Visual guide with images, badge tiers & $1000 minimum payout rules",
                     Icons.Default.School,
                     onClick = { showTutorialScreen = true }
+                )
+            }
+            item {
+                SettingsActionItem(
+                    "Terms & Conditions",
+                    "Read platform rules, escrow policy, and fees",
+                    Icons.Default.Gavel,
+                    onClick = { showTermsScreen = true }
                 )
             }
             item {

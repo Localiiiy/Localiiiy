@@ -731,7 +731,7 @@ fun AppTutorialGuideScreen(
                             ),
                             Triple(
                                 "4. Peer-to-Peer Marketplace Sales",
-                                "Sell physical products, vintage goods, tech hardware, and artisan crafts to nearby neighbors with instant local settlement or escrow.",
+                                "Sell physical products to nearby neighbors. All transactions are protected by our Secure Digital Escrow system (5% platform fee) until the physical handover is confirmed.",
                                 "🛍️ Marketplace"
                             ),
                             Triple(
@@ -741,13 +741,23 @@ fun AppTutorialGuideScreen(
                             ),
                             Triple(
                                 "6. Gamified Referrals & Wallet Bonus",
-                                "Invite neighbors to Localiiiy using your unique referral code. Earn direct bonus points deposited directly into your Creator Wallet for every verified signup.",
+                                "Invite neighbors to Localiiiy using your unique referral code. Earn direct bonus points. Requires watching a short sponsored video to unlock rewards.",
                                 "🤝 Referral Cash"
                             ),
                             Triple(
                                 "7. Daily Check-in Rewards",
-                                "Complete your gamified daily check-in streak. Consistent daily active users unlock visibility perks which translate directly to more profile views and higher ad revenue payouts.",
+                                "Complete your gamified daily check-in streak by watching a sponsored video. Unlock visibility perks which translate directly to more profile views.",
                                 "📅 Streak Earnings"
+                            ),
+                            Triple(
+                                "8. Boost & Sponsor Dashboard",
+                                "Invest in your local business by paying to boost market listings to the top of the feed or buying a glowing sponsored pin on the Live Radar.",
+                                "🚀 Boost Ads"
+                            ),
+                            Triple(
+                                "9. Localiiiy Premium Subscriptions",
+                                "Users can upgrade to Premium ($9.99/mo) for Master Ghost Mode, advanced radar filters, and a zero-ad experience.",
+                                "🌟 Premium"
                             )
                         )
 
