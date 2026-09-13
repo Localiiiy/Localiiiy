@@ -186,13 +186,13 @@ fun PrivacySettingsScreen(
                             Spacer(modifier = Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("App Running Tutorial & Guide", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                    Text("Information and Badges", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                                     Surface(shape = RoundedCornerShape(100.dp), color = MaterialTheme.colorScheme.primary) {
                                         Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                     }
                                 }
                                 Text(
-                                    "Visual step-by-step app walkthrough with images, Activation Badges guide, and Monetization ($1,000 min withdrawal)",
+                                    "App Running Tutorial, Activation Badges, and Monetization Guide",
                                     fontSize = 11.5.sp,
                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
                                 )

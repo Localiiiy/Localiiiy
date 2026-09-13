@@ -85,6 +85,7 @@ fun ExploreScreen(
     onCommentPost: (PostEntity) -> Unit,
     onSharePost: (PostEntity) -> Unit,
     onSavePost: (PostEntity) -> Unit,
+    onReportPost: (PostEntity, String) -> Unit = { _, _ -> },
     onUserProfileClick: (String) -> Unit = {},
     onWaveAtUser: (OtherUserEntity) -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
@@ -358,6 +359,7 @@ fun ExploreScreen(
                                     onCommentClick = { onCommentPost(post) },
                                     onShareClick = { onSharePost(post) },
                                     onSaveClick = { onSavePost(post) },
+                                    onReportClick = { reason -> onReportPost(post, reason) },
                                     onUserClick = { onUserProfileClick(post.username) }
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -489,6 +491,7 @@ fun ExploreScreen(
                         onCommentClick = { onCommentPost(post) },
                         onShareClick = { onSharePost(post) },
                         onSaveClick = { onSavePost(post) },
+                        onReportClick = { reason -> onReportPost(post, reason) },
                         onUserClick = {
                             selectedDetailPost = null
                             onUserProfileClick(post.username)

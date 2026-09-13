@@ -486,6 +486,12 @@ fun LocaliiiyApp(
                             viewModel.startChatWithUser(user)
                         },
                         onPostClick = { post -> viewModel.selectExplorePost(post) },
+                        onReportPost = { post, reason ->
+                            viewModel.reportPost(post.id, reason)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Post reported for moderation review.")
+                            }
+                        },
                         sponsoredAds = sponsoredAds,
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
@@ -542,6 +548,12 @@ fun LocaliiiyApp(
                         onCommentPost = { post -> viewModel.openComments("POST", post.id) },
                         onSharePost = { post -> viewModel.openShareSheet(post) },
                         onSavePost = { post -> viewModel.togglePostSave(post) },
+                        onReportPost = { post, reason ->
+                            viewModel.reportPost(post.id, reason)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Post reported for moderation review.")
+                            }
+                        },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         onWaveAtUser = { user ->
                             viewModel.waveAtNeighbor(user)
@@ -604,6 +616,12 @@ fun LocaliiiyApp(
                         onCloseDetailSheet = { viewModel.selectMarketplaceItem(null) },
                         onMessageSeller = { item -> viewModel.startChatForMarketItem(item) },
                         onToggleAvailability = { item -> viewModel.toggleMarketItemAvailability(item) },
+                        onFlagItem = { item, reason ->
+                            viewModel.reportContent("MARKETPLACE", item.id, item.sellerUsername, reason)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Listing reported for moderation review.")
+                            }
+                        },
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
                         sortOption = marketSortOption,

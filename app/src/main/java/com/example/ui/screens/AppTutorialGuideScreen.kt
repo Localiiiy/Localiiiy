@@ -143,6 +143,19 @@ fun AppTutorialGuideScreen(
                     "Complete Data Oblivion: permanently wipe all on-device Room data with 1 tap"
                 ),
                 tag = "Safety & Legal"
+            ),
+            TutorialGuideStep(
+                title = "7. Gamified Rewards & Creator Wallet",
+                subtitle = "Turn neighborhood engagement into actual revenue",
+                imageUrl = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1080&auto=format&fit=crop&q=80",
+                description = "Interact with the platform daily, refer friends, and build local networks to earn direct points in your Creator Wallet. Once you reach the $1,000 threshold, you can request an instant payout.",
+                bulletPoints = listOf(
+                    "Earn streak points for consecutive Gamified Daily Check-ins",
+                    "Receive high-value Wallet bonuses for successful neighbor referrals",
+                    "Transparent ledger detailing all micro-tips, ad shares, and market gig payouts",
+                    "Seamless cross-border payouts with strict $1,000 minimum threshold"
+                ),
+                tag = "Growth & Wallet"
             )
         )
     }
@@ -180,6 +193,22 @@ fun AppTutorialGuideScreen(
                 color = Color(0xFFFF9800),
                 requirement = "Author 5+ local posts or clips that reach 'City' or 'Earth' distribution milestones",
                 perk = "Featured creator carousel in Explore, algorithmic boost on new posts"
+            ),
+            CommunityBadgeInfo(
+                title = "Daily Check-in Streak Master",
+                emoji = "📅",
+                badgeCategory = "Activity",
+                color = Color(0xFF9C27B0),
+                requirement = "Maintain a 7+ day consecutive daily check-in streak on the gamified board",
+                perk = "Temporary 'Radar Visibility Glow' for 24h, drawing more organic views to your profile"
+            ),
+            CommunityBadgeInfo(
+                title = "Community Growth Ambassador",
+                emoji = "🤝",
+                badgeCategory = "Referral",
+                color = Color(0xFFE91E63),
+                requirement = "Successfully invite 5+ verified local neighbors using your referral link",
+                perk = "Permanent visibility boost in the local feed and bonus points in the Creator Wallet"
             )
         )
     }
@@ -709,6 +738,16 @@ fun AppTutorialGuideScreen(
                                 "5. Neighborhood Bounties & Tasks",
                                 "Earn bounties by fulfilling local assistance requests, community deliveries, and local signal dispatches in your neighborhood.",
                                 "🎯 Bounties"
+                            ),
+                            Triple(
+                                "6. Gamified Referrals & Wallet Bonus",
+                                "Invite neighbors to Localiiiy using your unique referral code. Earn direct bonus points deposited directly into your Creator Wallet for every verified signup.",
+                                "🤝 Referral Cash"
+                            ),
+                            Triple(
+                                "7. Daily Check-in Rewards",
+                                "Complete your gamified daily check-in streak. Consistent daily active users unlock visibility perks which translate directly to more profile views and higher ad revenue payouts.",
+                                "📅 Streak Earnings"
                             )
                         )
 

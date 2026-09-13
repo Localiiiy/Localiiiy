@@ -83,6 +83,7 @@ fun PulseFeedComponent(
     onFollowUser: (OtherUserEntity) -> Unit = {},
     onWaveAtNeighbor: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
+    onReportPost: (PostEntity, String) -> Unit = { _, _ -> },
     sponsoredAds: List<AdPlacement> = emptyList(),
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
@@ -471,6 +472,7 @@ fun PulseFeedComponent(
                                 onShareClick = { onSharePost(item) },
                                 onSaveClick = { onSavePost(item) },
                                 onUserClick = { onUserProfileClick(item.username) },
+                                onReportClick = { reason -> onReportPost(item, reason) },
                                 modifier = Modifier.animateItem()
                             )
                         }

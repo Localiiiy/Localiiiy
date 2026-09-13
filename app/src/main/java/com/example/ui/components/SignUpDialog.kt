@@ -97,6 +97,7 @@ fun SignUpDialog(
     var enableLocationRadar by remember { mutableStateOf(true) }
     var hasAcceptedNDA by remember { mutableStateOf(false) }
     var hasAcceptedLawDisclosure by remember { mutableStateOf(false) }
+    var hasVerifiedAge by remember { mutableStateOf(false) }
     var showFullNdaDialog by remember { mutableStateOf(false) }
 
     Dialog(
@@ -454,7 +455,7 @@ fun SignUpDialog(
                     Spacer(modifier = Modifier.height(14.dp))
                     
                     // Mandatory NDA & Confidentiality Agreement Card
-                    val isAllLegalAccepted = hasAcceptedNDA && hasAcceptedLawDisclosure
+                    val isAllLegalAccepted = hasAcceptedNDA && hasAcceptedLawDisclosure && hasVerifiedAge
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = if (isAllLegalAccepted) LocaliiiyPrimaryTeal.copy(alpha = 0.08f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f),
@@ -478,7 +479,7 @@ fun SignUpDialog(
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "NDA & Confidentiality Agreement (Mandatory)",
+                                    text = "Mandatory Legal & Age Verification",
                                     style = MaterialTheme.typography.labelMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.5.sp
@@ -488,6 +489,29 @@ fun SignUpDialog(
                             }
 
                             Spacer(modifier = Modifier.height(4.dp))
+
+                            // Age Gate Verification Checkbox
+                            Row(
+                                verticalAlignment = Alignment.Top,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { hasVerifiedAge = !hasVerifiedAge }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = hasVerifiedAge,
+                                    onCheckedChange = { hasVerifiedAge = it },
+                                    colors = CheckboxDefaults.colors(checkedColor = LocaliiiyPrimaryTeal),
+                                    modifier = Modifier.testTag("signup_age_checkbox")
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "I verify that I am at least 18 years of age. I understand this app may contain user-generated content strictly for adults.",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 15.sp),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
 
                             // Crime Deterrence Legal Notice Box
                             Surface(

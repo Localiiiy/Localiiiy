@@ -152,6 +152,7 @@ fun MarketScreen(
     onCloseDetailSheet: () -> Unit,
     onMessageSeller: (MarketplaceItemEntity) -> Unit,
     onToggleAvailability: (MarketplaceItemEntity) -> Unit,
+    onFlagItem: (MarketplaceItemEntity, String) -> Unit = { _, _ -> },
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     sortOption: String = "Most Popular",
@@ -646,7 +647,8 @@ fun MarketScreen(
                 onMessageSeller = { onMessageSeller(selectedItem) },
                 onToggleSave = { onToggleSaveItem(selectedItem) },
                 onToggleAvailability = { onToggleAvailability(selectedItem) },
-                onFlagItem = { id ->
+                onFlagItem = { id, reason ->
+                    onFlagItem(selectedItem, reason)
                     hiddenItemIds = hiddenItemIds + id
                     onCloseDetailSheet()
                 },
@@ -671,6 +673,7 @@ fun MarketScreen(
             FlagListingConfirmationDialog(
                 itemTitle = itemToFlag!!.title,
                 onConfirmFlag = { reason ->
+                    onFlagItem(itemToFlag!!, reason)
                     hiddenItemIds = hiddenItemIds + itemToFlag!!.id
                     itemToFlag = null
                 },
@@ -2554,7 +2557,7 @@ fun MarketItemDetailDialog(
     onMessageSeller: () -> Unit,
     onToggleSave: () -> Unit,
     onToggleAvailability: () -> Unit,
-    onFlagItem: (Long) -> Unit = {},
+    onFlagItem: (Long, String) -> Unit = { _, _ -> },
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onUserProfileClick: (String) -> Unit = {},
@@ -3165,7 +3168,7 @@ fun MarketItemDetailDialog(
             itemTitle = item.title,
             onConfirmFlag = { reason ->
                 showFlagModal = false
-                onFlagItem(item.id)
+                onFlagItem(item.id, reason)
             },
             onDismiss = { showFlagModal = false }
         )
