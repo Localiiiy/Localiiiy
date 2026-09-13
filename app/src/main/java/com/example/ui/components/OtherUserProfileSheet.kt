@@ -2,14 +2,18 @@ package com.example.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -223,8 +227,226 @@ fun OtherUserProfileSheet(
                                 )
                             }
 
+                            var showListDialog by remember { mutableStateOf(false) }
+                            var listDialogTitle by remember { mutableStateOf("") }
+                            val isUserInGhostMode = user.username.contains("ghost") || user.distanceKm > 10.0
+                            var otherConnectedSet by remember { mutableStateOf(setOf("maya_sound")) }
+                            var viewingSubUserId by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+                            
+                            val sampleConnectionsList = remember {
+                                listOf(
+                                    Triple("Maya Patel", "maya_sound", "Capitol Hill • Seattle"),
+                                    Triple("Liam Vance", "liam_craft", "Fremont • Seattle"),
+                                    Triple("Elena Rostova", "elena_visuals", "Ballard • Seattle"),
+                                    Triple("Marcus Chen", "marcus_dev", "Belltown • Seattle"),
+                                    Triple("Sofia Taylor", "sofia_lens", "Pioneer Square • Seattle")
+                                )
+                            }
+                            
+                            if (showListDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showListDialog = false },
+                                    title = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = if (listDialogTitle == "Connections") Icons.Default.People else Icons.Default.PersonAdd,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                            Text(listDialogTitle, fontWeight = FontWeight.Bold)
+                                        }
+                                    },
+                                    text = { 
+                                        if (isUserInGhostMode) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(vertical = 12.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Surface(
+                                                    shape = CircleShape,
+                                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                                    modifier = Modifier.size(52.dp)
+                                                ) {
+                                                    Box(contentAlignment = Alignment.Center) {
+                                                        Text("🛡️", fontSize = 24.sp)
+                                                    }
+                                                }
+                                                Spacer(modifier = Modifier.height(10.dp))
+                                                Text(
+                                                    text = "Ghost Mode Active",
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 15.sp,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Connections and Connected lists are confidential in Ghost Mode to protect user identity and privacy in the neighborhood.",
+                                                    fontSize = 12.5.sp,
+                                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        } else {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .heightIn(max = 320.dp)
+                                                    .verticalScroll(rememberScrollState()),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                Text(
+                                                    text = "$listDialogTitle for @${user.username}",
+                                                    fontSize = 12.sp,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                                sampleConnectionsList.forEach { (name, handle, loc) ->
+                                                    val isConnected = otherConnectedSet.contains(handle)
+                                                    Surface(
+                                                        shape = RoundedCornerShape(12.dp),
+                                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                                        border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        Row(
+                                                            modifier = Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(10.dp),
+                                                            verticalAlignment = Alignment.CenterVertically,
+                                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                        ) {
+                                                            Row(
+                                                                modifier = Modifier.weight(1f).padding(end = 6.dp),
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                            ) {
+                                                                Surface(
+                                                                    shape = CircleShape,
+                                                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                                                    modifier = Modifier.size(36.dp)
+                                                                ) {
+                                                                    Box(contentAlignment = Alignment.Center) {
+                                                                        Text(
+                                                                            text = name.first().toString(),
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                                        )
+                                                                    }
+                                                                }
+                                                                Column {
+                                                                    Text(
+                                                                        text = name,
+                                                                        fontWeight = FontWeight.Bold,
+                                                                        fontSize = 13.sp,
+                                                                        maxLines = 1,
+                                                                        overflow = TextOverflow.Ellipsis
+                                                                    )
+                                                                    Text(
+                                                                        text = "@$handle • $loc",
+                                                                        fontSize = 10.5.sp,
+                                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                        maxLines = 1,
+                                                                        overflow = TextOverflow.Ellipsis
+                                                                    )
+                                                                }
+                                                            }
+
+                                                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(100.dp),
+                                                                    color = if (isConnected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary,
+                                                                    modifier = Modifier
+                                                                        .clip(RoundedCornerShape(100.dp))
+                                                                        .clickable {
+                                                                            otherConnectedSet = if (isConnected) otherConnectedSet - handle else otherConnectedSet + handle
+                                                                        }
+                                                                ) {
+                                                                    Text(
+                                                                        text = if (isConnected) "Connected" else "Connect",
+                                                                        fontSize = 10.sp,
+                                                                        fontWeight = FontWeight.Bold,
+                                                                        color = if (isConnected) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary,
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                                    )
+                                                                }
+
+                                                                Surface(
+                                                                    shape = RoundedCornerShape(100.dp),
+                                                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                                                    modifier = Modifier
+                                                                        .clip(RoundedCornerShape(100.dp))
+                                                                        .clickable {
+                                                                            viewingSubUserId = Triple(name, handle, loc)
+                                                                        }
+                                                                ) {
+                                                                    Row(
+                                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                                        verticalAlignment = Alignment.CenterVertically,
+                                                                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                                                    ) {
+                                                                        Icon(
+                                                                            imageVector = Icons.Default.QrCode2,
+                                                                            contentDescription = null,
+                                                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                                            modifier = Modifier.size(11.dp)
+                                                                        )
+                                                                        Text(
+                                                                            text = "ID",
+                                                                            fontSize = 10.sp,
+                                                                            fontWeight = FontWeight.Bold,
+                                                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    confirmButton = {
+                                        TextButton(onClick = { showListDialog = false }) { Text("Close") }
+                                    }
+                                )
+                            }
+
+                            if (viewingSubUserId != null) {
+                                val item = viewingSubUserId!!
+                                AlertDialog(
+                                    onDismissRequest = { viewingSubUserId = null },
+                                    text = {
+                                        val nestedUser = com.example.data.UserProfileEntity(
+                                            username = item.second,
+                                            fullName = item.first,
+                                            avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+                                            bio = "Active creator and local explorer in ${item.third}.",
+                                            neighborhood = item.third,
+                                            locationName = item.third,
+                                            neighborsCount = 74,
+                                            followingCount = 38,
+                                            isVerified = true
+                                        )
+                                        ProfileIdentityCard(
+                                            userProfile = nestedUser,
+                                            postsCount = 8,
+                                            clipsCount = 4,
+                                            isOtherUser = true,
+                                            isGhostMode = false
+                                        )
+                                    },
+                                    confirmButton = {
+                                        TextButton(onClick = { viewingSubUserId = null }) { Text("Close") }
+                                    }
+                                )
+                            }
+                            
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -235,7 +457,13 @@ fun OtherUserProfileSheet(
                                     )
                                     Text(text = "Sparks", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable { 
+                                        listDialogTitle = "Connections"
+                                        showListDialog = true
+                                    }
+                                ) {
                                     Text(
                                         text = formatCount(user.followersCount),
                                         fontWeight = FontWeight.Bold,
@@ -243,13 +471,28 @@ fun OtherUserProfileSheet(
                                     )
                                     Text(text = "Connections", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.clickable { 
+                                        listDialogTitle = "Connected"
+                                        showListDialog = true
+                                    }
+                                ) {
                                     Text(
                                         text = formatCount(user.followingCount),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
                                     Text(text = "Connected", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "12",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(text = "Shared Ties", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }
@@ -310,6 +553,42 @@ fun OtherUserProfileSheet(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Action Buttons: Connect | Message | Wave 👋
+                        var showIdDialog by remember { mutableStateOf(false) }
+
+                        if (showIdDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showIdDialog = false },
+                                text = {
+                                    // Map OtherUserEntity to UserProfileEntity for the identity card
+                                    val mappedUser = com.example.data.UserProfileEntity(
+                                        username = user.username,
+                                        fullName = user.fullName,
+                                        avatarUrl = user.avatarUrl,
+                                        bio = user.bio,
+                                        website = user.website,
+                                        category = user.category,
+                                        locationName = user.locationName,
+                                        neighborhood = user.landmark ?: user.locationName,
+                                        neighborsCount = user.followersCount,
+                                        followingCount = user.followingCount,
+                                        isVerified = user.isVerified
+                                    )
+                                    ProfileIdentityCard(
+                                        userProfile = mappedUser,
+                                        postsCount = user.postsCount,
+                                        clipsCount = 0,
+                                        marketItemsCount = 0,
+                                        studioVideosCount = user.studioSubscribersCount,
+                                        isOtherUser = true,
+                                        isGhostMode = false
+                                    )
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showIdDialog = false }) { Text("Close") }
+                                }
+                            )
+                        }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -322,11 +601,35 @@ fun OtherUserProfileSheet(
                                     contentColor = if (user.isFollowing) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimary
                                 ),
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .weight(1.5f)
                                     .height(38.dp)
                             ) {
                                 Text(
-                                    text = if (user.isFollowing) "Connected" else "Connect",
+                                    text = if (user.isFollowing) "Connected" else "Send Connection",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Button(
+                                onClick = { showIdDialog = true },
+                                shape = RoundedCornerShape(100.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(38.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.QrCode2,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "View ID",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )

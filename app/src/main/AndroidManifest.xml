@@ -36,7 +36,7 @@
             android:value="ca-app-pub-3940256099942544~3347511713" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyLocaliiiyMapsRadarApiKeyForDev" />
+            android:value="${MAPS_API_KEY}" />
 
         <!-- Privacy & Zero-Tracking Architecture (Deactivates background AdServices & Analytics measurement) -->
         <meta-data

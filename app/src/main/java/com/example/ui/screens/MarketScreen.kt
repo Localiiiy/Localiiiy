@@ -489,29 +489,8 @@ fun MarketScreen(
                     }
                 }
             }
-
-            // Instant Location Radius Filter Dial (Neighbor 5km • City 50km • Earth)
-            val currentDial = remember(radiusFilterKm) {
-                when {
-                    radiusFilterKm != null && radiusFilterKm <= 5.1 -> "NEIGHBOR"
-                    radiusFilterKm != null && radiusFilterKm <= 50.1 -> "CITY"
-                    else -> "EARTH"
-                }
-            }
-            TactileTriDialFeedLens(
-                selectedDial = currentDial,
-                onDialSelected = { dial ->
-                    when (dial) {
-                        "NEIGHBOR" -> onRadiusFilterChange(5.0)
-                        "CITY" -> onRadiusFilterChange(50.0)
-                        "EARTH" -> onRadiusFilterChange(null)
-                    }
-                },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
-            )
-
-            // Market Navigation Sub-Tabs (Goods | Services | Posts | Clips | Watchlist)
             Row(
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp),
@@ -1208,11 +1187,25 @@ private fun MarketPostCard(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
+                var isLiked by remember(post.id) { mutableStateOf(post.isLiked) }
+                var likesCount by remember(post.id) { mutableStateOf(post.likesCount) }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    com.example.ui.components.AnimatedLikeButton(
+                        isLiked = isLiked,
+                        onLikeClick = {
+                            isLiked = !isLiked
+                            likesCount += if (isLiked) 1 else -1
+                        },
+                        likesCount = likesCount,
+                        showCount = true,
+                        testTag = "market_post_like_${post.id}"
+                    )
+
                     Button(
                         onClick = onCommentClick,
                         shape = RoundedCornerShape(12.dp),
@@ -1361,6 +1354,27 @@ private fun MarketClipsFeedView(
                             Text("Clip", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
+
+                    // Top Right Like hand button
+                    var isClipLiked by remember(clip.id) { mutableStateOf(clip.isLiked) }
+                    var clipLikesCount by remember(clip.id) { mutableStateOf(clip.likesCount) }
+                    com.example.ui.components.AnimatedLikeButton(
+                        isLiked = isClipLiked,
+                        onLikeClick = {
+                            isClipLiked = !isClipLiked
+                            clipLikesCount += if (isClipLiked) 1 else -1
+                        },
+                        likesCount = clipLikesCount,
+                        showCount = true,
+                        symbolSize = 16.sp,
+                        touchTargetSize = 32.dp,
+                        labelColor = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(6.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                        testTag = "market_clip_like_${clip.id}"
+                    )
 
                     // Bottom info
                     Column(
@@ -1608,25 +1622,36 @@ fun MarketItemCard(
                     }
                 }
 
-                // Price / Barter Badge (Bottom Left)
-                val isBarter = item.price == 0.0 || item.category.contains("Barter", ignoreCase = true)
+                
+                // Price / Barter / Service Badge (Bottom Left)
+                val isService = item.category.contains("Service", ignoreCase = true)
+                val isBarter = !isService && (item.price == 0.0 || item.category.contains("Barter", ignoreCase = true))
+                
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isBarter) Color(0xFF0284C7) else MaterialTheme.colorScheme.primary,
+                    color = if (isBarter) Color(0xFF0284C7) else if (isService) Color(0xFF9C27B0) else MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(6.dp)
                 ) {
+                    val priceText = when {
+                        isBarter -> "🔄 Barter"
+                        isService && item.price == 0.0 -> "💼 Free Consult"
+                        isService -> "${CurrencyHelper.format(item.price, currentCurrency)}/hr"
+                        item.price == 0.0 -> "Free"
+                        else -> CurrencyHelper.format(item.price, currentCurrency)
+                    }
                     Text(
-                        text = if (isBarter) "🔄 Barter" else CurrencyHelper.format(item.price, currentCurrency),
-                        fontSize = if (isBarter) 10.5.sp else 13.sp,
+                        text = priceText,
+                        fontSize = if (priceText.length > 7) 11.sp else 13.sp,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
-
-                // Condition Chip (Bottom Right)
+// Condition Chip (Bottom Right)
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = Color.Black.copy(alpha = 0.65f),
@@ -2617,15 +2642,26 @@ fun MarketItemDetailDialog(
                     )
 
                     // Price overlay badge
+                    val isDetailService = item.category.contains("Service", ignoreCase = true)
+                    val isDetailBarter = !isDetailService && (item.price == 0.0 || item.category.contains("Barter", ignoreCase = true))
+                    val detailBadgeColor = if (isDetailBarter) Color(0xFF0284C7) else if (isDetailService) Color(0xFF9C27B0) else MaterialTheme.colorScheme.primary
+                    val detailPriceFormatted = when {
+                        isDetailBarter -> "🔄 Barter / Trade"
+                        isDetailService && item.price == 0.0 -> "💼 Free Consultation"
+                        isDetailService -> "${CurrencyHelper.format(item.price, currentCurrency)} / hr"
+                        item.price == 0.0 -> "Free"
+                        else -> CurrencyHelper.format(item.price, currentCurrency)
+                    }
+
                     Surface(
                         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = detailBadgeColor,
                         modifier = Modifier
                             .align(Alignment.BottomStart)
                             .padding(start = 16.dp)
                     ) {
                         Text(
-                            text = CurrencyHelper.format(item.price, currentCurrency),
+                            text = detailPriceFormatted,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,

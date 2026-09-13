@@ -24,7 +24,6 @@ enum class MainNavigationTab {
     STUDIO,
     CREATE,
     CLIPS,
-    SPACES,
     PROFILE
 }
 
@@ -521,6 +520,14 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _showBoostAdDialog = MutableStateFlow(false)
     val showBoostAdDialog: StateFlow<Boolean> = _showBoostAdDialog.asStateFlow()
+
+    // --- Gamified Daily Check-in & Radar Visibility Perks ---
+    private val _dailyCheckInState = MutableStateFlow(DailyCheckInState())
+    val dailyCheckInState: StateFlow<DailyCheckInState> = _dailyCheckInState.asStateFlow()
+
+    // --- Hyperlocal Neighbor Referral Growth Loop ---
+    private val _referralState = MutableStateFlow(NeighborReferralState())
+    val referralState: StateFlow<NeighborReferralState> = _referralState.asStateFlow()
 
     init {
         // Initial DB population & location detection
@@ -2228,6 +2235,82 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 superThanksTipsUSD = cur.superThanksTipsUSD + amountUSD,
                 totalGrossEarnedUSD = cur.totalGrossEarnedUSD + amountUSD,
                 availableBalanceUSD = cur.availableBalanceUSD + amountUSD
+            )
+        }
+        return true
+    }
+
+    fun claimDailyCheckIn() {
+        _dailyCheckInState.update { current ->
+            if (current.hasCheckedInToday) return@update current
+            val newStreak = current.currentStreakDays + 1
+            val rewardsList = CheckInRewardsConfig.get7DayRewards()
+            val dayReward = rewardsList.firstOrNull { it.dayNumber == (((newStreak - 1) % 7) + 1) }
+            val bonusPoints = dayReward?.points ?: 50
+            val grantedPerk = dayReward?.perk
+            val newBadges = current.unlockedStreakBadges.toMutableList()
+
+            dayReward?.badgeTitle?.let { bTitle ->
+                if (newBadges.none { it.name == bTitle }) {
+                    newBadges.add(
+                        StreakBadge(
+                            id = "badge_streak_${newStreak}",
+                            name = bTitle,
+                            emoji = dayReward.badgeEmoji ?: "🎖️",
+                            dayRequirement = newStreak,
+                            description = "Achieved $newStreak-day continuous check-in streak."
+                        )
+                    )
+                }
+            }
+
+            val updatedPerks = current.activePerks.filter { !it.isExpired }.toMutableList()
+            if (grantedPerk != null) {
+                updatedPerks.removeAll { it.id == grantedPerk.id }
+                updatedPerks.add(grantedPerk)
+            }
+
+            current.copy(
+                currentStreakDays = newStreak,
+                lastCheckInTimestamp = System.currentTimeMillis(),
+                hasCheckedInToday = true,
+                totalPoints = current.totalPoints + bonusPoints,
+                totalCheckInsCompleted = current.totalCheckInsCompleted + 1,
+                activePerks = updatedPerks,
+                unlockedStreakBadges = newBadges
+            )
+        }
+    }
+
+    fun redeemFriendCode(code: String): Boolean {
+        val trimmed = code.trim().uppercase()
+        val current = _referralState.value
+        if (current.hasRedeemedFriendCode || trimmed.isEmpty() || trimmed == current.userReferralCode) {
+            return false
+        }
+        _referralState.update {
+            it.copy(
+                hasRedeemedFriendCode = true,
+                redeemedReferrerName = "Neighbor ($trimmed)",
+                bonusPointsEarned = it.bonusPointsEarned + 100
+            )
+        }
+        _dailyCheckInState.update { cur ->
+            val boosterPerk = RadarVisibilityPerk(
+                id = "perk_referral_welcome_booster",
+                name = "Neighbor Welcome Boost (12h)",
+                description = "Amplifies radar pulse and signal luminosity from accepted neighbor invitation.",
+                emoji = "🤝",
+                perkType = RadarPerkType.AURA_BRIGHTNESS,
+                durationHours = 12,
+                glowColorHex = 0xFF60A5FA
+            )
+            val perks = cur.activePerks.toMutableList()
+            perks.removeAll { it.id == boosterPerk.id }
+            perks.add(boosterPerk)
+            cur.copy(
+                totalPoints = cur.totalPoints + 100,
+                activePerks = perks
             )
         }
         return true

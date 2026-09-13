@@ -42,6 +42,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -87,7 +88,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         
         parseDeepLink(intent)
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 val options = FirebaseOptions.Builder()
                     .setApplicationId("1:109876543210:android:abcdef0123456789")
                     .setProjectId("Localiiiy-app")
-                    .setApiKey("AIzaSyLocaliiiyFirebaseApiKeyMock")
+                    .setApiKey(BuildConfig.FIREBASE_API_KEY)
                     .build()
                 FirebaseApp.initializeApp(this, options)
             }
@@ -105,20 +106,36 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         }
         enableEdgeToEdge()
         setContent {
-            LocaliiiyTheme {
+            val viewModel: com.example.ui.LocaliiiyViewModel = viewModel()
+            val privacySettings by viewModel.privacySettings.collectAsStateWithLifecycle()
+            
+            LocaliiiyTheme(themeKey = privacySettings.appThemeBackground) {
                 if (isPanicCloakActive.value) {
-                    // Decoy Screen
+                    // Decoy Screen (tap to return)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black),
+                            .background(Color.Black)
+                            .clickable {
+                                isPanicCloakActive.value = false
+                            },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "Calculator",
-                            color = Color.White,
-                            style = MaterialTheme.typography.titleLarge
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                "Calculator",
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Text(
+                                "Tap anywhere to exit decoy mode",
+                                color = Color.Gray,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 } else {
                     LocaliiiyApp(
@@ -132,7 +149,9 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     
     override fun onResume() {
         super.onResume()
-        sensorManager?.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+        accelerometer?.let {
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
     }
 
     override fun onPause() {
@@ -143,7 +162,14 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
         if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
             val curTime = System.currentTimeMillis()
-            if ((curTime - lastUpdate) > 100) {
+            if (lastUpdate == 0L) {
+                lastUpdate = curTime
+                last_x = event.values[0]
+                last_y = event.values[1]
+                last_z = event.values[2]
+                return
+            }
+            if ((curTime - lastUpdate) > 150) {
                 val diffTime = (curTime - lastUpdate)
                 lastUpdate = curTime
                 
@@ -152,7 +178,7 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 val z = event.values[2]
                 
                 val speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000
-                if (speed > SHAKE_THRESHOLD) {
+                if (speed > 3500) {
                     // Activate Panic Cloak
                     isPanicCloakActive.value = true
                 }
@@ -284,9 +310,12 @@ fun LocaliiiyApp(
     val showDataAnalysis by viewModel.showDataAnalysis.collectAsStateWithLifecycle()
     val showMonetizationHub by viewModel.showMonetizationHub.collectAsStateWithLifecycle()
     val showBoostAdDialog by viewModel.showBoostAdDialog.collectAsStateWithLifecycle()
+    val showAtmosphericThemeBottomSheet by viewModel.showAtmosphericThemeBottomSheet.collectAsStateWithLifecycle()
     val creatorEarnings by viewModel.creatorEarnings.collectAsStateWithLifecycle()
     val payoutAccount by viewModel.payoutAccount.collectAsStateWithLifecycle()
     val payoutHistory by viewModel.payoutHistory.collectAsStateWithLifecycle()
+    val dailyCheckInState by viewModel.dailyCheckInState.collectAsStateWithLifecycle()
+    val referralState by viewModel.referralState.collectAsStateWithLifecycle()
     val platformMetrics by viewModel.platformMetrics.collectAsStateWithLifecycle()
     val sponsoredAds by viewModel.sponsoredAds.collectAsStateWithLifecycle()
 
@@ -318,41 +347,66 @@ fun LocaliiiyApp(
 
 
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    val defaultBackground = MaterialTheme.colorScheme.background
+    val backgroundModifier = remember(privacySettings.appThemeBackground, defaultBackground) {
+        when (privacySettings.appThemeBackground) {
+            "BLACK_HOLE" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF020205), Color(0xFF1E0B38), Color(0xFFFF6A00))))
+            "MOON" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF0F172A), Color(0xFF334155), Color(0xFF38BDF8))))
+            "GALAXY" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF070414), Color(0xFF4338CA), Color(0xFFD946EF))))
+            else -> Modifier.background(defaultBackground)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
+        if (privacySettings.appThemeBackground == "CUSTOM" && privacySettings.customBackgroundImageUri.isNotBlank()) {
+            AsyncImage(
+                model = privacySettings.customBackgroundImageUri,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
+        }
+
         Scaffold(
+            containerColor = Color.Transparent,
+            contentColor = MaterialTheme.colorScheme.onBackground,
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 if (currentTab == MainNavigationTab.FEED) {
-                    LocaliiiyTopBar(
-                        hasUnreadNotifications = notifications.any { !it.isRead },
-                        hasUnreadMessages = conversations.any { !it.isRead },
-                        currentLocationLabel = currentLocation?.landmark ?: "Pike Place, Seattle",
-                        isLocationEnabled = isLocationEnabled,
-                        isPrivateAccount = isPrivateAccount,
-                        searchQuery = globalSearchQuery,
-                        onSearchQueryChange = { q -> viewModel.setGlobalSearchQuery(q) },
-                        onLogoClick = { showOpeningAnimation = true },
-                        onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
-                        onNotificationsClick = { viewModel.openNotificationsSheet() },
-                        onDirectMessagesClick = { viewModel.openDirectMessagesSheet() },
-                        onCreateClick = {
-                            viewModel.setCreationMode(CreationMode.POST)
-                            viewModel.selectTab(MainNavigationTab.CREATE)
-                        },
-                        onLocationClick = {
-                            if (!isLocationEnabled) {
-                                viewModel.setLocationEnabled(true)
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Location Radar Enabled 📍")
-                                }
-                            } else {
-                                viewModel.detectCurrentLocation(context)
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("GPS Location updated: ${currentLocation?.landmark ?: "Pike Place"}")
+                    Box(modifier = Modifier.zIndex(100f)) {
+                        LocaliiiyTopBar(
+                            hasUnreadNotifications = notifications.any { !it.isRead },
+                            hasUnreadMessages = conversations.any { !it.isRead },
+                            currentLocationLabel = currentLocation?.landmark ?: "Pike Place, Seattle",
+                            isLocationEnabled = isLocationEnabled,
+                            isPrivateAccount = isPrivateAccount,
+                            searchQuery = globalSearchQuery,
+                            onSearchQueryChange = { q -> viewModel.setGlobalSearchQuery(q) },
+                            onLogoClick = { showOpeningAnimation = true },
+                            onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
+                            onNotificationsClick = { viewModel.openNotificationsSheet() },
+                            onDirectMessagesClick = { viewModel.openDirectMessagesSheet() },
+                            onThemeClick = { viewModel.openAtmosphericThemeBottomSheet() },
+                            onCreateClick = {
+                                viewModel.setCreationMode(CreationMode.POST)
+                                viewModel.selectTab(MainNavigationTab.CREATE)
+                            },
+                            onLocationClick = {
+                                if (!isLocationEnabled) {
+                                    viewModel.setLocationEnabled(true)
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("Location Radar Enabled 📍")
+                                    }
+                                } else {
+                                    viewModel.detectCurrentLocation(context)
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("GPS Location updated: ${currentLocation?.landmark ?: "Pike Place"}")
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             },
         bottomBar = {
@@ -389,7 +443,7 @@ fun LocaliiiyApp(
                     val allStudioVideos by viewModel.allStudioVideos.collectAsState()
                     FeedScreen(
                         clips = allClips.filter { it.isFollowing },
-                        posts = posts,
+                        posts = feedPosts,
                         stories = stories,
                         userProfile = userProfile,
                         selectedRadiusKm = nearbyRadiusKm,
@@ -496,7 +550,8 @@ fun LocaliiiyApp(
                             }
                         },
                         isRefreshing = isRefreshingExplore,
-                        onRefresh = { viewModel.refreshExplore() }
+                        onRefresh = { viewModel.refreshExplore() },
+                        activeRadarPerk = dailyCheckInState.activePerks.firstOrNull { !it.isExpired }
                     )
                 }
 
@@ -716,11 +771,6 @@ fun LocaliiiyApp(
                     )
                 }
 
-                MainNavigationTab.SPACES -> {
-                    SpacesScreen(
-                        currentUserId = viewModel.userProfile.value.username
-                    )
-                }
                 MainNavigationTab.PROFILE -> {
                     ProfileScreen(
                         userProfile = userProfile,
@@ -989,6 +1039,17 @@ fun LocaliiiyApp(
                 ConnectionsManagerScreen(onNavigateBack = { showConnectionsManager = false })
             } else {
                 PrivacySettingsScreen(
+                    privacySettings = privacySettings,
+                    onUpdatePrivacySettings = { viewModel.updatePrivacySettings(it) },
+                    dailyCheckInState = dailyCheckInState,
+                    onClaimCheckIn = { viewModel.claimDailyCheckIn() },
+                    referralState = referralState,
+                    onRedeemFriendCode = { code -> viewModel.redeemFriendCode(code) },
+                    creatorEarnings = creatorEarnings,
+                    payoutAccount = payoutAccount,
+                    payoutHistory = payoutHistory,
+                    currentCurrency = currentCurrency,
+                    onRequestPayout = { amount -> viewModel.requestPayout(amount) },
                     onNavigateBack = { viewModel.closePrivacySettings() },
                     onNavigateToBlockedUsers = { showBlockedUsers = true },
                     onNavigateToConnections = { showConnectionsManager = true },
@@ -1173,6 +1234,19 @@ fun LocaliiiyApp(
         )
     }
 
+    if (showAtmosphericThemeBottomSheet) {
+        AtmosphericThemeBottomSheet(
+            currentThemeKey = privacySettings.appThemeBackground,
+            currentCustomImageUri = privacySettings.customBackgroundImageUri,
+            onSelectTheme = { key, uri -> viewModel.setAtmosphericTheme(key, uri) },
+            onDismiss = { viewModel.closeAtmosphericThemeBottomSheet() },
+            onOpenWorldwideLocalization = {
+                viewModel.closeAtmosphericThemeBottomSheet()
+                viewModel.openLanguageCurrencyDialog()
+            }
+        )
+    }
+
     // Boost Post & Worldwide Sponsored Campaign Dialog
     if (showBoostAdDialog) {
         BoostPostDialog(
@@ -1269,14 +1343,6 @@ fun LocaliiiyBottomNavigationBar(
             )
 
 
-            // Spaces Tab
-            LocaliiiyNavItem(
-                icon = if (currentTab == MainNavigationTab.SPACES) Icons.Default.Groups else Icons.Outlined.Groups,
-                label = "Spaces",
-                isSelected = currentTab == MainNavigationTab.SPACES,
-                onClick = { onTabSelected(MainNavigationTab.SPACES) },
-                testTag = "nav_tab_spaces"
-            )
 
             // Profile Tab
             Box(

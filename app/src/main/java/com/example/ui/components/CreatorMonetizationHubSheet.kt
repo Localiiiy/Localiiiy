@@ -78,13 +78,22 @@ fun CreatorMonetizationHubSheet(
                             color = MaterialTheme.colorScheme.primary
                         )
                         Spacer(modifier = Modifier.height(16.dp))
+                        val minPayoutFormatted = CurrencyHelper.format(payoutAccount.minimumPayoutUSD, currentCurrency)
+                        val canWithdraw = earnings.availableBalanceUSD >= payoutAccount.minimumPayoutUSD
                         Button(
                             onClick = { onRequestPayout(earnings.availableBalanceUSD) },
+                            enabled = canWithdraw,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("Request Payout")
+                            Text(if (canWithdraw) "Request Payout ($minPayoutFormatted Min)" else "Min. Payout $minPayoutFormatted Required")
                         }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Minimum withdrawal: $minPayoutFormatted (${payoutAccount.minimumPayoutUSD.toInt()} USD equivalent for ${currentCurrency.country})",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

@@ -80,7 +80,8 @@ val defaultLocalCircles = listOf(
 val defaultCoreInterests = listOf(
     "Local Food & Coffee", "Indie Film & Clips", "Live Music & Gigs",
     "Tech & Open Source", "Urban Photography", "Maker Crafts",
-    "Community News", "Cycling & Trails", "Visual Art & Murals", "Night Markets"
+    "Community News", "Cycling & Trails", "Visual Art & Murals", "Night Markets",
+    "Funny Clips", "Education", "Fitness", "Fashion", "Gaming", "DIY & Home"
 )
 
 val defaultLocalWelcomeCreators = listOf(
@@ -911,6 +912,22 @@ fun InterestConstellationMapping(
     onToggleInterest: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var customSearchQuery by remember { mutableStateOf("") }
+    
+    // Combine default and custom added interests
+    val allInterests = remember(selectedInterests) {
+        (defaultCoreInterests + selectedInterests).distinct()
+    }
+    
+    // Filter by search query
+    val filteredInterests = remember(allInterests, customSearchQuery) {
+        if (customSearchQuery.isBlank()) {
+            allInterests
+        } else {
+            allInterests.filter { it.contains(customSearchQuery, ignoreCase = true) }
+        }
+    }
+    
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -934,10 +951,34 @@ fun InterestConstellationMapping(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
+        
+        // Search & Add Interest Field
+        OutlinedTextField(
+            value = customSearchQuery,
+            onValueChange = { customSearchQuery = it },
+            placeholder = { Text("Search or create new interest...", fontSize = 12.sp) },
+            singleLine = true,
+            trailingIcon = {
+                if (customSearchQuery.isNotBlank()) {
+                    IconButton(onClick = {
+                        val newInterest = customSearchQuery.trim()
+                        if (newInterest.isNotBlank() && !selectedInterests.contains(newInterest)) {
+                            onToggleInterest(newInterest)
+                            customSearchQuery = ""
+                        }
+                    }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Interest")
+                    }
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        )
 
         // Multi-line chip wrapping row
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            val chunked = defaultCoreInterests.chunked(3)
+            val chunked = filteredInterests.chunked(3)
             chunked.forEach { rowItems ->
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -1177,16 +1218,19 @@ fun CustomConnectionPitchBioField(
     }
 }
 
-// Feature 15: Age-Appropriate Geographic Gating
+// Feature 15: Age-Appropriate Geographic Gating & DOB Verification
 @Composable
 fun AgeAppropriateGatingCard(
     birthYear: Int,
     onBirthYearChange: (Int) -> Unit,
+    dobString: String = "15/06/2000",
+    onDobStringChange: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val currentYear = 2026
     val userAge = currentYear - birthYear
     val isMinor = userAge < 18
+    var inputDob by remember { mutableStateOf(dobString) }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
@@ -1200,11 +1244,22 @@ fun AgeAppropriateGatingCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "Age & Proximity Safety Verification",
-                    fontSize = 12.5.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Cake,
+                        contentDescription = null,
+                        tint = if (isMinor) MaterialTheme.colorScheme.error else LocaliiiyPrimaryTeal,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = "Age & Proximity Gating (DOB / Birth Year)",
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Text(
                     text = "$userAge years old",
                     fontSize = 11.sp,
@@ -1212,25 +1267,71 @@ fun AgeAppropriateGatingCard(
                     color = if (isMinor) MaterialTheme.colorScheme.error else LocaliiiyPrimaryTeal
                 )
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = if (isMinor)
                     "🔒 Under 18: Physical radar blip broadcasting and in-person marketplace meetup zones are automatically cloaked for child safety."
                 else
-                    "✓ 18+: Full access to physical radar discovery and safe in-person meetup hubs.",
+                    "✓ 18+: Full Proximity access unlocked. Real local community discovery and meetup zones enabled.",
                 fontSize = 10.5.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(8.dp))
+
+            // Date of Birth (DOB) and Birth Year fields
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf(2000, 2004, 2007, 2010).forEach { year ->
+                OutlinedTextField(
+                    value = inputDob,
+                    onValueChange = {
+                        inputDob = it
+                        onDobStringChange(it)
+                        val parts = it.split("/", "-", ".")
+                        if (parts.size == 3) {
+                            parts.lastOrNull()?.toIntOrNull()?.let { parsedYear ->
+                                if (parsedYear in 1920..2026) {
+                                    onBirthYearChange(parsedYear)
+                                }
+                            }
+                        }
+                    },
+                    label = { Text("Date of Birth (DD/MM/YYYY)", fontSize = 11.sp) },
+                    placeholder = { Text("e.g. 15/06/2000") },
+                    singleLine = true,
+                    modifier = Modifier.weight(1.4f),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                )
+
+                OutlinedTextField(
+                    value = birthYear.toString(),
+                    onValueChange = {
+                        it.toIntOrNull()?.let { yr ->
+                            if (yr in 1920..2026) onBirthYearChange(yr)
+                        }
+                    },
+                    label = { Text("Birth Year", fontSize = 11.sp) },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                listOf(1995, 1998, 2000, 2003, 2006).forEach { year ->
                     FilterChip(
                         selected = birthYear == year,
-                        onClick = { onBirthYearChange(year) },
-                        label = { Text("Born $year", fontSize = 11.sp) },
+                        onClick = { 
+                            onBirthYearChange(year)
+                            inputDob = "01/01/$year"
+                            onDobStringChange(inputDob)
+                        },
+                        label = { Text("$year", fontSize = 11.sp) },
                         modifier = Modifier.testTag("chip_birth_year_$year")
                     )
                 }

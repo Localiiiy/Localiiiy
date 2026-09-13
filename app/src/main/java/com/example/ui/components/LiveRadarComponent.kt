@@ -12,6 +12,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -57,6 +61,7 @@ fun LiveRadarComponent(
     onUserClick: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onWaveAtUser: (OtherUserEntity) -> Unit = {},
+    activeRadarPerk: com.example.data.RadarVisibilityPerk? = null,
     modifier: Modifier = Modifier
 ) {
     val radarColor = Color(0xFF00FF41)
@@ -138,6 +143,82 @@ fun LiveRadarComponent(
     }
 
     Column(modifier = modifier.fillMaxWidth().background(if (isDayTheme) Color(0xFFF8FAFC) else Color.Black)) {
+        // Section 3.0: Master Radar Power & Broadcast Controller (Exclusive to Radar Page)
+        Surface(
+            color = if (isLocationEnabled) Color(0xFF031405) else Color(0xFF1E1010),
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(
+                1.dp,
+                if (isLocationEnabled) Color(0xFF00FF41).copy(alpha = 0.6f) else Color(0xFFFF5252).copy(alpha = 0.5f)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp)
+                .testTag("radar_master_power_card")
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isLocationEnabled) Color(0xFF00FF41).copy(alpha = 0.2f) else Color(0xFFFF5252).copy(alpha = 0.2f),
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = if (isLocationEnabled) "📡" else "🛑",
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = if (isLocationEnabled) "LIVE RADAR ACTIVE" else "RADAR INACTIVE (OFF-GRID)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252),
+                            letterSpacing = 0.5.sp
+                        )
+                        Text(
+                            text = if (isLocationEnabled) {
+                                "Scanning signals & neighbors within ${currentDistanceOption.fullLabel}"
+                            } else {
+                                "Radar is OFF • Tap to activate nearby signal scanner"
+                            },
+                            fontSize = 10.sp,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = { onLocationToggle(!isLocationEnabled) },
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isLocationEnabled) Color(0xFF1B2E1D) else Color(0xFF00FF41),
+                        contentColor = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFF020E04)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    modifier = Modifier.testTag("radar_page_power_toggle_btn")
+                ) {
+                    Text(
+                        text = if (isLocationEnabled) "Turn OFF" else "Turn Radar ON 📡",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
         // Section 3.2: Passive Sonar Ghost Cloak Mode Banner
         PassiveSonarGhostBanner(
             isGhostActive = isGhostActive,
@@ -147,6 +228,49 @@ fun LiveRadarComponent(
             },
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
         )
+
+        // Active Gamified Radar Visibility Perk HUD Banner
+        if (activeRadarPerk != null) {
+            val perkColor = Color(activeRadarPerk.glowColorHex)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = perkColor.copy(alpha = 0.15f),
+                border = BorderStroke(1.dp, perkColor.copy(alpha = 0.7f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(activeRadarPerk.emoji, fontSize = 20.sp)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = "ACTIVE RADAR PERK",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black,
+                                color = perkColor,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "• ${activeRadarPerk.remainingHours}h remaining",
+                                fontSize = 10.sp,
+                                color = Color.White.copy(alpha = 0.8f)
+                            )
+                        }
+                        Text(
+                            text = "${activeRadarPerk.name}: ${activeRadarPerk.description}",
+                            fontSize = 11.sp,
+                            color = Color.White,
+                            maxLines = 1
+                        )
+                    }
+                }
+            }
+        }
 
         // Section 3.20: Master Tactical HUD Control Bar (3D Pitch, Day/Night HUD, Battery Saver)
         Section3MasterControlBar(
@@ -183,19 +307,13 @@ fun LiveRadarComponent(
             )
         }
 
-        // Section 3.7: Radar Scale Zoom Slider
+        // Section 3.7: Radar Scale Zoom & Increase / Decrease Controller
         RadarScaleZoomSlider(
             currentRadiusKm = selectedRadiusKm,
             onRadiusChange = { onRadiusChange(it) }
         )
 
-        // Section 3.9: Ephemeral Soundscape Radar Bar
-        EphemeralSoundscapeRadarBar(
-            soundFrequency = "432 Hz Solfeggio • Soundscape Alive",
-            isPlaying = isSoundscapePlaying,
-            onTogglePlay = { isSoundscapePlaying = !isSoundscapePlaying },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp)
-        )
+        // (Soundscape feature removed from radar as requested)
 
         // Section 3.10 & 3.13: Safe Haven & Event Geofence Indicators
         Row(
@@ -310,46 +428,9 @@ fun LiveRadarComponent(
                         }
                     }
                 }
-
-                // In-Radar Far-Out Range Picker (3k, 10K, 100k, 500K, Country, Earth, Galaxy)
-                if (hidePreciseLocationOnRadar && onSelectObfuscatedRange != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "SIMULATE DISTANCE:",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = shieldCyan,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                    )
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        items(systematicRanges) { opt ->
-                            val isSel = radarObfuscatedRange.equals(opt.key, ignoreCase = true) ||
-                                    radarObfuscatedRange.equals(opt.shortLabel, ignoreCase = true)
-                            Surface(
-                                shape = RoundedCornerShape(6.dp),
-                                color = if (isSel) shieldCyan else Color(0xFF0F2613),
-                                border = androidx.compose.foundation.BorderStroke(0.8.dp, if (isSel) shieldCyan else Color(0xFF005511)),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .clickable { onSelectObfuscatedRange(opt.key) }
-                            ) {
-                                Text(
-                                    text = opt.shortLabel,
-                                    fontSize = 9.sp,
-                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSel) Color.Black else Color.White,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
-        // Radar Screen
+        // Radar Screen with Dynamic Touch Pinch-to-Zoom
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
@@ -366,15 +447,23 @@ fun LiveRadarComponent(
                 (nearbyUsers + nearbyPosts).take(combinedCount)
             }
 
-            // Radar circular display strictly clipped to CircleShape
+            // Radar circular display strictly clipped to CircleShape with touch gesture zoom
             Box(
                 modifier = Modifier
                     .size(radarDiameterDp)
                     .clip(CircleShape)
                     .background(Color(0xFF020E04))
-                    .border(2.dp, Brush.radialGradient(listOf(radarColor, Color(0xFF00AA29), Color(0xFF00330D))), CircleShape)
+                    .border(2.5.dp, Brush.radialGradient(listOf(radarColor, Color(0xFF00AA29), Color(0xFF00330D))), CircleShape)
+                    .pointerInput(selectedRadiusKm) {
+                        detectTransformGestures { _, _, zoom, _ ->
+                            if (zoom != 1f) {
+                                val nextRadius = (selectedRadiusKm / zoom).coerceIn(1.0, 500.0)
+                                onRadiusChange(nextRadius)
+                            }
+                        }
+                    }
             ) {
-                // 1. Canvas with grid, concentric rings, crosshairs, and rotating sweep
+                // 1. Canvas with grid, concentric rings, crosshairs, precise coordinate markers and rotating sweep
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2, size.height / 2)
                     val radius = size.minDimension / 2
@@ -389,13 +478,85 @@ fun LiveRadarComponent(
                         drawLine(gridColor.copy(alpha = 0.3f), start = Offset(0f, i * stepY), end = Offset(size.width, i * stepY), strokeWidth = 1.dp.toPx())
                     }
                     
-                    // Draw Concentric Circles
+                    // Draw Concentric Range Rings (25%, 50%, 75%, 100%)
                     for (i in 1..4) {
                         drawCircle(
                             color = radarColor.copy(alpha = 0.45f),
                             radius = radius * (i / 4f),
                             center = center,
                             style = Stroke(width = 1.dp.toPx())
+                        )
+                    }
+
+                    // Scaled distance annotations on range rings
+                    val ringDistPaint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.parseColor("#00FF41")
+                        textSize = 8.5.dp.toPx()
+                        textAlign = android.graphics.Paint.Align.LEFT
+                        typeface = android.graphics.Typeface.MONOSPACE
+                        isAntiAlias = true
+                        alpha = 190
+                    }
+                    val ring1Km = String.format("%.1f", selectedRadiusKm * 0.25)
+                    val ring2Km = String.format("%.1f", selectedRadiusKm * 0.50)
+                    val ring3Km = String.format("%.1f", selectedRadiusKm * 0.75)
+                    val ring4Km = String.format("%.0f", selectedRadiusKm)
+                    drawContext.canvas.nativeCanvas.drawText("${ring1Km}k", center.x + 4.dp.toPx(), center.y - radius * 0.25f - 2.dp.toPx(), ringDistPaint)
+                    drawContext.canvas.nativeCanvas.drawText("${ring2Km}k", center.x + 4.dp.toPx(), center.y - radius * 0.50f - 2.dp.toPx(), ringDistPaint)
+                    drawContext.canvas.nativeCanvas.drawText("${ring3Km}k", center.x + 4.dp.toPx(), center.y - radius * 0.75f - 2.dp.toPx(), ringDistPaint)
+                    drawContext.canvas.nativeCanvas.drawText("${ring4Km}KM", center.x + 4.dp.toPx(), center.y - radius + 25.dp.toPx(), ringDistPaint)
+
+                    // Draw Precise Cardinal Coordinates on rim (N, E, W, S)
+                    val textPaint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.parseColor("#00FF41")
+                        textSize = 10.dp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        typeface = android.graphics.Typeface.MONOSPACE
+                        isFakeBoldText = true
+                        isAntiAlias = true
+                        alpha = 230
+                    }
+                    val northPaint = android.graphics.Paint().apply {
+                        color = android.graphics.Color.parseColor("#39FF14")
+                        textSize = 11.dp.toPx()
+                        textAlign = android.graphics.Paint.Align.CENTER
+                        typeface = android.graphics.Typeface.MONOSPACE
+                        isFakeBoldText = true
+                        isAntiAlias = true
+                        alpha = 255
+                    }
+                    val textMargin = 14.dp.toPx()
+
+                    // Glowing North Chevron Pointer
+                    val northChevron = Path().apply {
+                        moveTo(center.x, center.y - radius + 3.dp.toPx())
+                        lineTo(center.x - 5.dp.toPx(), center.y - radius + 11.dp.toPx())
+                        lineTo(center.x + 5.dp.toPx(), center.y - radius + 11.dp.toPx())
+                        close()
+                    }
+                    drawPath(northChevron, color = Color(0xFF39FF14))
+
+                    // Cardinal Coordinate Labels
+                    drawContext.canvas.nativeCanvas.drawText("N 000°", center.x, center.y - radius + textMargin + 9.dp.toPx(), northPaint)
+                    drawContext.canvas.nativeCanvas.drawText("S 180°", center.x, center.y + radius - textMargin + 2.dp.toPx(), textPaint)
+                    drawContext.canvas.nativeCanvas.drawText("W 270°", center.x - radius + textMargin * 1.6f, center.y + 4.dp.toPx(), textPaint)
+                    drawContext.canvas.nativeCanvas.drawText("E 090°", center.x + radius - textMargin * 1.6f, center.y + 4.dp.toPx(), textPaint)
+
+                    // 12 Azimuth Degree Ticks around the outer rim
+                    for (deg in 0 until 360 step 30) {
+                        val rad = Math.toRadians(deg.toDouble())
+                        val isCardinal = deg % 90 == 0
+                        val tickLen = if (isCardinal) 8.dp.toPx() else 4.dp.toPx()
+                        val tickColor = if (isCardinal) Color(0xFF39FF14) else radarColor.copy(alpha = 0.45f)
+                        val startX = center.x + (radius - tickLen) * cos(rad).toFloat()
+                        val startY = center.y + (radius - tickLen) * sin(rad).toFloat()
+                        val endX = center.x + radius * cos(rad).toFloat()
+                        val endY = center.y + radius * sin(rad).toFloat()
+                        drawLine(
+                            color = tickColor,
+                            start = Offset(startX, startY),
+                            end = Offset(endX, endY),
+                            strokeWidth = if (isCardinal) 2.dp.toPx() else 1.dp.toPx()
                         )
                     }
 
@@ -593,48 +754,8 @@ fun LiveRadarComponent(
             }
         }
         
-        // Systematic Range Options Bar (3KM, 5KM, 50KM, 100KM, 500KM, 1000KM, Country, Earth, Galaxy)
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 16.dp)
-                .testTag("radar_systematic_ranges_row"),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(systematicRanges) { opt ->
-                val isSelected = kotlin.math.abs(selectedRadiusKm - opt.km) < 0.1 ||
-                        (opt.key == "COUNTRY" && selectedRadiusKm == SystematicDistanceScale.COUNTRY_DEFAULT_KM) ||
-                        (opt.key == "EARTH" && selectedRadiusKm == SystematicDistanceScale.EARTH_KM) ||
-                        (opt.key == "GALAXY" && selectedRadiusKm == SystematicDistanceScale.GALAXY_KM)
-                val activeBg = if (hidePreciseLocationOnRadar) shieldCyan else radarColor
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (isSelected) activeBg else Color(0xFF162518),
-                    border = BorderStroke(
-                        1.dp,
-                        if (isSelected) Color.White.copy(alpha = 0.8f) else Color(0xFF005511)
-                    ),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { onRadiusChange(opt.km) }
-                        .testTag("radar_range_pill_${opt.key.lowercase()}")
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(text = opt.icon, fontSize = 11.sp)
-                        Text(
-                            text = opt.shortLabel,
-                            color = if (isSelected) Color.Black else Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        }
+        // (Fixed range filters 5KM, 50KM, Earth removed as requested - users use dynamic scale +/- zoom controls above)
+
         // Section 3.6: Landmark Geo-Portal Beacons Tray
         LandmarkGeoPortalBeaconsTray(
             beacons = sampleGeoBeacons,

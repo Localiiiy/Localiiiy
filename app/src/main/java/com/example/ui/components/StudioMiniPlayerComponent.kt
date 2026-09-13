@@ -35,6 +35,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -73,7 +74,10 @@ fun StudioInlinePreviewPlayer(
     var progressFraction by remember { mutableFloatStateOf(0f) }
 
     val exoPlayer = remember(video.id) {
-        ExoPlayer.Builder(context).build().apply {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             repeatMode = Player.REPEAT_MODE_ONE
             volume = if (isMuted) 0f else 1f
             try {
@@ -94,6 +98,7 @@ fun StudioInlinePreviewPlayer(
 
     // Player events listener
     DisposableEffect(exoPlayer) {
+        var fallbackAttempted = false
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
                 when (state) {
@@ -110,21 +115,31 @@ fun StudioInlinePreviewPlayer(
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 isBuffering = false
-                try {
-                    val fallback = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
-                    exoPlayer.setMediaItem(fallback)
-                    exoPlayer.prepare()
-                    exoPlayer.play()
-                } catch (e: Exception) {
+                if (!fallbackAttempted && video.videoUrl != "https://media.w3.org/2010/05/sintel/trailer.mp4") {
+                    fallbackAttempted = true
+                    try {
+                        val fallback = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
+                        exoPlayer.setMediaItem(fallback)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    } catch (e: Exception) {
+                        hasError = true
+                        try { exoPlayer.stop() } catch (_: Exception) {}
+                    }
+                } else {
                     hasError = true
+                    try { exoPlayer.stop() } catch (_: Exception) {}
                 }
             }
         }
         exoPlayer.addListener(listener)
 
         onDispose {
-            exoPlayer.removeListener(listener)
-            exoPlayer.release()
+            try {
+                exoPlayer.removeListener(listener)
+                exoPlayer.stop()
+                exoPlayer.release()
+            } catch (_: Exception) {}
         }
     }
 
@@ -414,7 +429,10 @@ fun StudioDockedMiniPlayer(
     var currentProgress by remember { mutableFloatStateOf(playbackProgress) }
 
     val exoPlayer = remember(video.id) {
-        ExoPlayer.Builder(context).build().apply {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             volume = if (isMuted) 0f else 1f
             try {
                 val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
@@ -441,11 +459,17 @@ fun StudioDockedMiniPlayer(
                     exoPlayer.play()
                 }
             }
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                try { exoPlayer.stop() } catch (_: Exception) {}
+            }
         }
         exoPlayer.addListener(listener)
         onDispose {
-            exoPlayer.removeListener(listener)
-            exoPlayer.release()
+            try {
+                exoPlayer.removeListener(listener)
+                exoPlayer.stop()
+                exoPlayer.release()
+            } catch (_: Exception) {}
         }
     }
 

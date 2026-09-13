@@ -222,6 +222,14 @@ data class PrivacySettingsEntity(
     val hideMobileNumber: Boolean = false,
     val hideEmailAddress: Boolean = false,
     val hideAddress: Boolean = false,
+    // Master Ghost Mode & Granular Visibility Controls
+    val isGhostMode: Boolean = false,
+    val locationPrecisionKm: Float = 10f,
+    val hideLocation: Boolean = false,
+    val hideProfilePicture: Boolean = false,
+    val hidePosts: Boolean = false,
+    val hideClips: Boolean = false,
+    val hideInNeighborhood: Boolean = false,
     // Live Radar Precise Location & Distance Obfuscation
     val hidePreciseLocationOnRadar: Boolean = false,
     val radarObfuscatedRange: String = "3k", // "3k", "10K", "100k", "500K", "Country", "Earth", "Galaxy"

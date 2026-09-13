@@ -731,8 +731,8 @@ fun TacticalRadarGridCanvas(
             color = android.graphics.Color.parseColor("#14FF00")
             textSize = 7.5.dp.toPx()
             isAntiAlias = true
-            textAlign = Paint.Align.CENTER
-            typeface = Typeface.MONOSPACE
+            textAlign = android.graphics.Paint.Align.CENTER
+            typeface = android.graphics.Typeface.MONOSPACE
         }
 
         for (deg in 0 until 360 step 10) {
@@ -740,7 +740,15 @@ fun TacticalRadarGridCanvas(
             val labelR = outerRimRadius + 8.5.dp.toPx()
             val lx = center.x + (labelR * cos(rad)).toFloat()
             val ly = center.y + (labelR * sin(rad)).toFloat() + (2.5.dp.toPx())
-            val degText = String.format("%03d", deg)
+            
+            val degText = when (deg) {
+                0 -> "N 0°"
+                90 -> "E 90°"
+                180 -> "S 180°"
+                270 -> "W 270°"
+                else -> String.format("%03d", deg)
+            }
+            
             drawContext.canvas.nativeCanvas.drawText(degText, lx, ly, textPaint)
         }
 

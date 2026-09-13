@@ -47,7 +47,7 @@ data class CreatorPayoutAccount(
     val countryCode: String = "US",
     val preferredCurrencyCode: String = "USD",
     val taxComplianceStatus: String = "W-8BEN / W-9 Tax Verified",
-    val minimumPayoutUSD: Double = 50.0,
+    val minimumPayoutUSD: Double = 1000.0,
     val autoMonthlyPayoutEnabled: Boolean = true
 )
 

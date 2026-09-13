@@ -53,6 +53,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.example.ui.theme.LocaliiiyAccentCoral
@@ -121,6 +122,7 @@ private fun CameraXRecordAndPreviewContainer(
     var recordDurationSeconds by remember { mutableStateOf(0) }
     var activeRecording by remember { mutableStateOf<Recording?>(null) }
     var lensFacing by remember { mutableStateOf(CameraSelector.LENS_FACING_BACK) }
+    var previewViewInstance by remember { mutableStateOf<PreviewView?>(null) }
 
     // VideoCapture & Recorder configuration
     val recorder = remember {
@@ -130,6 +132,52 @@ private fun CameraXRecordAndPreviewContainer(
     }
     val videoCapture = remember(recorder) {
         VideoCapture.withOutput(recorder)
+    }
+
+    // Controlled Camera Binding: only when lensFacing changes or previewView initializes
+    LaunchedEffect(previewViewInstance, lensFacing) {
+        val pv = previewViewInstance ?: return@LaunchedEffect
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+        cameraProviderFuture.addListener({
+            try {
+                val cameraProvider = cameraProviderFuture.get()
+                val targetSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
+                val actualSelector = if (cameraProvider.hasCamera(targetSelector)) {
+                    targetSelector
+                } else if (cameraProvider.hasCamera(CameraSelector.DEFAULT_BACK_CAMERA)) {
+                    CameraSelector.DEFAULT_BACK_CAMERA
+                } else if (cameraProvider.hasCamera(CameraSelector.DEFAULT_FRONT_CAMERA)) {
+                    CameraSelector.DEFAULT_FRONT_CAMERA
+                } else {
+                    targetSelector
+                }
+
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(pv.surfaceProvider)
+                }
+
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    lifecycleOwner,
+                    actualSelector,
+                    preview,
+                    videoCapture
+                )
+            } catch (exc: Exception) {
+                Log.e("CameraX", "Use case binding failed", exc)
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            try {
+                val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
+                if (cameraProviderFuture.isDone) {
+                    cameraProviderFuture.get().unbindAll()
+                }
+            } catch (_: Exception) {}
+        }
     }
 
     // Timer while recording
@@ -172,57 +220,15 @@ private fun CameraXRecordAndPreviewContainer(
             // CameraX PreviewView
             AndroidView(
                 factory = { ctx ->
-                    val previewView = PreviewView(ctx).apply {
+                    PreviewView(ctx).apply {
                         implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                        previewViewInstance = this
                     }
-                    val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-                    cameraProviderFuture.addListener({
-                        try {
-                            val cameraProvider = cameraProviderFuture.get()
-                            val preview = Preview.Builder().build().also {
-                                it.setSurfaceProvider(previewView.surfaceProvider)
-                            }
-                            val cameraSelector = CameraSelector.Builder()
-                                .requireLensFacing(lensFacing)
-                                .build()
-
-                            cameraProvider.unbindAll()
-                            cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                preview,
-                                videoCapture
-                            )
-                        } catch (exc: Exception) {
-                            Log.e("CameraX", "Use case binding failed", exc)
-                        }
-                    }, ContextCompat.getMainExecutor(ctx))
-                    previewView
                 },
                 update = { previewView ->
-                    // Rebind on lens flip
-                    val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
-                    cameraProviderFuture.addListener({
-                        try {
-                            val cameraProvider = cameraProviderFuture.get()
-                            val preview = Preview.Builder().build().also {
-                                it.setSurfaceProvider(previewView.surfaceProvider)
-                            }
-                            val cameraSelector = CameraSelector.Builder()
-                                .requireLensFacing(lensFacing)
-                                .build()
-
-                            cameraProvider.unbindAll()
-                            cameraProvider.bindToLifecycle(
-                                lifecycleOwner,
-                                cameraSelector,
-                                preview,
-                                videoCapture
-                            )
-                        } catch (e: Exception) {
-                            Log.e("CameraX", "Lens flip failed", e)
-                        }
-                    }, ContextCompat.getMainExecutor(context))
+                    if (previewViewInstance != previewView) {
+                        previewViewInstance = previewView
+                    }
                 },
                 modifier = Modifier.fillMaxSize()
             )
@@ -411,16 +417,27 @@ fun CreatorClipExoPlayerPreview(
     var isPlaying by remember { mutableStateOf(true) }
 
     val exoPlayer = remember(videoUri) {
-        ExoPlayer.Builder(context).build().apply {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             setMediaItem(MediaItem.fromUri(videoUri))
             repeatMode = Player.REPEAT_MODE_ONE
+            var hasAttemptedFallback = false
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                    try {
-                        setMediaItem(MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4")))
-                        prepare()
-                        play()
-                    } catch (_: Exception) {}
+                    if (!hasAttemptedFallback && videoUri.toString() != "https://media.w3.org/2010/05/sintel/trailer.mp4") {
+                        hasAttemptedFallback = true
+                        try {
+                            setMediaItem(MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4")))
+                            prepare()
+                            play()
+                        } catch (_: Exception) {
+                            try { stop() } catch (_: Exception) {}
+                        }
+                    } else {
+                        try { stop() } catch (_: Exception) {}
+                    }
                 }
             })
             prepare()
@@ -430,7 +447,10 @@ fun CreatorClipExoPlayerPreview(
 
     DisposableEffect(exoPlayer) {
         onDispose {
-            exoPlayer.release()
+            try {
+                exoPlayer.stop()
+                exoPlayer.release()
+            } catch (_: Exception) {}
         }
     }
 

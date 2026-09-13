@@ -1127,6 +1127,14 @@ fun MonetizationDashboard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            val minWithdrawalFormatted = CurrencyHelper.format(1000.0, currentCurrency)
+            Text(
+                text = "Minimum withdrawal: $minWithdrawalFormatted ($1,000 USD equivalent for ${currentCurrency.country})",
+                fontSize = 9.5.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                modifier = Modifier.padding(bottom = 6.dp)
+            )
+
             Button(
                 onClick = onWithdrawClick,
                 shape = RoundedCornerShape(10.dp),
@@ -1135,7 +1143,7 @@ fun MonetizationDashboard(
             ) {
                 Icon(Icons.Default.AccountBalance, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Withdraw Funds to Bank (Instant Payout)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("Withdraw Funds ($minWithdrawalFormatted Min)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }

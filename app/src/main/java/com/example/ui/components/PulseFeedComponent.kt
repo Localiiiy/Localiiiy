@@ -180,14 +180,6 @@ fun PulseFeedComponent(
                     }
                 }
 
-                // Section 2.1: Tactile Tri-Dial Feed Lens (Neighbor 5km • City 50km • Earth Global)
-                item {
-                    TactileTriDialFeedLens(
-                        selectedDial = scaleDial,
-                        onDialSelected = { scaleDial = it }
-                    )
-                }
-
                 // Section 2.10: Priority Alert Banner (Weather/Emergency notice)
                 if (showPriorityBanner) {
                     item {
@@ -199,6 +191,7 @@ fun PulseFeedComponent(
                     }
                 }
 
+                // (Removed TactileTriDialFeedLens)
                 item {
                     StoriesTray(
                         stories = stories,
@@ -383,12 +376,6 @@ fun PulseFeedComponent(
                 }
 
                 // Section 2.15: Audio Voice Pulse Card
-                if (posts.size > 1) {
-                    item {
-                        AudioVoicePulseCard(post = posts[1])
-                    }
-                }
-
                 if (isInitialLoad || isRefreshing) {
                     items(4) {
                         PostSkeleton()

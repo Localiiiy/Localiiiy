@@ -6,6 +6,9 @@ import java.util.Locale
 
 enum class LegalCategory(val title: String, val iconEmoji: String) {
     ALL("All Clauses", "📜"),
+    POST_POLICY("Post Policy & Dual-Reach", "📝🌍"),
+    REGULATORY("Store Compliance & EULA", "🏛️✅"),
+    MONETIZATION("Monetization & Payouts", "💰💵"),
     CYBERSTALKING("Cyberstalking Zero-Tolerance", "⚖️🚫"),
     LOCATION("Location & Radar", "📍"),
     PRIVACY("Privacy & No-Sell", "🛡️"),
@@ -41,13 +44,13 @@ data class LegalConsentRecord(
 
 object LegalPolicyRepository {
 
-    val CURRENT_POLICY_VERSION = "v2026.9.3-LEGAL"
-    val LAST_UPDATED_DATE = "September 08, 2026"
+    val CURRENT_POLICY_VERSION = "v2026.9.13-GLOBAL-PLAY-APPSTORE"
+    val LAST_UPDATED_DATE = "September 13, 2026"
 
     val defaultConsentRecord = LegalConsentRecord(
         username = "alex_creative",
         version = CURRENT_POLICY_VERSION,
-        timestamp = 1788343200000L, // September 3, 2026
+        timestamp = 1789380000000L, // September 13, 2026
         isConsentActive = true
     )
 
@@ -238,6 +241,78 @@ This Non-Disclosure Agreement (NDA) and Confidentiality Covenant is an enforceab
 (d) Admissibility in Court of Law: All forensic telemetry, cryptographic audit logs, and digital incident archives generated and maintained by Localiiiy are fully valid and admissible as evidence in a court of law in any jurisdiction;
 (e) Severe Statutory Punishment Under Country's Law: Any breach or violation of this agreement will result in immediate and permanent account termination, hardware blacklisting, and direct criminal referral. Violators will face the most severe criminal and civil punishments prescribed under the penal code and statutes of their country;
 (f) Firm Respect for Law and Order Worldwide: We are unwavering and firm about the law. Localiiiy strictly respects and enforces the law and order of all sovereign countries globally to protect community safety and deter unlawful misuse.
+            """.trimIndent(),
+            isHighlighted = true
+        ),
+
+        LegalClause(
+            id = "clause_11_post_making_dual_reach_policy",
+            clauseNumber = "Section 11.0",
+            title = "Creator Post Making Policy, Content Integrity & Dual-Reach Algorithm Agreement (Neighbor to World)",
+            category = LegalCategory.POST_POLICY,
+            plainSummary = "You have full creative control over what you post and how far it reaches. Content starts in your immediate locality (Neighbor) and can algorithmically scale through City to the entire World (Earth). Creators must respect copyright, truth in local advertising, and community safety. Deceptive or dangerous content will be removed.",
+            legalText = """
+11.1 Creator Control & Dual-Reach Distribution Engine:
+Localiiiy introduces a dual-reach distribution architecture where creators maintain sovereignty over who discovers their work:
+(a) Immediate Hyperlocal Distribution (Neighbor): Every post, clip, or service gig first anchors in your immediate locality, enabling genuine neighborhood discovery and local engagement without requiring massive follower counts;
+(b) Organic Algorithmic Scaling (Neighbor to World): Based on local relevance and verified community resonance, content scales seamlessly from Neighbor -> Neighborhood -> City -> State -> Earth (Worldwide). High-quality stories and creative video clips naturally reach audiences globally;
+(c) Distribution Reach Controls: Creators can select their distribution boundary before publishing (e.g. restrict to local neighborhood or enable universal Earth broadcast).
+
+11.2 Content Integrity & Post Making Standards:
+When creating posts, stories, clips, or marketplace listings, you agree to adhere strictly to our Content Integrity Standards:
+(a) Originality & Intellectual Property: You warrant that all media, audio tracks, and written copy are your original creations or used with verified lawful licenses. Plagiarism and unauthorized reposting are prohibited;
+(b) Truth in Marketplace & Service Listings: All goods, barter terms, and service gig rates (e.g. hourly rates shown on the image side) must be truthful, non-misleading, and transparent;
+(c) Prohibited Post Categories: Strictly prohibited are posts depicting violence, sexually explicit materials, illegal narcotics, unauthorized weapons, harassment, defamation, or hate speech targeting protected characteristics;
+(d) Zero Spam & Deceptive Automation: Automated bot posting, coordinated artificial engagement, and deceptive clickbait designed to exploit the proximity algorithm will result in algorithmic deprioritization and account restrictions.
+            """.trimIndent(),
+            isHighlighted = true
+        ),
+
+        LegalClause(
+            id = "clause_12_appstore_playstore_regulatory_eula",
+            clauseNumber = "Section 12.0",
+            title = "Apple App Store & Google Play Store Regulatory Compliance, Universal EULA & Zero-Tolerance UGC Moderation",
+            category = LegalCategory.REGULATORY,
+            plainSummary = "Worldwide store compliance: Standard End User License Agreement (EULA) with zero tolerance for objectionable content. Every post and clip features instant 1-tap reporting and blocking with 24-hour moderation response. Minor protections are strictly enforced: users under 18 have their live radar coordinates automatically obfuscated and shielded.",
+            legalText = """
+12.1 Apple App Store Guideline 1.2 (User-Generated Content) Compliance:
+In strict fulfillment of Apple App Store Review Guidelines:
+(a) Zero Tolerance for Objectionable Content: Localiiiy maintains an absolute zero-tolerance policy for abusive, harassing, defamatory, sexually explicit, or hateful content and conduct;
+(b) 1-Tap User Reporting & Flagging: An accessible report mechanism is present on every post, clip, direct message, and user profile. Reported content is dispatched immediately to our priority moderation queue;
+(c) 24-Hour Moderation SLA: Moderation teams review reported violations within a maximum window of 24 hours, taking decisive corrective action including immediate content takedown, account restriction, or permanent termination;
+(d) Instant 2-Way Blocking: Users can block any account at any second. Blocking instantly hides all posts, messages, comments, and proximity radar blips reciprocally between both parties;
+(e) Binding EULA Acceptance: By installing, registering, or using the application, you enter into a binding End User License Agreement (EULA) affirming these terms.
+
+12.2 Google Play Developer Program Policy Compliance:
+In strict fulfillment of Google Play Store policies for global public release:
+(a) Child Safety & Minor Protection: Minors (under 18) are provided mandatory protective safeguards. Precise live radar coordinate broadcasting is disabled by default, and child identity is shielded with spatial obfuscation;
+(b) Account Deletion & Right to Complete Erasure: In compliance with Google Play's Account Deletion mandate, users can permanently wipe their account, cryptographic keys, and all on-device/cloud data at any time via Settings -> Complete Data Oblivion;
+(c) Clear Location Disclosures: Location permissions are requested only for optional proximity discovery. The app remains fully usable in Off-Grid mode when location is denied or disabled;
+(d) Secure Local Storage: The app utilizes modern zero-permission photo picker APIs and internal app storage, avoiding unnecessary broad storage permission requests.
+            """.trimIndent(),
+            isHighlighted = true
+        ),
+
+        LegalClause(
+            id = "clause_13_monetization_worldwide_payouts",
+            clauseNumber = "Section 13.0",
+            title = "Creator Monetization, Multi-Currency Earnings & 1,000 USD Equivalent Minimum Withdrawal Threshold",
+            category = LegalCategory.MONETIZATION,
+            plainSummary = "How you earn: 55% ad revenue share on clips/studio videos, 100% of fan micro-tips (0% platform fee), hourly service gigs, and marketplace sales. To ensure banking efficiency, fraud prevention, and international wire compliance, the minimum withdrawal threshold is strictly set to 1,000 USD or the exact equivalent in each country's respective currency.",
+            legalText = """
+13.1 Comprehensive Creator Monetization Streams:
+Localiiiy provides multiple avenues for creators and local neighbors to monetize their content and skills:
+(a) Global Ad Revenue Sharing: Creators receive a guaranteed 55% share of verified gross ad revenue generated from their clips and long-form Studio videos (45% platform infrastructure share);
+(b) Direct Fan Micro-Tips & Super Thanks: Users can tip creators directly on posts and streams. Localiiiy charges 0% platform commission on direct fan tips;
+(c) Hyperlocal Services & Gig Bookings: Local professionals and creators can offer services at transparent hourly or flat rates shown on the image side, receiving direct bookings;
+(d) Peer-to-Peer Marketplace Sales: Sell physical goods, handmade crafts, and digital services locally;
+(e) Community Bounties: Earn rewards for fulfilling neighborhood requests and local signal dispatches.
+
+13.2 Minimum Withdrawal Threshold ($1,000 USD or Country Currency Equivalent):
+To ensure international anti-money laundering (AML) compliance, minimize cross-border banking fees, and maintain financial integrity:
+(a) Strict $1,000 USD Baseline: The minimum withdrawal threshold across all creator accounts is strictly 1,000.00 USD (One Thousand United States Dollars);
+(b) Worldwide Currency Equivalency: In non-USD jurisdictions, the minimum withdrawal amount is calculated as the live exchange rate equivalent of $1,000 USD in that country's currency (e.g. €920 EUR, £780 GBP, ₹84,200 INR, ¥152,000 JPY, C$1,360 CAD, A$1,520 AUD, 3,670 AED, etc.);
+(c) Payout Rails & Verification: Payouts are disbursed via verified international payment networks including Stripe Connect, PayPal Worldwide, SWIFT Bank Wire, SEPA, UPI, and PIX. Creators must complete standard identity and tax compliance verification (W-8BEN / W-9 / GST) prior to initial disbursement.
             """.trimIndent(),
             isHighlighted = true
         )

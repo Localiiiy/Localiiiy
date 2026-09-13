@@ -524,7 +524,7 @@ private fun ClipItem(
             modifier = Modifier.align(Alignment.Center)
         ) {
             Text(
-                text = "❤️",
+                text = "👌",
                 fontSize = 96.sp
             )
         }
@@ -538,18 +538,16 @@ private fun ClipItem(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Like Action (Animated 👌)
-            ClipActionButton(
-                symbolText = "❤️",
-                label = formatCount(clip.likesCount),
-                scale = heartScale.value,
-                onClick = {
-                    coroutineScope.launch {
-                        heartScale.animateTo(1.35f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
-                        heartScale.animateTo(1f)
-                    }
-                    onLikeClip()
-                },
+            // Like Action (Animated 👌 with 3D perspective depth, glowing burst, and tactile feedback)
+            com.example.ui.components.AnimatedLikeButton(
+                isLiked = clip.isLiked,
+                onLikeClick = onLikeClip,
+                likesCount = clip.likesCount,
+                showCount = true,
+                verticalOrientation = true,
+                symbolSize = 26.sp,
+                touchTargetSize = 44.dp,
+                labelColor = Color.White,
                 testTag = "clip_like_button_${clip.id}"
             )
 
@@ -1157,10 +1155,20 @@ private fun ClipActionButton(
             .testTag(testTag)
     ) {
         if (symbolText != null) {
+            val isLike = symbolText == "👌"
             Text(
                 text = symbolText,
                 fontSize = 26.sp,
-                modifier = Modifier.scale(scale)
+                modifier = Modifier
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                        if (isLike && scale > 1.05f) {
+                            rotationY = (scale - 1f) * 45f
+                            rotationZ = (scale - 1f) * -30f
+                            cameraDistance = 12f * density
+                        }
+                    }
             )
         } else if (icon != null) {
             Icon(

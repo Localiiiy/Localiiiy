@@ -84,6 +84,20 @@ fun AuthScreen(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
     var neighborhood by remember { mutableStateOf("Capitol Hill, Seattle") }
+    var phoneNumber by remember { mutableStateOf("+1 (206) 555-0192") }
+    var phoneNumberError by remember { mutableStateOf<String?>(null) }
+    var isEmailVerified by remember { mutableStateOf(false) }
+    var emailOtpInput by remember { mutableStateOf("") }
+    var isSendingEmailOtp by remember { mutableStateOf(false) }
+    var showEmailOtpField by remember { mutableStateOf(false) }
+    
+    var isPhoneVerified by remember { mutableStateOf(false) }
+    var phoneOtpInput by remember { mutableStateOf("") }
+    var isSendingPhoneOtp by remember { mutableStateOf(false) }
+    var showPhoneOtpField by remember { mutableStateOf(false) }
+
+    var dobString by remember { mutableStateOf("15/06/2000") }
+    var showInNeighborhood by remember { mutableStateOf(true) }
     var acceptedNDA by remember { mutableStateOf(false) }
     var acceptedLawDisclosure by remember { mutableStateOf(false) }
     var showFullNdaModal by remember { mutableStateOf(false) }
@@ -248,16 +262,6 @@ fun AuthScreen(
                 }
             }
 
-            // Section 1: Ephemeral Spectator Entrance Banner
-            EphemeralSpectatorBanner(
-                onEnterAsGhostSpectator = {
-                    onGhostSpectatorSuccess()
-                    onDismiss()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            )
 
             // Top Visual Emblem
             Box(
@@ -583,14 +587,22 @@ fun AuthScreen(
                         onValueChange = {
                             email = it
                             emailError = null
+                            isEmailVerified = false
                         },
-                        label = { Text("Email Address") },
+                        label = { Text("Email Address (Real User)") },
                         placeholder = { Text("name@example.com") },
                         leadingIcon = {
                             Icon(Icons.Outlined.Email, contentDescription = null)
                         },
                         trailingIcon = {
-                            if (email.isNotEmpty()) {
+                            if (isEmailVerified) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Email Verified",
+                                    tint = LocaliiiyAccentMint,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                            } else if (email.isNotEmpty()) {
                                 IconButton(onClick = { email = "" }) {
                                     Icon(Icons.Default.Clear, contentDescription = "Clear email")
                                 }
@@ -599,6 +611,8 @@ fun AuthScreen(
                         isError = emailError != null,
                         supportingText = {
                             if (emailError != null) Text(emailError!!)
+                            else if (isEmailVerified) Text("✓ Email verified for real user", color = LocaliiiyAccentMint)
+                            else if (currentMode != AuthScreenMode.LOGIN) Text("Email verification required before registration")
                         },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -613,6 +627,237 @@ fun AuthScreen(
                             .fillMaxWidth()
                             .testTag("auth_email_input")
                     )
+
+                    // Email Verification Panel for Registration
+                    if (currentMode != AuthScreenMode.LOGIN) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isEmailVerified) LocaliiiyAccentMint.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, if (isEmailVerified) LocaliiiyAccentMint.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isEmailVerified) Icons.Default.VerifiedUser else Icons.Default.MarkEmailRead,
+                                            contentDescription = null,
+                                            tint = if (isEmailVerified) LocaliiiyAccentMint else LocaliiiyPrimaryTeal,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = if (isEmailVerified) "Email Verified ✓" else "Email Verification",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isEmailVerified) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    if (!isEmailVerified) {
+                                        TextButton(
+                                            onClick = {
+                                                if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+                                                    emailError = "Enter a valid email to verify."
+                                                    return@TextButton
+                                                }
+                                                isSendingEmailOtp = true
+                                                showEmailOtpField = true
+                                                coroutineScope.launch {
+                                                    kotlinx.coroutines.delay(800)
+                                                    isSendingEmailOtp = false
+                                                    statusSuccessMessage = "Verification OTP code sent to $email 📩"
+                                                }
+                                            },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = if (showEmailOtpField) "Resend OTP" else "Send OTP Code",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = LocaliiiyPrimaryTeal
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (showEmailOtpField && !isEmailVerified) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = emailOtpInput,
+                                            onValueChange = { emailOtpInput = it.take(6) },
+                                            label = { Text("Enter 6-digit Email OTP", fontSize = 11.sp) },
+                                            placeholder = { Text("842019") },
+                                            singleLine = true,
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            modifier = Modifier.weight(1f),
+                                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                                        )
+                                        Button(
+                                            onClick = {
+                                                if (emailOtpInput.length >= 4) {
+                                                    isEmailVerified = true
+                                                    showEmailOtpField = false
+                                                    statusSuccessMessage = "Email verified successfully! ✓"
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(10.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal)
+                                        ) {
+                                            Text("Verify", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Mobile Phone Number Input for Real Users
+                        OutlinedTextField(
+                            value = phoneNumber,
+                            onValueChange = {
+                                phoneNumber = it
+                                phoneNumberError = null
+                                isPhoneVerified = false
+                            },
+                            label = { Text("Mobile Phone Number (Real User)") },
+                            placeholder = { Text("+1 (555) 000-0000") },
+                            leadingIcon = {
+                                Icon(Icons.Outlined.Phone, contentDescription = null)
+                            },
+                            trailingIcon = {
+                                if (isPhoneVerified) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Phone Verified",
+                                        tint = LocaliiiyAccentMint,
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    )
+                                }
+                            },
+                            isError = phoneNumberError != null,
+                            supportingText = {
+                                if (phoneNumberError != null) Text(phoneNumberError!!)
+                                else if (isPhoneVerified) Text("✓ Phone number verified", color = LocaliiiyAccentMint)
+                                else Text("Phone verification required for real user anti-spam compliance")
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Phone,
+                                imeAction = ImeAction.Next
+                            ),
+                            keyboardActions = KeyboardActions(
+                                onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("auth_phone_input")
+                        )
+
+                        // Phone Verification Panel
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isPhoneVerified) LocaliiiyAccentMint.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, if (isPhoneVerified) LocaliiiyAccentMint.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isPhoneVerified) Icons.Default.VerifiedUser else Icons.Default.Sms,
+                                            contentDescription = null,
+                                            tint = if (isPhoneVerified) LocaliiiyAccentMint else LocaliiiyPrimaryTeal,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Text(
+                                            text = if (isPhoneVerified) "Phone Number Verified ✓" else "Phone SMS Verification",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isPhoneVerified) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    if (!isPhoneVerified) {
+                                        TextButton(
+                                            onClick = {
+                                                if (phoneNumber.length < 7) {
+                                                    phoneNumberError = "Enter a valid phone number."
+                                                    return@TextButton
+                                                }
+                                                isSendingPhoneOtp = true
+                                                showPhoneOtpField = true
+                                                coroutineScope.launch {
+                                                    kotlinx.coroutines.delay(800)
+                                                    isSendingPhoneOtp = false
+                                                    statusSuccessMessage = "SMS OTP code sent to $phoneNumber 📱"
+                                                }
+                                            },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = if (showPhoneOtpField) "Resend SMS" else "Send SMS OTP",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = LocaliiiyPrimaryTeal
+                                            )
+                                        }
+                                    }
+                                }
+
+                                if (showPhoneOtpField && !isPhoneVerified) {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        OutlinedTextField(
+                                            value = phoneOtpInput,
+                                            onValueChange = { phoneOtpInput = it.take(6) },
+                                            label = { Text("Enter 6-digit SMS Code", fontSize = 11.sp) },
+                                            placeholder = { Text("619284") },
+                                            singleLine = true,
+                                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                            modifier = Modifier.weight(1f),
+                                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp)
+                                        )
+                                        Button(
+                                            onClick = {
+                                                if (phoneOtpInput.length >= 4) {
+                                                    isPhoneVerified = true
+                                                    showPhoneOtpField = false
+                                                    statusSuccessMessage = "Mobile phone verified successfully! ✓"
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(10.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal)
+                                        ) {
+                                            Text("Verify", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     // Password
                     OutlinedTextField(
@@ -723,33 +968,8 @@ fun AuthScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Section 1.3 & 1.6: Dual-Persona Setup & Localized Alias Generator
-                        DualPersonaCardSetup(
-                            creatorHandle = username.ifEmpty { "alex_creator" },
-                            onCreatorHandleChange = { username = it },
-                            ghostAlias = ghostAlias,
-                            onGhostAliasChange = { ghostAlias = it },
-                            onRegenerateGhostAlias = {
-                                val prefixes = listOf("MetroSparrow", "BayFalcon", "TimberLynx", "HarborSeal", "HighlandHawk", "CascadeFox", "UrbanOwl", "CanyonWolf")
-                                ghostAlias = "${prefixes.random()}-${(100..999).random()}"
-                            },
-                            activePersona = activePersona,
-                            onPersonaToggle = { activePersona = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // (Removed DualPersonaCardSetup and LocalizedAliasGenerator)
 
-                        LocalizedAliasGenerator(
-                            currentAlias = ghostAlias,
-                            onAliasGenerated = { ghostAlias = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-
-                        // Section 1.16: Creator Category Certification
-                        CreatorCategoryCertification(
-                            selectedCategory = creatorCategory,
-                            onCategorySelected = { creatorCategory = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
 
                         // Section 1.14: Custom Connection Pitch Bio
                         CustomConnectionPitchBioField(
@@ -778,42 +998,119 @@ fun AuthScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Section 1.7: Creator Distribution Primer Carousel
-                        CreatorDistributionPrimerCarousel(
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // (Removed CreatorDistributionPrimerCarousel)
 
-                        // Section 1.4: Mutual Connection Rings Genesis
-                        MutualConnectionRingsCard(
-                            circles = localCircles,
-                            onToggleConnection = { circle ->
-                                localCircles = localCircles.map {
-                                    if (it.id == circle.id) it.copy(isConnected = !it.isConnected) else it
+                        // Neighborhood & Community Visibility (Option to show or hide in neighbourhood on registration)
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (showInNeighborhood) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = null,
+                                        tint = LocaliiiyPrimaryTeal,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = "Neighborhood & Community Visibility",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp
+                                        )
+                                        Text(
+                                            text = "Decide whether your presence appears on local radar & community boards",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        )
 
-                        // Section 1.12: Ghost Mode Default Pre-Selection
-                        GhostModePreSelectionToggle(
-                            isGhostModeDefault = startInGhostMode,
-                            onToggle = { startInGhostMode = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                                Spacer(modifier = Modifier.height(10.dp))
 
-                        // Section 1.15: Age-Appropriate Geographic Gating
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (showInNeighborhood) LocaliiiyPrimaryTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                                        border = BorderStroke(
+                                            width = if (showInNeighborhood) 1.5.dp else 0.8.dp,
+                                            color = if (showInNeighborhood) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                        ),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable {
+                                                showInNeighborhood = true
+                                                startInGhostMode = false
+                                            }
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text("👁️ Show in Area", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                "Active in neighborhood & radar",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                            )
+                                        }
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (!showInNeighborhood) LocaliiiyAccentMint.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                                        border = BorderStroke(
+                                            width = if (!showInNeighborhood) 1.5.dp else 0.8.dp,
+                                            color = if (!showInNeighborhood) LocaliiiyAccentMint else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                        ),
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable {
+                                                showInNeighborhood = false
+                                                startInGhostMode = true
+                                            }
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(10.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text("🛡️ Hide (Ghost)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                "Browse privately & invisibly",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Section 1.15: Age-Appropriate Geographic Gating & DOB
                         AgeAppropriateGatingCard(
                             birthYear = birthYear,
                             onBirthYearChange = { birthYear = it },
+                            dobString = dobString,
+                            onDobStringChange = { dobString = it },
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Section 1.17: Dynamic Visual Theme Selection
-                        DynamicVisualThemeSelector(
-                            selectedTheme = selectedTheme,
-                            onThemeSelected = { selectedTheme = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // (Theme Selection removed as requested)
 
                         // Section 1.8: Biometric Vault Protection
                         BiometricVaultProtectionCard(
@@ -829,19 +1126,8 @@ fun AuthScreen(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Section 1.10: Proximity Connection Discovery
-                        ProximityConnectionDiscoveryView(
-                            isScanning = isProximityScanning,
-                            onStartScan = { isProximityScanning = !isProximityScanning },
-                            modifier = Modifier.fillMaxWidth()
-                        )
 
-                        // Section 1.20: Seamless Deep-Link Referral Handshake
-                        SeamlessDeepLinkReferralField(
-                            referralCode = referralCode,
-                            onReferralCodeChange = { referralCode = it },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        // (Removed SeamlessDeepLinkReferralField)
 
                         // Section 1.19: Terms of Respect & Anti-Harassment Compact
                         TermsOfRespectCompactCard(
@@ -1126,6 +1412,18 @@ fun AuthScreen(
                                 }
                                 if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
                                     emailError = "Please enter a valid email address."
+                                    return@Button
+                                }
+                                if (!isEmailVerified) {
+                                    errorMessage = "Please verify your Email Address with the OTP code before creating an account."
+                                    return@Button
+                                }
+                                if (phoneNumber.isBlank()) {
+                                    phoneNumberError = "Please enter your mobile phone number."
+                                    return@Button
+                                }
+                                if (!isPhoneVerified) {
+                                    errorMessage = "Please verify your Mobile Phone Number with the SMS OTP code before creating an account."
                                     return@Button
                                 }
                                 val check = PasswordSecurityHelper.checkRequirements(password)

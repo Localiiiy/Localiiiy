@@ -50,6 +50,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -133,9 +134,12 @@ fun StudioVideoPlayerComponent(
         label = "starlightPulse"
     )
 
-    // Initialize Media7 ExoPlayer Engine
+    // Initialize Media7 ExoPlayer Engine with decoder fallback for system resource resilience
     val exoPlayer = remember(video.id) {
-        ExoPlayer.Builder(context).build().apply {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
             try {
                 val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
                 setMediaItem(mediaItem)
@@ -149,6 +153,7 @@ fun StudioVideoPlayerComponent(
 
     // Attach ExoPlayer Event Listener
     DisposableEffect(exoPlayer) {
+        var fallbackAttempted = false
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
@@ -175,13 +180,20 @@ fun StudioVideoPlayerComponent(
 
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 isBuffering = false
-                try {
-                    val fallbackItem = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
-                    exoPlayer.setMediaItem(fallbackItem)
-                    exoPlayer.prepare()
-                    exoPlayer.play()
-                } catch (e: Exception) {
+                if (!fallbackAttempted && video.videoUrl != "https://media.w3.org/2010/05/sintel/trailer.mp4") {
+                    fallbackAttempted = true
+                    try {
+                        val fallbackItem = MediaItem.fromUri(Uri.parse("https://media.w3.org/2010/05/sintel/trailer.mp4"))
+                        exoPlayer.setMediaItem(fallbackItem)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    } catch (e: Exception) {
+                        hasPlaybackError = true
+                        try { exoPlayer.stop() } catch (_: Exception) {}
+                    }
+                } else {
                     hasPlaybackError = true
+                    try { exoPlayer.stop() } catch (_: Exception) {}
                 }
             }
         }
@@ -189,8 +201,11 @@ fun StudioVideoPlayerComponent(
         exoPlayer.addListener(listener)
 
         onDispose {
-            exoPlayer.removeListener(listener)
-            exoPlayer.release()
+            try {
+                exoPlayer.removeListener(listener)
+                exoPlayer.stop()
+                exoPlayer.release()
+            } catch (_: Exception) {}
         }
     }
 

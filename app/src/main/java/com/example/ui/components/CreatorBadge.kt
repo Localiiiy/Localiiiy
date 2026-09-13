@@ -27,15 +27,21 @@ enum class BadgeTier(val threshold: Int, val title: String, val emoji: String, v
     NONE(0, "", "", Color.Transparent);
 
     companion object {
-        fun getTier(followers: Int): BadgeTier {
-            return values().firstOrNull { followers >= it.threshold } ?: NONE
+        fun getTier(connections: Int): BadgeTier {
+            return entries.firstOrNull { connections >= it.threshold } ?: NONE
         }
     }
 }
 
 @Composable
-fun CreatorBadgeIcon(followers: Int, modifier: Modifier = Modifier, showText: Boolean = false) {
-    val tier = BadgeTier.getTier(followers)
+fun CreatorBadgeIcon(
+    connections: Int = 0,
+    followers: Int = connections,
+    modifier: Modifier = Modifier,
+    showText: Boolean = false
+) {
+    val count = if (connections > 0) connections else followers
+    val tier = BadgeTier.getTier(count)
     if (tier == BadgeTier.NONE) return
 
     Row(

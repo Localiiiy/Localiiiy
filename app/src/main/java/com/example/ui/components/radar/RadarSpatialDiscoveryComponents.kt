@@ -441,7 +441,7 @@ fun LandmarkGeoPortalBeaconsTray(
 }
 
 /**
- * Section 3.7: Radar Scale Zoom Slider
+ * Section 3.7: Radar Scale KM Controller (Increase / Decrease & Slider up to 500KM)
  */
 @Composable
 fun RadarScaleZoomSlider(
@@ -449,48 +449,153 @@ fun RadarScaleZoomSlider(
     onRadiusChange: (Double) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val roundedKm = currentRadiusKm.coerceIn(1.0, 500.0)
+
     Surface(
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         color = RadarPanelBg,
-        border = BorderStroke(0.8.dp, RadarPhosphor.copy(alpha = 0.35f)),
+        border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.45f)),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 4.dp)
+            .padding(horizontal = 14.dp, vertical = 6.dp)
             .testTag("radar_scale_zoom_slider")
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ZoomIn,
+                        contentDescription = null,
+                        tint = RadarPhosphor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = "RADAR SCALE CONTROL",
+                        fontSize = 10.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = RadarPhosphor,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
                 Text(
-                    text = "RADAR SCALE ZOOM",
-                    fontSize = 9.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = RadarPhosphor,
-                    fontFamily = FontFamily.Monospace
-                )
-                Text(
-                    text = "${currentRadiusKm.toInt()} KM RADIUS",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = "${String.format("%.1f", roundedKm)} KM",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     color = RadarNeonGreen,
                     fontFamily = FontFamily.Monospace
                 )
             }
-            Slider(
-                value = currentRadiusKm.toFloat(),
-                onValueChange = { onRadiusChange(it.toDouble()) },
-                valueRange = 1f..100f,
-                steps = 19,
-                colors = SliderDefaults.colors(
-                    thumbColor = RadarNeonGreen,
-                    activeTrackColor = RadarNeonGreen,
-                    inactiveTrackColor = Color(0xFF0D3814)
-                ),
-                modifier = Modifier.fillMaxWidth().height(28.dp)
-            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Increase & Decrease Controls + Interactive Slider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Decrease Button (-)
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFF132B18),
+                    border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            val nextKm = (roundedKm - if (roundedKm > 20) 5.0 else 1.0).coerceAtLeast(1.0)
+                            onRadiusChange(nextKm)
+                        }
+                        .testTag("radar_scale_decrease_btn")
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "−",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = RadarNeonGreen
+                        )
+                    }
+                }
+
+                // Slider from 1 to 500 KM
+                Slider(
+                    value = roundedKm.toFloat(),
+                    onValueChange = { onRadiusChange(it.toDouble()) },
+                    valueRange = 1f..500f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = RadarNeonGreen,
+                        activeTrackColor = RadarNeonGreen,
+                        inactiveTrackColor = Color(0xFF0D3814)
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(30.dp)
+                )
+
+                // Increase Button (+)
+                Surface(
+                    shape = CircleShape,
+                    color = Color(0xFF132B18),
+                    border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            val nextKm = (roundedKm + if (roundedKm >= 20) 5.0 else 1.0).coerceAtMost(500.0)
+                            onRadiusChange(nextKm)
+                        }
+                        .testTag("radar_scale_increase_btn")
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "+",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = RadarNeonGreen
+                        )
+                    }
+                }
+            }
+
+            // Quick Stepper Chips for Quick Scaling
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                listOf(-10.0 to "-10km", -2.0 to "-2km", 2.0 to "+2km", 10.0 to "+10km", 50.0 to "+50km").forEach { (delta, label) ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF0C2210),
+                        border = BorderStroke(0.6.dp, RadarPhosphor.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                val nextKm = (roundedKm + delta).coerceIn(1.0, 500.0)
+                                onRadiusChange(nextKm)
+                            }
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = RadarNeonGreen,
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }

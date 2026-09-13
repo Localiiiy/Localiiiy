@@ -42,6 +42,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
@@ -784,24 +785,49 @@ fun MarketConditionVideoTourModal(
 ) {
     val context = LocalContext.current
     var isMuted by remember { mutableStateOf(true) }
+    var hasPlaybackError by remember { mutableStateOf(false) }
 
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            repeatMode = Player.REPEAT_MODE_ONE
-            volume = 0f
-            try {
-                val mediaItem = MediaItem.fromUri(Uri.parse(videoUrl))
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = true
-            } catch (_: Exception) {}
+    // If videoUrl is an image URL, use a genuine demo condition tour MP4 or display fallback
+    val resolvedVideoUrl = remember(videoUrl) {
+        if (videoUrl.endsWith(".mp4", ignoreCase = true) ||
+            videoUrl.contains(".mp4", ignoreCase = true) ||
+            videoUrl.contains("video", ignoreCase = true)) {
+            videoUrl
+        } else {
+            "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
         }
     }
 
-    DisposableEffect(Unit) {
+    val exoPlayer = remember(resolvedVideoUrl) {
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
+        ExoPlayer.Builder(context, renderersFactory).build().apply {
+            repeatMode = Player.REPEAT_MODE_ONE
+            volume = 0f
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    hasPlaybackError = true
+                    try { stop() } catch (_: Exception) {}
+                }
+            })
+            try {
+                val mediaItem = MediaItem.fromUri(Uri.parse(resolvedVideoUrl))
+                setMediaItem(mediaItem)
+                prepare()
+                playWhenReady = true
+            } catch (_: Exception) {
+                hasPlaybackError = true
+            }
+        }
+    }
+
+    DisposableEffect(exoPlayer) {
         onDispose {
-            exoPlayer.stop()
-            exoPlayer.release()
+            try {
+                exoPlayer.stop()
+                exoPlayer.release()
+            } catch (_: Exception) {}
         }
     }
 
@@ -851,15 +877,24 @@ fun MarketConditionVideoTourModal(
                         .clip(RoundedCornerShape(12.dp))
                         .background(Color.Black)
                 ) {
-                    AndroidView(
-                        factory = { ctx ->
-                            PlayerView(ctx).apply {
-                                player = exoPlayer
-                                useController = false
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    if (!hasPlaybackError) {
+                        AndroidView(
+                            factory = { ctx ->
+                                PlayerView(ctx).apply {
+                                    player = exoPlayer
+                                    useController = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        AsyncImage(
+                            model = videoUrl,
+                            contentDescription = title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
                     // Audio Mute Toggle overlay
                     IconButton(
@@ -1055,58 +1090,89 @@ fun LocalServicesCatalogView(
                     Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.Top
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            // Left side: Image and below it the cost/money per hour
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.width(IntrinsicSize.Min)
                             ) {
                                 AsyncImage(
                                     model = gig.providerAvatar,
                                     contentDescription = gig.providerName,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .size(44.dp)
+                                        .size(48.dp)
                                         .clip(CircleShape)
+                                        .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
                                 )
-                                Column {
+                                // Cost / money per hour shown below image on the left side
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                                    modifier = Modifier.testTag("service_cost_below_image")
+                                ) {
+                                    Text(
+                                        text = gig.rateText,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                        maxLines = 1,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+
+                            // Right side: Gig Title, Provider Name, Ratings, and Category
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Text(
                                         text = gig.title,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 13.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        fontSize = 14.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.weight(1f)
                                     )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    Surface(
+                                        shape = RoundedCornerShape(100.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant,
+                                        modifier = Modifier.padding(start = 4.dp)
                                     ) {
                                         Text(
-                                            text = gig.providerName,
-                                            fontSize = 11.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text("•", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
-                                        Text(
-                                            text = "⭐ ${gig.rating} (${gig.completedGigs} completed)",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = Color(0xFFF59E0B)
+                                            text = gig.category,
+                                            fontSize = 9.5.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                         )
                                     }
                                 }
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Text(
-                                    text = gig.rateText,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = gig.providerName,
+                                        fontSize = 11.5.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text("•", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
+                                    Text(
+                                        text = "⭐ ${gig.rating} (${gig.completedGigs} completed)",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFFF59E0B)
+                                    )
+                                }
                             }
                         }
 

@@ -49,9 +49,9 @@ fun TactileTriDialFeedLens(
     modifier: Modifier = Modifier
 ) {
     val dials = listOf(
-        Triple("NEIGHBOR", "5km", Icons.Default.NearMe),
-        Triple("CITY", "50km", Icons.Default.LocationCity),
-        Triple("EARTH", "Global", Icons.Default.Public)
+        Triple("NEIGHBOR", "5 KM", Icons.Default.NearMe),
+        Triple("CITY", "50 KM", Icons.Default.Radar),
+        Triple("EARTH", "GLOBAL", Icons.Default.Public)
     )
 
     Surface(
@@ -106,21 +106,15 @@ fun TactileTriDialFeedLens(
                                 imageVector = icon,
                                 contentDescription = null,
                                 tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(13.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = scopeKey,
-                                fontSize = 11.sp,
+                                text = distanceLabel,
+                                fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
                                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        Text(
-                            text = distanceLabel,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (isSelected) Color.White.copy(alpha = 0.9f) else MaterialTheme.colorScheme.outline
-                        )
                     }
                 }
             }

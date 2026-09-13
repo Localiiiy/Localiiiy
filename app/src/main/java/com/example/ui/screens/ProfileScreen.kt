@@ -316,7 +316,7 @@ fun ProfileScreen(
                         .padding(horizontal = 16.dp)
                 ) {
                     // Avatar & Stats Row
-                    ProfileIdentityCard(userProfile, posts.size, userClips.size)
+                    ProfileIdentityCard(userProfile, posts.size, userClips.size, marketplaceItems.size, 0)
                     Spacer(modifier = Modifier.height(16.dp))
                     // Primary Action Buttons Row
                     Row(

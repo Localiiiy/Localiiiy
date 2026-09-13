@@ -1653,6 +1653,7 @@ private fun StudioVideoCard(
     onToggleMute: () -> Unit = {},
     onStartPreview: () -> Unit = {},
     onStartMiniPlayer: () -> Unit = {},
+    onLikeClick: (() -> Unit)? = null,
     onClick: () -> Unit,
     onMenuClick: () -> Unit
 ) {
@@ -1839,12 +1840,29 @@ private fun StudioVideoCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onMenuClick) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More Options",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                var isLiked by remember(video.id) { mutableStateOf(video.isLiked) }
+                var likesCount by remember(video.id) { mutableStateOf(video.likesCount) }
+                com.example.ui.components.AnimatedLikeButton(
+                    isLiked = isLiked,
+                    onLikeClick = {
+                        isLiked = !isLiked
+                        likesCount += if (isLiked) 1 else -1
+                        onLikeClick?.invoke()
+                    },
+                    likesCount = likesCount,
+                    showCount = true,
+                    symbolSize = 17.sp,
+                    touchTargetSize = 34.dp,
+                    testTag = "studio_card_like_${video.id}"
                 )
+                IconButton(onClick = onMenuClick) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "More Options",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

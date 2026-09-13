@@ -13,7 +13,11 @@ class LocaliiiyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         initializeFirebaseSilently()
-        com.example.service.FavoriteProximityManager.init(this)
+        try {
+            com.example.service.FavoriteProximityManager.init(this)
+        } catch (e: Exception) {
+            Log.w("LocaliiiyApplication", "ProximityManager init non-blocking: ${e.message}")
+        }
     }
 
     private fun initializeFirebaseSilently() {
@@ -22,7 +26,7 @@ class LocaliiiyApplication : Application() {
                 val options = FirebaseOptions.Builder()
                     .setApplicationId("1:109876543210:android:abcdef0123456789")
                     .setProjectId("localiiiy-app")
-                    .setApiKey("AIzaSyLocaliiiyFirebaseApiKeyMock")
+                    .setApiKey(BuildConfig.FIREBASE_API_KEY)
                     .setGcmSenderId("109876543210")
                     .build()
                 FirebaseApp.initializeApp(this, options)

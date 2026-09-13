@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Palette
@@ -104,7 +105,8 @@ fun AtmosphericThemeBottomSheet(
     currentThemeKey: String,
     currentCustomImageUri: String,
     onDismiss: () -> Unit,
-    onSelectTheme: (String, String) -> Unit
+    onSelectTheme: (String, String) -> Unit,
+    onOpenWorldwideLocalization: (() -> Unit)? = null
 ) {
     var selectedKey by remember(currentThemeKey) { mutableStateOf(currentThemeKey.ifBlank { "BLACK_HOLE" }) }
     var customUri by remember(currentCustomImageUri) { mutableStateOf(currentCustomImageUri) }
@@ -360,6 +362,55 @@ fun AtmosphericThemeBottomSheet(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            if (onOpenWorldwideLocalization != null) {
+                Spacer(modifier = Modifier.height(10.dp))
+                OutlinedCard(
+                    onClick = onOpenWorldwideLocalization,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("space_worldwide_localization_button")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Public,
+                                contentDescription = "Worldwide Localization",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Worldwide Localization",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Languages & Worldwide Currencies",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(14.dp)
+                        )
                     }
                 }
             }

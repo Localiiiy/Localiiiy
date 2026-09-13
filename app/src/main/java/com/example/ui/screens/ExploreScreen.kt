@@ -94,6 +94,7 @@ fun ExploreScreen(
     onSelectObfuscatedRange: ((String) -> Unit)? = null,
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
+    activeRadarPerk: com.example.data.RadarVisibilityPerk? = null,
     modifier: Modifier = Modifier
 ) {
     val locationPermissionsState = rememberMultiplePermissionsState(
@@ -106,13 +107,12 @@ fun ExploreScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var ghostMode by remember { mutableStateOf(false) }
-    var scaleDial by remember { mutableStateOf("NEIGHBOR") }
     var localRadiusKm by remember(selectedRadiusKm) { mutableStateOf(selectedRadiusKm ?: 3.0) }
     var exploreViewMode by remember { mutableStateOf(ExploreViewMode.RADAR) }
     var selectedDetailPost by remember { mutableStateOf<PostEntity?>(null) }
 
-    // Filter posts by query or distance
-    val filteredPosts = remember(posts, searchQuery, scaleDial, isLocationEnabled) {
+    // Filter posts by query or dynamic radar distance scale
+    val filteredPosts = remember(posts, searchQuery, localRadiusKm, isLocationEnabled) {
         if (!isLocationEnabled) emptyList()
         else posts.filter { post ->
             val matchesQuery = if (searchQuery.isBlank()) true else {
@@ -121,12 +121,7 @@ fun ExploreScreen(
                 (post.location?.contains(searchQuery, ignoreCase = true) == true) ||
                 (post.landmark?.contains(searchQuery, ignoreCase = true) == true)
             }
-            val matchesRadius = when (scaleDial) {
-                "NEIGHBOR" -> (post.distanceKm ?: 999.0) <= 5.0
-                "CITY" -> (post.distanceKm ?: 999.0) <= 50.0
-                "EARTH" -> true
-                else -> true
-            }
+            val matchesRadius = (post.distanceKm ?: 999.0) <= localRadiusKm
             matchesQuery && matchesRadius
         }
     }
@@ -137,44 +132,6 @@ fun ExploreScreen(
             .statusBarsPadding()
             .testTag("explore_screen_container")
     ) {
-        // Omni-Feed Tab System (Phase 2 & 3: Neighbor, City, Earth)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Surface(
-                shape = RoundedCornerShape(100.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Row(
-                    modifier = Modifier.padding(2.dp),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    val tabs = listOf("NEIGHBOR", "CITY", "EARTH")
-                    tabs.forEach { tab ->
-                        val isSelected = scaleDial == tab
-                        Surface(
-                            shape = CircleShape,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                            modifier = Modifier
-                                .clickable { scaleDial = tab }
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Text(
-                                text = tab,
-                                fontSize = 11.sp,
-                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-            }
-        }
 
         // Global Observer Incognito Toggle (Ghost Mode: Anonymous & Hidden Location)
         Row(
@@ -334,7 +291,7 @@ fun ExploreScreen(
                             nearbyPosts = filteredPosts,
                             nearbyClips = clips,
                             nearbyMarketItems = marketplaceItems,
-                            selectedRadiusKm = if (scaleDial == "NEIGHBOR") 5.0 else if (scaleDial == "CITY") 50.0 else 50000.0,
+                            selectedRadiusKm = localRadiusKm,
                             isLocationEnabled = isLocationEnabled,
                             isPrivateAccount = isPrivateAccount || ghostMode,
                             hidePreciseLocationOnRadar = (privacySettings?.hidePreciseLocationOnRadar ?: false) || ghostMode,
@@ -352,7 +309,8 @@ fun ExploreScreen(
                             onOpenPrivacySettings = onOpenPrivacySettings,
                             onUserClick = { user -> onUserProfileClick(user.username) },
                             onPostClick = { post -> selectedDetailPost = post },
-                            onWaveAtUser = onWaveAtUser
+                            onWaveAtUser = onWaveAtUser,
+                            activeRadarPerk = activeRadarPerk
                         )
 
                         // Landmark Quick Discovery Tray
@@ -406,12 +364,7 @@ fun ExploreScreen(
                             }
 
                             val finalClips = clips.filter { clip ->
-                                when (scaleDial) {
-                                    "NEIGHBOR" -> (clip.distanceKm ?: 999.0) <= 5.0
-                                    "CITY" -> (clip.distanceKm ?: 999.0) <= 50.0
-                                    "EARTH" -> true
-                                    else -> true
-                                }
+                                (clip.distanceKm ?: 999.0) <= localRadiusKm
                             }
                             finalClips.forEach { clip ->
                                 PulseClipCard(
@@ -422,12 +375,7 @@ fun ExploreScreen(
                             }
 
                             val finalMarket = marketplaceItems.filter { item ->
-                                when (scaleDial) {
-                                    "NEIGHBOR" -> (item.distanceKm ?: 999.0) <= 5.0
-                                    "CITY" -> (item.distanceKm ?: 999.0) <= 50.0
-                                    "EARTH" -> true
-                                    else -> true
-                                }
+                                (item.distanceKm ?: 999.0) <= localRadiusKm
                             }
                             finalMarket.forEach { item ->
                                 PulseMarketItemCard(
