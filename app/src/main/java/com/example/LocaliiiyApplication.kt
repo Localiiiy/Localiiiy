@@ -32,6 +32,22 @@ class LocaliiiyApplication : Application() {
                 FirebaseApp.initializeApp(this, options)
                 Log.d("LocaliiiyApplication", "FirebaseApp initialized with fallback options")
             }
+
+            // Initialize Firebase App Check
+            val firebaseAppCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance()
+            
+            // Use Debug provider in debug builds, Play Integrity in production
+            if (BuildConfig.DEBUG) {
+                firebaseAppCheck.installAppCheckProviderFactory(
+                    com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory.getInstance()
+                )
+                Log.d("LocaliiiyApplication", "Firebase AppCheck initialized with Debug provider")
+            } else {
+                firebaseAppCheck.installAppCheckProviderFactory(
+                    com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory.getInstance()
+                )
+                Log.d("LocaliiiyApplication", "Firebase AppCheck initialized with PlayIntegrity provider")
+            }
         } catch (e: Exception) {
             Log.w("LocaliiiyApplication", "Non-blocking FirebaseApp init fallback: ${e.message}")
         }
