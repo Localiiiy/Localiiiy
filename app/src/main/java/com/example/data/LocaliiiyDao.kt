@@ -8,11 +8,23 @@ interface LocaliiiyDao {
     @Query("SELECT * FROM drafts ORDER BY lastEditedTimestamp DESC")
     fun getAllDrafts(): Flow<List<DraftClipEntity>>
 
+    @Query("SELECT * FROM drafts WHERE id = :id")
+    suspend fun getDraftById(id: Long): DraftClipEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDraft(draft: DraftClipEntity)
+    suspend fun insertDraft(draft: DraftClipEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDrafts(drafts: List<DraftClipEntity>)
 
     @Delete
     suspend fun deleteDraft(draft: DraftClipEntity)
+
+    @Query("DELETE FROM drafts WHERE id = :id")
+    suspend fun deleteDraftById(id: Long)
+
+    @Query("DELETE FROM drafts")
+    suspend fun clearAllDrafts()
 
     // --- Posts ---
     @Query("SELECT * FROM pulse_cache ORDER BY timestamp DESC")
@@ -367,6 +379,28 @@ interface LocaliiiyDao {
     // Strictly append-only: ABORT on conflict to ensure existing records cannot be altered or overwritten!
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun recordCyberstalkingIncident(incident: CyberstalkingIncidentEntity)
+
+    // --- Merchant Bounties ---
+    @Query("SELECT * FROM merchant_bounties ORDER BY isClaimed ASC, distanceKm ASC, timestamp DESC")
+    fun getAllMerchantBounties(): Flow<List<MerchantBountyEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMerchantBounty(bounty: MerchantBountyEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMerchantBounties(bounties: List<MerchantBountyEntity>)
+
+    @Query("UPDATE merchant_bounties SET isClaimed = 1, claimedByUsername = :username WHERE id = :id")
+    suspend fun claimMerchantBounty(id: Long, username: String)
+
+    // --- Flash Pulse Automatic Purge ---
+    @Query("DELETE FROM posts WHERE isFlashPulse = 1 AND flashExpiresAt IS NOT NULL AND flashExpiresAt <= :currentTime")
+    suspend fun purgeExpiredFlashPulses(currentTime: Long)
+
+    // --- Marketplace Escrow Updates ---
+    @Query("UPDATE marketplace_items SET escrowStatus = :status, escrowBuyerUsername = :buyerUsername, escrowToken = :token WHERE id = :id")
+    suspend fun updateMarketplaceEscrowStatus(id: Long, status: String, buyerUsername: String?, token: String?)
 }
+
 
 

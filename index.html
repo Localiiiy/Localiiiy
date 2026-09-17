@@ -1,0 +1,2077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Localiiiy — Hyperlocal Social & Real-Time Discovery Platform</title>
+  <meta name="description" content="Localiiiy is the next-generation hyperlocal social platform featuring real-time spatial radar, hyperlocal clips with direct goods & services market conversion, and Safe-Haven offline handshake escrow.">
+  <meta name="theme-color" content="#070A12">
+  
+  <!-- PWA & Mobile Web App Capabilities -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Localiiiy">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/icon-512.png">
+  
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Localiiiy — Your Neighborhood, Alive in Real Time">
+  <meta property="og:description" content="Discover nearby locals, watch hyperlocal clips, convert clips to market goods or services, and trade safely with Safe-Haven Handshake Escrow.">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=1200&auto=format&fit=crop&q=80">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #0B132B;
+      --bg-card: #111C38;
+      --bg-card-hover: #1B2A4A;
+      --border-subtle: #2A3D66;
+      --border-accent: #00838F;
+      
+      --accent-emerald: #00838F;
+      --accent-emerald-glow: rgba(0, 131, 143, 0.25);
+      --accent-amber: #F59E0B;
+      --accent-amber-glow: rgba(245, 158, 11, 0.25);
+      --accent-blue: #00B4D8;
+      --accent-purple: #1E293B;
+      --accent-cyan: #4DD0E1;
+      
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 30px;
+      --radius-full: 9999px;
+      
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="moon"] {
+      --bg-base: #12141C;
+      --bg-card: rgba(26, 31, 46, 0.75);
+      --accent-emerald: #94A3B8;
+      --accent-amber: #CBD5E1;
+      --border-accent: rgba(148, 163, 184, 0.3);
+    }
+
+    [data-theme="galaxy"] {
+      --bg-base: #0A071A;
+      --bg-card: rgba(28, 18, 56, 0.75);
+      --accent-emerald: #C084FC;
+      --accent-amber: #F472B6;
+      --border-accent: rgba(192, 132, 252, 0.35);
+    }
+
+    [data-theme="void"] {
+      --bg-base: #000000;
+      --bg-card: rgba(15, 15, 15, 0.9);
+      --accent-emerald: #22C55E;
+      --accent-amber: #EAB308;
+      --border-accent: rgba(255, 255, 255, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      overflow-x: hidden;
+      line-height: 1.6;
+      transition: background-color 0.4s ease;
+    }
+
+    /* Ambient background grid & orbs */
+    .ambient-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      pointer-events: none;
+      background: 
+        radial-gradient(circle at 15% 20%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 85% 65%, rgba(59, 130, 246, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(245, 158, 11, 0.08) 0%, transparent 45%);
+    }
+
+    .ambient-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Navigation Bar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      background: rgba(6, 9, 15, 0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #10B981 0%, #047857 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 20px var(--accent-emerald-glow);
+    }
+
+    .brand-name {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #FFFFFF 30%, #A7F3D0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: var(--accent-emerald);
+      color: #042F1E;
+      box-shadow: 0 4px 18px var(--accent-emerald-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+      background: #34D399;
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--border-subtle);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .btn-amber {
+      background: var(--accent-amber);
+      color: #381E04;
+      box-shadow: 0 4px 18px var(--accent-amber-glow);
+    }
+
+    .btn-amber:hover {
+      background: #FBBF24;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Container standard */
+    .container {
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* Hero Section (Mobile First) */
+    .hero {
+      padding: 40px 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+      text-align: center;
+    }
+
+    @media (min-width: 768px) {
+      .hero {
+        padding: 80px 0 60px;
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        text-align: left;
+      }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--border-accent);
+      color: #6EE7B7;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-emerald);
+      animation: pulseAnim 1.8s infinite;
+    }
+
+    @keyframes pulseAnim {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.4); opacity: 1; box-shadow: 0 0 14px var(--accent-emerald); }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .hero-title {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1.2px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: 56px;
+        letter-spacing: -1.8px;
+        margin-bottom: 22px;
+      }
+    }
+
+    .hero-title span.emerald {
+      background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span.amber {
+      background: linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 36px;
+      max-width: 540px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      width: 100%;
+    }
+
+    .hero-ctas .btn {
+      flex: 1 1 auto;
+      min-width: 140px;
+    }
+
+    @media (min-width: 768px) {
+      .hero-ctas {
+        justify-content: flex-start;
+        margin-bottom: 40px;
+      }
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 36px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .stat-item h4 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .stat-item p {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Phone Mockup Frame */
+    .mockup-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+
+    .phone-container {
+      width: 330px;
+      height: 660px;
+      background: #0D111D;
+      border-radius: 46px;
+      border: 10px solid #1E2638;
+      box-shadow: 
+        0 25px 60px -12px rgba(0, 0, 0, 0.85),
+        0 0 45px rgba(16, 185, 129, 0.15);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-notch {
+      width: 120px;
+      height: 22px;
+      background: #1E2638;
+      border-bottom-left-radius: 14px;
+      border-bottom-right-radius: 14px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 50;
+    }
+
+    .phone-status-bar {
+      padding: 10px 18px 4px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      z-index: 40;
+    }
+
+    .phone-screen {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .screen-tab-content {
+      flex: 1;
+      padding: 14px;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .screen-tab-content.active {
+      display: flex;
+    }
+
+    /* Mockup Bottom Bar */
+    .phone-nav {
+      height: 56px;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+    }
+
+    .nav-tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: color 0.2s;
+    }
+
+    .nav-tab-btn.active {
+      color: var(--accent-emerald);
+      font-weight: 700;
+    }
+
+    .nav-tab-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* Phone Floating Badges */
+    .floating-badge {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 60;
+      animation: floatBadge 4s ease-in-out infinite alternate;
+    }
+
+    .floating-badge.badge-top-left {
+      top: 40px;
+      left: -35px;
+    }
+
+    .floating-badge.badge-bottom-right {
+      bottom: 70px;
+      right: -30px;
+      animation-delay: -2s;
+    }
+
+    @keyframes floatBadge {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
+    }
+
+    /* Section Headers */
+    .section-header {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 60px;
+    }
+
+    .section-badge {
+      display: inline-block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    /* Interactive Radar Simulator Section */
+    .radar-section {
+      padding: 90px 0;
+      position: relative;
+    }
+
+    .radar-demo-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    @media (min-width: 768px) {
+      .radar-demo-card {
+        padding: 36px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    .radar-canvas-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 420px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #radarCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0B1221 0%, #050811 100%);
+      box-shadow: 
+        inset 0 0 30px rgba(16, 185, 129, 0.1),
+        0 0 40px rgba(16, 185, 129, 0.08);
+      border: 1.5px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .radar-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .range-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: #1E293B;
+      outline: none;
+    }
+
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--accent-emerald);
+    }
+
+    .ghost-toggle-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 28px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #1E293B;
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent-emerald);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+
+    /* Blip Inspector Card */
+    .blip-info-box {
+      padding: 16px;
+      background: rgba(16, 185, 129, 0.06);
+      border: 1px dashed var(--border-accent);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+    }
+
+    /* Core Pillars 6-Grid */
+    .features-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    @media (min-width: 768px) {
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 26px;
+        margin-bottom: 80px;
+      }
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--bg-card-hover);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    .feature-icon-wrapper {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .icon-emerald { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+    .icon-amber { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
+    .icon-blue { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+    .icon-purple { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
+    .icon-cyan { background: rgba(6, 182, 212, 0.15); color: #06B6D4; }
+    .icon-rose { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
+
+    .feature-card h3 {
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Dual Reach Visualizer */
+    .dual-reach-section {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(6, 9, 15, 0.8) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 36px 24px;
+      margin: 40px 0 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      align-items: center;
+    }
+
+    @media (min-width: 768px) {
+      .dual-reach-section {
+        padding: 60px 48px;
+        margin: 60px 0 90px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 50px;
+      }
+    }
+
+    .reach-pills {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .reach-pill {
+      flex: 1;
+      padding: 14px 10px;
+      text-align: center;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reach-pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-emerald);
+      color: #A7F3D0;
+    }
+
+    .reach-pill span.icon {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .reach-pill span.title {
+      font-size: 13px;
+      font-weight: 700;
+      display: block;
+    }
+
+    /* Safe Haven Steps */
+    .safe-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 30px;
+    }
+
+    @media (min-width: 768px) {
+      .safe-steps {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+    }
+
+    .safe-step-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      position: relative;
+    }
+
+    .step-number {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.12);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    /* Pricing & Premium */
+    .pricing-section {
+      padding: 60px 0;
+    }
+
+    .pricing-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .pricing-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+    }
+
+    .pricing-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent-emerald);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%);
+      box-shadow: 0 0 35px var(--accent-emerald-glow);
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      right: 32px;
+      background: var(--accent-emerald);
+      color: #042F1E;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .pricing-price {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 18px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .pricing-price span.period {
+      font-size: 15px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .pricing-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+      flex: 1;
+    }
+
+    .pricing-features li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .pricing-features li svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent-emerald);
+      flex-shrink: 0;
+    }
+
+    /* Download APK Banner */
+    .download-banner {
+      background: linear-gradient(135deg, #059669 0%, #047857 50%, #065F46 100%);
+      border-radius: var(--radius-xl);
+      padding: 60px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      margin: 80px 0;
+      box-shadow: 0 20px 60px rgba(5, 150, 105, 0.35);
+    }
+
+    .download-banner h2 {
+      font-size: 38px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: white;
+    }
+
+    .download-banner p {
+      font-size: 17px;
+      color: #D1FAE5;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    .download-btns {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* PWA Install Banner */
+    .pwa-install-banner {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--accent-emerald);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 25px var(--accent-emerald-glow);
+      backdrop-filter: blur(16px);
+      padding: 14px 22px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 999;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      opacity: 0;
+      max-width: 90vw;
+    }
+
+    .pwa-install-banner.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .pwa-banner-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: #030712;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .pwa-banner-text h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .pwa-banner-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 60px 0 30px;
+      background: #04060A;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    @media (min-width: 768px) {
+      .footer-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 40px;
+      }
+    }
+
+    .footer-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 14px;
+      max-width: 320px;
+    }
+
+    .footer-col h5 {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 18px;
+      color: var(--text-primary);
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-col a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .footer-col a:hover {
+      color: var(--accent-emerald);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .floating-badge { display: none; }
+      .nav-links { display: none; }
+      
+      /* Mobile App Bottom Bar */
+      body {
+        padding-bottom: 70px;
+      }
+      .bottom-app-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: var(--bg-card);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid var(--border-subtle);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .bottom-app-bar-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .bottom-app-bar-item.active {
+        color: var(--accent-emerald);
+      }
+      .bottom-app-bar-item svg {
+        width: 24px;
+        height: 24px;
+        fill: currentColor;
+      }
+      .pwa-install-banner {
+        bottom: 84px !important;
+      }
+    }
+    @media (min-width: 961px) {
+      .bottom-app-bar {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient background elements -->
+  <div class="ambient-bg"></div>
+  <div class="ambient-grid"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand-logo">
+        <div class="brand-icon">📡</div>
+        <div class="brand-name">Localiiiy</div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#radar" class="nav-link">Live Radar</a></li>
+        <li><a href="#clips" class="nav-link">Clips & Commerce</a></li>
+        <li><a href="#market" class="nav-link">Safe-Haven Escrow</a></li>
+        <li><a href="#reach" class="nav-link">Dual Reach</a></li>
+        <li><a href="#pricing" class="nav-link">Premium</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <!-- Theme Picker -->
+        <select id="themeSelect" onchange="switchTheme(this.value)" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;">
+          <option value="default">🌌 Emerald Space</option>
+          <option value="moon">🌑 Moon Gray</option>
+          <option value="galaxy">🪐 Galaxy Purple</option>
+          <option value="void">🕳️ Black Hole Void</option>
+        </select>
+
+        <button id="pwaNavInstallBtn" onclick="triggerPwaInstall()" class="btn btn-primary" style="display: none; background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Install App
+        </button>
+
+        <a href="app-debug.apk" download class="btn btn-outline" style="border-color: rgba(255,255,255,0.15);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9.67l1.42 1.42L11 6.83V16h2V6.83l4.25 4.25 1.42-1.42L12 2z" transform="rotate(180 12 12)"/></svg>
+          APK
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <div class="hero-badge">
+          <div class="pulse-dot"></div>
+          <span>Hyperlocal Real-Time Spatial Discovery</span>
+        </div>
+
+        <h1 class="hero-title">
+          Your neighborhood, <br>
+          <span class="emerald">alive in real time.</span> <br>
+          <span class="amber">zero vanity noise.</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Connect with locals nearby through spatial radar pings, explore hyperlocal video clips, convert clips into instant Goods & Services listings, and trade safely with Safe-Haven Handshake Escrow.
+        </p>
+
+        <div class="hero-ctas">
+          <button id="pwaHeroInstallBtn" onclick="triggerPwaInstall()" class="btn btn-primary" style="padding: 14px 28px; font-size: 16px; background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            <span id="pwaHeroInstallText">Install App (PWA)</span>
+          </button>
+
+          <a href="app-debug.apk" download class="btn btn-outline" style="padding: 14px 24px; font-size: 15px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+            Download APK (v1.0)
+          </a>
+
+          <a href="#radar" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border-subtle); padding: 14px 20px; font-size: 15px;">
+            <span>🧭 Live Radar</span>
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <h4>100%</h4>
+            <p>Connections Only</p>
+          </div>
+          <div class="stat-item">
+            <h4>0 km - 🌐</h4>
+            <p>Dual Proximity Reach</p>
+          </div>
+          <div class="stat-item">
+            <h4>Safe-Haven</h4>
+            <p>Police Hub Escrow</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Phone Mockup -->
+      <div class="hero-right mockup-wrapper">
+        <!-- Floating Pills -->
+        <div class="floating-badge badge-top-left">
+          <span style="font-size: 20px;">🛡️</span>
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: #10B981;">Master Ghost Mode</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Stealth cloaking enabled</div>
+          </div>
+        </div>
+
+        <div class="floating-badge badge-bottom-right">
+          <span style="font-size: 20px;">🛍️</span>
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: #F59E0B;">Clip ➔ Marketplace</div>
+            <div style="font-size: 10px; color: var(--text-muted);">$45 • Handshake OTP</div>
+          </div>
+        </div>
+
+        <div class="phone-container">
+          <div class="phone-notch"></div>
+          <div class="phone-status-bar">
+            <span>9:41</span>
+            <span>📡 5G • 100%</span>
+          </div>
+
+          <div class="phone-screen">
+            <!-- Screen 1: Radar (Default) -->
+            <div id="mockScreenRadar" class="screen-tab-content active">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <span style="font-weight: 800; font-size: 16px; color: #10B981;">🧭 Live Radar</span>
+                <span style="font-size: 11px; background: rgba(16,185,129,0.18); color: #6EE7B7; padding: 2px 8px; border-radius: 12px;">Pike Place • 3 km</span>
+              </div>
+              <div style="flex: 1; position: relative; border-radius: 20px; overflow: hidden; background: radial-gradient(circle, #0F172A 0%, #030712 100%); border: 1px solid rgba(16,185,129,0.25); display: flex; align-items: center; justify-content: center;">
+                <div style="position: absolute; width: 180px; height: 180px; border: 1px dashed rgba(16,185,129,0.3); border-radius: 50%;"></div>
+                <div style="position: absolute; width: 110px; height: 110px; border: 1px solid rgba(16,185,129,0.4); border-radius: 50%;"></div>
+                <div style="width: 14px; height: 14px; background: #10B981; border-radius: 50%; box-shadow: 0 0 16px #10B981;"></div>
+                
+                <!-- Mock Blips -->
+                <div style="position: absolute; top: 38%; left: 24%; font-size: 18px;" title="Connected Local">🟢</div>
+                <div style="position: absolute; top: 65%; left: 72%; font-size: 18px;" title="Connected Local">🟢</div>
+                <div style="position: absolute; top: 22%; left: 68%; font-size: 18px;" title="Market Clip">🛍️</div>
+              </div>
+              <div style="margin-top: 10px; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 10px; font-size: 11px;">
+                <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                  <span>Maya Chen</span>
+                  <span style="color: #10B981;">0.4 km away</span>
+                </div>
+                <div style="color: var(--text-muted); font-size: 10px;">Ceramics artisan • Connected</div>
+              </div>
+            </div>
+
+            <!-- Screen 2: Clips -->
+            <div id="mockScreenClips" class="screen-tab-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 15px;">🎬 Clips</span>
+                <span style="font-size: 10px; color: #F59E0B; background: rgba(245,158,11,0.2); padding: 2px 6px; border-radius: 8px;">Connected</span>
+              </div>
+              <div style="flex: 1; border-radius: 16px; background: url('https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80') center/cover; position: relative; overflow: hidden; padding: 12px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <div style="background: rgba(245,158,11,0.9); color: #000; font-weight: 800; font-size: 10px; padding: 4px 8px; border-radius: 20px; align-self: flex-start; margin-bottom: 6px;">
+                  🛍️ Market Clip • $45
+                </div>
+                <div style="font-weight: 700; font-size: 12px; color: white;">Handcrafted Ceramic Mug</div>
+                <div style="font-size: 10px; color: #CBD5E1;">@maya_ceramics • 0.4 km away</div>
+                <div style="margin-top: 8px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); border-radius: 8px; padding: 6px 10px; font-size: 10px; color: #FDE68A; display: flex; align-items: center; justify-content: space-between;">
+                  <span>Safe-Haven Hub Handshake</span>
+                  <span>➔</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Screen 3: Market -->
+            <div id="mockScreenMarket" class="screen-tab-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 15px; color: #F59E0B;">🛍️ Market</span>
+                <span style="font-size: 10px; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 8px;">Goods & Services</span>
+              </div>
+              <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                <span style="background: #F59E0B; color: #000; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">Goods</span>
+                <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 12px; font-size: 10px;">Services</span>
+                <span style="background: rgba(255,255,255,0.06); padding: 3px 8px; border-radius: 12px; font-size: 10px;">Clips</span>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px; margin-bottom: 8px;">
+                <div style="font-size: 11px; font-weight: 700;">Vintage Film Camera 📷</div>
+                <div style="font-size: 10px; color: #10B981; font-weight: 600;">$85 • Mint Condition</div>
+                <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">🛡️ Hub: Civic Plaza Police Precinct CCTV</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px;">
+                <div style="font-size: 11px; font-weight: 700;">Bicycle Tune-Up & Brake Fix 🚲</div>
+                <div style="font-size: 10px; color: #3B82F6; font-weight: 600;">$35 / hr • Tech & Handyman</div>
+                <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">📍 Downtown Transit Hub Safe Zone</div>
+              </div>
+            </div>
+
+            <!-- Screen 4: Studio -->
+            <div id="mockScreenStudio" class="screen-tab-content">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-weight: 800; font-size: 15px; color: #8B5CF6;">🎙️ Creator Studio</span>
+                <span style="font-size: 10px; color: #C084FC;">$142.50 Earned</span>
+              </div>
+              <div style="background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.3); border-radius: 12px; padding: 12px; margin-bottom: 8px;">
+                <div style="font-size: 11px; font-weight: 700;">Super Thanks Tips</div>
+                <div style="font-size: 18px; font-weight: 800; color: #C084FC; margin: 4px 0;">$85.00</div>
+                <div style="font-size: 9px; color: var(--text-muted);">Available for local instant cashout</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px; font-size: 10px;">
+                <div style="font-weight: 700;">Draft Clips Vault (3 ready)</div>
+                <div style="color: var(--text-muted); margin-top: 2px;">Local Market & Pulse drafts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Nav inside phone -->
+          <div class="phone-nav">
+            <button class="nav-tab-btn active" onclick="showMockScreen('mockScreenRadar', this)">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              Radar
+            </button>
+            <button class="nav-tab-btn" onclick="showMockScreen('mockScreenClips', this)">
+              <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+              Clips
+            </button>
+            <button class="nav-tab-btn" onclick="showMockScreen('mockScreenMarket', this)">
+              <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+              Market
+            </button>
+            <button class="nav-tab-btn" onclick="showMockScreen('mockScreenStudio', this)">
+              <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+              Studio
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Live Radar Simulator -->
+    <section id="radar" class="radar-section">
+      <div class="section-header">
+        <span class="section-badge">Live Spatial Discovery</span>
+        <h2 class="section-title">Interactive Spatial Radar Simulator</h2>
+        <p class="section-desc">
+          Experience real-time proximity scanning with directional blips, sound triggers, customizable kilometer radiuses, and stealth Master Ghost Mode.
+        </p>
+      </div>
+
+      <div class="radar-demo-card">
+        <div class="radar-canvas-container">
+          <canvas id="radarCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <div class="radar-controls">
+          <div class="control-group">
+            <div class="control-label">
+              <span>Detection Radius</span>
+              <span id="radiusVal" style="color: var(--accent-emerald); font-family: var(--font-mono); font-weight: 700;">5.0 km</span>
+            </div>
+            <input type="range" min="1" max="100" value="5" class="range-slider" id="radiusSlider" oninput="updateRadius(this.value)">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted);">
+              <span>1 km (Neighbor)</span>
+              <span>10 km (City)</span>
+              <span>100 km+ (Earth)</span>
+            </div>
+          </div>
+
+          <div class="ghost-toggle-card">
+            <div>
+              <div style="font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                <span>🛡️ Free Master Ghost Mode</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted);">
+                Observe nearby activity without broadcasting your coordinates
+              </div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="ghostToggle" onchange="toggleGhost(this.checked)">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="blip-info-box" id="blipInspector">
+            <div style="font-weight: 700; color: #10B981; margin-bottom: 4px;">📡 Radar Status: Active Scanning</div>
+            <div style="color: var(--text-secondary);" id="blipStatusText">
+              Detected 4 connected locals & 2 market listings within 5.0 km radius.
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="addRandomBlip()">
+              <span>➕ Ping New Local</span>
+            </button>
+            <button class="btn btn-amber" style="flex: 1;" onclick="highlightMarketBlips()">
+              <span>🛍️ Highlight Goods</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Pillars 6-Card Grid -->
+    <section id="features" style="padding: 60px 0;">
+      <div class="section-header">
+        <span class="section-badge">Platform Pillars</span>
+        <h2 class="section-title">Engineered for Hyperlocal Trust</h2>
+        <p class="section-desc">
+          Localiiiy removes superficial follower counts and remote clickbait, focusing entirely on verifiable physical proximity and genuine community connections.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <!-- 1. Real-Time Spatial Radar -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-emerald">🧭</div>
+          <h3>Live Spatial Radar</h3>
+          <p>
+            Real-time radar sweeps discover locals, marketplace goods, and creators around your exact coordinates with systematic range scaling (1 km to Earth).
+          </p>
+        </div>
+
+        <!-- 2. Clips to Market Conversion -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-amber">🛍️</div>
+          <h3>Clip-to-Market Converter</h3>
+          <p>
+            Creators can turn any short video clip into an active <strong>Market Goods</strong> or <strong>Market Services</strong> listing with instant commerce linking and safe pickup spots.
+          </p>
+        </div>
+
+        <!-- 3. Safe-Haven Handshake Escrow -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-blue">🛡️</div>
+          <h3>Safe-Haven Escrow</h3>
+          <p>
+            Designated safe offline exchange zones at local Police Precinct CCTV Hubs, library foyers, and transit hubs with dual-token OTP handshake release.
+          </p>
+        </div>
+
+        <!-- 4. Connected Social Graph -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-purple">🤝</div>
+          <h3>Connected Social Graph</h3>
+          <p>
+            Strictly <strong>Connected</strong>. No follower hierarchies, no vanity metrics. Build a mutual local network of verified neighbors and trusted collaborators.
+          </p>
+        </div>
+
+        <!-- 5. Global-Local Dual Reach -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-cyan">🌐</div>
+          <h3>Dual Proximity Reach</h3>
+          <p>
+            Creator distribution controls allow targeting nearby neighbors (1–3 km), the wider metro city, or global algorithmic distribution to Earth.
+          </p>
+        </div>
+
+        <!-- 6. Creator Studio & Offline Direct Economy -->
+        <div class="feature-card">
+          <div class="feature-icon-wrapper icon-rose">🎙️</div>
+          <h3>Creator Studio Vault</h3>
+          <p>
+            Full-featured draft clip vault, localized Super Thanks tips, community bounties, and direct payouts to fuel the neighborhood creator economy.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Safe-Haven Escrow Walkthrough -->
+    <section id="market" style="padding: 60px 0;">
+      <div class="section-header">
+        <span class="section-badge" style="color: var(--accent-amber);">Fraud-Proof Commerce</span>
+        <h2 class="section-title">Safe-Haven Handshake Escrow</h2>
+        <p class="section-desc">
+          How Localiiiy protects peer-to-peer exchanges by combining digital escrow tokens with verified physical Safe-Haven exchange locations.
+        </p>
+      </div>
+
+      <div class="safe-steps">
+        <div class="safe-step-card">
+          <span class="step-number">STEP 01</span>
+          <h4 style="font-size: 18px; margin-bottom: 8px;">1. Reserve with Digital Escrow</h4>
+          <p style="font-size: 13px; color: var(--text-secondary);">
+            Buyer locks funds in digital escrow. The seller accepts and an automated Safe-Haven Handshake OTP token is issued.
+          </p>
+        </div>
+
+        <div class="safe-step-card">
+          <span class="step-number">STEP 02</span>
+          <h4 style="font-size: 18px; margin-bottom: 8px;">2. Meet at Verified CCTV Hub</h4>
+          <p style="font-size: 13px; color: var(--text-secondary);">
+            Both parties meet at designated public CCTV safe zones (Police Precinct lobbies, Civic Library foyers, transit centers).
+          </p>
+        </div>
+
+        <div class="safe-step-card">
+          <span class="step-number">STEP 03</span>
+          <h4 style="font-size: 18px; margin-bottom: 8px;">3. Instant Handshake Release</h4>
+          <p style="font-size: 13px; color: var(--text-secondary);">
+            Inspect item or service on the spot. Both scan OTP codes to instantly release escrow funds to the seller's wallet with zero chargeback fraud.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global-Local Dual Reach Interactive Banner -->
+    <section id="reach">
+      <div class="dual-reach-section">
+        <div>
+          <span class="section-badge" style="color: var(--accent-cyan);">Creator Distribution</span>
+          <h2 style="font-size: 32px; font-weight: 800; margin: 12px 0 16px;">
+            Dual Global-Local Reach Control
+          </h2>
+          <p style="font-size: 15px; color: var(--text-secondary); line-height: 1.6;">
+            Unlike legacy social networks where your content is lost in a global algorithm, Localiiiy guarantees that your posts and clips reach people right down your street, while preserving your freedom to broadcast worldwide.
+          </p>
+
+          <div class="reach-pills">
+            <div class="reach-pill active" onclick="setReachPill(this, 'Neighbor (1-3 km)', 'Strictly local radius. Perfect for neighborhood notices, garage sales, and community meetups.')">
+              <span class="icon">🏡</span>
+              <span class="title">Neighbor</span>
+            </div>
+            <div class="reach-pill" onclick="setReachPill(this, 'City (10-25 km)', 'Distributed across your metropolitan area. Great for local concerts, services, and citywide trends.')">
+              <span class="icon">🏙️</span>
+              <span class="title">City</span>
+            </div>
+            <div class="reach-pill" onclick="setReachPill(this, 'Earth (Worldwide)', 'Distributed globally to all connected users interested in your creative genre or craft.')">
+              <span class="icon">🌍</span>
+              <span class="title">Earth</span>
+            </div>
+          </div>
+
+          <div id="reachDescBox" style="margin-top: 16px; font-size: 13px; color: #A7F3D0; background: rgba(16,185,129,0.1); padding: 12px 16px; border-radius: var(--radius-sm); border-left: 3px solid var(--accent-emerald);">
+            Strictly local radius (1–3 km). Perfect for neighborhood notices, garage sales, and community meetups.
+          </div>
+        </div>
+
+        <div style="background: rgba(0,0,0,0.4); border-radius: var(--radius-lg); padding: 24px; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 12px;">Audience Distribution Matrix</div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                <span>Proximity Density</span>
+                <span id="matrixProximity" style="color: #10B981; font-weight: 700;">100% Local</span>
+              </div>
+              <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                <div id="matrixBarLocal" style="width: 100%; height: 100%; background: #10B981; transition: width 0.3s;"></div>
+              </div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
+                <span>Algorithmic Worldwide Reach</span>
+                <span id="matrixGlobal" style="color: #3B82F6; font-weight: 700;">Organic Tier</span>
+              </div>
+              <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                <div id="matrixBarGlobal" style="width: 30%; height: 100%; background: #3B82F6; transition: width 0.3s;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing / Localiiiy Premium -->
+    <section id="pricing" class="pricing-section">
+      <div class="section-header">
+        <span class="section-badge">Membership</span>
+        <h2 class="section-title">Simple, Honest Access</h2>
+        <p class="section-desc">
+          Core social networking, live radar, and Safe-Haven commerce are 100% free forever. Upgrade to Premium for atmospheric space themes and expanded creator reach.
+        </p>
+      </div>
+
+      <div class="pricing-grid">
+        <!-- Free Tier -->
+        <div class="pricing-card">
+          <h3 style="font-size: 22px; font-weight: 800;">Community Standard</h3>
+          <p style="color: var(--text-muted); font-size: 14px;">Full hyperlocal access for everyday neighbors.</p>
+          <div class="pricing-price">
+            $0 <span class="period">/ forever</span>
+          </div>
+
+          <ul class="pricing-features">
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Unlimited Live Radar Pings up to 25 km
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Free Master Ghost Mode Stealth Cloaking
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Hyperlocal Clips Feed & Post Creator
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Market Goods & Services Listings
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Safe-Haven Handshake Escrow OTP
+            </li>
+          </ul>
+
+          <a href="app-debug.apk" download class="btn btn-outline" style="width: 100%;">
+            Get Started Free
+          </a>
+        </div>
+
+        <!-- Premium Tier -->
+        <div class="pricing-card featured">
+          <span class="pricing-badge">Atmospheric Edition</span>
+          <h3 style="font-size: 22px; font-weight: 800;">Localiiiy Pro</h3>
+          <p style="color: #6EE7B7; font-size: 14px;">For active creators, local sellers, and power navigators.</p>
+          <div class="pricing-price">
+            ₹499 <span class="period">/ mo (~$5.99)</span>
+          </div>
+
+          <ul class="pricing-features">
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              All 4 Atmospheric Space Themes (Black hole, Moon, Galaxy, Custom)
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Unlimited Worldwide Radar Range (Earth Mode)
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Verified Pro Creator Profile Badge
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Priority Placement in Market Goods & Services
+            </li>
+            <li>
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Zero Platform Commission on Safe-Haven Escrow
+            </li>
+          </ul>
+
+          <a href="app-debug.apk" download class="btn btn-primary" style="width: 100%;">
+            Upgrade in App
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download & PWA Install Banner -->
+    <section class="download-banner">
+      <h2>Install Localiiiy on Your Device</h2>
+      <p>
+        Experience real-time neighborhood connection, instant commerce, and spatial radar right from your smartphone. Install directly as a Progressive Web App or download the APK.
+      </p>
+
+      <div class="download-btns">
+        <button id="pwaBannerInstallBtn" onclick="triggerPwaInstall()" class="btn" style="background: white; color: #065F46; padding: 14px 28px; font-weight: 700; border: none; cursor: pointer;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          <span id="pwaBannerInstallText">Install Web App (PWA)</span>
+        </button>
+        <a href="app-debug.apk" download class="btn" style="background: rgba(0,0,0,0.25); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 14px 24px; font-weight: 600;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9.67l1.42 1.42L11 6.83V16h2V6.83l4.25 4.25 1.42-1.42L12 2z" transform="rotate(180 12 12)"/></svg>
+          Direct APK Download (39 MB)
+        </a>
+        <a href="https://ais-pre-4dr4uba5q4ohbxd3nqa7pf-906260591053.asia-southeast1.run.app" target="_blank" class="btn" style="background: rgba(0,0,0,0.25); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 14px 20px;">
+          🌐 Live Emulator
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div>
+        <div class="brand-logo" style="margin-bottom: 8px;">
+          <div class="brand-icon">📡</div>
+          <div class="brand-name">Localiiiy</div>
+        </div>
+        <p class="footer-desc">
+          The hyperlocal social & spatial discovery platform. Connecting communities through verifiable physical proximity and fraud-proof Safe-Haven commerce.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Product</h5>
+        <ul>
+          <li><a href="#radar">Live Radar</a></li>
+          <li><a href="#clips">Clips Feed</a></li>
+          <li><a href="#market">Goods & Services</a></li>
+          <li><a href="#market">Safe-Haven Hubs</a></li>
+          <li><a href="#pricing">Localiiiy Pro</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Trust & Safety</h5>
+        <ul>
+          <li><a href="#market">Safe-Haven Guidelines</a></li>
+          <li><a href="#radar">Master Ghost Privacy</a></li>
+          <li><a href="#">UGC Content Policy</a></li>
+          <li><a href="#">Community Standards</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="mailto:pradeepchandrazzwarr@gmail.com">pradeepchandrazzwarr@gmail.com</a></li>
+          <li><a href="https://ais-dev-4dr4uba5q4ohbxd3nqa7pf-906260591053.asia-southeast1.run.app" target="_blank">Dev Cloud Console</a></li>
+          <li><a href="app-debug.apk" download>Download APK</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <div>© 2026 Localiiiy. All rights reserved. Built with Jetpack Compose & Kotlin.</div>
+      <div>Designed with Proximity & Privacy First.</div>
+    </div>
+  </footer>
+
+  <!-- Android Bottom App Bar for Mobile -->
+  <nav class="bottom-app-bar">
+    <a href="#" class="bottom-app-bar-item active">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 12h3v8h6v-6h2v6h6v-8h3L12 2z"/></svg>
+      <span>Feed</span>
+    </a>
+    <a href="#radar" class="bottom-app-bar-item">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+      <span>Radar</span>
+    </a>
+    <a href="#clips" class="bottom-app-bar-item">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg>
+      <span>Clips</span>
+    </a>
+    <a href="#reach" class="bottom-app-bar-item">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Network</span>
+    </a>
+  </nav>
+
+  <!-- Radar Simulator JS Script -->
+  <script>
+    // Theme Switcher
+    function switchTheme(theme) {
+      if (theme === 'default') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    }
+
+    // Phone Mockup Screen Switcher
+    function showMockScreen(screenId, btnElement) {
+      document.querySelectorAll('.screen-tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(el => el.classList.remove('active'));
+      
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+      if (btnElement) btnElement.classList.add('active');
+    }
+
+    // Dual Reach Pill Selector
+    function setReachPill(element, label, desc) {
+      document.querySelectorAll('.reach-pill').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      document.getElementById('reachDescBox').innerText = desc;
+
+      const proxBar = document.getElementById('matrixBarLocal');
+      const globBar = document.getElementById('matrixBarGlobal');
+      const proxText = document.getElementById('matrixProximity');
+      const globText = document.getElementById('matrixGlobal');
+
+      if (label.includes('Neighbor')) {
+        proxBar.style.width = '100%';
+        globBar.style.width = '20%';
+        proxText.innerText = '100% Local (1-3 km)';
+        globText.innerText = 'Neighbor Circle';
+      } else if (label.includes('City')) {
+        proxBar.style.width = '65%';
+        globBar.style.width = '55%';
+        proxText.innerText = 'Metro Citywide (10-25 km)';
+        globText.innerText = 'Regional Hubs';
+      } else {
+        proxBar.style.width = '30%';
+        globBar.style.width = '100%';
+        proxText.innerText = 'Ambient Local';
+        globText.innerText = '100% Algorithmic Earth';
+      }
+    }
+
+    // Radar Canvas Simulation
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    let radarRadius = 5.0;
+    let isGhostMode = false;
+    let sweepAngle = 0;
+
+    let blips = [
+      { x: 0.25, y: -0.35, label: "Maya (Ceramics)", type: "user", dist: 0.4 },
+      { x: -0.45, y: -0.2, label: "Marcus (Connected)", type: "user", dist: 1.2 },
+      { x: 0.6, y: 0.4, label: "Vintage Camera ($85)", type: "market", dist: 2.1 },
+      { x: -0.3, y: 0.65, label: "Bike Repair Service ($35)", type: "market", dist: 3.4 },
+      { x: 0.1, y: 0.8, label: "Elena (Connected)", type: "user", dist: 4.2 }
+    ];
+
+    function updateRadius(val) {
+      radarRadius = parseFloat(val);
+      document.getElementById('radiusVal').innerText = radarRadius >= 100 ? 'Earth 🌐' : radarRadius.toFixed(1) + ' km';
+      document.getElementById('blipStatusText').innerText = 
+        `Scanning up to ${radarRadius >= 100 ? 'Earth' : radarRadius.toFixed(1) + ' km'}. Detected ${blips.filter(b => b.dist <= radarRadius).length} active radar pings.`;
+    }
+
+    function toggleGhost(val) {
+      isGhostMode = val;
+      const statusBox = document.getElementById('blipStatusText');
+      if (isGhostMode) {
+        statusBox.innerHTML = '<strong style="color: #6EE7B7;">🛡️ Master Ghost Mode is Active!</strong> You are invisible to other radars while retaining full local scanning visibility.';
+      } else {
+        statusBox.innerText = `Normal broadcasting active within ${radarRadius.toFixed(1)} km radius.`;
+      }
+    }
+
+    function addRandomBlip() {
+      const angle = Math.random() * Math.PI * 2;
+      const r = 0.2 + Math.random() * 0.7;
+      const newDist = (r * radarRadius).toFixed(1);
+      const isMarket = Math.random() > 0.5;
+      blips.push({
+        x: Math.cos(angle) * r,
+        y: Math.sin(angle) * r,
+        label: isMarket ? `New Goods Item ($${(20 + Math.random()*60).toFixed(0)})` : `Local Connected Neighbor`,
+        type: isMarket ? "market" : "user",
+        dist: parseFloat(newDist)
+      });
+      document.getElementById('blipStatusText').innerText = `Ping added! Detected new local at ${newDist} km away.`;
+    }
+
+    function highlightMarketBlips() {
+      const marketCount = blips.filter(b => b.type === 'market').length;
+      document.getElementById('blipStatusText').innerHTML = 
+        `<strong style="color: #F59E0B;">🛍️ ${marketCount} Market Goods/Services</strong> highlighted with Safe-Haven Handshake Escrow available!`;
+    }
+
+    function drawRadar() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const maxR = w * 0.45;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Concentric circles
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.22)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 3; i++) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, (maxR / 3) * i, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Axis crosshairs
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - maxR);
+      ctx.lineTo(cx, cy + maxR);
+      ctx.moveTo(cx - maxR, cy);
+      ctx.lineTo(cx + maxR, cy);
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.12)';
+      ctx.stroke();
+
+      // Rotating Sweep
+      sweepAngle += 0.035;
+      const sweepEndAngle = sweepAngle;
+      const sweepStartAngle = sweepAngle - 0.45;
+
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+      grad.addColorStop(0, 'rgba(16, 185, 129, 0)');
+      grad.addColorStop(1, 'rgba(16, 185, 129, 0.25)');
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, maxR, sweepStartAngle, sweepEndAngle);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+
+      // Sweep line
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(sweepAngle) * maxR, cy + Math.sin(sweepAngle) * maxR);
+      ctx.strokeStyle = '#34D399';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Center User Pin
+      ctx.beginPath();
+      ctx.arc(cx, cy, isGhostMode ? 8 : 6, 0, Math.PI * 2);
+      ctx.fillStyle = isGhostMode ? '#64748B' : '#10B981';
+      ctx.fill();
+      if (!isGhostMode) {
+        ctx.strokeStyle = '#6EE7B7';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Draw Blips
+      blips.forEach(blip => {
+        if (blip.dist <= radarRadius) {
+          const bx = cx + blip.x * maxR;
+          const by = cy + blip.y * maxR;
+
+          ctx.beginPath();
+          ctx.arc(bx, by, blip.type === 'market' ? 6 : 5, 0, Math.PI * 2);
+          ctx.fillStyle = blip.type === 'market' ? '#F59E0B' : '#10B981';
+          ctx.fill();
+
+          // Outer pulse ring
+          ctx.beginPath();
+          ctx.arc(bx, by, (blip.type === 'market' ? 10 : 8) + Math.sin(sweepAngle * 2) * 2, 0, Math.PI * 2);
+          ctx.strokeStyle = blip.type === 'market' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(16, 185, 129, 0.4)';
+          ctx.stroke();
+
+          // Text label
+          ctx.font = '10px "Plus Jakarta Sans", sans-serif';
+          ctx.fillStyle = '#CBD5E1';
+          ctx.fillText(blip.label, bx + 8, by - 4);
+        }
+      });
+
+      requestAnimationFrame(drawRadar);
+    }
+
+    drawRadar();
+
+    // ==========================================
+    // Progressive Web App (PWA) Implementation
+    // ==========================================
+    let deferredPrompt = null;
+    const pwaBanner = document.getElementById('pwaInstallBanner');
+    const pwaNavBtn = document.getElementById('pwaNavInstallBtn');
+    const pwaHeroBtn = document.getElementById('pwaHeroInstallBtn');
+    const pwaHeroText = document.getElementById('pwaHeroInstallText');
+    const pwaBannerBtn = document.getElementById('pwaBannerInstallBtn');
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('✅ [PWA] Localiiiy ServiceWorker registered with scope:', registration.scope);
+          })
+          .catch((err) => {
+            console.warn('⚠️ [PWA] ServiceWorker registration failed:', err);
+          });
+      });
+    }
+
+    // Listen for beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent default Chrome install prompt banner
+      e.preventDefault();
+      deferredPrompt = e;
+
+      // Show custom install triggers
+      if (pwaNavBtn) pwaNavBtn.style.display = 'inline-flex';
+      if (pwaHeroBtn) pwaHeroBtn.style.display = 'inline-flex';
+      if (pwaBanner) {
+        setTimeout(() => {
+          pwaBanner.classList.add('visible');
+        }, 1500);
+      }
+    });
+
+    // Handle App Installed Event
+    window.addEventListener('appinstalled', () => {
+      console.log('🎉 [PWA] Localiiiy app successfully installed to device!');
+      deferredPrompt = null;
+      if (pwaBanner) pwaBanner.classList.remove('visible');
+      if (pwaNavBtn) pwaNavBtn.style.display = 'none';
+      if (pwaHeroText) pwaHeroText.textContent = 'App Installed ✓';
+    });
+
+    // Function to trigger installation
+    window.triggerPwaInstall = async function() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choiceResult = await deferredPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the PWA install prompt');
+        } else {
+          console.log('User dismissed the PWA install prompt');
+        }
+        deferredPrompt = null;
+        if (pwaBanner) pwaBanner.classList.remove('visible');
+      } else {
+        // Fallback for browsers / devices where beforeinstallprompt already fired or standalone
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+          alert('Localiiiy is already installed on your device!');
+        } else {
+          alert('To install Localiiiy on Android: tap the 3 dots (⋮) in Chrome and select "Install app" or "Add to Home screen".');
+        }
+      }
+    };
+
+    // Close banner
+    window.dismissPwaBanner = function() {
+      if (pwaBanner) {
+        pwaBanner.classList.remove('visible');
+      }
+    };
+  </script>
+
+  <!-- PWA Install Floating Banner -->
+  <div id="pwaInstallBanner" class="pwa-install-banner">
+    <div class="pwa-banner-icon">
+      <img src="/assets/icon-192.png" alt="Localiiiy" width="32" height="32" style="border-radius: 8px;">
+    </div>
+    <div class="pwa-banner-text">
+      <h4>Install Localiiiy</h4>
+      <p>Add to your home screen for fast offline spatial radar</p>
+    </div>
+    <button onclick="triggerPwaInstall()" class="btn btn-primary" style="padding: 8px 16px; font-size: 13px; white-space: nowrap;">
+      Install
+    </button>
+    <button onclick="dismissPwaBanner()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px 8px; margin-left: -4px;">
+      ✕
+    </button>
+  </div>
+</body>
+</html>

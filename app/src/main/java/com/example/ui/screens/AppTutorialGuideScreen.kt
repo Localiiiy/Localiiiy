@@ -28,8 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.components.BadgeTier
+import com.example.ui.components.HashAnchorItem
+import com.example.ui.components.HashLinkAnchorNavBar
+import com.example.ui.components.EnergeticPulseBadge
 import com.example.util.CurrencyHelper
 import com.example.util.LocaliiiyCurrency
+import kotlinx.coroutines.launch
 
 enum class TutorialTab(val title: String, val emoji: String) {
     RUNNING_GUIDE("App Guide", "📱"),
@@ -63,6 +67,20 @@ fun AppTutorialGuideScreen(
 ) {
     var selectedTab by remember { mutableStateOf(TutorialTab.RUNNING_GUIDE) }
     var calculatorCurrency by remember { mutableStateOf(currentCurrency) }
+    val guideListState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+    var selectedGuideAnchor by remember { mutableStateOf("#step-0") }
+
+    val guideAnchors = remember {
+        listOf(
+            HashAnchorItem(id = "#step-0", label = "1. Pulse", targetIndex = 1),
+            HashAnchorItem(id = "#step-1", label = "2. Radar", targetIndex = 2),
+            HashAnchorItem(id = "#step-2", label = "3. Dual-Reach", targetIndex = 3),
+            HashAnchorItem(id = "#step-3", label = "4. Escrow", targetIndex = 4),
+            HashAnchorItem(id = "#step-4", label = "5. Studio", targetIndex = 5),
+            HashAnchorItem(id = "#step-5", label = "6. Privacy", targetIndex = 6)
+        )
+    }
 
     val guideSteps = remember {
         listOf(
@@ -279,11 +297,24 @@ fun AppTutorialGuideScreen(
             // Tab Content
             when (selectedTab) {
                 TutorialTab.RUNNING_GUIDE -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
-                        contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        HashLinkAnchorNavBar(
+                            anchors = guideAnchors,
+                            selectedAnchorId = selectedGuideAnchor,
+                            onAnchorClick = { anchor ->
+                                selectedGuideAnchor = anchor.id
+                                coroutineScope.launch {
+                                    guideListState.animateScrollToItem(index = anchor.targetIndex)
+                                }
+                            }
+                        )
+
+                        LazyColumn(
+                            state = guideListState,
+                            modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+                            contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
                         item {
                             Surface(
                                 shape = RoundedCornerShape(14.dp),
@@ -398,6 +429,7 @@ fun AppTutorialGuideScreen(
                                 }
                             }
                         }
+                    }
                     }
                 }
 
@@ -755,8 +787,8 @@ fun AppTutorialGuideScreen(
                                 "🚀 Boost Ads"
                             ),
                             Triple(
-                                "9. Localiiiy Premium Subscriptions",
-                                "Users can upgrade to Premium ($9.99/mo) for Master Ghost Mode, advanced radar filters, and a zero-ad experience.",
+                                "9. Localiiiy Premium Subscriptions (₹499/mo)",
+                                "Users can upgrade to Premium (₹499/mo) for 5x Hyperlocal Feed Boosts, 0% Safe-Haven Market Escrow fees, Gold Pro badge, advanced skill radar filters, and 4K Studio. (Master Ghost Mode remains 100% free for all users).",
                                 "🌟 Premium"
                             )
                         )

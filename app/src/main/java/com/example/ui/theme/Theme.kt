@@ -195,8 +195,24 @@ object LocaliiiyTheme {
 fun LocaliiiyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeKey: String = "DEFAULT",
+    displayScale: String = "SYSTEM",
     content: @Composable () -> Unit
 ) {
+    val currentDensity = androidx.compose.ui.platform.LocalDensity.current
+    val effectiveDensity = remember(currentDensity, displayScale) {
+        val factor = when (displayScale.uppercase()) {
+            "COMPACT" -> 0.85f
+            "STANDARD" -> 1.0f
+            "COMFORTABLE" -> 1.15f
+            "LARGE" -> 1.30f
+            else -> 1.0f // SYSTEM follows mobile phone setting
+        }
+        androidx.compose.ui.unit.Density(
+            density = currentDensity.density * factor,
+            fontScale = currentDensity.fontScale * factor
+        )
+    }
+
     val colorScheme = when (themeKey.uppercase()) {
         "BLACK_HOLE" -> LocaliiiyBlackHoleColorScheme
         "MOON" -> LocaliiiyMoonColorScheme
@@ -259,7 +275,8 @@ fun LocaliiiyTheme(
 
     CompositionLocalProvider(
         LocalLocaliiiyBrandColors provides brandColors,
-        LocalLocaliiiyBrandTypography provides brandTypography
+        LocalLocaliiiyBrandTypography provides brandTypography,
+        androidx.compose.ui.platform.LocalDensity provides effectiveDensity
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

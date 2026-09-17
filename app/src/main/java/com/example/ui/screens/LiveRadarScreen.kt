@@ -27,6 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
@@ -65,8 +67,17 @@ fun LiveRadarScreen(
     var exploreBypassAllowed by remember { mutableStateOf(false) }
     var currentRadius by remember { mutableStateOf(selectedRadiusKm ?: 3.0) }
     var isGhostModeActive by remember { mutableStateOf(false) }
+    var isAppInForeground by remember { mutableStateOf(true) }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        isAppInForeground = true
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        isAppInForeground = false
+    }
 
     val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed
+    val shouldShowBlips = !isGhostModeActive && isAppInForeground
 
     Box(
         modifier = modifier
@@ -78,7 +89,7 @@ fun LiveRadarScreen(
             // Main Live Proximity Radar view
             LiveRadarComponent(
                 userProfile = userProfile,
-                nearbyUsers = if (isGhostModeActive) nearbyUsers else nearbyUsers,
+                nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
                 nearbyPosts = posts,
                 selectedRadiusKm = currentRadius,
                 isLocationEnabled = true,
@@ -94,39 +105,6 @@ fun LiveRadarScreen(
                 onWaveAtUser = { /* waved */ },
                 modifier = Modifier.fillMaxSize()
             )
-
-            // Top Status Overlay Bar
-            Surface(
-                shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF030D05).copy(alpha = 0.95f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00FF66).copy(alpha = 0.6f)),
-                shadowElevation = 6.dp,
-                modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(top = 8.dp, start = 16.dp, end = 16.dp)
-                    .align(Alignment.TopCenter)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF14FF00))
-                    )
-                    Text(
-                        text = "LIVE PROXIMITY RADAR • ACTIVE SCANNING",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF14FF00),
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                        )
-                    )
-                }
-            }
         } else {
             // Accompanist Location Permission Request Rationale View
             LocationPermissionRationaleView(

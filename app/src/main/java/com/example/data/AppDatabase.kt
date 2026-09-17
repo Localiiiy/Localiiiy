@@ -28,9 +28,10 @@ import kotlinx.coroutines.launch
         StudioDraftEntity::class,
         PulseCacheEntity::class,
         DraftClipEntity::class,
-        CyberstalkingIncidentEntity::class
+        CyberstalkingIncidentEntity::class,
+        MerchantBountyEntity::class
     ],
-    version = 14,
+    version = 18,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -83,6 +84,8 @@ abstract class AppDatabase : RoomDatabase() {
                 dao.insertUserActivities(InitialData.starterUserActivities)
                 dao.insertSavedPostsCache(InitialData.starterSavedPosts)
                 dao.insertStudioDrafts(InitialData.starterStudioDrafts)
+                dao.insertDrafts(InitialData.starterDraftClips)
+                dao.insertMerchantBounties(InitialData.starterMerchantBounties)
             }
         }
     }

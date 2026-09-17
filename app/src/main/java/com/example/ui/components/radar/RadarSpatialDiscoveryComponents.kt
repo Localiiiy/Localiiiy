@@ -38,6 +38,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.util.HapticHelper
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import android.widget.Toast
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.ui.theme.*
@@ -331,6 +336,9 @@ fun LandmarkGeoPortalBeaconsTray(
     onSelectBeacon: (GeoPortalBeacon) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -384,7 +392,10 @@ fun LandmarkGeoPortalBeaconsTray(
                     ),
                     modifier = Modifier
                         .width(150.dp)
-                        .clickable { onSelectBeacon(beacon) }
+                        .clickable { 
+                            HapticHelper.triggerHaptic(context, haptic, HapticFeedbackType.LongPress)
+                            onSelectBeacon(beacon) 
+                        }
                         .testTag("geo_beacon_${beacon.id}")
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
@@ -440,169 +451,155 @@ fun LandmarkGeoPortalBeaconsTray(
     }
 }
 
-/**
- * Section 3.7: Radar Scale KM Controller (Increase / Decrease & Slider up to 500KM)
- */
+enum class RadarHudTheme(
+    val title: String,
+    val primaryColor: Color,
+    val gridColor: Color,
+    val isPremiumOnly: Boolean = false
+) {
+    PHOSPHOR_GREEN("Classic Green", Color(0xFF00FF41), Color(0xFF005511), false),
+    NEON_GOLD("Neon Gold", Color(0xFFFFD700), Color(0xFF8B6508), true),
+    ELECTRIC_CYAN("Electric Cyan", Color(0xFF00E5FF), Color(0xFF005577), true),
+    PHANTOM_PURPLE("Phantom Purple", Color(0xFFBD00FF), Color(0xFF550077), true),
+    TACTICAL_AMBER("Tactical Amber", Color(0xFFFF9100), Color(0xFF663300), true)
+}
+
 @Composable
-fun RadarScaleZoomSlider(
+fun UnifiedRadarRangeSlider(
     currentRadiusKm: Double,
     onRadiusChange: (Double) -> Unit,
+    isPremium: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val roundedKm = currentRadiusKm.coerceIn(1.0, 500.0)
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    
+    // Non-premium restricted to 50 KM
+    val maxKm = if (isPremium) 20000.0 else 50.0
+    val roundedKm = currentRadiusKm.coerceIn(1.0, maxKm)
+    
+    // Scale mapping for a smoother slider experience (logarithmic-like visually)
+    val maxLog = kotlin.math.log10(maxKm)
+    val currentLog = kotlin.math.log10(roundedKm).toFloat()
 
+    val presets = listOf(
+        Pair("1k", 1.0),
+        Pair("3k", 3.0),
+        Pair("10k", 10.0),
+        Pair("50k", 50.0),
+        Pair("State", 500.0),
+        Pair("Country", 3000.0),
+        Pair("Global", 20000.0)
+    )
+    
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         color = RadarPanelBg,
         border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.45f)),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-            .testTag("radar_scale_zoom_slider")
+            .padding(horizontal = 14.dp, vertical = 2.dp)
+            .testTag("unified_radar_range_slider")
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+        ) {
+            // Slider Row (Reduced height)
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ZoomIn,
-                        contentDescription = null,
-                        tint = RadarPhosphor,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text(
-                        text = "RADAR SCALE CONTROL",
-                        fontSize = 10.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = RadarPhosphor,
-                        fontFamily = FontFamily.Monospace
-                    )
-                }
-                Text(
-                    text = "${String.format("%.1f", roundedKm)} KM",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = RadarNeonGreen,
-                    fontFamily = FontFamily.Monospace
-                )
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Increase & Decrease Controls + Interactive Slider
-            Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(32.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Decrease Button (-)
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF132B18),
-                    border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.5f)),
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            val nextKm = (roundedKm - if (roundedKm > 20) 5.0 else 1.0).coerceAtLeast(1.0)
-                            onRadiusChange(nextKm)
-                        }
-                        .testTag("radar_scale_decrease_btn")
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "−",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RadarNeonGreen
-                        )
-                    }
-                }
-
-                // Slider from 1 to 500 KM
-                Slider(
-                    value = roundedKm.toFloat(),
-                    onValueChange = { onRadiusChange(it.toDouble()) },
-                    valueRange = 1f..500f,
-                    colors = SliderDefaults.colors(
+                Icon(
+                    imageVector = Icons.Default.ZoomIn,
+                    contentDescription = null,
+                    tint = RadarPhosphor,
+                    modifier = Modifier.size(16.dp)
+                )
+                
+                androidx.compose.material3.Slider(
+                    value = currentLog,
+                    onValueChange = { logVal ->
+                        val nextKm = Math.pow(10.0, logVal.toDouble()).coerceIn(1.0, maxKm)
+                        onRadiusChange(nextKm)
+                    },
+                    valueRange = 0f..maxLog.toFloat(),
+                    modifier = Modifier.weight(1f),
+                    colors = androidx.compose.material3.SliderDefaults.colors(
                         thumbColor = RadarNeonGreen,
                         activeTrackColor = RadarNeonGreen,
-                        inactiveTrackColor = Color(0xFF0D3814)
-                    ),
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(30.dp)
+                        inactiveTrackColor = RadarPhosphor.copy(alpha = 0.3f)
+                    )
                 )
-
-                // Increase Button (+)
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFF132B18),
-                    border = BorderStroke(1.dp, RadarPhosphor.copy(alpha = 0.5f)),
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .clickable {
-                            val nextKm = (roundedKm + if (roundedKm >= 20) 5.0 else 1.0).coerceAtMost(500.0)
-                            onRadiusChange(nextKm)
-                        }
-                        .testTag("radar_scale_increase_btn")
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "+",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RadarNeonGreen
-                        )
-                    }
-                }
+                
+                Text(
+                    text = "${if (roundedKm >= 1000) String.format("%.0f", roundedKm / 1000) + "K" else String.format("%.0f", roundedKm)} KM",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = RadarNeonGreen,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.widthIn(min = 45.dp),
+                    textAlign = TextAlign.End
+                )
             }
 
-            // Quick Stepper Chips for Quick Scaling
+            // Quick preset chips row
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
+                    .padding(top = 2.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                listOf(-10.0 to "-10km", -2.0 to "-2km", 2.0 to "+2km", 10.0 to "+10km", 50.0 to "+50km").forEach { (delta, label) ->
+                presets.forEach { (label, value) ->
+                    val isLocked = value > 50.0 && !isPremium
+                    val isSelected = (value <= 50.0 && kotlin.math.abs(roundedKm - value) < 0.5) ||
+                                     (value > 50.0 && roundedKm > 50.0 && kotlin.math.abs(roundedKm - value) < 1000.0)
+
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = Color(0xFF0C2210),
-                        border = BorderStroke(0.6.dp, RadarPhosphor.copy(alpha = 0.3f)),
+                        shape = RoundedCornerShape(4.dp),
+                        color = if (isSelected) RadarNeonGreen.copy(alpha = 0.25f) else Color.Transparent,
+                        border = BorderStroke(
+                            0.7.dp,
+                            if (isSelected) RadarNeonGreen else if (isLocked) Color.DarkGray else RadarPhosphor.copy(alpha = 0.3f)
+                        ),
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
                             .clickable {
-                                val nextKm = (roundedKm + delta).coerceIn(1.0, 500.0)
-                                onRadiusChange(nextKm)
+                                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                if (isLocked) {
+                                    Toast.makeText(context, "Premium Feature: Unlocks State, Country & Global Radar Range 🔒", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    onRadiusChange(value)
+                                }
                             }
                     ) {
-                        Text(
-                            text = label,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RadarNeonGreen,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                        )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 8.5.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                color = if (isSelected) RadarNeonGreen else if (isLocked) Color.Gray else RadarPhosphor,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            if (isLocked) {
+                                Text(
+                                    text = "🔒",
+                                    fontSize = 7.sp
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
-
-/**
- * Section 3.8: Real-Time Compass Heading Sensor Badge
- */
 @Composable
 fun RealTimeCompassHeadingBadge(
     headingDeg: Float,
@@ -911,10 +908,18 @@ fun ProximityPingNotificationsToggle(
 @Composable
 fun DirectRadarChatDispatchSheet(
     targetUser: OtherUserEntity,
+    isPremiumViewer: Boolean = false,
     onSendQuickGreeting: (String) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isTargetVerified = targetUser.isVerified
+    val displayUsername = if (isPremiumViewer || isTargetVerified) {
+        targetUser.username
+    } else {
+        val hash = kotlin.math.abs(targetUser.username.hashCode()).toString(16).padStart(4, '0').take(4)
+        "user_$hash"
+    }
     var quickMessage by remember { mutableStateOf("Hey neighbor! Saw you on Live Radar 👋") }
 
     Card(
@@ -939,18 +944,24 @@ fun DirectRadarChatDispatchSheet(
                         model = targetUser.avatarUrl,
                         contentDescription = targetUser.username,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(32.dp).clip(CircleShape).border(1.dp, RadarNeonGreen, CircleShape)
+                        modifier = Modifier.size(32.dp).clip(CircleShape).border(1.dp, if (isTargetVerified) Color(0xFFFFD700) else RadarNeonGreen, CircleShape)
                     )
                     Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "DISPATCH TO @${displayUsername.uppercase()}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isTargetVerified) Color(0xFFFFD700) else RadarNeonGreen,
+                                fontFamily = FontFamily.Monospace
+                            )
+                            if (isTargetVerified) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = "✓", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                            }
+                        }
                         Text(
-                            text = "DISPATCH RADAR BEAM TO @${targetUser.username}",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = RadarNeonGreen,
-                            fontFamily = FontFamily.Monospace
-                        )
-                        Text(
-                            text = "${targetUser.distanceKm} km away • Tactical channel open",
+                            text = "${targetUser.distanceKm} km away • ${if (isPremiumViewer) "Vault Retention 48h" else "Ephemeral 3h"}",
                             fontSize = 9.sp,
                             color = Color.LightGray
                         )
@@ -981,12 +992,13 @@ fun DirectRadarChatDispatchSheet(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(
                     "Wave 👋",
-                    "Coffee nearby? ☕",
-                    "What's happening? 📍"
+                    "Coffee? ☕",
+                    "What's happening? 📍",
+                    "Connect Request 🤝"
                 ).forEach { preset ->
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -998,32 +1010,55 @@ fun DirectRadarChatDispatchSheet(
                     ) {
                         Text(
                             text = preset,
-                            fontSize = 9.sp,
+                            fontSize = 8.5.sp,
                             color = Color.White,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Button(
-                onClick = {
-                    onSendQuickGreeting(quickMessage)
-                    onClose()
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = RadarNeonGreen),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.fillMaxWidth().height(42.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "DISPATCH TACTICAL MESSAGE",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    color = Color.Black,
-                    fontFamily = FontFamily.Monospace
-                )
+                OutlinedButton(
+                    onClick = {
+                        onSendQuickGreeting("🤝 Proposed a Connection via Radar: $quickMessage")
+                        onClose()
+                    },
+                    border = BorderStroke(1.dp, RadarNeonGreen),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f).height(40.dp)
+                ) {
+                    Text(
+                        text = "CONNECT 🤝",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        color = RadarNeonGreen,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onSendQuickGreeting(quickMessage)
+                        onClose()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = RadarNeonGreen),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.weight(1f).height(40.dp)
+                ) {
+                    Text(
+                        text = "DISPATCH ⚡",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        color = Color.Black,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
             }
         }
     }

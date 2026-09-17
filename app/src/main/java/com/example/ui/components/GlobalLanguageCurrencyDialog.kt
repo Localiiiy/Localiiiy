@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,8 +40,12 @@ fun GlobalLanguageCurrencyDialog(
     onDismissRequest: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0 = Languages, 1 = Currencies
+    var selectedRegion by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
-    var testAmountUSD by remember { mutableDoubleStateOf(100.0) }
+    val testAmountUSD = 100.0
+
+    val totalLangCount = remember { LocaliiiyLanguage.entries.size }
+    val totalCurrCount = remember { LocaliiiyCurrency.entries.size }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -69,16 +74,16 @@ fun GlobalLanguageCurrencyDialog(
                             fontSize = 24.sp
                         )
                         Text(
-                            text = "Worldwide Localization",
+                            text = "Universal World Localization",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp
+                                fontSize = 19.sp
                             ),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Text(
-                        text = "Publish & monetize in 195+ countries across all currencies",
+                        text = "100% Worldwide Language & Currency Support (195+ Countries)",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -95,68 +100,74 @@ fun GlobalLanguageCurrencyDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Live Preview Banner
+            // Active Configuration & Live Converter
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
                 border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(12.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = "ACTIVE WORLD CONFIGURATION",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = LocaliiiyPrimaryTeal,
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = "${currentLanguage.flag} ${currentLanguage.displayName} (${currentLanguage.nativeName})",
-                            fontSize = 13.5.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "${currentCurrency.flag} ${currentCurrency.code} (${currentCurrency.symbol}) • 1 USD = ${currentCurrency.rateToUSD} ${currentCurrency.code}",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            horizontalAlignment = Alignment.End
-                        ) {
+                        Column {
                             Text(
-                                text = "$100 USD =",
-                                fontSize = 10.sp,
+                                text = "ACTIVE GLOBAL CONFIGURATION",
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LocaliiiyPrimaryTeal,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "${currentLanguage.flag} ${currentLanguage.displayName} • ${currentLanguage.nativeName}",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = "${currentCurrency.flag} ${currentCurrency.code} (${currentCurrency.symbol}) • 1 USD = ${currentCurrency.rateToUSD} ${currentCurrency.code}",
+                                fontSize = 11.5.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-                            Text(
-                                text = CurrencyHelper.format(100.0, currentCurrency),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LocaliiiyPrimaryTeal
-                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalAlignment = Alignment.End
+                            ) {
+                                Text(
+                                    text = "$100 USD =",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text(
+                                    text = CurrencyHelper.format(testAmountUSD, currentCurrency),
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LocaliiiyPrimaryTeal
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Tab Selector: Languages vs Currencies
             TabRow(
@@ -169,11 +180,13 @@ fun GlobalLanguageCurrencyDialog(
                     onClick = {
                         selectedTab = 0
                         searchQuery = ""
+                        selectedRegion = "All"
                     },
                     text = {
                         Text(
-                            text = "🗣️ Languages (${LocaliiiyLanguage.ALL.size})",
-                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal
+                            text = "🗣️ Languages ($totalLangCount)",
+                            fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 13.5.sp
                         )
                     },
                     modifier = Modifier.testTag("tab_languages")
@@ -183,18 +196,49 @@ fun GlobalLanguageCurrencyDialog(
                     onClick = {
                         selectedTab = 1
                         searchQuery = ""
+                        selectedRegion = "All"
                     },
                     text = {
                         Text(
-                            text = "💵 Currencies (${LocaliiiyCurrency.ALL.size})",
-                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal
+                            text = "💵 Currencies ($totalCurrCount)",
+                            fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
+                            fontSize = 13.5.sp
                         )
                     },
                     modifier = Modifier.testTag("tab_currencies")
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Region Filter Chips
+            val regions = if (selectedTab == 0) LocaliiiyLanguage.getRegions() else LocaliiiyCurrency.getRegions()
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(regions) { region: String ->
+                    val isRegionSelected = (region == selectedRegion)
+                    FilterChip(
+                        selected = isRegionSelected,
+                        onClick = { selectedRegion = region },
+                        label = {
+                            Text(
+                                text = region,
+                                fontSize = 11.5.sp,
+                                fontWeight = if (isRegionSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = LocaliiiyPrimaryTeal,
+                            selectedLabelColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Search Bar
             OutlinedTextField(
@@ -202,9 +246,9 @@ fun GlobalLanguageCurrencyDialog(
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        if (selectedTab == 0) "Search languages (e.g., Spanish, Hindi, French)..."
-                        else "Search currencies (e.g., EUR, INR, Yen, Peso)...",
-                        fontSize = 13.sp
+                        if (selectedTab == 0) "Search 75+ languages (e.g. Spanish, Hindi, Arabic, Tagalog)..."
+                        else "Search 160+ currencies (e.g. EUR, INR, BRL, JPY, NGN, GBP)...",
+                        fontSize = 12.sp
                     )
                 },
                 leadingIcon = {
@@ -232,27 +276,30 @@ fun GlobalLanguageCurrencyDialog(
                     .testTag("search_lang_curr_input")
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // List Content
             if (selectedTab == 0) {
-                val filteredLanguages = remember(searchQuery) {
-                    if (searchQuery.isBlank()) LocaliiiyLanguage.ALL
-                    else LocaliiiyLanguage.ALL.filter {
-                        it.displayName.contains(searchQuery, ignoreCase = true) ||
-                                it.nativeName.contains(searchQuery, ignoreCase = true) ||
-                                it.code.contains(searchQuery, ignoreCase = true)
+                val filteredLanguages: List<LocaliiiyLanguage> = remember(searchQuery, selectedRegion) {
+                    LocaliiiyLanguage.entries.filter { lang ->
+                        val matchesRegion = selectedRegion == "All" || lang.region.equals(selectedRegion, ignoreCase = true)
+                        val matchesQuery = searchQuery.isBlank() ||
+                                lang.displayName.contains(searchQuery, ignoreCase = true) ||
+                                lang.nativeName.contains(searchQuery, ignoreCase = true) ||
+                                lang.code.contains(searchQuery, ignoreCase = true) ||
+                                lang.region.contains(searchQuery, ignoreCase = true)
+                        matchesRegion && matchesQuery
                     }
                 }
 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(340.dp)
+                        .height(300.dp)
                         .testTag("languages_list"),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    items(filteredLanguages, key = { it.code }) { lang ->
+                    items(filteredLanguages, key = { it.code }) { lang: LocaliiiyLanguage ->
                         val isSelected = (lang == currentLanguage)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -272,26 +319,29 @@ fun GlobalLanguageCurrencyDialog(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    .padding(horizontal = 14.dp, vertical = 9.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
                                 ) {
                                     Text(text = lang.flag, fontSize = 22.sp)
                                     Column {
                                         Text(
                                             text = lang.displayName,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                            fontSize = 14.sp,
+                                            fontSize = 13.5.sp,
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
-                                            text = "${lang.nativeName} • ${lang.code.uppercase()}${if (lang.isRtl) " (RTL)" else ""}",
-                                            fontSize = 11.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            text = "${lang.nativeName} • ${lang.code.uppercase()} (${lang.region})${if (lang.isRtl) " • RTL" else ""}",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
@@ -309,24 +359,27 @@ fun GlobalLanguageCurrencyDialog(
                     }
                 }
             } else {
-                val filteredCurrencies = remember(searchQuery) {
-                    if (searchQuery.isBlank()) LocaliiiyCurrency.ALL
-                    else LocaliiiyCurrency.ALL.filter {
-                        it.code.contains(searchQuery, ignoreCase = true) ||
-                                it.currencyName.contains(searchQuery, ignoreCase = true) ||
-                                it.country.contains(searchQuery, ignoreCase = true) ||
-                                it.symbol.contains(searchQuery, ignoreCase = true)
+                val filteredCurrencies: List<LocaliiiyCurrency> = remember(searchQuery, selectedRegion) {
+                    LocaliiiyCurrency.entries.filter { curr ->
+                        val matchesRegion = selectedRegion == "All" || curr.region.equals(selectedRegion, ignoreCase = true)
+                        val matchesQuery = searchQuery.isBlank() ||
+                                curr.code.contains(searchQuery, ignoreCase = true) ||
+                                curr.currencyName.contains(searchQuery, ignoreCase = true) ||
+                                curr.country.contains(searchQuery, ignoreCase = true) ||
+                                curr.symbol.contains(searchQuery, ignoreCase = true) ||
+                                curr.region.contains(searchQuery, ignoreCase = true)
+                        matchesRegion && matchesQuery
                     }
                 }
 
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(340.dp)
+                        .height(300.dp)
                         .testTag("currencies_list"),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    items(filteredCurrencies, key = { it.code }) { curr ->
+                    items(filteredCurrencies, key = { it.code }) { curr: LocaliiiyCurrency ->
                         val isSelected = (curr == currentCurrency)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -346,13 +399,14 @@ fun GlobalLanguageCurrencyDialog(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    .padding(horizontal = 14.dp, vertical = 9.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
                                 ) {
                                     Text(text = curr.flag, fontSize = 22.sp)
                                     Column {
@@ -363,7 +417,7 @@ fun GlobalLanguageCurrencyDialog(
                                             Text(
                                                 text = curr.code,
                                                 fontWeight = FontWeight.Bold,
-                                                fontSize = 14.5.sp,
+                                                fontSize = 14.sp,
                                                 color = MaterialTheme.colorScheme.onSurface
                                             )
                                             Surface(
@@ -372,7 +426,7 @@ fun GlobalLanguageCurrencyDialog(
                                             ) {
                                                 Text(
                                                     text = curr.symbol,
-                                                    fontSize = 11.sp,
+                                                    fontSize = 10.5.sp,
                                                     fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                     modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
@@ -381,8 +435,10 @@ fun GlobalLanguageCurrencyDialog(
                                         }
                                         Text(
                                             text = "${curr.currencyName} • ${curr.country}",
-                                            fontSize = 11.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
@@ -393,7 +449,7 @@ fun GlobalLanguageCurrencyDialog(
                                 ) {
                                     Text(
                                         text = CurrencyHelper.format(100.0, curr),
-                                        fontSize = 12.sp,
+                                        fontSize = 11.5.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -413,9 +469,9 @@ fun GlobalLanguageCurrencyDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Footer confirmation button
+            // Footer apply button
             Button(
                 onClick = onDismissRequest,
                 shape = RoundedCornerShape(12.dp),
@@ -426,9 +482,10 @@ fun GlobalLanguageCurrencyDialog(
                     .testTag("apply_language_currency_button")
             ) {
                 Text(
-                    text = "Apply Settings & Update Worldwide",
+                    text = "Apply Worldwide Localization & Update All Views",
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    fontSize = 13.5.sp
                 )
             }
         }

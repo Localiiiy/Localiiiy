@@ -113,16 +113,26 @@ fun ProfileScreen(
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     creatorEarnings: CreatorEarningsSummary? = null,
+    draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
+    onSelectDraftForEdit: (com.example.data.DraftClipEntity) -> Unit = {},
+    onDeleteDraftClip: (Long) -> Unit = {},
+    appDisplayScale: String = "SYSTEM",
+    onSelectDisplayScale: (String) -> Unit = {},
     onOpenDataAnalysis: () -> Unit = {},
     onOpenHelp: () -> Unit = {},
     onOpenInformation: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
     onOpenBoostAds: () -> Unit = {},
     onOpenLanguageCurrency: () -> Unit = {},
+    isPremiumSubscribed: Boolean = false,
+    isGhostMode: Boolean = false,
+    onOpenPremium: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showMoreSettingsSheet by remember { mutableStateOf(false) }
+    var showDisplaySizeSheet by remember { mutableStateOf(false) }
+    var showClipDraftsSheet by remember { mutableStateOf(false) }
     var showLogoutConfirmDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -188,15 +198,21 @@ fun ProfileScreen(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.testTag("profile_username_header")
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .padding(end = 6.dp)
+                    .testTag("profile_username_header")
             ) {
                 Text(
                     text = userProfile.username,
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 18.sp
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
                 )
                 if (userProfile.isVerified) {
                     Spacer(modifier = Modifier.width(4.dp))
@@ -211,7 +227,7 @@ fun ProfileScreen(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 // Proximity Status Indicator Pill
                 Surface(
@@ -317,7 +333,175 @@ fun ProfileScreen(
                 ) {
                     // Avatar & Stats Row
                     ProfileIdentityCard(userProfile, posts.size, userClips.size, marketplaceItems.size, 0)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 100% FREE PASSIVE GHOST MODE STATUS (Distinct Look)
+                    if (isGhostMode) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF0C1929),
+                            border = BorderStroke(1.2.dp, Color(0xFF00E5FF)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)
+                                .clickable { onOpenPrivacySettings() }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        Icons.Default.VisibilityOff,
+                                        contentDescription = null,
+                                        tint = Color(0xFF00E5FF),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = "Passive Ghost Shield Active (100% Free)",
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFE0F7FA)
+                                        )
+                                        Text(
+                                            text = "Completely cloaked on radar & reel views are anonymous",
+                                            fontSize = 10.sp,
+                                            color = Color(0xFFB0C4DE)
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFF00E5FF).copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        "FREE",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF00E5FF),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // LOCALIIIY PREMIUM PRO CARD (₹499/mo)
+                    if (isPremiumSubscribed) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF231E08),
+                            border = BorderStroke(1.2.dp, Color(0xFFFFD700)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)
+                                .clickable { onOpenPremium() }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("👑", fontSize = 18.sp)
+                                    Column {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(
+                                                "Localiiiy Premium Member",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color(0xFFFFD700)
+                                            )
+                                            Surface(
+                                                color = Color(0xFFFFD700).copy(alpha = 0.25f),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Text(
+                                                    "PRO",
+                                                    fontSize = 8.5.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = Color(0xFFFFD700),
+                                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                )
+                                            }
+                                        }
+                                        Text(
+                                            "⚡ 5x Feed Boost • 0% Market Escrow • 4K Studio",
+                                            fontSize = 10.5.sp,
+                                            color = Color(0xFFE2D6B0)
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFFFD700).copy(alpha = 0.2f)
+                                ) {
+                                    Text(
+                                        "MANAGE",
+                                        fontSize = 9.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFD700),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF1E1E1E),
+                            border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 10.dp)
+                                .clickable { onOpenPremium() }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("🌟", fontSize = 16.sp)
+                                    Column {
+                                        Text(
+                                            "Upgrade to Premium (₹499/mo)",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFFFD700)
+                                        )
+                                        Text(
+                                            "Get 5x Hyperlocal Reach, 0% Market Escrow & Gold Badge",
+                                            fontSize = 10.5.sp,
+                                            color = Color.LightGray
+                                        )
+                                    }
+                                }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFFD700),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
                     // Primary Action Buttons Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -566,7 +750,14 @@ fun ProfileScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Vico Chart - Weekly Engagement Stats Graph
+                    com.example.ui.components.ProfileWeeklyEngagementChart(
+                        onOpenFullAnalytics = onOpenDataAnalysis
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     // Dynamic Multi-Tab Selector Icons Row
                     Row(
@@ -1138,6 +1329,16 @@ fun ProfileScreen(
                     showMoreSettingsSheet = false
                     onOpenCyberstalkingSafety()
                 },
+                draftClips = draftClips,
+                appDisplayScale = appDisplayScale,
+                onOpenDisplayScale = {
+                    showMoreSettingsSheet = false
+                    showDisplaySizeSheet = true
+                },
+                onOpenDraftClips = {
+                    showMoreSettingsSheet = false
+                    showClipDraftsSheet = true
+                },
                 onSwitchUser = { user ->
                     showMoreSettingsSheet = false
                     onSwitchUser(user)
@@ -1152,6 +1353,34 @@ fun ProfileScreen(
                 }
             )
         }
+    }
+
+    // App Display Size & Scaling Sheet
+    if (showDisplaySizeSheet) {
+        com.example.ui.components.AppDisplaySizeSheet(
+            currentScaleKey = appDisplayScale,
+            onSelectScale = { newScale ->
+                onSelectDisplayScale(newScale)
+            },
+            onDismiss = { showDisplaySizeSheet = false }
+        )
+    }
+
+    // Unsent Creator Clip Drafts Sheet (Room Database)
+    if (showClipDraftsSheet) {
+        com.example.ui.components.CreatorClipDraftsBottomSheet(
+            drafts = draftClips,
+            onSelectDraftForEdit = { draft ->
+                onSelectDraftForEdit(draft)
+            },
+            onDeleteDraft = { draftId ->
+                onDeleteDraftClip(draftId)
+            },
+            onCreateNewClip = {
+                onCreateContentClick()
+            },
+            onDismiss = { showClipDraftsSheet = false }
+        )
     }
 
     // 8. Logout Confirmation Dialog
@@ -1519,6 +1748,10 @@ private fun ProfileSettingsSheetContent(
     onOpenPrivacySettings: () -> Unit,
     onOpenLegalPolicy: () -> Unit,
     onOpenCyberstalkingSafety: () -> Unit = {},
+    draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
+    appDisplayScale: String = "SYSTEM",
+    onOpenDisplayScale: () -> Unit = {},
+    onOpenDraftClips: () -> Unit = {},
     onSwitchUser: (OtherUserEntity) -> Unit,
     onResetDemo: () -> Unit,
     onLogoutClick: () -> Unit
@@ -1629,9 +1862,23 @@ private fun ProfileSettingsSheetContent(
         Spacer(modifier = Modifier.height(6.dp))
 
         SettingsRowItem(
+            icon = Icons.Default.AspectRatio,
+            title = "App Display Size & Scaling",
+            subtitle = "Fit buttons and options to your phone screen ($appDisplayScale)",
+            onClick = onOpenDisplayScale
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.VideoLibrary,
+            title = "Unsent Creator Clip Drafts",
+            subtitle = "Saved drafts stored in Room database for offline editing (${draftClips.size} drafts)",
+            onClick = onOpenDraftClips
+        )
+
+        SettingsRowItem(
             icon = Icons.Default.Security,
             title = "Privacy & Security",
-            subtitle = "Ghost mode, radar visibility, comments & DM permissions",
+            subtitle = "Ghost mode, radar visibility, remarks comments & DM permissions DM permissions",
             onClick = onOpenPrivacySettings
         )
 
@@ -1652,7 +1899,7 @@ private fun ProfileSettingsSheetContent(
         SettingsRowItem(
             icon = Icons.Default.NotificationsNone,
             title = "Neighborhood Notifications",
-            subtitle = "Nearby wave alerts, clip comments & market offers",
+            subtitle = "Nearby wave alerts, clip remarks clip comments & market offers market offers",
             onClick = { /* Notification toggles */ }
         )
 

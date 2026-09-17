@@ -28,7 +28,13 @@ data class PostEntity(
     val isNeighbor: Boolean = false,
     val soundTitle: String? = null,
     val filterName: String = "Normal",
-    val creatorFollowers: Int = 0
+    val creatorFollowers: Int = 0,
+    val isGeocentricGuaranteed: Boolean = true,
+    val isFlashPulse: Boolean = false,
+    val flashExpiresAt: Long? = null,
+    val isVoicePrint: Boolean = false,
+    val voiceDurationSeconds: Int = 15,
+    val voiceWaveformData: String = "20,40,65,90,75,85,60,95,70,80,55,90,65,40,25"
 ) {
     val isConnected: Boolean get() = isFollowing
 }
@@ -60,7 +66,13 @@ data class ClipEntity(
     val distanceKm: Double? = null,
     val isNeighbor: Boolean = false,
     val filterName: String = "Normal",
-    val creatorFollowers: Int = 0
+    val creatorFollowers: Int = 0,
+    val isGeocentricGuaranteed: Boolean = true,
+    val isMarketListing: Boolean = false,
+    val marketPriceUSD: Double = 0.0,
+    val marketCondition: String = "Like New",
+    val marketPickupSpot: String = "Safe-Haven Hub • Civic Plaza",
+    val marketEscrowAvailable: Boolean = true
 ) {
     val isConnected: Boolean get() = isFollowing
 }
@@ -149,6 +161,7 @@ data class OtherUserEntity(
     val isCyberstalkingBanned: Boolean = false
 ) {
     val isConnected: Boolean get() = isFollowing
+    val isMutuallyConnected: Boolean get() = (isFollowing || isFriend) && isFriend
     val connectionsCount: Int get() = followersCount
     val connectedCount: Int get() = followingCount
     val studioConnectedCount: Int get() = studioSubscribersCount
@@ -211,6 +224,7 @@ data class PrivacySettingsEntity(
     // Activity & Interactions
     val showActiveStatus: Boolean = true,
     val readReceiptsEnabled: Boolean = true,
+    val allowDirectCallsFromConnections: Boolean = true,
     val allowCommentsFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
     val allowDirectMessagesFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
     val allowTagsAndMentions: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_FOLLOW", "NO_ONE"
@@ -236,7 +250,21 @@ data class PrivacySettingsEntity(
     val radarCountryName: String = "United States",
     // App Background & Atmosphere
     val appThemeBackground: String = "DEFAULT", // "DEFAULT", "BLACK_HOLE", "MOON", "GALAXY", "CUSTOM"
-    val customBackgroundImageUri: String = ""
+    val customBackgroundImageUri: String = "",
+    // App Display Size & Mobile Screen Scaling
+    val appDisplayScale: String = "SYSTEM", // "SYSTEM", "COMPACT", "STANDARD", "COMFORTABLE", "LARGE"
+    val appFontScaleMultiplier: Float = 1.0f,
+    // Zero-Tolerance Anti-Stalking GPS Obfuscation (500m Proximity Blurring)
+    val gpsObfuscationEnabled: Boolean = true,
+    // Acoustic Voice-Print Density Reactivity
+    val acousticVoicePrintReactive: Boolean = true,
+    // Dual-Consent Communication Gate (Mutual Connection + Explicit Permission)
+    val allowDirectCommunication: Boolean = true,
+    // Localiiiy Premium Pro Membership (₹499/mo)
+    val isPremiumSubscribed: Boolean = false,
+    val premiumPlanName: String = "Premium Pro",
+    val premiumExpiryTimestamp: Long = 0L,
+    val isHyperlocalBoostActive: Boolean = false
 )
 
 @Entity(tableName = "marketplace_items")
@@ -264,7 +292,12 @@ data class MarketplaceItemEntity(
     val isAvailable: Boolean = true,
     val isSaved: Boolean = false,
     val timestamp: Long = System.currentTimeMillis(),
-    val deliveryOption: String = "Local Meetup / Pickup" // "Local Meetup", "Neighborhood Drop-off", "Contactless Pickup"
+    val deliveryOption: String = "Local Meetup / Pickup", // "Local Meetup", "Neighborhood Drop-off", "Contactless Pickup"
+    val isServiceOrGig: Boolean = false, // Physical micro-service (moving, repair, handyman)
+    val escrowStatus: String = "AVAILABLE", // "AVAILABLE", "FUNDS_IN_ESCROW", "COMPLETED_RELEASED"
+    val safeHavenHubName: String? = "Civic Plaza Police Precinct (CCTV Zone)",
+    val escrowBuyerUsername: String? = null,
+    val escrowToken: String? = null
 )
 
 @Entity(tableName = "studio_videos")
@@ -379,7 +412,45 @@ data class PulseCacheEntity(
 data class DraftClipEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val mediaUri: String,
+    val caption: String = "",
+    val soundTitle: String = "Original Audio • Localiiiy Vibes",
+    val soundArtist: String = "Locality Sound Lab",
+    val location: String = "Seattle, WA",
+    val landmark: String = "Pike Place Market",
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val filterName: String = "NORMAL",
+    val reachScope: String = "NEIGHBOR", // "NEIGHBOR", "CITY", "EARTH"
+    val tags: String = "#creator #clip #draft",
     val draftType: String = "CLIP",
     val filtersApplied: String? = null,
-    val lastEditedTimestamp: Long = System.currentTimeMillis()
+    val coverThumbnailUri: String = "",
+    val playbackSpeed: Float = 1.0f,
+    val durationSeconds: Int = 15,
+    val isGhostMode: Boolean = false,
+    val lastEditedTimestamp: Long = System.currentTimeMillis(),
+    // Unified Draft Vault Cross-Routing
+    val routeToPulse: Boolean = true,
+    val routeToClips: Boolean = true,
+    val routeToMarketplace: Boolean = false,
+    val marketplacePriceUSD: Double? = null,
+    val marketplaceCondition: String = "Like New",
+    val safeHavenPickup: String = "Safe-Haven Hub • Civic Plaza"
 )
+
+@Entity(tableName = "merchant_bounties")
+data class MerchantBountyEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val businessName: String,
+    val businessAvatar: String,
+    val title: String,
+    val description: String,
+    val bountyRewardUSD: Double,
+    val landmark: String,
+    val distanceKm: Double,
+    val timeRemainingHours: Int = 24,
+    val isClaimed: Boolean = false,
+    val claimedByUsername: String? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)
+

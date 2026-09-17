@@ -1,5 +1,9 @@
 package com.example.ui.components
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,8 +54,20 @@ fun StandardMediaSelectorBottomSheet(
         "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=85"
     )
 
+    var devicePickedMedia by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedItems by remember { mutableStateOf(setOf<String>()) }
     var showVideoEditor by remember { mutableStateOf(false) }
+
+    // Native Android Photo & Video Picker from Device Storage
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            val uriStrings = uris.map { it.toString() }
+            devicePickedMedia = (uriStrings + devicePickedMedia).distinct()
+            selectedItems = selectedItems + uriStrings
+        }
+    }
 
     // Video Editor states (Trim start/end seconds & volume slider)
     var trimStartSeconds by remember { mutableStateOf(0f) }
@@ -87,7 +103,7 @@ fun StandardMediaSelectorBottomSheet(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = if (showVideoEditor) "Trim clips and adjust audio volume" else "Multi-select photos & videos from storage",
+                        text = if (showVideoEditor) "Trim clips and adjust audio volume" else "Multi-select photos & videos from phone storage",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -141,7 +157,7 @@ fun StandardMediaSelectorBottomSheet(
                             modifier = Modifier.fillMaxWidth()
                         )
 
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -171,11 +187,29 @@ fun StandardMediaSelectorBottomSheet(
                     }
                 }
             } else {
-                // Quick Actions: Live Camera / Video / Storage Folder
+                // Native Phone Storage Picker + Quick Camera / Video
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Button(
+                        onClick = {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .weight(1.3f)
+                            .height(46.dp)
+                            .testTag("open_device_storage_button")
+                    ) {
+                        Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(17.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Device Gallery 📂", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                    }
+
                     Button(
                         onClick = {
                             val liveCamShots = listOf(
@@ -192,9 +226,9 @@ fun StandardMediaSelectorBottomSheet(
                             .height(46.dp)
                             .testTag("live_camera_button")
                     ) {
-                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Live Cam 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Camera 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Button(
@@ -213,9 +247,9 @@ fun StandardMediaSelectorBottomSheet(
                             .height(46.dp)
                             .testTag("live_video_button")
                     ) {
-                        Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Live Video 🎥", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(15.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Video 🎥", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -225,7 +259,7 @@ fun StandardMediaSelectorBottomSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "RECENT STORAGE GALLERY",
+                        text = if (devicePickedMedia.isNotEmpty()) "DEVICE PHOTOS & GALLERY" else "RECENT STORAGE GALLERY",
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                     if (selectedItems.isNotEmpty()) {
@@ -236,7 +270,11 @@ fun StandardMediaSelectorBottomSheet(
                     }
                 }
 
-                // Grid of local storage gallery thumbnails
+                // Grid of picked device media and sample storage thumbnails
+                val allDisplayMedia = remember(devicePickedMedia, localGalleryThumbnails) {
+                    (devicePickedMedia + localGalleryThumbnails).distinct()
+                }
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -245,7 +283,7 @@ fun StandardMediaSelectorBottomSheet(
                         .weight(1f)
                         .fillMaxWidth()
                 ) {
-                    items(localGalleryThumbnails) { mediaUrl ->
+                    items(allDisplayMedia) { mediaUrl ->
                         val isSelected = selectedItems.contains(mediaUrl)
                         Box(
                             modifier = Modifier

@@ -43,6 +43,8 @@ import com.example.data.PrivacySettingsEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.LiveRadarComponent
+import com.example.ui.components.MasterGhostModeTooltip
+import com.example.ui.components.EnergeticPulseBadge
 import com.example.ui.components.PostCard
 import com.example.ui.components.PulseClipCard
 import com.example.ui.components.PulseMarketItemCard
@@ -134,36 +136,46 @@ fun ExploreScreen(
             .testTag("explore_screen_container")
     ) {
 
-        // Global Observer Incognito Toggle (Ghost Mode: Anonymous & Hidden Location)
+        // Global Observer Incognito Toggle with Hover & Tap Tooltip
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Surface(
-                shape = RoundedCornerShape(100.dp),
-                color = if (ghostMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.clickable { ghostMode = !ghostMode }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            EnergeticPulseBadge(
+                text = if (ghostMode) "STEALTH OBSERVER" else "LIVE RF BEACON",
+                color = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66)
+            )
+
+            MasterGhostModeTooltip {
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = if (ghostMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
+                    border = BorderStroke(1.dp, if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66).copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .clickable { ghostMode = !ghostMode }
+                        .testTag("toggle_explore_ghost_mode")
                 ) {
-                    Icon(
-                        imageVector = if (ghostMode) Icons.Default.VisibilityOff else Icons.Default.CellTower,
-                        contentDescription = "Ghost Mode",
-                        tint = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (ghostMode) "GHOST MODE: OBSERVING" else "BROADCASTING",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Black,
-                        color = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (ghostMode) Icons.Default.VisibilityOff else Icons.Default.CellTower,
+                            contentDescription = "Ghost Mode",
+                            tint = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (ghostMode) "GHOST MODE: OBSERVING ⓘ" else "BROADCASTING ⓘ",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
         }

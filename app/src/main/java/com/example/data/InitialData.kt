@@ -439,6 +439,51 @@ object InitialData {
             distanceKm = 0.05,
             isNeighbor = true,
             soundTitle = "Puget Sound Waves • Original"
+        ),
+        PostEntity(
+            id = 5,
+            username = "seattle.bakeries",
+            userAvatar = "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80",
+            userHandle = "@seattle.bakeries",
+            isVerified = true,
+            mediaUrl = "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1080&auto=format&fit=crop&q=85",
+            mediaType = "IMAGE",
+            caption = "⚡ FLASH PULSE: Fresh sourdough loaves & almond croissants out of the hearth right now! 50% flash discount for the next 2 hours for neighbors within 1 km! 🥐🥖 #flashsale #neighborhooddeals #bakeryfresh",
+            likesCount = 280,
+            commentsCount = 42,
+            isLiked = false,
+            isSaved = false,
+            isFollowing = true,
+            timestamp = System.currentTimeMillis() - 1000 * 60 * 15,
+            location = "Belltown, Seattle",
+            landmark = "Artisan Breadworks",
+            distanceKm = 0.4,
+            isNeighbor = true,
+            isFlashPulse = true,
+            flashExpiresAt = System.currentTimeMillis() + (1000 * 60 * 105) // ~1h 45m remaining
+        ),
+        PostEntity(
+            id = 6,
+            username = "marcus.soundscape",
+            userAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+            userHandle = "@marcus.soundscape",
+            isVerified = true,
+            mediaUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1080&auto=format&fit=crop&q=85",
+            mediaType = "AUDIO",
+            caption = "🎙️ ACOUSTIC VOICE-PRINT: Live 15-second binaural street soundscape from the waterfront docks. Listen to the morning fog horns and ferry bells! 🌊🚢 #voiceprint #spatialaudio #seattlesounds",
+            likesCount = 512,
+            commentsCount = 63,
+            isLiked = true,
+            isSaved = false,
+            isFollowing = true,
+            timestamp = System.currentTimeMillis() - 1000 * 60 * 45,
+            location = "Seattle Waterfront, WA",
+            landmark = "Pier 57 Waterfront Docks",
+            distanceKm = 0.7,
+            isNeighbor = true,
+            isVoicePrint = true,
+            voiceDurationSeconds = 15,
+            voiceWaveformData = "35,60,95,70,85,45,65,90,80,50,75,95,60,40,30"
         )
     )
 
@@ -465,7 +510,13 @@ object InitialData {
             latitude = 47.6158,
             longitude = -122.3486,
             distanceKm = 0.9,
-            isNeighbor = true
+            isNeighbor = true,
+            isGeocentricGuaranteed = true,
+            isMarketListing = true,
+            marketPriceUSD = 4.75,
+            marketCondition = "Freshly Brewed",
+            marketPickupSpot = "Safe-Haven Hub • Belltown Civic Counter",
+            marketEscrowAvailable = true
         ),
         ClipEntity(
             id = 2,
@@ -666,7 +717,7 @@ object InitialData {
             username = "chloe.cafes",
             userAvatar = "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=500&auto=format&fit=crop&q=80",
             actionType = "COMMENT",
-            content = "commented on your photo: \"Stunning market view!\"",
+            content = "remarked on your photo: \"Stunning market view!\"",
             mediaPreviewUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&auto=format&fit=crop&q=80",
             distanceKm = 0.9,
             timestamp = System.currentTimeMillis() - 1000 * 60 * 20
@@ -820,6 +871,7 @@ object InitialData {
         allowNearbyWaves = true,
         showActiveStatus = true,
         readReceiptsEnabled = true,
+        allowDirectCallsFromConnections = true,
         allowCommentsFrom = "EVERYONE",
         allowDirectMessagesFrom = "EVERYONE",
         allowTagsAndMentions = "EVERYONE",
@@ -1800,6 +1852,102 @@ object InitialData {
             resolution = "4K Ultra HD",
             isReadyToPublish = true,
             lastEditedTimestamp = System.currentTimeMillis() - 1000 * 60 * 500
+        )
+    )
+
+    val starterDraftClips = listOf(
+        DraftClipEntity(
+            id = 1L,
+            mediaUri = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1080&auto=format&fit=crop&q=85",
+            caption = "Night acoustic jam session near Pike Place soundstage 🎸 Unreleased cut",
+            soundTitle = "🔥 Seattle Summer Anthem • 2026 Viral Hit",
+            soundArtist = "Maya Lin",
+            location = "Seattle, WA",
+            landmark = "Pike Place Market",
+            latitude = 47.608013,
+            longitude = -122.335167,
+            filterName = "NEON_NIGHTS",
+            reachScope = "NEIGHBOR",
+            tags = "#acoustic #seattlesound #streetmusic #nightvibes",
+            coverThumbnailUri = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&auto=format&fit=crop&q=80",
+            playbackSpeed = 1.0f,
+            durationSeconds = 24,
+            isGhostMode = false,
+            lastEditedTimestamp = System.currentTimeMillis() - (1000 * 60 * 45) // 45 mins ago
+        ),
+        DraftClipEntity(
+            id = 2L,
+            mediaUri = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1080&auto=format&fit=crop&q=85",
+            caption = "Waterfront sunset drone pass 🌅 High tide reflection test",
+            soundTitle = "🌊 Pacific Chillwave • Trending #1 on Charts",
+            soundArtist = "Localiiiy Audio Collective",
+            location = "Seattle, WA",
+            landmark = "Waterfront Pier 57",
+            latitude = 47.6062,
+            longitude = -122.3421,
+            filterName = "GOLDEN_HOUR",
+            reachScope = "CITY",
+            tags = "#drone #goldenhour #pier57 #sunsetvibes",
+            coverThumbnailUri = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+            playbackSpeed = 1.0f,
+            durationSeconds = 18,
+            isGhostMode = false,
+            lastEditedTimestamp = System.currentTimeMillis() - (1000 * 60 * 180) // 3 hours ago
+        ),
+        DraftClipEntity(
+            id = 3L,
+            mediaUri = "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1080&auto=format&fit=crop&q=85",
+            caption = "Belltown artisan coffee roast preview ☕ Tasting notes & origin story",
+            soundTitle = "🎧 Urban Soundscape • Trending Neighborhood Remix",
+            soundArtist = "Liam Vance",
+            location = "Seattle, WA",
+            landmark = "Belltown Espresso Bar",
+            latitude = 47.6145,
+            longitude = -122.3456,
+            filterName = "CYBERPUNK",
+            reachScope = "EARTH",
+            tags = "#coffee #belltown #specialtycoffee #artisan",
+            coverThumbnailUri = "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=600&auto=format&fit=crop&q=80",
+            playbackSpeed = 1.0f,
+            durationSeconds = 30,
+            isGhostMode = false,
+            lastEditedTimestamp = System.currentTimeMillis() - (1000 * 60 * 60 * 24) // 1 day ago
+        )
+    )
+
+    val starterMerchantBounties = listOf(
+        MerchantBountyEntity(
+            id = 1L,
+            businessName = "Pike Place Roasters & Cafe",
+            businessAvatar = "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=500&auto=format&fit=crop&q=80",
+            title = "Capture Morning Espresso Bar (10s Clip)",
+            description = "Film a 10-second vertical clip of our morning espresso pull & fresh cinnamon rolls. First verified submission wins the bounty!",
+            bountyRewardUSD = 25.0,
+            landmark = "Pike Place Market",
+            distanceKm = 0.3,
+            timeRemainingHours = 18
+        ),
+        MerchantBountyEntity(
+            id = 2L,
+            businessName = "Olympic Artisanal Woodcraft",
+            businessAvatar = "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=500&auto=format&fit=crop&q=80",
+            title = "Showcase Live Wood Lathe Studio (15s Clip)",
+            description = "Drop by our craft workshop on Pine St and record our craftsman shaping a live-edge cedar bowl. Instant wallet deposit upon verification.",
+            bountyRewardUSD = 40.0,
+            landmark = "Pine Street Plaza",
+            distanceKm = 0.8,
+            timeRemainingHours = 32
+        ),
+        MerchantBountyEntity(
+            id = 3L,
+            businessName = "Emerald City Eco-Bikes",
+            businessAvatar = "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80",
+            title = "Review New Cargo E-Bike Fleet",
+            description = "Test ride our family cargo e-bike for 5 mins and post a short video review on Localiiiy. Bounty payout straight to your creator wallet!",
+            bountyRewardUSD = 35.0,
+            landmark = "Waterfront Trail",
+            distanceKm = 1.1,
+            timeRemainingHours = 14
         )
     )
 }

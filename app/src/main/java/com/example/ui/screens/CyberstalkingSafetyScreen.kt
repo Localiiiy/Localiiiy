@@ -475,7 +475,7 @@ private fun ReportAndBanTab(
             OutlinedTextField(
                 value = evidencePayload,
                 onValueChange = onEvidencePayloadChange,
-                placeholder = { Text("Example:\n[2026-09-08 14:22] Repeated wave requests after being asked to stop\n[2026-09-08 15:10] Sent unsolicited comments on multiple posts...", fontSize = 12.sp) },
+                placeholder = { Text("Example:\n[2026-09-08 14:22] Repeated wave requests after being asked to stop\n[2026-09-08 15:10] Sent unsolicited remarks on multiple posts...", fontSize = 12.sp) },
                 modifier = Modifier.fillMaxWidth().height(100.dp).testTag("input_evidence_payload"),
                 maxLines = 5
             )

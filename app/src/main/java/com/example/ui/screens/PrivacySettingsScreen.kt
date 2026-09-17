@@ -50,6 +50,8 @@ fun PrivacySettingsScreen(
     payoutHistory: List<com.example.data.PayoutTransaction> = emptyList(),
     currentCurrency: com.example.util.LocaliiiyCurrency = com.example.util.LocaliiiyCurrency.USD,
     onRequestPayout: (Double) -> Boolean = { false },
+    onSubscribeToPremium: ((Boolean) -> Unit)? = null,
+    onCancelPremium: (() -> Unit)? = null,
     onNavigateBack: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit = {},
     onNavigateToConnections: () -> Unit = {},
@@ -66,6 +68,7 @@ fun PrivacySettingsScreen(
     var hideMobileNumber by remember(privacySettings) { mutableStateOf(currentSettings.hideMobileNumber) }
     var hideAddress by remember(privacySettings) { mutableStateOf(currentSettings.hideAddress) }
     var hideInNeighborhood by remember(privacySettings) { mutableStateOf(currentSettings.hideInNeighborhood) }
+    var allowDirectCalls by remember(privacySettings) { mutableStateOf(currentSettings.allowDirectCallsFromConnections) }
 
     fun syncSettings(
         ghost: Boolean = isGhostMode,
@@ -77,7 +80,8 @@ fun PrivacySettingsScreen(
         hideMail: Boolean = hideEmail,
         hidePhone: Boolean = hideMobileNumber,
         hideAddr: Boolean = hideAddress,
-        hideNeigh: Boolean = hideInNeighborhood
+        hideNeigh: Boolean = hideInNeighborhood,
+        calls: Boolean = allowDirectCalls
     ) {
         onUpdatePrivacySettings?.invoke(
             currentSettings.copy(
@@ -91,7 +95,8 @@ fun PrivacySettingsScreen(
                 hideMobileNumber = hidePhone,
                 hideAddress = hideAddr,
                 hideInNeighborhood = hideNeigh,
-                hidePreciseLocationOnRadar = ghost || hideLoc
+                hidePreciseLocationOnRadar = ghost || hideLoc,
+                allowDirectCallsFromConnections = calls
             )
         )
     }
@@ -110,6 +115,7 @@ fun PrivacySettingsScreen(
     var showReferralScreen by remember { mutableStateOf(false) }
     var showPremiumScreen by remember { mutableStateOf(false) }
     var showTermsScreen by remember { mutableStateOf(false) }
+    var showDisplayScaleSheet by remember { mutableStateOf(false) }
     
     val haptic = LocalHapticFeedback.current
 
@@ -140,13 +146,15 @@ fun PrivacySettingsScreen(
         )
     } else if (showPremiumScreen) {
         PremiumSubscriptionScreen(
+            isSubscribed = currentSettings.isPremiumSubscribed,
             onNavigateBack = { showPremiumScreen = false },
-            onSubscribe = {
-                isGhostMode = true
-                hideLocation = true
-                hideInNeighborhood = true
-                syncSettings(ghost = true, hideLoc = true, hideNeigh = true)
+            onSubscribe = { isAnnual ->
+                onSubscribeToPremium?.invoke(isAnnual)
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                showPremiumScreen = false
+            },
+            onCancelSubscription = {
+                onCancelPremium?.invoke()
                 showPremiumScreen = false
             }
         )
@@ -169,127 +177,162 @@ fun PrivacySettingsScreen(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                // App Running Tutorial, Activation Badges & Monetization Guide Banner
+                // TOP OF PRIVACY: 100% FREE PASSIVE GHOST SHIELD & STEALTH MODE (Distinct Incognito Look)
                 item {
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
-                            .clickable { showTutorialScreen = true }
-                            .testTag("app_tutorial_settings_banner"),
-                        shape = RoundedCornerShape(16.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color(0xFF0C1929),
+                        border = BorderStroke(
+                            1.5.dp,
+                            if (isGhostMode) Color(0xFF00E5FF) else Color(0xFF1E3A5F)
+                        )
                     ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier.padding(18.dp)
                         ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(44.dp)
+                            // Top Tag
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.MenuBook,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(24.dp)
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = Color(0xFF00E5FF).copy(alpha = 0.15f),
+                                    border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Shield,
+                                            contentDescription = null,
+                                            tint = Color(0xFF00E5FF),
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                        Text(
+                                            text = "100% FREE PRIVACY • ZERO PAYWALL",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFF00E5FF),
+                                            letterSpacing = 0.5.sp
+                                        )
+                                    }
+                                }
+
+                                Switch(
+                                    checked = isGhostMode,
+                                    onCheckedChange = { enabled ->
+                                        isGhostMode = enabled
+                                        syncSettings(ghost = enabled)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    },
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White,
+                                        checkedTrackColor = Color(0xFF00E5FF),
+                                        uncheckedThumbColor = Color.LightGray,
+                                        uncheckedTrackColor = Color(0xFF1E293B)
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.Top,
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = if (isGhostMode) Color(0xFF00E5FF).copy(alpha = 0.2f) else Color(0xFF1E293B),
+                                    modifier = Modifier.size(46.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.Default.VisibilityOff,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(26.dp),
+                                            tint = if (isGhostMode) Color(0xFF00E5FF) else Color.LightGray
+                                        )
+                                    }
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Master Ghost & Passive Mode",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 17.sp,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        text = "Browse completely in passive stealth. Watch clips, scroll reels, browse stories, and buy or sell in the marketplace without exposing your identity, radar coordinates, or view receipts to other users.",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFFB0C4DE),
+                                        lineHeight = 16.5.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
                                     )
                                 }
                             }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text("Information and Badges", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                                    Surface(shape = RoundedCornerShape(100.dp), color = MaterialTheme.colorScheme.primary) {
-                                        Text("NEW", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.White, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
-                                    }
+
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            // Live Status Bar
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isGhostMode) Color(0xFF052B33) else Color(0xFF132030),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isGhostMode) Color(0xFF00E5FF).copy(alpha = 0.6f) else Color(0xFF263C57)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(8.dp)
+                                            .background(
+                                                color = if (isGhostMode) Color(0xFF00E5FF) else Color(0xFF78909C),
+                                                shape = CircleShape
+                                            )
+                                    )
+                                    Text(
+                                        text = if (isGhostMode)
+                                            "STEALTH ACTIVE: Radar presence cloaked & reel views are anonymous"
+                                        else
+                                            "RADAR ACTIVE: Broadcasting approximate location to neighbors",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (isGhostMode) Color(0xFFE0F7FA) else Color(0xFFB0BEC5)
+                                    )
                                 }
-                                Text(
-                                    "App Running Tutorial, Activation Badges, and Monetization Guide",
-                                    fontSize = 11.5.sp,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f)
-                                )
                             }
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Open",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
                         }
                     }
                 }
 
-                // Wallet & Community Rewards Header
-                item { SettingsSectionHeader("Wallet & Growth Rewards") }
+                // Growth & Daily Engagement Header
+                item { SettingsSectionHeader("Community & Growth Perks") }
 
-                // Wallet Card
+                // Localiiiy Premium Pro (₹499/mo) Action Item
                 item {
-                    val isEligible = creatorEarnings.availableBalanceUSD >= payoutAccount.minimumPayoutUSD
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp)
-                            .clickable { showWalletScreen = true }
-                            .testTag("settings_wallet_item"),
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF0F172A),
-                        border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.5f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color(0xFF38BDF8).copy(alpha = 0.15f),
-                                modifier = Modifier.size(44.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        Icons.Default.AccountBalanceWallet,
-                                        contentDescription = "Wallet",
-                                        tint = Color(0xFF38BDF8),
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text("Creator & Community Wallet", fontWeight = FontWeight.Bold, fontSize = 14.5.sp, color = Color.White)
-                                    Surface(
-                                        shape = RoundedCornerShape(100.dp),
-                                        color = if (isEligible) Color(0xFF00FF41) else Color(0xFFFBBF24).copy(alpha = 0.2f)
-                                    ) {
-                                        Text(
-                                            text = if (isEligible) "WITHDRAWAL READY" else "$1,000 THRESHOLD",
-                                            fontSize = 8.5.sp,
-                                            fontWeight = FontWeight.Black,
-                                            color = if (isEligible) Color.Black else Color(0xFFFBBF24),
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Available: ${com.example.util.CurrencyHelper.format(creatorEarnings.availableBalanceUSD, currentCurrency)} • Tap to view detailed withdrawal history",
-                                    fontSize = 11.5.sp,
-                                    color = Color.LightGray
-                                )
-                            }
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Open Wallet",
-                                tint = Color(0xFF38BDF8)
-                            )
-                        }
-                    }
+                    SettingsActionItem(
+                        title = "Localiiiy Premium Pro (₹499/mo) 👑",
+                        subtitle = if (currentSettings.isPremiumSubscribed)
+                            "Active Member ✓ • 5x Boost, 0% Market Escrow, Gold Pro Badge & 4K Studio"
+                        else
+                            "Unlock 5x Feed Boost, 0% Safe-Haven Market Escrow, Gold Badge & Advanced Radar Filters",
+                        icon = Icons.Default.WorkspacePremium,
+                        onClick = { showPremiumScreen = true }
+                    )
                 }
 
                 // Daily Check-in & Radar Perks Item
@@ -311,44 +354,6 @@ fun PrivacySettingsScreen(
                         onClick = { showReferralScreen = true }
                     )
                 }
-
-                // Master Ghost Switch
-            item {
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = if (isGhostMode) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.VisibilityOff,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                            tint = if (isGhostMode) MaterialTheme.colorScheme.primary else Color.Gray
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Master Ghost Mode", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text("Instantly cloaks radar presence, hides all identity details & browse anonymously", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Switch(
-                            checked = isGhostMode,
-                            onCheckedChange = { 
-                                if (it) {
-                                    showPremiumScreen = true
-                                } else {
-                                    isGhostMode = false
-                                    syncSettings(ghost = false)
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                            }
-                        )
-                    }
-                }
-            }
 
             // Location Precision & Obfuscation (up to 500KM)
             item { SettingsSectionHeader("Location Precision & GPS Obfuscation") }
@@ -482,7 +487,18 @@ fun PrivacySettingsScreen(
             }
 
             // Security & Connections
-            item { SettingsSectionHeader("Security & Boundaries") }
+            item { SettingsSectionHeader("Security & Call Boundaries") }
+            item {
+                SettingsToggleItem(
+                    title = "Allow Direct Calls from Connections",
+                    subtitle = "Enable incoming audio & video calls from mutual connections. When OFF, direct calls are blocked.",
+                    icon = Icons.Default.Call,
+                    checked = allowDirectCalls
+                ) {
+                    allowDirectCalls = it
+                    syncSettings(calls = it)
+                }
+            }
             item {
                 SettingsActionItem("Connection Social Graph Manager", "Manage mutual connections and shared spaces", Icons.Default.People, onClick = onNavigateToConnections)
             }
@@ -497,7 +513,23 @@ fun PrivacySettingsScreen(
             }
 
             // Data & Storage
-            item { SettingsSectionHeader("Data & Storage") }
+            item { SettingsSectionHeader("Data, Storage & Network") }
+            item {
+                SettingsToggleItem(
+                    title = "Cellular Data Saver & Video Auto-Play",
+                    subtitle = "Stream clips in standard definition on mobile data to conserve bandwidth",
+                    icon = Icons.Default.DataUsage,
+                    checked = false
+                ) {}
+            }
+            item {
+                SettingsToggleItem(
+                    title = "P2P Radar Mesh Offline Cache",
+                    subtitle = "Cache local point-of-interest markers for instantaneous offline map discovery",
+                    icon = Icons.Default.Sensors,
+                    checked = true
+                ) {}
+            }
             item {
                 SettingsActionItem("Data Saver & Media Cache", "Current disk usage: 142MB. Tap to clear cache.", Icons.Default.Storage) {
                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
@@ -512,6 +544,15 @@ fun PrivacySettingsScreen(
 
             // Appearance & Haptics
             item { SettingsSectionHeader("Appearance & Customization") }
+            item {
+                SettingsActionItem(
+                    "App Display Size & Scaling",
+                    "Adapt interface scaling to your phone display (Current: ${currentSettings.appDisplayScale})",
+                    Icons.Default.AspectRatio
+                ) {
+                    showDisplayScaleSheet = true
+                }
+            }
             item {
                 SettingsActionItem("Dynamic Material 3 Color Theme Engine", "Select Emerald, Amber, Cyan, Rose, or Noir", Icons.Default.Palette) {}
             }
@@ -611,6 +652,16 @@ fun PrivacySettingsScreen(
             confirmButton = {
                 TextButton(onClick = { showAuditLogDialog = false }) { Text("Close") }
             }
+        )
+    }
+
+    if (showDisplayScaleSheet) {
+        com.example.ui.components.AppDisplaySizeSheet(
+            currentScaleKey = currentSettings.appDisplayScale,
+            onSelectScale = { newScale ->
+                onUpdatePrivacySettings?.invoke(currentSettings.copy(appDisplayScale = newScale))
+            },
+            onDismiss = { showDisplayScaleSheet = false }
         )
     }
 }

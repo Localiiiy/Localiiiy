@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.ChatMessageEntity
 import com.example.data.DirectMessageEntity
+import com.example.data.PrivacySettingsEntity
 import com.example.data.UserProfileEntity
 import com.example.data.OtherUserEntity
 import com.example.util.LocationHelper
@@ -49,6 +51,7 @@ fun DirectMessagesBottomSheet(
     chatMessages: List<ChatMessageEntity>,
     userProfile: UserProfileEntity,
     otherUsers: List<OtherUserEntity> = emptyList(),
+    privacySettings: PrivacySettingsEntity? = null,
     onDismiss: () -> Unit,
     onSelectConversation: (DirectMessageEntity) -> Unit,
     onBackToInbox: () -> Unit,
@@ -61,6 +64,15 @@ fun DirectMessagesBottomSheet(
     var groupTitleInput by remember { mutableStateOf("") }
     var showMediaSelector by remember { mutableStateOf(false) }
     var showSafetyLogsSheet by remember { mutableStateOf(false) }
+    var activeCallSession by remember { mutableStateOf<ActiveCallSession?>(null) }
+
+    if (activeCallSession != null) {
+        ActiveCallBottomSheet(
+            session = activeCallSession!!,
+            myAvatarUrl = userProfile.avatarUrl,
+            onEndCall = { activeCallSession = null }
+        )
+    }
 
     if (showSafetyLogsSheet) {
         SafetyLogsViewerSheet(
@@ -121,14 +133,29 @@ fun DirectMessagesBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text(
-                            text = "Direct & Group Messages",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = "Tactical Messages",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (userProfile.isVerified) Color(0xFFFFD700).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                                border = BorderStroke(0.7.dp, if (userProfile.isVerified) Color(0xFFFFD700) else MaterialTheme.colorScheme.outlineVariant)
+                            ) {
+                                Text(
+                                    text = if (userProfile.isVerified) "48H VAULT" else "3H EPHEMERAL",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (userProfile.isVerified) Color(0xFFB8860B) else MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                         Text(
                             text = "Connect with neighbors & creator circles",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
@@ -181,11 +208,18 @@ fun DirectMessagesBottomSheet(
                     thickness = 0.5.dp
                 )
 
+                val expiryHours = if (userProfile.isVerified) 48 else 3
+                val currentTime = System.currentTimeMillis()
+                val visibleConversations = conversations.filter { conv ->
+                    val ageHours = (currentTime - conv.timestamp) / (1000.0 * 60 * 60)
+                    ageHours <= expiryHours
+                }
+                
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
-                    items(conversations, key = { it.conversationId }) { conv ->
+                    items(visibleConversations, key = { it.conversationId }) { conv ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -219,15 +253,26 @@ fun DirectMessagesBottomSheet(
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
+                                val isContactVerified = otherUsers.find { it.username == conv.contactUsername }?.isVerified == true
+                                val displayContactName = if (conv.isGroup || userProfile.isVerified || isContactVerified) {
+                                    conv.contactUsername
+                                } else {
+                                    val hash = kotlin.math.abs(conv.contactUsername.hashCode()).toString(16).padStart(4, '0').take(4)
+                                    "user_$hash"
+                                }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = conv.contactUsername,
+                                        text = displayContactName,
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontWeight = if (!conv.isRead) FontWeight.Bold else FontWeight.SemiBold,
                                             fontSize = 14.sp
                                         ),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
+                                    if (isContactVerified) {
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Text(text = "✓", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                                    }
                                     if (conv.isGroup) {
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Surface(
@@ -314,17 +359,30 @@ fun DirectMessagesBottomSheet(
                     Spacer(modifier = Modifier.width(10.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = conv.contactUsername,
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        val isContactVerified = otherUsers.find { it.username == conv.contactUsername }?.isVerified == true
+                        val displayContactName = if (conv.isGroup || userProfile.isVerified || isContactVerified) {
+                            conv.contactUsername
+                        } else {
+                            val hash = kotlin.math.abs(conv.contactUsername.hashCode()).toString(16).padStart(4, '0').take(4)
+                            "user_$hash"
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = displayContactName,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                ),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            if (isContactVerified) {
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text(text = "✓", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                            }
+                        }
                         val dist = LocationHelper.formatDistanceLabel(conv.distanceKm)
                         Text(
-                            text = if (conv.isGroup) "Local Community Circle • $dist" else "📍 $dist • ${conv.landmark ?: "Nearby"}",
+                            text = if (conv.isGroup) "Local Community Circle • $dist" else "📍 $dist • ${conv.landmark ?: "Nearby"} • ${if (userProfile.isVerified) "48h Vault" else "3h Ephemeral"}",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -332,21 +390,60 @@ fun DirectMessagesBottomSheet(
 
                     if (!conv.isGroup) {
                         val otherUser = otherUsers.find { it.username == conv.contactUsername }
-                        val isFollowingMe = otherUser?.isFriend == true // Approximation for they follow me
+                        // Mutual Connection requirement: Both User A connected with User B and User B connected with User A
+                        val isMutualConnection = otherUser != null && (otherUser.isFollowing || otherUser.isConnected) && otherUser.isFriend
+                        val isCallsAllowedByPrivacy = privacySettings?.allowDirectCallsFromConnections ?: true
+                        val canMakeCalls = isMutualConnection && isCallsAllowedByPrivacy
                         
                         val context = LocalContext.current
                         
-                        IconButton(onClick = {
-                            if (isFollowingMe) {
-                                Toast.makeText(context, "Calling ${conv.contactUsername}...", Toast.LENGTH_SHORT).show()
-                            } else {
-                                Toast.makeText(context, "You can only call users who are connected with you.", Toast.LENGTH_SHORT).show()
-                            }
-                        }) {
+                        // Dedicated Audio Call Button
+                        IconButton(
+                            onClick = {
+                                if (!isMutualConnection) {
+                                    Toast.makeText(context, "Mutual connection required: Both users must connect with each other to enable audio calling.", Toast.LENGTH_LONG).show()
+                                } else if (!isCallsAllowedByPrivacy) {
+                                    Toast.makeText(context, "Direct calls are turned off in Privacy Settings.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    activeCallSession = ActiveCallSession(
+                                        contactUsername = conv.contactUsername,
+                                        contactAvatar = conv.contactAvatar,
+                                        isVideoCall = false
+                                    )
+                                }
+                            },
+                            enabled = canMakeCalls,
+                            modifier = Modifier.testTag("chat_audio_call_button")
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Call,
-                                contentDescription = "Call",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                contentDescription = "Audio Call",
+                                tint = if (canMakeCalls) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
+                            )
+                        }
+
+                        // Dedicated Video Call Button (Directly adjacent to Audio Call button)
+                        IconButton(
+                            onClick = {
+                                if (!isMutualConnection) {
+                                    Toast.makeText(context, "Mutual connection required: Both users must connect with each other to enable video calling.", Toast.LENGTH_LONG).show()
+                                } else if (!isCallsAllowedByPrivacy) {
+                                    Toast.makeText(context, "Direct calls are turned off in Privacy Settings.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    activeCallSession = ActiveCallSession(
+                                        contactUsername = conv.contactUsername,
+                                        contactAvatar = conv.contactAvatar,
+                                        isVideoCall = true
+                                    )
+                                }
+                            },
+                            enabled = canMakeCalls,
+                            modifier = Modifier.testTag("chat_video_call_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Videocam,
+                                contentDescription = "Video Call",
+                                tint = if (canMakeCalls) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                             )
                         }
                         

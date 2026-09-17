@@ -65,7 +65,7 @@ fun CommentsBottomSheet(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "✍️ Comments",
+                    text = "✍️ Remarks",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -89,7 +89,7 @@ fun CommentsBottomSheet(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "No comments yet.",
+                            text = "No remarks yet.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -170,7 +170,7 @@ fun CommentsBottomSheet(
                         onValueChange = { newCommentText = it },
                         placeholder = {
                             Text(
-                                text = "Add a comment for ${userProfile.username}...",
+                                text = "Add a remark for ${userProfile.username}...",
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

@@ -1,4 +1,9 @@
 package com.example.ui.screens
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.draw.scale
 import androidx.compose.material.icons.outlined.AutoFixHigh
 
@@ -38,6 +43,8 @@ import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.StandardMediaSelectorBottomSheet
 import com.example.util.LocationHelper
 import com.example.util.UserLocationData
+import com.example.util.HapticHelper
+import androidx.compose.ui.platform.LocalHapticFeedback
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,6 +53,10 @@ fun CreateScreen(
     selectedMediaUri: String,
     selectedFilter: FilterPreset,
     detectedLocation: UserLocationData?,
+    draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
+    editingDraft: com.example.data.DraftClipEntity? = null,
+    onSaveDraftClip: (mediaUri: String, caption: String, soundTitle: String?, location: String?, landmark: String?, draftId: Long) -> Unit = { _, _, _, _, _, _ -> },
+    onDeleteDraftClip: (Long) -> Unit = {},
     onModeChange: (CreationMode) -> Unit,
     onSelectMedia: (String) -> Unit,
     onSelectFilter: (FilterPreset) -> Unit,
@@ -54,6 +65,10 @@ fun CreateScreen(
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
+    var showDraftsSheet by remember { mutableStateOf(false) }
+
     var caption by remember { mutableStateOf("") }
     var isAiContent by remember { mutableStateOf(false) }
     var locationOptional by remember { mutableStateOf(true) }
@@ -63,7 +78,28 @@ fun CreateScreen(
     var showLocationSelector by remember { mutableStateOf(false) }
     var showSoundSelector by remember { mutableStateOf(false) }
 
+    LaunchedEffect(editingDraft) {
+        if (editingDraft != null) {
+            caption = editingDraft.caption
+            editingDraft.soundTitle.let { selectedSound = it }
+            editingDraft.location?.let { selectedLocation = it }
+            editingDraft.landmark?.let { selectedLandmark = it }
+            if (editingDraft.mediaUri.isNotBlank()) {
+                onSelectMedia(editingDraft.mediaUri)
+            }
+        }
+    }
+
     var showStandardMediaSelector by remember { mutableStateOf(false) }
+
+    // Native Android Photo & Video Picker from Device Storage
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            onSelectMedia(uri.toString())
+        }
+    }
 
     LaunchedEffect(detectedLocation) {
         if (detectedLocation != null) {
@@ -130,41 +166,102 @@ fun CreateScreen(
                 )
             }
 
-            Text(
-                text = "New ${creationMode.name.lowercase().replaceFirstChar { it.uppercase() }}",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                ),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Button(
-                onClick = {
-                    onPublish(
-                        caption,
-                        selectedLocation,
-                        selectedLandmark,
-                        detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT,
-                        detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG,
-                        selectedSound
-                    )
-                },
-                shape = RoundedCornerShape(100.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                contentPadding = PaddingValues(horizontal = 20.dp, vertical = 6.dp),
-                modifier = Modifier
-                    .height(36.dp)
-                    .testTag("publish_post_button")
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Broadcast",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
+                    text = "New ${creationMode.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    ),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                if (editingDraft != null) {
+                    Text(
+                        text = "Editing Saved Draft #${editingDraft.id}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (creationMode == CreationMode.CLIP) {
+                    IconButton(
+                        onClick = {
+                            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SELECTION)
+                            showDraftsSheet = true
+                        },
+                        modifier = Modifier.testTag("open_clip_drafts_button")
+                    ) {
+                        BadgedBox(
+                            badge = {
+                                if (draftClips.isNotEmpty()) {
+                                    Badge { Text("${draftClips.size}") }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VideoLibrary,
+                                contentDescription = "Saved Drafts",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SUCCESS)
+                            onSaveDraftClip(
+                                selectedMediaUri,
+                                caption,
+                                selectedSound,
+                                selectedLocation,
+                                selectedLandmark,
+                                editingDraft?.id ?: 0L
+                            )
+                        },
+                        shape = RoundedCornerShape(100.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .height(34.dp)
+                            .testTag("save_draft_clip_button")
+                    ) {
+                        Icon(imageVector = Icons.Default.BookmarkBorder, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text("Save Draft", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        onPublish(
+                            caption,
+                            selectedLocation,
+                            selectedLandmark,
+                            detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT,
+                            detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG,
+                            selectedSound
+                        )
+                    },
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                    modifier = Modifier
+                        .height(36.dp)
+                        .testTag("publish_post_button")
+                ) {
+                    Text(
+                        text = "Broadcast",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
 
@@ -395,20 +492,40 @@ fun CreateScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Button(
-                onClick = { showStandardMediaSelector = true },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                onClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(
+                            if (creationMode == CreationMode.CLIP) ActivityResultContracts.PickVisualMedia.VideoOnly
+                            else ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        )
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1.2f)
                     .height(48.dp)
                     .testTag("upload_from_storage_button")
             ) {
                 Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Media Selector 📁", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = "Gallery 📁", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+            }
+
+            OutlinedButton(
+                onClick = { showStandardMediaSelector = true },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .weight(1.1f)
+                    .height(48.dp)
+                    .testTag("media_selector_sheet_button")
+            ) {
+                Icon(imageVector = Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Studio ✂️", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
             }
 
             Button(
@@ -416,13 +533,13 @@ fun CreateScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1.1f)
                     .height(48.dp)
                     .testTag("live_camera_button")
             ) {
-                Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "Live Camera 📷", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Camera 📷", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
             }
         }
 
@@ -747,10 +864,40 @@ fun CreateScreen(
                 showCameraScreen = false
             },
             onSaveDraft = { uri ->
-                // Typically you would call a viewmodel here to save to the Room DB
+                onSaveDraftClip(
+                    uri.toString(),
+                    caption,
+                    selectedSound,
+                    selectedLocation,
+                    selectedLandmark,
+                    editingDraft?.id ?: 0L
+                )
                 showCameraScreen = false
             },
             onDismiss = { showCameraScreen = false }
+        )
+    }
+
+    if (showDraftsSheet) {
+        com.example.ui.components.CreatorClipDraftsBottomSheet(
+            drafts = draftClips,
+            onSelectDraftForEdit = { draft ->
+                caption = draft.caption
+                draft.soundTitle.let { selectedSound = it }
+                draft.location?.let { selectedLocation = it }
+                draft.landmark?.let { selectedLandmark = it }
+                if (draft.mediaUri.isNotBlank()) {
+                    onSelectMedia(draft.mediaUri)
+                }
+                showDraftsSheet = false
+            },
+            onDeleteDraft = { draftId ->
+                onDeleteDraftClip(draftId)
+            },
+            onCreateNewClip = {
+                showDraftsSheet = false
+            },
+            onDismiss = { showDraftsSheet = false }
         )
     }
     }

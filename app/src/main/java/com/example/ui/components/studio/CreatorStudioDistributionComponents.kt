@@ -32,6 +32,8 @@ import com.example.data.StudioDraftEntity
 import com.example.data.StudioVideoEntity
 import com.example.util.LocaliiiyCurrency
 import com.example.util.CurrencyHelper
+import com.example.ui.components.AudienceMatrixTooltip
+import com.example.ui.components.EnergeticTooltipBox
 
 // =========================================================================
 // SECTION 5: CREATOR STUDIO & DISTRIBUTION CONTROL CENTER
@@ -88,26 +90,48 @@ fun AudienceReachSelector(
         modifier = modifier.testTag("audience_reach_selector")
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Sensors,
-                    contentDescription = null,
-                    tint = selectedMode.badgeColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = "Audience Distribution Launch Selector",
-                    fontSize = 12.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            AudienceMatrixTooltip {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sensors,
+                            contentDescription = null,
+                            tint = selectedMode.badgeColor,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = "Audience Distribution Launch Selector",
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = selectedMode.badgeColor.copy(alpha = 0.18f),
+                        border = BorderStroke(0.6.dp, selectedMode.badgeColor)
+                    ) {
+                        Text(
+                            text = "MATRIX 🌐 ⓘ",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Black,
+                            color = selectedMode.badgeColor,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
             }
 
             Text(
-                text = "Give your dispatch explicit geographic intent. Guaranteed local seeding precedes world distribution.",
+                text = "Give your dispatch explicit geographic intent. Guaranteed local seeding precedes world distribution (hover for details).",
                 fontSize = 10.5.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)
@@ -119,45 +143,60 @@ fun AudienceReachSelector(
             ) {
                 AudienceReachMode.values().forEach { mode ->
                     val isSelected = mode == selectedMode
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) mode.badgeColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
-                        border = BorderStroke(
-                            width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onModeSelected(mode) }
-                            .testTag("reach_mode_${mode.name.lowercase()}")
+                    val modeBullet = when (mode) {
+                        AudienceReachMode.NEIGHBOR_FIRST -> "0–5 km geohash priority • 100 guaranteed walk-in impressions"
+                        AudienceReachMode.CITY_PULSE -> "50 km metro circle • Regional hub broadcasting"
+                        AudienceReachMode.EARTH_WAVE -> "195+ countries • Global velocity fueled by local resonance"
+                    }
+
+                    EnergeticTooltipBox(
+                        title = mode.title,
+                        description = mode.subtitle,
+                        bullets = listOf(modeBullet, mode.reachEstimate),
+                        icon = mode.icon,
+                        accentColor = mode.badgeColor,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSelected) mode.badgeColor.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                            border = BorderStroke(
+                                width = if (isSelected) 1.5.dp else 1.dp,
+                                color = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onModeSelected(mode) }
+                                .testTag("reach_mode_${mode.name.lowercase()}")
                         ) {
-                            Icon(
-                                imageVector = mode.icon,
-                                contentDescription = mode.title,
-                                tint = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = mode.title,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.onSurface,
-                                textAlign = TextAlign.Center
-                            )
-                            Text(
-                                text = mode.subtitle,
-                                fontSize = 9.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Column(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 10.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = mode.icon,
+                                    contentDescription = mode.title,
+                                    tint = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = mode.title,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) mode.badgeColor else MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = mode.subtitle,
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
@@ -486,13 +525,13 @@ fun ProximityGatedCommentsToggle(
                 )
                 Column {
                     Text(
-                        text = "Local Commenters Only (≤50 km)",
+                        text = "Local Remarkers Only (≤50 km)",
                         fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Restricts comment replies strictly to verified neighbors within 50km",
+                        text = "Restricts remark replies strictly to verified neighbors within 50km",
                         fontSize = 9.5.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

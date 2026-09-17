@@ -117,6 +117,13 @@ fun StudioScreen(
     onUserProfileClick: (String) -> Unit = {},
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
+    bounties: List<com.example.data.MerchantBountyEntity> = emptyList(),
+    onClaimBounty: (com.example.data.MerchantBountyEntity) -> Unit = {},
+    drafts: List<com.example.data.DraftClipEntity> = emptyList(),
+    onRouteDraftToClips: (com.example.data.DraftClipEntity) -> Unit = {},
+    onRouteDraftToMarket: (com.example.data.DraftClipEntity) -> Unit = {},
+    onRouteDraftToPulse: (com.example.data.DraftClipEntity) -> Unit = {},
+    onDeleteDraft: (com.example.data.DraftClipEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val systematicOptions = remember(countryName) {
@@ -177,6 +184,8 @@ fun StudioScreen(
     var selectedVideoForMenu by remember { mutableStateOf<StudioVideoEntity?>(null) }
     var showReportDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
     var showTipDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
+    var showBountyBoardDialog by remember { mutableStateOf(false) }
+    var showDraftVaultDialog by remember { mutableStateOf(false) }
 
     // Video Preview on Scroll & Mini Player States
     var isVideoPreviewOnScrollEnabled by remember { mutableStateOf(true) }
@@ -237,6 +246,80 @@ fun StudioScreen(
                     searchQuery = searchQuery,
                     onSearchQueryChange = onSearchQueryChange
                 )
+            }
+
+            // PROMPT 11 & 12: Sponsor Bounty Board & Unified Draft Vault Action Bar
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF10B981).copy(alpha = 0.15f),
+                        border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.5f)),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { showBountyBoardDialog = true }
+                            .testTag("btn_merchant_bounties_hub")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("💼", fontSize = 15.sp)
+                            Column {
+                                Text(
+                                    text = "Bounty Board",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF10B981)
+                                )
+                                Text(
+                                    text = "${bounties.count { !it.isClaimed }} Local Bounties",
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { showDraftVaultDialog = true }
+                            .testTag("btn_draft_vault_hub")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("🗄️", fontSize = 15.sp)
+                            Column {
+                                Text(
+                                    text = "Draft Vault",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "${drafts.size} Vault Drafts",
+                                    fontSize = 9.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             // 3. Standard Category Filter Chips
@@ -891,6 +974,27 @@ fun StudioScreen(
                         Text("Cancel")
                     }
                 }
+            )
+        }
+
+        if (showBountyBoardDialog) {
+            MerchantBountyBoardDialog(
+                bounties = bounties,
+                onClaimBounty = { bounty ->
+                    onClaimBounty(bounty)
+                },
+                onDismiss = { showBountyBoardDialog = false }
+            )
+        }
+
+        if (showDraftVaultDialog) {
+            UnifiedDraftVaultDialog(
+                drafts = drafts,
+                onRouteDraftToClips = onRouteDraftToClips,
+                onRouteDraftToMarket = onRouteDraftToMarket,
+                onRouteDraftToPulse = onRouteDraftToPulse,
+                onDeleteDraft = onDeleteDraft,
+                onDismiss = { showDraftVaultDialog = false }
             )
         }
     }
@@ -1912,10 +2016,18 @@ private fun StudioPlayerModal(
             Column(modifier = Modifier.fillMaxSize()) {
                 // Video Player
                 Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f).background(Color.Black)) {
+                    val modalContext = LocalContext.current
+                    val modalHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
                     com.example.ui.components.StudioVideoPlayerComponent(
                         video = video,
                         onClose = onClose,
-                        onVideoCompleted = {},
+                        onVideoCompleted = {
+                            com.example.util.HapticHelper.triggerHaptic(
+                                modalContext,
+                                modalHaptic,
+                                androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                            )
+                        },
                         onMinimizeToMiniPlayer = onMinimizeToMiniPlayer
                     )
                 }
@@ -2134,7 +2246,7 @@ private fun StudioPlayerModal(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "✍️ Comments (${comments.size})",
+                                    text = "✍️ Remarks (${comments.size})",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.sp
                                 )
@@ -2146,7 +2258,7 @@ private fun StudioPlayerModal(
 
                             if (!showComments) {
                                 Text(
-                                    text = "\"${comments.firstOrNull() ?: "No comments yet"}\"",
+                                    text = "\"${comments.firstOrNull() ?: "No remarks yet"}\"",
                                     fontSize = 11.5.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -2172,7 +2284,7 @@ private fun StudioPlayerModal(
                                     OutlinedTextField(
                                         value = newCommentText,
                                         onValueChange = { newCommentText = it },
-                                        placeholder = { Text("✍️ Add a community comment...", fontSize = 12.sp) },
+                                        placeholder = { Text("✍️ Add a community remark...", fontSize = 12.sp) },
                                         singleLine = true,
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(100.dp)
@@ -2786,3 +2898,4 @@ private fun formatDuration(totalSeconds: Int): String {
         String.format("%02d:%02d", minutes, seconds)
     }
 }
+

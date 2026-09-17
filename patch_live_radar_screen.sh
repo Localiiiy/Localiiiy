@@ -1,0 +1,50 @@
+#!/bin/bash
+cat << 'INNER_EOF' > app/src/main/java/com/example/ui/screens/LiveRadarScreen.kt.patch
+--- app/src/main/java/com/example/ui/screens/LiveRadarScreen.kt
++++ app/src/main/java/com/example/ui/screens/LiveRadarScreen.kt
+@@ -21,6 +21,8 @@
+ import androidx.compose.ui.unit.sp
+ import com.example.data.OtherUserEntity
+ import com.example.data.PostEntity
+ import com.example.data.UserProfileEntity
+ import com.example.ui.components.LiveRadarComponent
+ import com.example.ui.theme.LocaliiiyAccentMint
+@@ -28,6 +30,8 @@
+ import com.example.ui.theme.LocaliiiyPrimaryTeal
+ import com.google.accompanist.permissions.ExperimentalPermissionsApi
+ import com.google.accompanist.permissions.rememberMultiplePermissionsState
++import androidx.lifecycle.Lifecycle
++import androidx.lifecycle.compose.LifecycleEventEffect
+ 
+ /**
+  * Main Screen View displaying the 'Live Radar' circular proximity interface
+@@ -66,10 +70,19 @@
+ 
+     var currentRadius by remember { mutableStateOf(selectedRadiusKm ?: 3.0) }
+     var isGhostModeActive by remember { mutableStateOf(false) }
++    var isAppInForeground by remember { mutableStateOf(true) }
++
++    LifecycleEventEffect(Lifecycle.Event.ON_START) {
++        isAppInForeground = true
++    }
++    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
++        isAppInForeground = false
++    }
+ 
+     val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed
++    val shouldShowBlips = !isGhostModeActive && isAppInForeground
+ 
+     Box(
+         modifier = modifier
+             .fillMaxSize()
+@@ -78,7 +91,7 @@
+         if (hasLocationPermission) {
+             // Main Live Proximity Radar view
+             LiveRadarComponent(
+                 userProfile = userProfile,
+-                nearbyUsers = if (isGhostModeActive) nearbyUsers else nearbyUsers,
++                nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
+                 nearbyPosts = posts,
+                 selectedRadiusKm = currentRadius,
+INNER_EOF
+patch -p0 < app/src/main/java/com/example/ui/screens/LiveRadarScreen.kt.patch

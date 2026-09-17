@@ -84,6 +84,7 @@ fun StudioVideoPlayerComponent(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -166,6 +167,11 @@ fun StudioVideoPlayerComponent(
                     }
                     Player.STATE_ENDED -> {
                         isPlaying = false
+                        com.example.util.HapticHelper.triggerHaptic(
+                            context,
+                            haptic,
+                            androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                        )
                         onVideoCompleted()
                     }
                     Player.STATE_IDLE -> {

@@ -16,6 +16,7 @@ import com.example.util.HotspotManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class MainNavigationTab {
     FEED,
@@ -226,6 +227,12 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val allDraftClips: StateFlow<List<com.example.data.DraftClipEntity>> = repository.allDraftClips.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _selectedDraftClipForEdit = MutableStateFlow<com.example.data.DraftClipEntity?>(null)
+    val selectedDraftClipForEdit: StateFlow<com.example.data.DraftClipEntity?> = _selectedDraftClipForEdit.asStateFlow()
+
+    fun setSelectedDraftClipForEdit(draft: com.example.data.DraftClipEntity?) {
+        _selectedDraftClipForEdit.value = draft
+    }
 
     val allStudioDrafts: StateFlow<List<StudioDraftEntity>> = repository.allStudioDrafts
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -445,9 +452,34 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     private val _isPrivateAccount = MutableStateFlow(false)
     val isPrivateAccount: StateFlow<Boolean> = _isPrivateAccount.asStateFlow()
 
+    // Prompt 1 & Prompt 4: Active state bindings loop for radar radius and live presence gating
+    private val _radarRadiusKm = MutableStateFlow(3.0f)
+    val radarRadiusKm: StateFlow<Float> = _radarRadiusKm.asStateFlow()
+
+    private val _isAppInForeground = MutableStateFlow(true)
+    val isAppInForeground: StateFlow<Boolean> = _isAppInForeground.asStateFlow()
+
+    private val _showMeOnRadar = MutableStateFlow(true)
+    val showMeOnRadar: StateFlow<Boolean> = _showMeOnRadar.asStateFlow()
+
     // Selected nearby radius filter in KM (null = All)
     private val _nearbyRadiusKm = MutableStateFlow<Double?>(null)
     val nearbyRadiusKm: StateFlow<Double?> = _nearbyRadiusKm.asStateFlow()
+
+    // Prompt 4: Live Presence Gated Blip Users (renders ONLY if app in foreground, not in ghost mode, and showMeOnRadar)
+    val radarBlipUsers: StateFlow<List<OtherUserEntity>> = combine(
+        repository.otherUsers,
+        _blockedUsernames,
+        _isAppInForeground,
+        _isPrivateAccount,
+        _showMeOnRadar
+    ) { users, blocked, inForeground, isGhost, showRadar ->
+        if (!inForeground || isGhost || !showRadar) {
+            emptyList()
+        } else {
+            users.filter { it.username !in blocked }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // --- Other User Profile View State ---
     private val _selectedOtherUser = MutableStateFlow<OtherUserEntity?>(null)
@@ -607,6 +639,22 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun setNearbyRadiusFilter(radiusKm: Double?) {
         _nearbyRadiusKm.value = radiusKm
+        if (radiusKm != null) {
+            _radarRadiusKm.value = radiusKm.toFloat()
+        }
+    }
+
+    fun setRadarRadiusKm(radiusKm: Float) {
+        _radarRadiusKm.value = radiusKm
+        _nearbyRadiusKm.value = radiusKm.toDouble()
+    }
+
+    fun setIsAppInForeground(inForeground: Boolean) {
+        _isAppInForeground.value = inForeground
+    }
+
+    fun setShowMeOnRadar(show: Boolean) {
+        _showMeOnRadar.value = show
     }
 
     fun setLocationEnabled(enabled: Boolean) {
@@ -745,6 +793,35 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         _isPrivateAccount.value = settings.isPrivateAccount
         viewModelScope.launch {
             repository.savePrivacySettings(settings)
+        }
+    }
+
+    val isPremiumUser: StateFlow<Boolean> = privacySettings
+        .map { it.isPremiumSubscribed }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    fun subscribeToPremium(isAnnual: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = privacySettings.value
+            val durationDays = if (isAnnual) 365L else 30L
+            val updated = current.copy(
+                isPremiumSubscribed = true,
+                premiumPlanName = if (isAnnual) "Premium Annual (₹4,790/yr)" else "Premium Monthly (₹499/mo)",
+                premiumExpiryTimestamp = System.currentTimeMillis() + (durationDays * 24 * 60 * 60 * 1000),
+                isHyperlocalBoostActive = true
+            )
+            repository.savePrivacySettings(updated)
+        }
+    }
+
+    fun cancelPremiumSubscription() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = privacySettings.value
+            val updated = current.copy(
+                isPremiumSubscribed = false,
+                isHyperlocalBoostActive = false
+            )
+            repository.savePrivacySettings(updated)
         }
     }
 
@@ -2070,9 +2147,126 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    fun saveDraftClip(uri: String) {
+    fun saveDraftClip(
+        mediaUri: String,
+        caption: String = "",
+        soundTitle: String? = null,
+        soundArtist: String? = null,
+        location: String? = null,
+        landmark: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null,
+        filterName: String = "NORMAL",
+        reachScope: String = "NEIGHBOR",
+        tags: String = "",
+        coverThumbnailUri: String = "",
+        draftId: Long = 0L,
+        onSaved: ((Long) -> Unit)? = null
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.saveDraftClip(com.example.data.DraftClipEntity(mediaUri = uri))
+            val draft = com.example.data.DraftClipEntity(
+                id = draftId,
+                mediaUri = mediaUri,
+                caption = caption,
+                soundTitle = soundTitle ?: "Original Audio • Localiiiy Vibes",
+                soundArtist = soundArtist ?: userProfile.value.fullName,
+                location = location ?: userProfile.value.locationName,
+                landmark = landmark ?: userProfile.value.neighborhood,
+                latitude = latitude ?: 47.608013,
+                longitude = longitude ?: -122.335167,
+                filterName = filterName,
+                reachScope = reachScope,
+                tags = tags,
+                coverThumbnailUri = coverThumbnailUri.ifBlank { mediaUri },
+                lastEditedTimestamp = System.currentTimeMillis()
+            )
+            val savedId = repository.saveDraftClip(draft)
+            withContext(Dispatchers.Main) {
+                onSaved?.invoke(savedId)
+            }
+        }
+    }
+
+    fun saveDraftClip(uri: String) {
+        saveDraftClip(mediaUri = uri)
+    }
+
+    fun selectDraftClipForEdit(draft: DraftClipEntity?) {
+        _selectedDraftClipForEdit.value = draft
+    }
+
+    fun deleteDraftClip(draftId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteDraftClipById(draftId)
+            if (_selectedDraftClipForEdit.value?.id == draftId) {
+                _selectedDraftClipForEdit.value = null
+            }
+        }
+    }
+
+    fun routeDraftToDestination(draft: com.example.data.DraftClipEntity, destination: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            when (destination.uppercase()) {
+                "CLIPS" -> {
+                    val clip = com.example.data.ClipEntity(
+                        username = userProfile.value.username,
+                        userHandle = "@${userProfile.value.username}",
+                        userAvatar = userProfile.value.avatarUrl,
+                        mediaUrl = draft.mediaUri,
+                        caption = draft.caption,
+                        soundTitle = draft.soundTitle ?: "Original Audio",
+                        soundArtist = draft.soundArtist ?: userProfile.value.fullName,
+                        likesCount = 0,
+                        commentsCount = 0,
+                        location = draft.location ?: "Locality",
+                        landmark = draft.landmark ?: "Downtown Hub",
+                        distanceKm = 0.5,
+                        isGeocentricGuaranteed = true,
+                        isNeighbor = true
+                    )
+                    repository.createClip(clip)
+                }
+                "MARKET" -> {
+                    val item = com.example.data.MarketplaceItemEntity(
+                        title = draft.caption.ifBlank { "Local Marketplace Item" },
+                        description = "Listed from Creator Studio Draft Vault. Local exchange ready.",
+                        price = 45.0,
+                        category = "Art & Craft",
+                        sellerUsername = userProfile.value.username,
+                        sellerFullName = userProfile.value.fullName,
+                        sellerAvatar = userProfile.value.avatarUrl,
+                        location = draft.location ?: "Safe-Haven Hub",
+                        distanceKm = 0.5,
+                        imageUrl = draft.coverThumbnailUri.ifBlank { draft.mediaUri },
+                        safeHavenHubName = "Civic Plaza Police Precinct (CCTV Zone)"
+                    )
+                    repository.createMarketplaceItem(item)
+                }
+                "PULSE" -> {
+                    val post = com.example.data.PostEntity(
+                        username = userProfile.value.username,
+                        userHandle = "@${userProfile.value.username}",
+                        userAvatar = userProfile.value.avatarUrl,
+                        caption = draft.caption,
+                        mediaUrl = draft.coverThumbnailUri.ifBlank { draft.mediaUri },
+                        likesCount = 0,
+                        commentsCount = 0,
+                        location = draft.location ?: "Local Community",
+                        distanceKm = 0.5,
+                        isGeocentricGuaranteed = true,
+                        isNeighbor = true
+                    )
+                    repository.createPost(post)
+                }
+            }
+            repository.deleteDraftClipById(draft.id)
+        }
+    }
+
+    fun setAppDisplayScale(scale: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val updated = privacySettings.value.copy(appDisplayScale = scale)
+            repository.savePrivacySettings(updated)
         }
     }
 
@@ -2314,5 +2508,118 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             )
         }
         return true
+    }
+
+    // --- PROMPT 6: Proof-of-Presence Creator Monetization Engine ---
+    fun recordProofOfPresenceImpression(clipId: Long, isNeighbor: Boolean) {
+        // Direct ad-revenue micro-credits instantly deposited for verified local neighbor impressions
+        val microCreditUSD = if (isNeighbor) 0.15 else 0.05
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                inStreamVideoAdUSD = cur.inStreamVideoAdUSD + microCreditUSD,
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + microCreditUSD,
+                availableBalanceUSD = cur.availableBalanceUSD + microCreditUSD
+            )
+        }
+        _platformMetrics.update { cur ->
+            cur.copy(
+                creatorsDisbursedUSD = cur.creatorsDisbursedUSD + microCreditUSD
+            )
+        }
+    }
+
+    // --- PROMPT 11: Merchant Bounty Board Pipeline ---
+    val merchantBounties: StateFlow<List<com.example.data.MerchantBountyEntity>> = repository.allMerchantBounties
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun claimMerchantBounty(bounty: com.example.data.MerchantBountyEntity) {
+        viewModelScope.launch {
+            val username = userProfile.value.username
+            repository.claimMerchantBounty(bounty.id, username)
+            _creatorEarnings.update { cur ->
+                cur.copy(
+                    superThanksTipsUSD = cur.superThanksTipsUSD + bounty.bountyRewardUSD,
+                    totalGrossEarnedUSD = cur.totalGrossEarnedUSD + bounty.bountyRewardUSD,
+                    availableBalanceUSD = cur.availableBalanceUSD + bounty.bountyRewardUSD
+                )
+            }
+        }
+    }
+
+    // --- PROMPT 3: Hybrid Clip-to-Marketplace Converter ---
+    fun convertClipToMarketplaceListing(
+        clipId: Long,
+        priceUSD: Double,
+        condition: String,
+        pickupSpot: String,
+        category: String = "Merchandise",
+        isService: Boolean = false
+    ) {
+        viewModelScope.launch {
+            repository.convertClipToMarketplaceListing(clipId, priceUSD, condition, pickupSpot, category, isService)
+        }
+    }
+
+    fun convertStudioVideoToMarketplaceListing(
+        video: com.example.data.StudioVideoEntity,
+        priceUSD: Double,
+        category: String,
+        condition: String,
+        pickupSpot: String
+    ) {
+        viewModelScope.launch {
+            val item = com.example.data.MarketplaceItemEntity(
+                title = video.title.take(50),
+                description = "${video.description}\n\n[Converted from Studio Video by @${video.creatorUsername}]",
+                price = priceUSD,
+                category = category,
+                sellerUsername = video.creatorUsername,
+                sellerFullName = video.creatorFullName,
+                sellerAvatar = video.creatorAvatar,
+                imageUrl = video.thumbnailUrl.ifBlank { video.videoUrl },
+                deliveryOption = "Safe-Haven Handshake Escrow",
+                location = "Civic Plaza Safe-Haven",
+                landmark = "CCTV Safe Zone",
+                distanceKm = 0.5,
+                safeHavenHubName = pickupSpot
+            )
+            repository.createMarketplaceItem(item)
+        }
+    }
+
+    // --- PROMPT 7 & 13: Safe-Haven Exchange & Gig Micro-Escrow ---
+    fun initiateMarketplaceEscrow(itemId: Long, buyerUsername: String) {
+        val token = (100000..999999).random().toString()
+        viewModelScope.launch {
+            repository.updateMarketplaceEscrowStatus(itemId, "FUNDS_IN_ESCROW", buyerUsername, token)
+        }
+    }
+
+    fun releaseMarketplaceEscrow(itemId: Long, rewardToSellerUSD: Double) {
+        viewModelScope.launch {
+            repository.updateMarketplaceEscrowStatus(itemId, "COMPLETED_RELEASED", null, null)
+            _creatorEarnings.update { cur ->
+                cur.copy(
+                    marketplaceSalesUSD = cur.marketplaceSalesUSD + rewardToSellerUSD,
+                    totalGrossEarnedUSD = cur.totalGrossEarnedUSD + rewardToSellerUSD,
+                    availableBalanceUSD = cur.availableBalanceUSD + rewardToSellerUSD
+                )
+            }
+        }
+    }
+
+    // --- PROMPT 8: Dual-Consent Connection Gate ---
+    fun canDirectCommunicateWith(user: com.example.data.OtherUserEntity): Boolean {
+        val privacy = privacySettings.value
+        val allowDirect = privacy?.allowDirectCommunication ?: true
+        val isConnected = user.isConnected || user.isFollowing
+        return isConnected && allowDirect
+    }
+
+    // --- PROMPT 9: Purge Expired Flash Pulses ---
+    fun purgeExpiredFlashPulses() {
+        viewModelScope.launch {
+            repository.purgeExpiredFlashPulses()
+        }
     }
 }

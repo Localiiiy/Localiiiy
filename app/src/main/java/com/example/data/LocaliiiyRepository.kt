@@ -25,6 +25,62 @@ class LocaliiiyRepository(private val dao: LocaliiiyDao) {
     val savedMarketplaceItems: Flow<List<MarketplaceItemEntity>> = dao.getSavedMarketplaceItems()
     val allStudioVideos: Flow<List<StudioVideoEntity>> = dao.getAllStudioVideos()
     val savedStudioVideos: Flow<List<StudioVideoEntity>> = dao.getSavedStudioVideos()
+    val allMerchantBounties: Flow<List<MerchantBountyEntity>> = dao.getAllMerchantBounties()
+
+    suspend fun claimMerchantBounty(id: Long, username: String) {
+        dao.claimMerchantBounty(id, username)
+    }
+
+    suspend fun purgeExpiredFlashPulses(currentTime: Long = System.currentTimeMillis()) {
+        dao.purgeExpiredFlashPulses(currentTime)
+    }
+
+    suspend fun updateMarketplaceEscrowStatus(id: Long, status: String, buyerUsername: String?, token: String?) {
+        dao.updateMarketplaceEscrowStatus(id, status, buyerUsername, token)
+    }
+
+    suspend fun convertClipToMarketplaceListing(
+        clipId: Long,
+        priceUSD: Double,
+        condition: String,
+        pickupSpot: String,
+        category: String = "Merchandise",
+        isService: Boolean = false
+    ) {
+        val clip = dao.getClipById(clipId) ?: return
+        val updated = clip.copy(
+            isMarketListing = true,
+            marketPriceUSD = priceUSD,
+            marketCondition = condition,
+            marketPickupSpot = pickupSpot,
+            marketEscrowAvailable = true
+        )
+        dao.insertClip(updated)
+
+        val finalCategory = if (isService) {
+            if (category.contains("Service", ignoreCase = true) || category.contains("Job", ignoreCase = true)) category else "Jobs & Services"
+        } else {
+            if (category.isNotBlank() && category != "All") category else "Merchandise"
+        }
+
+        // Insert or link Goods or Services item in Marketplace
+        val marketItem = MarketplaceItemEntity(
+            title = clip.caption.take(40).ifBlank { if (isService) "Clip Service Offering" else "Exclusive Clip Item" },
+            description = "${clip.caption}\n\n[Converted from Clip by @${clip.username}]",
+            price = priceUSD,
+            category = finalCategory,
+            sellerUsername = clip.username,
+            sellerFullName = clip.soundArtist.ifBlank { clip.username },
+            sellerAvatar = clip.userAvatar,
+            imageUrl = clip.mediaUrl,
+            deliveryOption = if (isService) "Direct Service / Booking" else "Safe-Haven Handshake Escrow",
+            location = clip.location ?: "Safe-Haven Hub",
+            landmark = clip.landmark ?: "Civic Plaza CCTV Hub",
+            distanceKm = clip.distanceKm ?: 0.5,
+            safeHavenHubName = pickupSpot
+        )
+        dao.insertMarketplaceItem(marketItem)
+    }
 
     fun getPostsByUsername(username: String): Flow<List<PostEntity>> {
         return dao.getPostsByUsername(username)
@@ -443,12 +499,24 @@ class LocaliiiyRepository(private val dao: LocaliiiyDao) {
     // --- Draft Clips (Creator Clips) ---
     val allDraftClips: Flow<List<DraftClipEntity>> = dao.getAllDrafts()
     
-    suspend fun saveDraftClip(draft: DraftClipEntity) {
-        dao.insertDraft(draft)
+    suspend fun saveDraftClip(draft: DraftClipEntity): Long {
+        return dao.insertDraft(draft)
+    }
+
+    suspend fun getDraftClipById(id: Long): DraftClipEntity? {
+        return dao.getDraftById(id)
     }
     
     suspend fun deleteDraftClip(draft: DraftClipEntity) {
         dao.deleteDraft(draft)
+    }
+
+    suspend fun deleteDraftClipById(id: Long) {
+        dao.deleteDraftById(id)
+    }
+
+    suspend fun clearAllDraftClips() {
+        dao.clearAllDrafts()
     }
 
     // --- Cyberstalking Immutable Evidence Vault (Universal Anti-Stalking Protocol) ---

@@ -1,36 +1,38 @@
-import re
+import os
 
-with open("app/src/main/java/com/example/ui/components/PulseFeedComponent.kt", "r") as f:
-    text = f.read()
+fpath = "app/src/main/java/com/example/ui/screens/LiveRadarScreen.kt"
+with open(fpath, "r") as f:
+    content = f.read()
 
-# Add the import
-text = text.replace("import androidx.compose.ui.Modifier", "import androidx.compose.ui.Modifier\nimport com.example.ui.components.AdBannerComponent")
+content = content.replace(
+"""import com.example.data.OtherUserEntity""",
+"""import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import com.example.data.OtherUserEntity"""
+)
 
-# Find the itemsIndexed block
-target = """                itemsIndexed(items = combinedFeedItems, key = { index, item -> 
-                    when(item) {
-                        is PostEntity -> "post_${item.id}"
-                        is ClipEntity -> "clip_${item.id}"
-                        is StudioVideoEntity -> "studio_${item.id}"
-                        else -> "unknown_$index"
-                    }
-                }) { index, item ->
-                    when (item) {"""
+content = content.replace(
+"""    var isGhostModeActive by remember { mutableStateOf(false) }
 
-replacement = """                itemsIndexed(items = combinedFeedItems, key = { index, item -> 
-                    when(item) {
-                        is PostEntity -> "post_${item.id}"
-                        is ClipEntity -> "clip_${item.id}"
-                        is StudioVideoEntity -> "studio_${item.id}"
-                        else -> "unknown_$index"
-                    }
-                }) { index, item ->
-                    if (index > 0 && index % 3 == 0) {
-                        AdBannerComponent()
-                    }
-                    when (item) {"""
+    val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed""",
+"""    var isGhostModeActive by remember { mutableStateOf(false) }
+    var isAppInForeground by remember { mutableStateOf(true) }
 
-text = text.replace(target, replacement)
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        isAppInForeground = true
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+        isAppInForeground = false
+    }
 
-with open("app/src/main/java/com/example/ui/components/PulseFeedComponent.kt", "w") as f:
-    f.write(text)
+    val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed
+    val shouldShowBlips = !isGhostModeActive && isAppInForeground"""
+)
+
+content = content.replace(
+"""                nearbyUsers = if (isGhostModeActive) nearbyUsers else nearbyUsers,""",
+"""                nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),"""
+)
+
+with open(fpath, "w") as f:
+    f.write(content)

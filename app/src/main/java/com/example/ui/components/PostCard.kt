@@ -143,9 +143,9 @@ fun PostCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 12.dp, vertical = 3.dp)
             .testTag("post_card_${post.id}"),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = cardBorder,
         tonalElevation = 1.dp
@@ -153,14 +153,14 @@ fun PostCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             // Section 2.5: Mutual Connection Header Pill
             if (isConnectedUser) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 6.dp),
+                        .padding(bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -690,7 +690,7 @@ fun PostCard(
             // --- View All Comments Link ---
             if (post.commentsCount > 0) {
                 Text(
-                    text = "View all ${post.commentsCount} comments",
+                    text = "View all ${post.commentsCount} remarks",
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium

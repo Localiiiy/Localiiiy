@@ -1,4 +1,8 @@
 package com.example.ui.screens
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material.icons.filled.Public
@@ -28,6 +32,8 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -162,6 +168,8 @@ fun MarketScreen(
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     countryName: String? = null,
+    onConvertClipToMarket: (clipId: Long, price: Double, condition: String, pickupSpot: String) -> Unit = { _, _, _, _ -> },
+    isPremiumSubscribed: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
@@ -492,12 +500,14 @@ fun MarketScreen(
                 }
             }
             Row(
-
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    .padding(vertical = 4.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Spacer(modifier = Modifier.width(12.dp))
                 listOf(
                     Triple(MarketSubTab.GOODS, "Goods", Icons.Default.Storefront),
                     Triple(MarketSubTab.SERVICES, "Services", Icons.Default.Build),
@@ -510,13 +520,12 @@ fun MarketScreen(
                         shape = RoundedCornerShape(100.dp),
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier
-                            .weight(1f)
                             .clip(RoundedCornerShape(100.dp))
                             .clickable { activeSubTab = tab }
                             .testTag("market_subtab_${tab.name.lowercase()}")
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 7.dp, horizontal = 4.dp),
+                            modifier = Modifier.padding(vertical = 7.dp, horizontal = 12.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -524,18 +533,21 @@ fun MarketScreen(
                                 imageVector = icon,
                                 contentDescription = label,
                                 tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(13.dp)
+                                modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(2.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = label,
-                                fontSize = 10.5.sp,
+                                fontSize = 11.5.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }
                 }
+                Spacer(modifier = Modifier.width(12.dp))
             }
 
             // Sub-Content Views with Pull-to-Refresh
@@ -603,12 +615,15 @@ fun MarketScreen(
                     MarketSubTab.CLIPS -> {
                         MarketClipsFeedView(
                             clips = buySellClips,
-                            onItemClick = { clip ->
-                                val match = items.firstOrNull { it.title.contains(clip.caption.take(15), ignoreCase = true) }
-                                if (match != null) onItemClick(match)
+                            items = items,
+                            onNavigateToGoods = { goodsItem ->
+                                activeSubTab = MarketSubTab.GOODS
+                                onItemClick(goodsItem)
                             },
+                            onConvertClipToMarket = onConvertClipToMarket,
                             onOpenSellDialog = onOpenSellDialog,
-                            onOpenComments = onOpenComments
+                            onOpenComments = onOpenComments,
+                            currentCurrency = currentCurrency
                         )
                     }
 
@@ -656,6 +671,7 @@ fun MarketScreen(
                 },
                 currentCurrency = currentCurrency,
                 currentLanguage = currentLanguage,
+                isPremiumSubscribed = isPremiumSubscribed,
                 onUserProfileClick = onUserProfileClick,
                 onCommentClick = { onOpenComments("MARKET", selectedItem.id) }
             )
@@ -1029,11 +1045,12 @@ private fun MarketPostsFeedView(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -1048,12 +1065,16 @@ private fun MarketPostsFeedView(
                                 text = "Local Buy & Sell Posts",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "Photo listings & requests from verified neighbors",
                                 fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -1063,7 +1084,7 @@ private fun MarketPostsFeedView(
                         shape = RoundedCornerShape(100.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text("+ Add Post", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("+ Add Post", fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                     }
                 }
             }
@@ -1230,7 +1251,7 @@ private fun MarketPostCard(
                     ) {
                         Icon(imageVector = Icons.Default.ChatBubbleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(5.dp))
-                        Text("Comment", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text("Remarks", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1241,78 +1262,94 @@ private fun MarketPostCard(
 @Composable
 private fun MarketClipsFeedView(
     clips: List<ClipEntity>,
-    onItemClick: (ClipEntity) -> Unit,
+    items: List<MarketplaceItemEntity>,
+    onNavigateToGoods: (MarketplaceItemEntity) -> Unit,
+    onConvertClipToMarket: (Long, Double, String, String) -> Unit,
     onOpenSellDialog: () -> Unit,
-    onOpenComments: (String, Long) -> Unit
+    onOpenComments: (String, Long) -> Unit,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 88.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("market_clips_grid")
-    ) {
-        item(span = { GridItemSpan(2) }) {
-            Surface(
-                shape = RoundedCornerShape(14.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Column {
-                            Text(
-                                text = "Market Video Clips & Pitches",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                text = "Short video showcases of items for sale",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
+    var isReelViewMode by remember { mutableStateOf(true) }
+    var clipToConvert by remember { mutableStateOf<ClipEntity?>(null) }
 
-                    OutlinedButton(
-                        onClick = onOpenSellDialog,
-                        shape = RoundedCornerShape(100.dp),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text("+ Sell Clip", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
+    if (clips.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("🎬", fontSize = 48.sp)
+                Text(
+                    text = "No Market Video Pitches Yet",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Showcase your goods, products, and services with a dynamic video pitch!",
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Button(
+                    onClick = onOpenSellDialog,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("+ Pitch Item with Video", fontWeight = FontWeight.Bold)
                 }
             }
         }
+    } else if (isReelViewMode) {
+        val pagerState = rememberPagerState(pageCount = { clips.size })
+        Box(modifier = Modifier.fillMaxSize().testTag("market_clips_pager_container")) {
+            VerticalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize().testTag("market_clips_pager")
+            ) { page ->
+                val clip = clips[page]
+                val matchedGoods = remember(clip, items) {
+                    items.firstOrNull {
+                        it.imageUrl == clip.mediaUrl ||
+                                it.title.contains(clip.caption.take(20), ignoreCase = true) ||
+                                (it.sellerUsername.isNotBlank() && it.sellerUsername.equals(clip.username, ignoreCase = true))
+                    } ?: MarketplaceItemEntity(
+                        title = clip.caption.take(35).ifBlank { "Local Market Item" },
+                        description = "${clip.caption}\n\n[Market Video Showcase by @${clip.username}]",
+                        price = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else 35.0,
+                        category = "Merchandise",
+                        sellerUsername = clip.username,
+                        sellerFullName = clip.soundArtist.ifBlank { clip.username },
+                        sellerAvatar = clip.userAvatar,
+                        imageUrl = clip.mediaUrl,
+                        deliveryOption = "Safe-Haven Handshake Escrow",
+                        location = clip.location ?: "Safe-Haven Hub",
+                        landmark = clip.landmark ?: "Civic Plaza CCTV Safe Zone",
+                        distanceKm = clip.distanceKm ?: 0.5,
+                        safeHavenHubName = clip.marketPickupSpot.ifBlank { "Civic Plaza Police Precinct (CCTV Zone)" }
+                    )
+                }
 
-        items(clips, key = { it.id }) { clip ->
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp)
-                    .clickable { onItemClick(clip) }
-            ) {
-                Box(modifier = Modifier.fillMaxSize()) {
+                var isPlaying by remember { mutableStateOf(true) }
+                var showPlayPauseIcon by remember { mutableStateOf(false) }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .clickable {
+                            isPlaying = !isPlaying
+                            showPlayPauseIcon = true
+                        }
+                ) {
+                    // Visual / Video Canvas
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(clip.mediaUrl)
@@ -1323,103 +1360,684 @@ private fun MarketClipsFeedView(
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Scrim
+                    // Scrim Gradients
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        Color.Black.copy(alpha = 0.2f),
+                                        Color.Black.copy(alpha = 0.45f),
                                         Color.Transparent,
-                                        Color.Black.copy(alpha = 0.8f)
+                                        Color.Black.copy(alpha = 0.85f)
                                     )
                                 )
                             )
                     )
 
-                    // Top Clip Play Tag
-                    Surface(
-                        shape = RoundedCornerShape(100.dp),
-                        color = Color.Black.copy(alpha = 0.7f),
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    // Play/Pause momentary indicator
+                    if (showPlayPauseIcon) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.6f),
+                            modifier = Modifier.align(Alignment.Center)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.PlayArrow,
+                                imageVector = if (isPlaying) Icons.Default.PlayArrow else Icons.Default.Pause,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(12.dp)
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .padding(16.dp)
                             )
-                            Text("Clip", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Bold)
                         }
                     }
 
-                    // Top Right Like hand button
-                    var isClipLiked by remember(clip.id) { mutableStateOf(clip.isLiked) }
-                    var clipLikesCount by remember(clip.id) { mutableStateOf(clip.likesCount) }
-                    com.example.ui.components.AnimatedLikeButton(
-                        isLiked = isClipLiked,
-                        onLikeClick = {
-                            isClipLiked = !isClipLiked
-                            clipLikesCount += if (isClipLiked) 1 else -1
-                        },
-                        likesCount = clipLikesCount,
-                        showCount = true,
-                        symbolSize = 16.sp,
-                        touchTargetSize = 32.dp,
-                        labelColor = Color.White,
+                    // Top Bar Header Overlay
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(6.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), CircleShape),
-                        testTag = "market_clip_like_${clip.id}"
-                    )
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter)
+                            .padding(top = 12.dp, start = 12.dp, end = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = Color.Black.copy(alpha = 0.65f),
+                            border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.6f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text("🛍️", fontSize = 12.sp)
+                                Text(
+                                    text = "Market Clips • Reel",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFFFDE68A),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
 
-                    // Bottom info
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            // Toggle View Mode (Reel vs Grid)
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = Color.Black.copy(alpha = 0.6f),
+                                modifier = Modifier.clickable { isReelViewMode = false }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.GridView, contentDescription = "Grid View", tint = Color.White, modifier = Modifier.size(14.dp))
+                                    Text("Grid", fontSize = 11.sp, color = Color.White)
+                                }
+                            }
+
+                            // Post Clip Button
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = Color(0xFFF59E0B),
+                                modifier = Modifier.clickable { onOpenSellDialog() }
+                            ) {
+                                Text(
+                                    text = "+ Pitch",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Right Side Action Column
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 12.dp, bottom = 120.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // Like Button
+                        var isLiked by remember(clip.id) { mutableStateOf(clip.isLiked) }
+                        var likesCount by remember(clip.id) { mutableStateOf(clip.likesCount) }
+                        com.example.ui.components.AnimatedLikeButton(
+                            isLiked = isLiked,
+                            onLikeClick = {
+                                isLiked = !isLiked
+                                likesCount += if (isLiked) 1 else -1
+                            },
+                            likesCount = likesCount,
+                            showCount = true,
+                            symbolSize = 24.sp,
+                            touchTargetSize = 44.dp,
+                            labelColor = Color.White,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                            testTag = "market_reel_like_${clip.id}"
+                        )
+
+                        // Inquiry / Comments Button
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.5f),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable { onOpenComments("CLIP", clip.id) }
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Outlined.Chat,
+                                    contentDescription = "Inquire",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = "${clip.commentsCount}",
+                                    fontSize = 10.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        // Convert / Edit Market Listing
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFFF59E0B).copy(alpha = 0.85f),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable { clipToConvert = clip }
+                                .testTag("convert_market_clip_${clip.id}")
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Convert",
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "List",
+                                    fontSize = 9.sp,
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+
+                        // Direct Redirect to Goods Shortcut Icon
+                        Surface(
+                            shape = CircleShape,
+                            color = Color(0xFF10B981).copy(alpha = 0.9f),
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable { onNavigateToGoods(matchedGoods) }
+                                .testTag("jump_goods_btn_${clip.id}")
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Storefront,
+                                    contentDescription = "Goods",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Goods",
+                                    fontSize = 9.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+                    }
+
+                    // Bottom-Left Info Column & HYBRID CLIP-TO-MARKETPLACE COMMERCE OVERLAY
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .padding(10.dp)
+                            .fillMaxWidth(0.82f)
+                            .padding(start = 12.dp, bottom = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = clip.username,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp,
-                            color = Color.White
-                        )
+                        // Proximity & Location Tag
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = Color.Black.copy(alpha = 0.6f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF34D399), modifier = Modifier.size(12.dp))
+                                Text(
+                                    text = "${clip.distanceKm ?: 0.5} km • ${clip.location ?: "Nearby Safe-Haven"}",
+                                    fontSize = 10.5.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+
+                        // Creator Info
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AsyncImage(
+                                model = clip.userAvatar,
+                                contentDescription = clip.username,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                            )
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(
+                                        text = "@${clip.username}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = Color.White
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(4.dp),
+                                        color = Color(0xFF10B981)
+                                    ) {
+                                        Text(
+                                            text = "Verified Seller",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Caption
                         Text(
                             text = clip.caption,
-                            fontSize = 11.sp,
+                            fontSize = 12.sp,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            color = Color.White.copy(alpha = 0.9f)
+                            color = Color.White.copy(alpha = 0.95f)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+
+                        // HYBRID CLIP-TO-MARKETPLACE COMMERCE OVERLAY
                         Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = MaterialTheme.colorScheme.primary
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color.Black.copy(alpha = 0.85f),
+                            border = BorderStroke(1.2.dp, Color(0xFFF59E0B)),
+                            modifier = Modifier.fillMaxWidth().testTag("market_clip_commerce_overlay_${clip.id}")
                         ) {
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text("🛍️", fontSize = 13.sp)
+                                        Text(
+                                            text = matchedGoods.title.take(22),
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFFBBF24),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    val displayPrice = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else matchedGoods.price
+                                    Text(
+                                        text = "$${displayPrice.toInt()}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFFFDE68A)
+                                    )
+                                }
+
+                                Text(
+                                    text = "Condition: ${clip.marketCondition.ifBlank { matchedGoods.condition }} • Safe-Haven: ${clip.marketPickupSpot.ifBlank { matchedGoods.safeHavenHubName ?: "Civic Plaza CCTV Hub" }}",
+                                    fontSize = 9.5.sp,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Text(
+                                    text = "🔒 Safe-Haven Handshake Escrow Protected",
+                                    fontSize = 9.sp,
+                                    color = Color(0xFF6EE7B7),
+                                    fontWeight = FontWeight.Medium
+                                )
+
+                                // PRIMARY REDIRECT TO GOODS BUTTON
+                                Button(
+                                    onClick = { onNavigateToGoods(matchedGoods) },
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B)),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(34.dp)
+                                        .testTag("redirect_to_goods_btn_${clip.id}")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Storefront,
+                                        contentDescription = null,
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "View Connected Goods in Market ➔",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        // Grid View Option
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 88.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .testTag("market_clips_grid")
+        ) {
+            item(span = { GridItemSpan(2) }) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f).padding(end = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircle,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Column {
+                                Text(
+                                    text = "Market Video Clips & Pitches",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = "Short video showcases of items for sale",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            FilledTonalButton(
+                                onClick = { isReelViewMode = true },
+                                shape = RoundedCornerShape(100.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text("🎬 Reels", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            OutlinedButton(
+                                onClick = onOpenSellDialog,
+                                shape = RoundedCornerShape(100.dp),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text("+ Sell", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
+
+            items(clips, key = { it.id }) { clip ->
+                val matchedGoods = remember(clip, items) {
+                    items.firstOrNull {
+                        it.imageUrl == clip.mediaUrl ||
+                                it.title.contains(clip.caption.take(20), ignoreCase = true) ||
+                                (it.sellerUsername.isNotBlank() && it.sellerUsername.equals(clip.username, ignoreCase = true))
+                    } ?: MarketplaceItemEntity(
+                        title = clip.caption.take(35).ifBlank { "Local Market Item" },
+                        description = "${clip.caption}\n\n[Market Video Showcase by @${clip.username}]",
+                        price = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else 35.0,
+                        category = "Merchandise",
+                        sellerUsername = clip.username,
+                        sellerFullName = clip.soundArtist.ifBlank { clip.username },
+                        sellerAvatar = clip.userAvatar,
+                        imageUrl = clip.mediaUrl,
+                        deliveryOption = "Safe-Haven Handshake Escrow",
+                        location = clip.location ?: "Safe-Haven Hub",
+                        landmark = clip.landmark ?: "Civic Plaza CCTV Safe Zone",
+                        distanceKm = clip.distanceKm ?: 0.5,
+                        safeHavenHubName = clip.marketPickupSpot.ifBlank { "Civic Plaza Police Precinct (CCTV Zone)" }
+                    )
+                }
+
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(260.dp)
+                        .clickable { onNavigateToGoods(matchedGoods) }
+                ) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(clip.mediaUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = clip.caption,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        // Scrim
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Black.copy(alpha = 0.2f),
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.85f)
+                                        )
+                                    )
+                                )
+                        )
+
+                        // Top Price Tag
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = Color(0xFFF59E0B),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(8.dp)
+                        ) {
+                            val price = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else matchedGoods.price
                             Text(
-                                text = "💬 Chat Seller",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
+                                text = "$${price.toInt()}",
+                                fontSize = 11.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight.ExtraBold,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                             )
+                        }
+
+                        // Bottom info & Redirect CTA
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Text(
+                                text = "@${clip.username}",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = clip.caption,
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                            Button(
+                                onClick = { onNavigateToGoods(matchedGoods) },
+                                shape = RoundedCornerShape(6.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B)),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.fillMaxWidth().height(26.dp)
+                            ) {
+                                Text(
+                                    text = "View Goods ➔",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
+
+    // Convert Clip to Market Dialog
+    if (clipToConvert != null) {
+        val target = clipToConvert!!
+        MarketConvertClipDialog(
+            clip = target,
+            onDismiss = { clipToConvert = null },
+            onConfirm = { price, condition, hub ->
+                onConvertClipToMarket(target.id, price, condition, hub)
+                clipToConvert = null
+            }
+        )
+    }
 }
+
+@Composable
+fun MarketConvertClipDialog(
+    clip: ClipEntity,
+    onDismiss: () -> Unit,
+    onConfirm: (price: Double, condition: String, hub: String) -> Unit
+) {
+    var priceText by remember { mutableStateOf(if (clip.marketPriceUSD > 0) "${clip.marketPriceUSD.toInt()}" else "45") }
+    var selectedCondition by remember { mutableStateOf(clip.marketCondition.ifBlank { "Like New" }) }
+    var selectedHub by remember { mutableStateOf(clip.marketPickupSpot.ifBlank { "Civic Plaza Police Precinct (CCTV Zone)" }) }
+
+    val conditions = listOf("Brand New", "Like New", "Gently Used", "Fair Condition")
+    val safeHubs = listOf(
+        "Civic Plaza Police Precinct (CCTV Zone)",
+        "Downtown Transit Hub Verified Safe Zone",
+        "Public Library Front Foyer (Monitored)"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("🛍️", fontSize = 20.sp)
+                Column {
+                    Text("Convert Clip to Market Goods", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text("Direct Commercial Listing", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "Clip: ${clip.caption.take(45)}...",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                OutlinedTextField(
+                    value = priceText,
+                    onValueChange = { priceText = it },
+                    label = { Text("Listing Price ($ USD)") },
+                    leadingIcon = { Text("$", fontWeight = FontWeight.Bold) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Text("Item Condition", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    conditions.forEach { cond ->
+                        FilterChip(
+                            selected = selectedCondition == cond,
+                            onClick = { selectedCondition = cond },
+                            label = { Text(cond, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                Text("Safe-Haven Offline Exchange Hub", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    safeHubs.forEach { hub ->
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (selectedHub == hub) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedHub = hub }
+                        ) {
+                            Text(
+                                text = "🛡️ $hub",
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                color = if (selectedHub == hub) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val price = priceText.toDoubleOrNull() ?: 35.0
+                    onConfirm(price, selectedCondition, selectedHub)
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Text("Save / List to Market 🚀", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 
 @Composable
 private fun WatchlistCatalogView(
@@ -1827,6 +2445,14 @@ fun MarketSellMultiDialog(
     )
     var showStandardMediaSelector by remember { mutableStateOf(false) }
 
+    val storageMediaPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        uri?.let {
+            selectedPhotoUrl = it.toString()
+        }
+    }
+
     val viralMusicTracks = listOf(
         "🔥 Seattle Summer Anthem • 2026 Viral Hit",
         "🌊 Pacific Chillwave • Trending #1 on Charts",
@@ -1984,25 +2610,29 @@ fun MarketSellMultiDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { showStandardMediaSelector = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f).height(38.dp)
+                        onClick = {
+                            storageMediaPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f).height(40.dp)
                     ) {
                         Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Media Selector 📁", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("Device Storage 📱", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
                     }
 
                     Button(
                         onClick = { showStandardMediaSelector = true },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f).height(38.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f).height(40.dp)
                     ) {
                         Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Live Camera 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("Media Picker 📁", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
                     }
                 }
 
@@ -2563,6 +3193,7 @@ fun MarketItemDetailDialog(
     onFlagItem: (Long, String) -> Unit = { _, _ -> },
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    isPremiumSubscribed: Boolean = false,
     onUserProfileClick: (String) -> Unit = {},
     onCommentClick: () -> Unit = {}
 ) {
@@ -2945,6 +3576,101 @@ fun MarketItemDetailDialog(
                         isOpen24h = true
                     )
 
+                    // PROMPT 7 & 13: Verified Safe-Haven Hub & Micro-Escrow Milestone Card
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                        border = BorderStroke(1.2.dp, MaterialTheme.colorScheme.primary),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Text("🛡️", fontSize = 16.sp)
+                                    Text(
+                                        text = if (item.isServiceOrGig) "Service Micro-Escrow" else "Safe-Haven Offline Exchange",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = Color(0xFF10B981).copy(alpha = 0.2f),
+                                    border = BorderStroke(0.8.dp, Color(0xFF10B981))
+                                ) {
+                                    Text(
+                                        text = item.escrowStatus ?: "SECURED IN ESCROW",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF10B981),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Exchange Hub: ${item.safeHavenHubName ?: "Civic Plaza Police Precinct (CCTV Zone)"}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Funds locked securely until physical mutual verification or milestone sign-off.",
+                                fontSize = 9.5.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            if (item.isServiceOrGig) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    listOf("30% Deposit", "40% Proof-of-Work", "30% Sign-off").forEach { step ->
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text(
+                                                text = "✓ $step",
+                                                fontSize = 8.5.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(vertical = 4.dp),
+                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Button(
+                                onClick = { showHandoverQR = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(36.dp)
+                            ) {
+                                Icon(Icons.Default.QrCodeScanner, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("🔒 Handshake QR Escrow Release", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Section 4.4: Ghost Negotiation Privacy Shield
@@ -3080,7 +3806,7 @@ fun MarketItemDetailDialog(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ChatBubbleOutline,
-                                contentDescription = "Comments",
+                                contentDescription = "Remarks",
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -3237,6 +3963,7 @@ fun MarketItemDetailDialog(
         MarketCheckoutEscrowDialog(
             item = item,
             currentCurrency = currentCurrency,
+            isPremiumSubscribed = isPremiumSubscribed,
             onDismiss = { showCheckoutDialog = false },
             onConfirmPurchase = {
                 showCheckoutDialog = false
@@ -3372,12 +4099,13 @@ fun AutoNegotiateButton(
 fun MarketCheckoutEscrowDialog(
     item: com.example.data.MarketplaceItemEntity,
     currentCurrency: LocaliiiyCurrency,
+    isPremiumSubscribed: Boolean = false,
     onDismiss: () -> Unit,
     onConfirmPurchase: () -> Unit
 ) {
     val basePrice = CurrencyHelper.convertFromUSD(item.price, currentCurrency)
-    // 5% Platform Fee
-    val platformFee = basePrice * 0.05
+    val standardFee = basePrice * 0.05
+    val platformFee = if (isPremiumSubscribed) 0.0 else standardFee
     val totalAmount = basePrice + platformFee
 
     AlertDialog(
@@ -3406,12 +4134,37 @@ fun MarketCheckoutEscrowDialog(
                             Text("Item Price", fontSize = 13.sp)
                             Text(CurrencyHelper.format(item.price, currentCurrency), fontWeight = FontWeight.SemiBold)
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Platform Escrow Fee (5%)", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(
+                                    if (isPremiumSubscribed) "Platform Escrow (0% Free)" else "Platform Escrow Fee (5%)",
+                                    fontSize = 13.sp,
+                                    fontWeight = if (isPremiumSubscribed) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isPremiumSubscribed) Color(0xFF00C853) else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (isPremiumSubscribed) {
+                                    Surface(
+                                        color = Color(0xFFFFD700).copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Text(
+                                            "PRO 👑",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = Color(0xFFFFD700),
+                                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                        )
+                                    }
+                                }
+                            }
                             Text(
-                                text = "${currentCurrency.symbol}${String.format("%.2f", platformFee)}",
+                                text = if (isPremiumSubscribed)
+                                    "${currentCurrency.symbol}0.00 (Saved ${currentCurrency.symbol}${String.format("%.2f", standardFee)})"
+                                else
+                                    "${currentCurrency.symbol}${String.format("%.2f", platformFee)}",
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                fontWeight = if (isPremiumSubscribed) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isPremiumSubscribed) Color(0xFF00C853) else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))

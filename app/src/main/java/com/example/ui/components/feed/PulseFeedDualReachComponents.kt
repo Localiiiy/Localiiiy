@@ -138,19 +138,19 @@ fun LocalSeedDeliveryBadge(
         border = BorderStroke(1.dp, LocaliiiyAccentMint.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
                 tint = LocaliiiyAccentMint,
-                modifier = Modifier.size(12.dp)
+                modifier = Modifier.size(11.dp)
             )
             Text(
                 text = "✓ $localSeedCount Local Neighbors Seeded",
-                fontSize = 10.sp,
+                fontSize = 9.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (MaterialTheme.colorScheme.surface.hashCode() < 0) Color(0xFF00E676) else LocaliiiyPrimaryDark
             )
@@ -947,79 +947,91 @@ fun AudioVoicePulseCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+            .padding(horizontal = 12.dp, vertical = 3.dp)
             .testTag("audio_voice_pulse_card_${post.id}"),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Surface(
                         shape = CircleShape,
                         color = LocaliiiyPrimaryTeal.copy(alpha = 0.12f),
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(34.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = null,
                                 tint = LocaliiiyPrimaryTeal,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = "60s Local Voice Dispatch",
-                            fontSize = 12.sp,
+                            fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "@${post.username} • ${post.landmark ?: "Locality"}",
-                            fontSize = 10.5.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Surface(
                     shape = RoundedCornerShape(100.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
+                    val remSecs = (durationSeconds - (currentProgress * durationSeconds).toInt()).coerceAtLeast(0)
+                    val mm = remSecs / 60
+                    val ss = remSecs % 60
                     Text(
-                        text = "0:${durationSeconds - (currentProgress * durationSeconds).toInt()} remaining",
-                        fontSize = 10.sp,
+                        text = String.format("%d:%02d remaining", mm, ss),
+                        fontSize = 9.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = LocaliiiyPrimaryTeal,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Waveform scrubber + Play button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 IconButton(
                     onClick = { isPlaying = !isPlaying },
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(38.dp)
                         .clip(CircleShape)
                         .background(LocaliiiyPrimaryTeal)
                 ) {
@@ -1027,34 +1039,44 @@ fun AudioVoicePulseCard(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = "Play/Pause",
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                // Custom Waveform Bar Visualizer Canvas
-                Canvas(
+                // Custom Waveform Bar Visualizer Canvas bounded inside container
+                Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(36.dp)
+                        .height(34.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                        .padding(horizontal = 8.dp)
                         .clickable {
                             currentProgress = ((10..90).random() / 100f)
-                        }
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    val barCount = 28
-                    val spacing = size.width / barCount
-                    for (i in 0 until barCount) {
-                        val progressFraction = i.toFloat() / barCount
-                        val isPlayed = progressFraction <= currentProgress
-                        val heightMultiplier = (sin(i * 0.7f) * 0.4f + 0.6f).coerceIn(0.2f, 1f)
-                        val barHeight = size.height * heightMultiplier
+                    Canvas(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        val barCount = 28
+                        val barWidth = 3.dp.toPx()
+                        val spacing = size.width / barCount
+                        val maxBarHeight = size.height * 0.85f
+                        for (i in 0 until barCount) {
+                            val progressFraction = i.toFloat() / barCount
+                            val isPlayed = progressFraction <= currentProgress
+                            val heightMultiplier = (sin(i * 0.7f) * 0.4f + 0.6f).coerceIn(0.2f, 1f)
+                            val barHeight = maxBarHeight * heightMultiplier
 
-                        drawLine(
-                            color = if (isPlayed) LocaliiiyPrimaryTeal else Color.LightGray.copy(alpha = 0.5f),
-                            start = Offset(x = i * spacing + spacing / 2, y = (size.height - barHeight) / 2),
-                            end = Offset(x = i * spacing + spacing / 2, y = (size.height + barHeight) / 2),
-                            strokeWidth = 3.dp.toPx(),
-                            cap = StrokeCap.Round
-                        )
+                            drawLine(
+                                color = if (isPlayed) LocaliiiyPrimaryTeal else Color.LightGray.copy(alpha = 0.5f),
+                                start = Offset(x = i * spacing + spacing / 2, y = (size.height - barHeight) / 2),
+                                end = Offset(x = i * spacing + spacing / 2, y = (size.height + barHeight) / 2),
+                                strokeWidth = barWidth,
+                                cap = StrokeCap.Round
+                            )
+                        }
                     }
                 }
             }

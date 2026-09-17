@@ -438,43 +438,62 @@ fun PulseFeedComponent(
                         SwipeToDismissBox(
                             state = dismissState,
                             backgroundContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp)
-                                        .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(end = 20.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                val isDismissing = dismissState.targetValue != SwipeToDismissBoxValue.Settled
+                                if (isDismissing) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(horizontal = 12.dp, vertical = 3.dp)
+                                            .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f), RoundedCornerShape(16.dp)),
+                                        contentAlignment = Alignment.CenterEnd
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.DeleteOutline,
-                                            contentDescription = "Dismiss Pulse",
-                                            tint = MaterialTheme.colorScheme.onErrorContainer
-                                        )
-                                        Text(
-                                            text = "Dismiss Pulse",
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onErrorContainer,
-                                            fontSize = 12.sp
-                                        )
+                                        Row(
+                                            modifier = Modifier.padding(end = 20.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.DeleteOutline,
+                                                contentDescription = "Dismiss Pulse",
+                                                tint = MaterialTheme.colorScheme.onErrorContainer
+                                            )
+                                            Text(
+                                                text = "Dismiss Pulse",
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                                fontSize = 12.sp
+                                            )
+                                        }
                                     }
                                 }
                             }
                         ) {
-                            PostCard(
-                                post = item,
-                                onLikeClick = { onLikePost(item) },
-                                onCommentClick = { onCommentPost(item) },
-                                onShareClick = { onSharePost(item) },
-                                onSaveClick = { onSavePost(item) },
-                                onUserClick = { onUserProfileClick(item.username) },
-                                onReportClick = { reason -> onReportPost(item, reason) },
-                                modifier = Modifier.animateItem()
-                            )
+                            if (item.isFlashPulse) {
+                                EphemeralPulseCard(
+                                    post = item,
+                                    totalDurationHours = 4,
+                                    remainingMinutesInitial = 195,
+                                    onDismiss = { dismissedPostIds = dismissedPostIds + item.id },
+                                    modifier = Modifier.animateItem()
+                                )
+                            } else if (item.isVoicePrint) {
+                                AudioVoicePulseCard(
+                                    post = item,
+                                    durationSeconds = item.voiceDurationSeconds.coerceAtLeast(15),
+                                    modifier = Modifier.animateItem()
+                                )
+                            } else {
+                                PostCard(
+                                    post = item,
+                                    onLikeClick = { onLikePost(item) },
+                                    onCommentClick = { onCommentPost(item) },
+                                    onShareClick = { onSharePost(item) },
+                                    onSaveClick = { onSavePost(item) },
+                                    onUserClick = { onUserProfileClick(item.username) },
+                                    onReportClick = { reason -> onReportPost(item, reason) },
+                                    modifier = Modifier.animateItem()
+                                )
+                            }
                         }
                         
                         if (index > 0 && index % 5 == 0 && sponsoredAds.isNotEmpty()) {

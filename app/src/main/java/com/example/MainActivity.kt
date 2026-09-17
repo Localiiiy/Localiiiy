@@ -50,6 +50,10 @@ import coil.request.ImageRequest
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.util.HotspotAlert
+import com.example.util.LocaliiiyLanguage
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocalizationHelper
+import com.example.util.LocaliiiyStringKey
 import com.example.ui.CreationMode
 import com.example.ui.LocaliiiyViewModel
 import com.example.ui.MainNavigationTab
@@ -65,8 +69,6 @@ import com.example.ui.theme.LocaliiiyAccentCoral
 import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyStoryGradient
 import com.example.ui.theme.LocaliiiyTheme
-import com.example.util.LocaliiiyCurrency
-import com.example.util.LocaliiiyLanguage
 import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import kotlinx.coroutines.launch
@@ -109,7 +111,10 @@ class MainActivity : ComponentActivity(), SensorEventListener {
             val viewModel: com.example.ui.LocaliiiyViewModel = viewModel()
             val privacySettings by viewModel.privacySettings.collectAsStateWithLifecycle()
             
-            LocaliiiyTheme(themeKey = privacySettings.appThemeBackground) {
+            LocaliiiyTheme(
+                themeKey = privacySettings.appThemeBackground,
+                displayScale = privacySettings.appDisplayScale
+            ) {
                 if (isPanicCloakActive.value) {
                     // Decoy Screen (tap to return)
                     Box(
@@ -249,6 +254,9 @@ fun LocaliiiyApp(
     val isLocationEnabled by viewModel.isLocationEnabled.collectAsStateWithLifecycle()
     val isPrivateAccount by viewModel.isPrivateAccount.collectAsStateWithLifecycle()
     val nearbyRadiusKm by viewModel.nearbyRadiusKm.collectAsStateWithLifecycle()
+    val radarRadiusKm by viewModel.radarRadiusKm.collectAsStateWithLifecycle()
+    val radarBlipUsers by viewModel.radarBlipUsers.collectAsStateWithLifecycle()
+    val showMeOnRadar by viewModel.showMeOnRadar.collectAsStateWithLifecycle()
     val isRefreshingFeed by viewModel.isRefreshingFeed.collectAsStateWithLifecycle()
     val isRefreshingExplore by viewModel.isRefreshingExplore.collectAsStateWithLifecycle()
     val isRefreshingMarket by viewModel.isRefreshingMarket.collectAsStateWithLifecycle()
@@ -318,6 +326,9 @@ fun LocaliiiyApp(
     val referralState by viewModel.referralState.collectAsStateWithLifecycle()
     val platformMetrics by viewModel.platformMetrics.collectAsStateWithLifecycle()
     val sponsoredAds by viewModel.sponsoredAds.collectAsStateWithLifecycle()
+    val allDraftClips by viewModel.allDraftClips.collectAsStateWithLifecycle()
+    val selectedDraftClipForEdit by viewModel.selectedDraftClipForEdit.collectAsStateWithLifecycle()
+    val merchantBounties by viewModel.merchantBounties.collectAsStateWithLifecycle()
 
     var showOpeningAnimation by remember { mutableStateOf(true) }
 
@@ -332,6 +343,22 @@ fun LocaliiiyApp(
             }
         }
         com.example.service.FavoriteProximityManager.init(context)
+    }
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            when (event) {
+                androidx.lifecycle.Lifecycle.Event.ON_START,
+                androidx.lifecycle.Lifecycle.Event.ON_RESUME -> viewModel.setIsAppInForeground(true)
+                androidx.lifecycle.Lifecycle.Event.ON_STOP -> viewModel.setIsAppInForeground(false)
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -382,6 +409,8 @@ fun LocaliiiyApp(
                             isLocationEnabled = isLocationEnabled,
                             isPrivateAccount = isPrivateAccount,
                             searchQuery = globalSearchQuery,
+                            currentLanguage = currentLanguage,
+                            currentCurrency = currentCurrency,
                             onSearchQueryChange = { q -> viewModel.setGlobalSearchQuery(q) },
                             onLogoClick = { showOpeningAnimation = true },
                             onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
@@ -411,7 +440,7 @@ fun LocaliiiyApp(
             },
         bottomBar = {
             if (currentTab != MainNavigationTab.CREATE) {
-                LocaliiiyBottomNavigationBar(
+                DeckSwitcherBar(
                     currentTab = currentTab,
                     userAvatarUrl = userProfile.avatarUrl,
                     onTabSelected = { tab ->
@@ -510,11 +539,18 @@ fun LocaliiiyApp(
                         marketplaceItems = marketplaceItems,
                         posts = posts,
                         userProfile = userProfile,
-                        nearbyUsers = otherUsers,
+                        nearbyUsers = radarBlipUsers,
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
                         privacySettings = privacySettings,
+                        onRadiusFilterChange = { radius ->
+                            if (radius != null) {
+                                viewModel.setRadarRadiusKm(radius.toFloat())
+                            } else {
+                                viewModel.setNearbyRadiusFilter(null)
+                            }
+                        },
                         onToggleHidePreciseLocation = { hide ->
                             viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
                             coroutineScope.launch {
@@ -630,7 +666,14 @@ fun LocaliiiyApp(
                         onOpenComments = { type, id -> viewModel.openComments(type, id) },
                         isRefreshing = isRefreshingMarket,
                         onRefresh = { viewModel.refreshMarket() },
-                        countryName = privacySettings.radarCountryName
+                        countryName = privacySettings.radarCountryName,
+                        onConvertClipToMarket = { clipId, price, condition, hubName ->
+                            viewModel.convertClipToMarketplaceListing(clipId, price, condition, hubName)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Clip converted to Market Listing! 🛍️")
+                            }
+                        },
+                        isPremiumSubscribed = privacySettings.isPremiumSubscribed
                     )
                 }
 
@@ -689,7 +732,36 @@ fun LocaliiiyApp(
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         isRefreshing = isRefreshingStudio,
-                        onRefresh = { viewModel.refreshStudio() }
+                        onRefresh = { viewModel.refreshStudio() },
+                        bounties = merchantBounties,
+                        onClaimBounty = { bounty ->
+                            viewModel.claimMerchantBounty(bounty)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Claimed $${bounty.bountyRewardUSD.toInt()} sponsorship bounty! Deposited to Wallet.")
+                            }
+                        },
+                        drafts = allDraftClips,
+                        onRouteDraftToClips = { draft ->
+                            viewModel.routeDraftToDestination(draft, "CLIPS")
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Draft routed to Clips Engine! ⚡")
+                            }
+                        },
+                        onRouteDraftToMarket = { draft ->
+                            viewModel.routeDraftToDestination(draft, "MARKET")
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Draft routed to Market Listing! 🛍️")
+                            }
+                        },
+                        onRouteDraftToPulse = { draft ->
+                            viewModel.routeDraftToDestination(draft, "PULSE")
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Draft routed to Pulse Feed! 📡")
+                            }
+                        },
+                        onDeleteDraft = { draft ->
+                            viewModel.deleteDraftClip(draft.id)
+                        }
                     )
                 }
 
@@ -710,6 +782,24 @@ fun LocaliiiyApp(
                             selectedMediaUri = selectedMediaUri,
                             selectedFilter = selectedFilter,
                             detectedLocation = autoDetectedLocation ?: currentLocation,
+                            draftClips = allDraftClips,
+                            editingDraft = selectedDraftClipForEdit,
+                            onSaveDraftClip = { mediaUri, caption, soundTitle, loc, landmark, draftId ->
+                                viewModel.saveDraftClip(
+                                    mediaUri = mediaUri,
+                                    caption = caption,
+                                    soundTitle = soundTitle,
+                                    location = loc,
+                                    landmark = landmark,
+                                    draftId = draftId
+                                )
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Clip draft saved to local Room database 💾")
+                                }
+                            },
+                            onDeleteDraftClip = { draftId ->
+                                viewModel.deleteDraftClip(draftId)
+                            },
                             onModeChange = { mode -> viewModel.setCreationMode(mode) },
                             onSelectMedia = { uri -> viewModel.setSelectedMediaUri(uri) },
                             onSelectFilter = { filter -> viewModel.selectFilter(filter) },
@@ -785,7 +875,17 @@ fun LocaliiiyApp(
                         onRefresh = { viewModel.refreshClips() },
                         deepLinkClipId = deepLinkClipId,
                         onClearDeepLink = onClearDeepLink,
-                        countryName = privacySettings.radarCountryName
+                        countryName = privacySettings.radarCountryName,
+                        onConvertClipToMarket = { clipId, price, category, condition, pickupSpot, isService ->
+                            viewModel.convertClipToMarketplaceListing(
+                                clipId = clipId,
+                                priceUSD = price,
+                                condition = condition,
+                                pickupSpot = pickupSpot,
+                                category = category,
+                                isService = isService
+                            )
+                        }
                     )
                 }
 
@@ -904,6 +1004,25 @@ fun LocaliiiyApp(
                         onCreateContentClick = {
                             viewModel.selectTab(MainNavigationTab.CREATE)
                         },
+                        draftClips = allDraftClips,
+                        onSelectDraftForEdit = { draft ->
+                            viewModel.selectDraftClipForEdit(draft)
+                            viewModel.setCreationMode(CreationMode.CLIP)
+                            viewModel.selectTab(MainNavigationTab.CREATE)
+                        },
+                        onDeleteDraftClip = { draftId ->
+                            viewModel.deleteDraftClip(draftId)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Draft clip removed from local storage.")
+                            }
+                        },
+                        appDisplayScale = privacySettings.appDisplayScale,
+                        onSelectDisplayScale = { newScale ->
+                            viewModel.setAppDisplayScale(newScale)
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("App display size updated to $newScale")
+                            }
+                        },
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
                         creatorEarnings = creatorEarnings,
@@ -913,6 +1032,9 @@ fun LocaliiiyApp(
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
                         onOpenBoostAds = { viewModel.openBoostAdDialog() },
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
+                        isPremiumSubscribed = privacySettings.isPremiumSubscribed,
+                        isGhostMode = privacySettings.isGhostMode,
+                        onOpenPremium = { viewModel.openPrivacySettings() },
                         isRefreshing = isRefreshingProfile,
                         onRefresh = { viewModel.refreshProfile() }
                     )
@@ -1025,6 +1147,8 @@ fun LocaliiiyApp(
             activeConversation = activeConversation,
             chatMessages = activeChatMessages,
             userProfile = userProfile,
+            otherUsers = otherUsers,
+            privacySettings = privacySettings,
             onDismiss = { viewModel.closeDirectMessagesSheet() },
             onSelectConversation = { conv -> viewModel.openConversation(conv) },
             onBackToInbox = { viewModel.closeActiveConversation() },
@@ -1068,6 +1192,8 @@ fun LocaliiiyApp(
                     payoutHistory = payoutHistory,
                     currentCurrency = currentCurrency,
                     onRequestPayout = { amount -> viewModel.requestPayout(amount) },
+                    onSubscribeToPremium = { isAnnual -> viewModel.subscribeToPremium(isAnnual) },
+                    onCancelPremium = { viewModel.cancelPremiumSubscription() },
                     onNavigateBack = { viewModel.closePrivacySettings() },
                     onNavigateToBlockedUsers = { showBlockedUsers = true },
                     onNavigateToConnections = { showConnectionsManager = true },
@@ -1294,6 +1420,7 @@ fun LocaliiiyApp(
 fun LocaliiiyBottomNavigationBar(
     currentTab: MainNavigationTab,
     userAvatarUrl: String,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onTabSelected: (MainNavigationTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -1311,14 +1438,14 @@ fun LocaliiiyBottomNavigationBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 8.dp),
+                .padding(vertical = 4.dp, horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Pulse Feed Tab
             LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.FEED) Icons.Default.DynamicFeed else Icons.Outlined.DynamicFeed,
-                label = "Pulse",
+                label = LocalizationHelper.getString(LocaliiiyStringKey.TAB_FEED, currentLanguage),
                 isSelected = currentTab == MainNavigationTab.FEED,
                 onClick = { onTabSelected(MainNavigationTab.FEED) },
                 testTag = "nav_tab_feed"
@@ -1327,7 +1454,7 @@ fun LocaliiiyBottomNavigationBar(
             // Radar Explore Tab
             LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.EXPLORE) Icons.Default.Radar else Icons.Outlined.Radar,
-                label = "Radar",
+                label = LocalizationHelper.getString(LocaliiiyStringKey.TAB_RADAR, currentLanguage),
                 isSelected = currentTab == MainNavigationTab.EXPLORE,
                 onClick = { onTabSelected(MainNavigationTab.EXPLORE) },
                 testTag = "nav_tab_explore"
@@ -1336,7 +1463,7 @@ fun LocaliiiyBottomNavigationBar(
             // Market Tab
             LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.MARKET) Icons.Default.Storefront else Icons.Outlined.Storefront,
-                label = "Market",
+                label = LocalizationHelper.getString(LocaliiiyStringKey.TAB_MARKET, currentLanguage),
                 isSelected = currentTab == MainNavigationTab.MARKET,
                 onClick = { onTabSelected(MainNavigationTab.MARKET) },
                 testTag = "nav_tab_market"
@@ -1345,7 +1472,7 @@ fun LocaliiiyBottomNavigationBar(
             // Localiiiy Studio Tab (Standard Long Videos: 60s - 240 mins)
             LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.STUDIO) Icons.Default.VideoLibrary else Icons.Outlined.VideoLibrary,
-                label = "Studio",
+                label = LocalizationHelper.getString(LocaliiiyStringKey.TAB_STUDIO, currentLanguage),
                 isSelected = currentTab == MainNavigationTab.STUDIO,
                 onClick = { onTabSelected(MainNavigationTab.STUDIO) },
                 testTag = "nav_tab_studio"
@@ -1354,37 +1481,35 @@ fun LocaliiiyBottomNavigationBar(
             // Vibes / Clips Tab
             LocaliiiyNavItem(
                 icon = if (currentTab == MainNavigationTab.CLIPS) Icons.Default.PlayCircle else Icons.Outlined.PlayCircle,
-                label = "Clips",
+                label = LocalizationHelper.getString(LocaliiiyStringKey.TAB_CLIPS, currentLanguage),
                 isSelected = currentTab == MainNavigationTab.CLIPS,
                 onClick = { onTabSelected(MainNavigationTab.CLIPS) },
                 testTag = "nav_tab_clips"
             )
 
-
-
             // Profile Tab
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(10.dp))
                     .clickable { onTabSelected(MainNavigationTab.PROFILE) }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
                     .testTag("nav_tab_profile"),
                 contentAlignment = Alignment.Center
             ) {
                 val isSelected = currentTab == MainNavigationTab.PROFILE
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(28.dp)
+                            .size(22.dp)
                             .clip(CircleShape)
                             .then(
-                                if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                                if (isSelected) Modifier.border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
                                 else Modifier
                             )
-                            .padding(if (isSelected) 2.dp else 0.dp)
+                            .padding(if (isSelected) 1.5.dp else 0.dp)
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -1400,8 +1525,10 @@ fun LocaliiiyBottomNavigationBar(
                     }
 
                     Text(
-                        text = "Space",
-                        fontSize = 10.sp,
+                        text = LocalizationHelper.getString(LocaliiiyStringKey.TAB_PROFILE, currentLanguage),
+                        fontSize = 9.sp,
+                        maxLines = 1,
+                        softWrap = false,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1420,27 +1547,29 @@ private fun LocaliiiyNavItem(
     testTag: String
 ) {
     Surface(
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent,
         modifier = Modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(10.dp))
             .clickable(onClick = onClick)
             .testTag(testTag)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
                 tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
             )
             Text(
                 text = label,
-                fontSize = 10.sp,
+                fontSize = 9.sp,
+                maxLines = 1,
+                softWrap = false,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                 color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
             )

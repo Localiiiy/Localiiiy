@@ -18,6 +18,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.VerticalPager
@@ -25,6 +28,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -34,6 +39,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.Modifier
 import com.example.ui.components.AdBannerComponent
 import com.example.ui.components.SystematicDistanceScale
@@ -92,6 +98,7 @@ fun ClipsScreen(
     deepLinkClipId: Long? = null,
     onClearDeepLink: () -> Unit = {},
     countryName: String? = null,
+    onConvertClipToMarket: (clipId: Long, price: Double, category: String, condition: String, pickupSpot: String, isService: Boolean) -> Unit = { _, _, _, _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -196,6 +203,7 @@ fun ClipsScreen(
                     onUserProfileClick = { onUserProfileClick(clip.username) },
                     onReportClip = { reason -> onReportClip?.invoke(clip, reason) },
                     onBlockCreator = { onBlockCreator?.invoke(clip.username) },
+                    onConvertClipToMarket = onConvertClipToMarket,
                     isNearbyFilter = selectedFilter == ClipsFeedFilter.NEARBY,
                     systematicDistanceKm = selectedNearbyDistanceKm,
                     systematicOptions = systematicOptions,
@@ -217,7 +225,7 @@ fun ClipsScreen(
             }
         }
 
-        // Top Header: Sleek, compact single-row discovery filter bar that does not obscure video content
+        // Top Header: Localiiiy Clips section branding with compact horizontal discovery filters directly below
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -225,116 +233,138 @@ fun ClipsScreen(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.7f),
-                            Color.Black.copy(alpha = 0.2f),
+                            Color.Black.copy(alpha = 0.85f),
+                            Color.Black.copy(alpha = 0.5f),
                             Color.Transparent
                         )
                     )
                 )
                 .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 6.dp)
+                .padding(horizontal = 14.dp, vertical = 6.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Clips Title
-                Text(
-                    text = "Clips",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 18.sp
-                    ),
-                    color = Color.White,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Top Row: Section Title + Controls
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Title: Localiiiy Clips matching Market/Studio branding
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Text(
+                            text = "Localiiiy Clips",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = (-0.5).sp,
+                                fontSize = 19.sp
+                            ),
+                            color = Color.White,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
 
-                // Discovery Filter Pills Row (All, Trending, Nearby, Connected)
-                LazyRow(
+                    // Compact Controls (Auto-Scroll & Sound)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        // Auto-Scroll Toggle
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(if (isAutoScrollEnabled) MaterialTheme.colorScheme.tertiary else Color.Black.copy(alpha = 0.5f))
+                                .clickable { isAutoScrollEnabled = !isAutoScrollEnabled }
+                                .testTag("auto_scroll_toggle"),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isAutoScrollEnabled) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                contentDescription = "Auto-scroll toggle",
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+
+                        // Sound Toggle
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.5f))
+                                .clickable(onClick = onToggleSound),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = if (isSoundMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Sound toggle",
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Discovery Filter Chip Bar directly below title:
+                // Streamlined font size, padding, and icon scale so all filter options fit horizontally in a single row without horizontal overflow
+                Row(
                     modifier = Modifier
-                        .weight(1f)
+                        .fillMaxWidth()
                         .testTag("clips_filter_row"),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(ClipsFeedFilter.values()) { filter ->
+                    ClipsFeedFilter.values().forEach { filter ->
                         val isSelected = selectedFilter == filter
                         Surface(
                             shape = RoundedCornerShape(100.dp),
                             color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Black.copy(alpha = 0.55f),
                             border = BorderStroke(
-                                1.dp,
-                                if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.2f)
+                                0.8.dp,
+                                if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.22f)
                             ),
                             modifier = Modifier
+                                .weight(1f)
                                 .clickable { selectedFilter = filter }
                                 .testTag("clip_filter_${filter.name.lowercase()}")
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp)
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             ) {
                                 Icon(
                                     imageVector = filter.icon,
                                     contentDescription = filter.label,
                                     tint = if (isSelected) Color.Black else Color.White,
-                                    modifier = Modifier.size(12.dp)
+                                    modifier = Modifier.size(10.dp)
                                 )
+                                Spacer(modifier = Modifier.width(3.dp))
                                 Text(
                                     text = filter.label,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 11.sp
+                                        fontSize = 10.sp
                                     ),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
                                     color = if (isSelected) Color.Black else Color.White
                                 )
                             }
                         }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(6.dp))
-
-                // Compact Controls (Auto-Scroll & Sound)
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    // Auto-Scroll Toggle
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(if (isAutoScrollEnabled) MaterialTheme.colorScheme.tertiary else Color.Black.copy(alpha = 0.5f))
-                            .clickable { isAutoScrollEnabled = !isAutoScrollEnabled }
-                            .testTag("auto_scroll_toggle"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isAutoScrollEnabled) Icons.Default.PlayArrow else Icons.Default.Pause,
-                            contentDescription = "Auto-scroll toggle",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    // Sound Toggle
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.5f))
-                            .clickable(onClick = onToggleSound),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isSoundMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                            contentDescription = "Sound toggle",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
                     }
                 }
             }
@@ -357,6 +387,7 @@ private fun ClipItem(
     onUserProfileClick: () -> Unit,
     onReportClip: ((String) -> Unit)? = null,
     onBlockCreator: (() -> Unit)? = null,
+    onConvertClipToMarket: ((clipId: Long, price: Double, category: String, condition: String, pickupSpot: String, isService: Boolean) -> Unit)? = null,
     isNearbyFilter: Boolean = false,
     systematicDistanceKm: Double? = 3.0,
     systematicOptions: List<com.example.ui.components.SystematicDistanceOption> = emptyList(),
@@ -371,6 +402,8 @@ private fun ClipItem(
     var showMenu by remember { mutableStateOf(false) }
     var showReportDialog by remember { mutableStateOf(false) }
     var showReportSuccessSnackbar by remember { mutableStateOf(false) }
+    var showSendToMarketDialog by remember { mutableStateOf(false) }
+    var showMarketSuccessSnackbar by remember { mutableStateOf(false) }
 
 
     val haptic = LocalHapticFeedback.current
@@ -403,6 +436,8 @@ private fun ClipItem(
                     targetValue = 1f,
                     animationSpec = tween(12000, easing = LinearEasing)
                 )
+                // Finished watching creator clip -> trigger haptic feedback
+                com.example.util.HapticHelper.triggerHaptic(context, haptic, HapticFeedbackType.LongPress)
             }
         } else {
             videoProgress.stop()
@@ -529,14 +564,15 @@ private fun ClipItem(
             )
         }
 
-        // Right Side Floating Action Buttons
+        // Right Side Floating Action Buttons (Spanning top-to-mid section along right edge, strictly stopping above lower overlay)
         Column(
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.TopEnd)
+                .zIndex(1f)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
-                .padding(end = 12.dp, bottom = 28.dp),
+                .padding(top = 96.dp, end = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Like Action (Animated 👌 with 3D perspective depth, glowing burst, and tactile feedback)
             com.example.ui.components.AnimatedLikeButton(
@@ -585,6 +621,17 @@ private fun ClipItem(
                 testTag = "clip_save_button_${clip.id}"
             )
 
+            // Direct Market Listing Action Button
+            if (clip.isMarketListing) {
+                ClipActionButton(
+                    icon = Icons.Default.Storefront,
+                    label = "$${clip.marketPriceUSD.toInt()}",
+                    tint = Color(0xFFF59E0B),
+                    onClick = { showSendToMarketDialog = true },
+                    testTag = "clip_market_button_${clip.id}"
+                )
+            }
+
             // Moderation 3-Dots Menu
             Box {
                 ClipActionButton(
@@ -598,6 +645,35 @@ private fun ClipItem(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(
+                                    if (clip.isMarketListing) "Update Market Listing 🛍️" else "Send Clip to Market Clips 🛍️",
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFF59E0B)
+                                )
+                                Text(
+                                    if (clip.isMarketListing) "Update pricing, goods or services listing" else "Convert this clip into Market Goods/Services",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Storefront,
+                                contentDescription = null,
+                                tint = Color(0xFFF59E0B),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            showSendToMarketDialog = true
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Share Deep Link Outside App 🔗") },
                         leadingIcon = {
@@ -706,8 +782,8 @@ private fun ClipItem(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
-                .fillMaxWidth(0.78f)
-                .padding(start = 16.dp, bottom = 28.dp)
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 28.dp)
         ) {
             // Systematic Distance Picker Pills (When Nearby filter is active)
             if (isNearbyFilter && systematicOptions.isNotEmpty()) {
@@ -755,101 +831,127 @@ private fun ClipItem(
                 }
             }
 
-            // Proximity & Landmark Badge (Positioned directly above creator info to prevent obscuring top header controls)
+            // Proximity & Landmark Badge (Positioned directly above creator info)
             val distLabel = LocationHelper.formatDistanceLabel(clip.distanceKm)
-            Surface(
-                shape = RoundedCornerShape(100.dp),
-                color = Color.Black.copy(alpha = 0.65f),
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                modifier = Modifier
-                    .padding(bottom = 8.dp)
-                    .clickable(onClick = onUserProfileClick)
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+            
+            // Market Listing Status Pill
+            if (clip.isMarketListing) {
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = Color(0xFFF59E0B).copy(alpha = 0.28f),
+                    border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.85f)),
+                    modifier = Modifier
+                        .padding(bottom = 5.dp)
+                        .clickable { showSendToMarketDialog = true }
+                        .testTag("market_clip_status_pill_${clip.id}")
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = "${clip.landmark ?: clip.location ?: "Locality"} • $distLabel",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    if (clip.isNeighbor) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("🛍️", fontSize = 10.sp)
                         Text(
-                            text = "🏡 Neighbor",
+                            text = "Market Clip • $${clip.marketPriceUSD.toInt()} • Listed in Market",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = Color(0xFFFDE68A)
                         )
                     }
                 }
             }
 
-            
-            // Dual-Reach Overlay Indicator & Featured Gear
-            Row(
-                modifier = Modifier.padding(bottom = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = Color.Black.copy(alpha = 0.38f),
+                border = BorderStroke(0.8.dp, Color.White.copy(alpha = 0.2f)),
+                modifier = Modifier
+                    .padding(bottom = 6.dp)
+                    .clickable(onClick = onUserProfileClick)
             ) {
-                val isCitySeed = (clip.distanceKm ?: 99.0) <= 50.0
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = Color.Black.copy(alpha = 0.6f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = if (isCitySeed) "📍 City Seed" else "🌐 Earth Reach",
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isCitySeed) Color(0xFF00C853) else Color(0xFF2979FF),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(11.dp)
                     )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = Color.Black.copy(alpha = 0.6f),
-                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-                    modifier = Modifier.clickable { /* Open market */ }
-                ) {
                     Text(
-                        text = "🛍️ Featured Gear",
-                        fontSize = 9.sp,
+                        text = "${clip.landmark ?: clip.location ?: "Locality"} • $distLabel",
+                        fontSize = 10.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFFFB703),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        color = Color.White,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
-                
-                if ((clip.distanceKm ?: 99.0) <= 3.0) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = Color.Black.copy(alpha = 0.6f),
-                        border = BorderStroke(1.dp, Color(0xFFFF9800).copy(alpha = 0.5f))
-                    ) {
+                    if (clip.isNeighbor) {
                         Text(
-                            text = "🔊 Hyperlocal Audio",
-                            fontSize = 9.sp,
+                            text = "🏡 Neighbor",
+                            fontSize = 9.5.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFFF9800),
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
+                }
+            }
+
+            // PROMPT 2: GUARANTEED GEOCENTRIC DISTRIBUTION ENGINE BADGE
+            if (clip.isGeocentricGuaranteed || (clip.distanceKm ?: 999.0) <= 500.0) {
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = Color(0xFF10B981).copy(alpha = 0.28f),
+                    border = BorderStroke(0.8.dp, Color(0xFF10B981).copy(alpha = 0.65f)),
+                    modifier = Modifier.padding(bottom = 5.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text("⚡", fontSize = 10.sp)
+                        Text(
+                            text = "100% Geocentric Feed Delivery",
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF6EE7B7)
+                        )
+                    }
+                }
+            }
+
+            // PROMPT 6: PROOF-OF-PRESENCE CREATOR MONETIZATION BADGE
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = Color(0xFF6366F1).copy(alpha = 0.25f),
+                border = BorderStroke(0.8.dp, Color(0xFF818CF8).copy(alpha = 0.55f)),
+                modifier = Modifier.padding(bottom = 5.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text("💎", fontSize = 10.sp)
+                    Text(
+                        text = "Proof-of-Presence • +$0.15 / Local View",
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFC7D2FE)
+                    )
                 }
             }
 
             // Creator Row
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 6.dp)
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -859,30 +961,33 @@ private fun ClipItem(
                     contentDescription = clip.username,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(38.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
                         .clickable(onClick = onUserProfileClick)
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Text(
                     text = clip.username,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 13.5.sp
                     ),
                     color = Color.White,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.clickable(onClick = onUserProfileClick)
                 )
 
                 if (clip.isVerified) {
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(3.dp))
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Verified",
                         tint = EditorialVerified,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(13.dp)
                     )
                 }
 
@@ -892,60 +997,68 @@ private fun ClipItem(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(100.dp))
-                        .border(1.dp, Color.White.copy(alpha = 0.7f), RoundedCornerShape(100.dp))
-                        .background(if (clip.isFollowing) Color.Transparent else Color.White.copy(alpha = 0.2f))
+                        .border(0.8.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(100.dp))
+                        .background(if (clip.isFollowing) Color.Transparent else Color.White.copy(alpha = 0.18f))
                         .clickable(onClick = onFollowToggle)
-                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                        .padding(horizontal = 8.dp, vertical = 3.dp)
                         .testTag("clip_follow_button_${clip.id}")
                 ) {
                     Text(
                         text = if (clip.isFollowing) "Connected" else "Connect",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 11.sp,
+                            fontSize = 10.5.sp,
                             fontWeight = FontWeight.Bold
                         ),
-                        color = Color.White
+                        color = Color.White,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
 
             // Clip Caption with Location & Landmark Tag
             Text(
-                text = clip.caption + " ...more",
+                text = clip.caption,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp
+                    fontSize = 12.5.sp,
+                    lineHeight = 16.sp
                 ),
                 color = Color.White,
                 maxLines = 2,
+                softWrap = true,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .clickable { showCaptionsSheet = true }
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 6.dp)
             )
 
             // Music / Audio Ticker Row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black.copy(alpha = 0.4f))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = Color.Black.copy(alpha = 0.35f),
+                border = BorderStroke(0.8.dp, Color.White.copy(alpha = 0.2f)),
+                modifier = Modifier.clickable { showSoundtrackSheet = true }
             ) {
-                Icon(
-                    imageVector = Icons.Default.MusicNote,
-                    contentDescription = "Audio track",
-                    tint = Color.White,
-                    modifier = Modifier.size(13.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "${clip.soundTitle} • ${clip.soundArtist}",
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MusicNote,
+                        contentDescription = "Audio track",
+                        tint = Color.White,
+                        modifier = Modifier.size(11.dp)
+                    )
+                    Text(
+                        text = "${clip.soundTitle} • ${clip.soundArtist}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp),
+                        color = Color.White,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
 
@@ -1136,6 +1249,39 @@ private fun ClipItem(
             }
         )
     }
+
+    // Modal to convert/send this clip into Market Clips (Goods or Services)
+    if (showSendToMarketDialog) {
+        SendClipToMarketDialog(
+            clip = clip,
+            onDismiss = { showSendToMarketDialog = false },
+            onConfirm = { price, category, condition, hub, isService ->
+                showSendToMarketDialog = false
+                onConvertClipToMarket?.invoke(clip.id, price, category, condition, hub, isService)
+                showMarketSuccessSnackbar = true
+            }
+        )
+    }
+
+    if (showMarketSuccessSnackbar) {
+        LaunchedEffect(Unit) {
+            delay(2800)
+            showMarketSuccessSnackbar = false
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 24.dp, start = 16.dp, end = 16.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Snackbar(
+                containerColor = Color(0xFF10B981),
+                contentColor = Color.White
+            ) {
+                Text("✅ Clip sent to Market Clips! 🛍️ Visible in Market tab.", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
 }
 
 @Composable
@@ -1192,4 +1338,223 @@ private fun ClipActionButton(
             )
         }
     }
+}
+
+@Composable
+fun SendClipToMarketDialog(
+    clip: ClipEntity,
+    onDismiss: () -> Unit,
+    onConfirm: (price: Double, category: String, condition: String, hub: String, isService: Boolean) -> Unit
+) {
+    var isServices by remember { mutableStateOf(false) }
+    var priceText by remember { mutableStateOf(if (clip.marketPriceUSD > 0) "${clip.marketPriceUSD.toInt()}" else "45.00") }
+
+    val goodsCategories = listOf("Merchandise", "Electronics", "Mobile Phones", "Fashion & Apparel", "Home & Garden", "Vehicles", "Art & Craft")
+    val servicesCategories = listOf("Jobs & Services", "Tech Support", "Lessons & Tutoring", "Home & Handyman", "Beauty & Care", "Freelance Creative")
+
+    var selectedCategory by remember(isServices) {
+        mutableStateOf(if (isServices) servicesCategories.first() else goodsCategories.first())
+    }
+
+    val goodsConditions = listOf("Brand New", "Like New", "Gently Used", "Refurbished")
+    val servicesConditions = listOf("Hourly Rate", "Fixed Project", "In-Person Service", "Remote/Online")
+
+    var selectedCondition by remember(isServices) {
+        mutableStateOf(if (isServices) servicesConditions.first() else (clip.marketCondition.ifBlank { goodsConditions[1] }))
+    }
+
+    var selectedHub by remember {
+        mutableStateOf(clip.marketPickupSpot.ifBlank { "Civic Plaza Police Precinct (CCTV Zone)" })
+    }
+
+    val safeHubs = listOf(
+        "Civic Plaza Police Precinct (CCTV Zone)",
+        "Downtown Transit Hub Verified Safe Zone",
+        "Public Library Front Foyer (Monitored)",
+        "Seller Studio / Client On-Site Location"
+    )
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(if (isServices) "💼" else "🛍️", fontSize = 22.sp)
+                Column {
+                    Text(
+                        text = if (isServices) "Send Clip to Market Services" else "Send Clip to Market Goods",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = "Turn your uploaded clip into an active Market listing",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Type Selector: Goods vs Services
+                Text("Select Listing Type", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (!isServices) Color(0xFFF59E0B).copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                        border = BorderStroke(1.5.dp, if (!isServices) Color(0xFFF59E0B) else Color.Transparent),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                isServices = false
+                                selectedCategory = goodsCategories.first()
+                                selectedCondition = goodsConditions[1]
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("🛍️", fontSize = 20.sp)
+                            Text("Goods", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Physical products", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isServices) Color(0xFF2563EB).copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                        border = BorderStroke(1.5.dp, if (isServices) Color(0xFF2563EB) else Color.Transparent),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                isServices = true
+                                selectedCategory = servicesCategories.first()
+                                selectedCondition = servicesConditions.first()
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text("💼", fontSize = 20.sp)
+                            Text("Services", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("Skills & freelance", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+
+                // Price Input
+                OutlinedTextField(
+                    value = priceText,
+                    onValueChange = { priceText = it },
+                    label = { Text(if (isServices) "Service Fee / Rate ($ USD)" else "Listing Price ($ USD)") },
+                    leadingIcon = { Text("$", fontWeight = FontWeight.Bold) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Category Selector
+                Text(
+                    text = if (isServices) "Service Category" else "Goods Category",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val activeCategories = if (isServices) servicesCategories else goodsCategories
+                    activeCategories.forEach { cat ->
+                        FilterChip(
+                            selected = selectedCategory == cat,
+                            onClick = { selectedCategory = cat },
+                            label = { Text(cat, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                // Condition or Delivery Mode
+                Text(
+                    text = if (isServices) "Engagement / Delivery Mode" else "Item Condition",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val activeConditions = if (isServices) servicesConditions else goodsConditions
+                    activeConditions.forEach { cond ->
+                        FilterChip(
+                            selected = selectedCondition == cond,
+                            onClick = { selectedCondition = cond },
+                            label = { Text(cond, fontSize = 11.sp) }
+                        )
+                    }
+                }
+
+                // Safe-Haven Offline Exchange Hub / Location
+                Text(
+                    text = if (isServices) "Service Location / Hub" else "Safe-Haven Offline Exchange Hub",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    safeHubs.forEach { hub ->
+                        val isSelected = selectedHub == hub
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedHub = hub }
+                        ) {
+                            Text(
+                                text = "🛡️ $hub",
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val price = priceText.toDoubleOrNull() ?: 35.0
+                    onConfirm(price, selectedCategory, selectedCondition, selectedHub, isServices)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isServices) Color(0xFF2563EB) else Color(0xFFF59E0B)
+                )
+            ) {
+                Text(
+                    text = if (isServices) "Send to Market Services 🚀" else "Send to Market Goods 🚀",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }

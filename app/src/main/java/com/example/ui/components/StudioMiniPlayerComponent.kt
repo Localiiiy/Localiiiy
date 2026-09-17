@@ -104,7 +104,14 @@ fun StudioInlinePreviewPlayer(
                 when (state) {
                     Player.STATE_BUFFERING -> isBuffering = true
                     Player.STATE_READY -> isBuffering = false
-                    Player.STATE_ENDED -> isBuffering = false
+                    Player.STATE_ENDED -> {
+                        isBuffering = false
+                        com.example.util.HapticHelper.triggerHaptic(
+                            context,
+                            null,
+                            androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                        )
+                    }
                     Player.STATE_IDLE -> isBuffering = false
                 }
             }
@@ -455,6 +462,11 @@ fun StudioDockedMiniPlayer(
         val listener = object : Player.Listener {
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == Player.STATE_ENDED) {
+                    com.example.util.HapticHelper.triggerHaptic(
+                        context,
+                        null,
+                        androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                    )
                     exoPlayer.seekTo(0)
                     exoPlayer.play()
                 }

@@ -28,10 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.example.ui.theme.LocaliiiyAccentMint
+import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
+import com.example.util.LocalizationHelper
+import com.example.util.LocaliiiyStringKey
 
 @Composable
 fun LocaliiiyTopBar(
@@ -41,6 +46,8 @@ fun LocaliiiyTopBar(
     isLocationEnabled: Boolean = true,
     isPrivateAccount: Boolean = false,
     searchQuery: String = "",
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     onSearchQueryChange: (String) -> Unit = {},
     onLogoClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
@@ -136,6 +143,21 @@ fun LocaliiiyTopBar(
                             contentDescription = "Search",
                             tint = if (isSearchExpanded || searchQuery.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // Language & Currency Selector Quick Button
+                    IconButton(
+                        onClick = onLanguageCurrencyClick,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .testTag("top_bar_language_currency_button")
+                    ) {
+                        Text(
+                            text = currentLanguage.flag,
+                            fontSize = 16.sp
                         )
                     }
 
@@ -271,7 +293,12 @@ fun LocaliiiyTopBar(
                                 .height(46.dp)
                                 .testTag("global_search_bar"),
                             placeholder = {
-                                Text("Search neighborhood, studio & market...", fontSize = 12.5.sp)
+                                Text(
+                                    text = LocalizationHelper.getString(LocaliiiyStringKey.SEARCH_HINT, currentLanguage),
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
