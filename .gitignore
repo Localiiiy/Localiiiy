@@ -12,9 +12,9 @@
 .env
 debug.keystore
 
-# Force Include Assets and App Files
+# Force Include App Installer and Assets
 !assets/
-!Localiiiy_Installer.apk
+!Localiiiy.apk
 !manifest.json
 !sw.js
 !404.html

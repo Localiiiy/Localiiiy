@@ -1462,40 +1462,35 @@
 
   <!-- Ambient Light Backdrops -->
   <!-- Splash Screen -->
-  <div id="splashScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-base); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s;">
-    <div style="width: 140px; height: 140px; margin-bottom: 24px; animation: pulseGlow 2s infinite; position: relative;">
-      <!-- Futuristic Radar SVG -->
+  <div id="splashScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #020617; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s;">
+    <div style="width: 160px; height: 160px; margin-bottom: 24px; position: relative;">
       <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
         <defs>
-          <linearGradient id="cyberEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#10B981" />
-            <stop offset="100%" stop-color="#059669" />
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0F172A" />
+            <stop offset="50%" stop-color="#022C22" />
+            <stop offset="100%" stop-color="#0F172A" />
           </linearGradient>
-          <radialGradient id="cyberGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#10B981" stop-opacity="0.6" />
-            <stop offset="100%" stop-color="#10B981" stop-opacity="0" />
+          <radialGradient id="circleBg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#075985" />
+            <stop offset="100%" stop-color="#064E3B" />
           </radialGradient>
         </defs>
-        <!-- Glow Layer -->
-        <circle cx="256" cy="256" r="220" fill="url(#cyberGlow)" />
-        <!-- Main Rings -->
-        <circle cx="256" cy="256" r="180" fill="none" stroke="#10B981" stroke-width="2" stroke-opacity="0.3" />
-        <circle cx="256" cy="256" r="130" fill="none" stroke="#10B981" stroke-width="4" stroke-opacity="0.5" stroke-dasharray="10 10" />
-        <circle cx="256" cy="256" r="80" fill="none" stroke="#10B981" stroke-width="6" stroke-opacity="0.7" />
-        <!-- Dynamic Scan Line -->
-        <g style="transform-origin: center; animation: rotateScan 4s linear infinite;">
-          <line x1="256" y1="256" x2="256" y2="76" stroke="url(#cyberEmerald)" stroke-width="12" stroke-linecap="round" />
-          <path d="M256,76 A180,180 0 0,1 383,128" fill="none" stroke="#10B981" stroke-width="20" stroke-opacity="0.15" />
-        </g>
-        <!-- Core -->
-        <circle cx="256" cy="256" r="30" fill="#070A12" stroke="url(#cyberEmerald)" stroke-width="4" />
-        <circle cx="256" cy="256" r="12" fill="#FFFFFF" />
+        <!-- Background Circle -->
+        <circle cx="256" cy="256" r="230" fill="url(#circleBg)" />
+        <!-- Arcs -->
+        <path d="M150,220 Q120,180 170,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
+        <path d="M362,220 Q392,180 342,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
+        <!-- Main Pin -->
+        <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
+        <!-- Eye / Center Circle -->
+        <circle cx="256" cy="260" r="45" fill="#020617" />
+        <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
       </svg>
     </div>
-    <h1 style="font-size: 36px; font-weight: 900; color: #FFFFFF; letter-spacing: -1px; text-transform: lowercase;">localiiiy</h1>
-    <p style="margin-top: 8px; font-size: 13px; color: var(--accent-mint); font-weight: 700; letter-spacing: 4px; text-transform: uppercase;">Hyperlocal Radar</p>
-    <div style="margin-top: 40px; width: 80px; height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
-      <div style="width: 100%; height: 100%; background: var(--accent-mint); transform: translateX(-100%); animation: loadingProgress 1.5s ease-in-out infinite;"></div>
+    <h1 style="font-size: 38px; font-weight: 900; color: #FFFFFF; letter-spacing: -1.5px; margin: 0;">localiiiy</h1>
+    <div style="margin-top: 40px; width: 60px; height: 2px; background: rgba(45, 212, 191, 0.2); border-radius: 1px; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: #2DD4BF; transform: translateX(-100%); animation: loadingProgress 2s ease-in-out infinite;"></div>
     </div>
   </div>
 
@@ -1562,16 +1557,9 @@
     <div class="topbar-brand" onclick="switchDeck('pulse')">
       <div class="brand-radar-icon" style="background: none; box-shadow: none;">
         <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
-          <defs>
-            <linearGradient id="emeraldGradWeb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#34D399" /><stop offset="100%" stop-color="#059669" /></linearGradient>
-          </defs>
-          <circle cx="256" cy="256" r="180" fill="none" stroke="#10B981" stroke-width="12" stroke-opacity="0.2" />
-          <circle cx="256" cy="256" r="125" fill="none" stroke="#10B981" stroke-width="12" stroke-opacity="0.35" stroke-dasharray="20 20" />
-          <line x1="256" y1="256" x2="390" y2="122" stroke="#34D399" stroke-width="15" stroke-linecap="round" />
-          <circle cx="256" cy="256" r="35" fill="url(#emeraldGradWeb)" />
-          <circle cx="256" cy="256" r="15" fill="#FFFFFF" />
-          <circle cx="170" cy="180" r="12" fill="#10B981" />
-          <circle cx="350" cy="330" r="14" fill="#F59E0B" />
+          <circle cx="256" cy="256" r="230" fill="#075985" />
+          <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
+          <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
         </svg>
       </div>
       <div class="brand-title">Localiiiy</div>
@@ -2201,12 +2189,12 @@
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <!-- Mirror 1: Root File -->
-        <a href="./Localiiiy_Installer.apk" download="Localiiiy_Installer.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center;" onclick="triggerDownloadFeedback('Server 1')">
+        <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center;" onclick="triggerDownloadFeedback('Server 1')">
           ⚡ Direct Download (Primary Server)
         </a>
 
         <!-- Mirror 2: GitHub Raw Link (CDN) -->
-        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy_Installer.apk" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub CDN')">
+        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy.apk" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub CDN')">
           🐙 GitHub Mirror (Recommended)
         </a>
 
