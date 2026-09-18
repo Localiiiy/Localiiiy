@@ -2,10 +2,15 @@ package com.example.util
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.security.MessageDigest
+import java.security.SecureRandom
+import android.util.Base64
 
 object PasswordSecurityHelper {
     private const val PREFS_NAME = "Localiiiy_security_prefs"
-    private const val KEY_PASSWORD = "user_account_password"
+    private const val KEY_PASSWORD_HASH = "user_account_password_hash"
+    private const val KEY_PASSWORD_SALT = "user_account_password_salt"
+    private const val KEY_LEGACY_PASSWORD = "user_account_password"
     const val DEFAULT_PASSWORD = "Localiiiy@2026"
 
     data class PasswordRequirementStatus(
@@ -49,17 +54,50 @@ object PasswordSecurityHelper {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
-    fun getStoredPassword(context: Context): String {
-        return getPrefs(context).getString(KEY_PASSWORD, DEFAULT_PASSWORD) ?: DEFAULT_PASSWORD
+    private fun hashWithSalt(password: String, salt: ByteArray): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        md.update(salt)
+        val digest = md.digest(password.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(digest, Base64.NO_WRAP)
+    }
+
+    private fun generateSalt(): ByteArray {
+        val random = SecureRandom()
+        val salt = ByteArray(16)
+        random.nextBytes(salt)
+        return salt
     }
 
     fun savePassword(context: Context, newPassword: String) {
-        getPrefs(context).edit().putString(KEY_PASSWORD, newPassword).apply()
+        val salt = generateSalt()
+        val saltBase64 = Base64.encodeToString(salt, Base64.NO_WRAP)
+        val hash = hashWithSalt(newPassword, salt)
+        getPrefs(context).edit()
+            .putString(KEY_PASSWORD_HASH, hash)
+            .putString(KEY_PASSWORD_SALT, saltBase64)
+            .remove(KEY_LEGACY_PASSWORD) // Clean legacy plaintext
+            .apply()
     }
 
     fun verifyOldPassword(context: Context, enteredOldPassword: String): Boolean {
-        val current = getStoredPassword(context)
-        return enteredOldPassword == current
+        val prefs = getPrefs(context)
+        val storedHash = prefs.getString(KEY_PASSWORD_HASH, null)
+        val storedSaltBase64 = prefs.getString(KEY_PASSWORD_SALT, null)
+
+        if (storedHash != null && storedSaltBase64 != null) {
+            val salt = Base64.decode(storedSaltBase64, Base64.NO_WRAP)
+            val computedHash = hashWithSalt(enteredOldPassword, salt)
+            return computedHash == storedHash
+        }
+
+        // Check legacy unhashed or default fallback
+        val legacy = prefs.getString(KEY_LEGACY_PASSWORD, DEFAULT_PASSWORD) ?: DEFAULT_PASSWORD
+        val match = (enteredOldPassword == legacy)
+        if (match) {
+            // Auto-upgrade to secure salt & hash
+            savePassword(context, enteredOldPassword)
+        }
+        return match
     }
 
     fun changePassword(context: Context, oldPassword: String, newPassword: String): Pair<Boolean, String> {
@@ -74,6 +112,6 @@ object PasswordSecurityHelper {
             return Pair(false, "New password cannot be identical to the old password.")
         }
         savePassword(context, newPassword)
-        return Pair(true, "Password changed successfully! 🔐")
+        return Pair(true, "Password securely changed and encrypted! 🔐")
     }
 }

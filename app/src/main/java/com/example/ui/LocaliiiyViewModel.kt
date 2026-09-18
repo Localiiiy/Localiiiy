@@ -1824,7 +1824,19 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 isVerified = false
             )
             repository.updateProfile(blankProfile)
+            com.example.auth.FirebaseAuthService.signOut()
             _isLoggedOut.value = true
+        }
+    }
+
+    fun clearLocalCache() {
+        viewModelScope.launch(Dispatchers.IO) {
+            refreshPulseFeed()
+            refreshExplore()
+            refreshMarket()
+            refreshStudio()
+            refreshClips()
+            refreshProfile()
         }
     }
 

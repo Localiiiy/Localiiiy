@@ -70,22 +70,24 @@ abstract class AppDatabase : RoomDatabase() {
 
             suspend fun populateInitialData(dao: LocaliiiyDao) {
                 dao.insertOrUpdateProfile(InitialData.defaultProfile)
-                dao.insertStories(InitialData.starterStories)
-                dao.insertPosts(InitialData.starterPosts)
-                dao.insertClips(InitialData.starterClips)
-                dao.insertOtherUsers(InitialData.starterOtherUsers)
-                dao.insertComments(InitialData.starterComments)
-                dao.insertNotifications(InitialData.starterNotifications)
-                dao.insertConversations(InitialData.starterConversations)
-                dao.insertChatMessages(InitialData.starterChatMessages)
                 dao.insertOrUpdatePrivacySettings(InitialData.defaultPrivacySettings)
-                dao.insertMarketplaceItems(InitialData.starterMarketplaceItems)
-                dao.insertStudioVideos(InitialData.starterStudioVideos)
-                dao.insertUserActivities(InitialData.starterUserActivities)
-                dao.insertSavedPostsCache(InitialData.starterSavedPosts)
-                dao.insertStudioDrafts(InitialData.starterStudioDrafts)
-                dao.insertDrafts(InitialData.starterDraftClips)
-                dao.insertMerchantBounties(InitialData.starterMerchantBounties)
+                
+                // Demo data has been removed for production launch
+                // dao.insertStories(InitialData.starterStories)
+                // dao.insertPosts(InitialData.starterPosts)
+                // dao.insertClips(InitialData.starterClips)
+                // dao.insertOtherUsers(InitialData.starterOtherUsers)
+                // dao.insertComments(InitialData.starterComments)
+                // dao.insertNotifications(InitialData.starterNotifications)
+                // dao.insertConversations(InitialData.starterConversations)
+                // dao.insertChatMessages(InitialData.starterChatMessages)
+                // dao.insertMarketplaceItems(InitialData.starterMarketplaceItems)
+                // dao.insertStudioVideos(InitialData.starterStudioVideos)
+                // dao.insertUserActivities(InitialData.starterUserActivities)
+                // dao.insertSavedPostsCache(InitialData.starterSavedPosts)
+                // dao.insertStudioDrafts(InitialData.starterStudioDrafts)
+                // dao.insertDrafts(InitialData.starterDraftClips)
+                // dao.insertMerchantBounties(InitialData.starterMerchantBounties)
             }
         }
     }

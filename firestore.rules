@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isValidString(text, maxLen) {
+      return text is string && text.size() > 0 && text.size() <= maxLen;
+    }
+
+    // 1. User Profiles
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isOwner(userId)
+        && isValidString(request.resource.data.displayName, 50)
+        && (!request.resource.data.keys().hasAny(['isAdmin', 'isVerifiedBadge', 'walletBalance']));
+      allow delete: if isOwner(userId);
+    }
+
+    // 2. Hyperlocal Pulses & Short Video Clips
+    match /hyperlocal_updates/{pulseId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.authorUid == request.auth.uid
+        && isValidString(request.resource.data.content, 2000)
+        && request.resource.data.latitude is number
+        && request.resource.data.longitude is number;
+      allow update: if isAuthenticated()
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.authorUid == resource.data.authorUid;
+      allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // 3. Private Messaging (Strict Participant Gating)
+    match /direct_messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid || 
+        resource.data.receiverId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.senderId == request.auth.uid &&
+        isValidString(request.resource.data.text, 3000)
+      );
+      allow update, delete: if false; // Messages are immutable
+    }
+
+    // 4. Marketplace Listings
+    match /market_items/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.sellerUid == request.auth.uid
+        && request.resource.data.price is number
+        && request.resource.data.price >= 0
+        && isValidString(request.resource.data.title, 100);
+      allow update: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
+    }
+
+    // 5. Escrow Transactions
+    match /escrow_transactions/{txId} {
+      allow read: if isAuthenticated() && (
+        resource.data.buyerUid == request.auth.uid || 
+        resource.data.sellerUid == request.auth.uid
+      );
+      allow write: if false; // Mutated only by trusted server
+    }
+  }
+}

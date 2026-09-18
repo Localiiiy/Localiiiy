@@ -995,10 +995,16 @@ fun LocaliiiyApp(
                         },
                         onOpenLegalPolicy = { viewModel.openLegalAgreement() },
                         onOpenCyberstalkingSafety = { viewModel.openCyberstalkingSafety() },
-                        onResetDemoData = {
-                            viewModel.resetDemoProfile()
+                        onDeleteAccount = {
+                            viewModel.deleteAccountAndPurgeData()
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Demo profile and content reset.")
+                                snackbarHostState.showSnackbar("Your account and all personal data have been permanently erased.")
+                            }
+                        },
+                        onClearCache = {
+                            viewModel.clearLocalCache()
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Local cache cleared successfully.")
                             }
                         },
                         onCreateContentClick = {

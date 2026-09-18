@@ -1032,6 +1032,15 @@
   </style>
 </head>
 <body>
+  <!-- Direct Android APK Download Banner -->
+  <div style="background: linear-gradient(90deg, #00838F, #00B4D8); padding: 14px 20px; text-align: center; color: white; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; position: relative;">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <span>📱 <strong>Localiiiy Android App Ready!</strong></span>
+      <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" style="background: #ffffff; color: #00838F; padding: 10px 22px; border-radius: 9999px; text-decoration: none; font-weight: 800; font-size: 15px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.25);">
+        ⬇️ Download APK (Direct)
+      </a>
+    </div>
+  </div>
 
   <!-- Ambient background elements -->
   <div class="ambient-bg"></div>
@@ -1067,7 +1076,7 @@
           Install App
         </button>
 
-        <a href="app-debug.apk" download class="btn btn-outline" style="border-color: rgba(255,255,255,0.15);">
+        <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn btn-outline" style="border-color: rgba(255,255,255,0.15);">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9.67l1.42 1.42L11 6.83V16h2V6.83l4.25 4.25 1.42-1.42L12 2z" transform="rotate(180 12 12)"/></svg>
           APK
         </a>
@@ -1100,7 +1109,7 @@
             <span id="pwaHeroInstallText">Install App (PWA)</span>
           </button>
 
-          <a href="app-debug.apk" download class="btn btn-outline" style="padding: 14px 24px; font-size: 15px;">
+          <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn btn-outline" style="padding: 14px 24px; font-size: 15px;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
             Download APK (v1.0)
           </a>
@@ -1108,6 +1117,19 @@
           <a href="#radar" class="btn" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border-subtle); padding: 14px 20px; font-size: 15px;">
             <span>🧭 Live Radar</span>
           </a>
+        </div>
+
+        <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: 14px; font-weight: 500;">
+            <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; display: flex; align-items: center; gap: 6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.3414c-.5511 0-1.002.4508-1.002 1.002s.4509 1.002 1.002 1.002c.5511 0 1.002-.4508 1.002-1.002s-.4509-1.002-1.002-1.002zm-11.046 0c-.5511 0-1.002.4508-1.002 1.002s.4509 1.002 1.002 1.002c.5511 0 1.002-.4508 1.002-1.002s-.4509-1.002-1.002-1.002zM21 13H3V6c0-1.1046.8954-2 2-2h14c1.1046 0 2 .8954 2 2v7z"/></svg>
+              <span>Soon on Google Play Store</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px; display: flex; align-items: center; gap: 6px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.1 2.48-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.31-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.89 1.22-2.14 1.08-3.38-1.06.04-2.34.71-3.1 1.6-.68.79-1.28 2.06-1.12 3.26 1.18.09 2.39-.59 3.14-1.48z"/></svg>
+              <span>Soon on Apple App Store</span>
+            </div>
+          </div>
         </div>
 
         <div class="hero-stats">
@@ -1529,7 +1551,7 @@
             </li>
           </ul>
 
-          <a href="app-debug.apk" download class="btn btn-outline" style="width: 100%;">
+          <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn btn-outline" style="width: 100%;">
             Get Started Free
           </a>
         </div>
@@ -1566,7 +1588,7 @@
             </li>
           </ul>
 
-          <a href="app-debug.apk" download class="btn btn-primary" style="width: 100%;">
+          <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn btn-primary" style="width: 100%;">
             Upgrade in App
           </a>
         </div>
@@ -1585,7 +1607,7 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
           <span id="pwaBannerInstallText">Install Web App (PWA)</span>
         </button>
-        <a href="app-debug.apk" download class="btn" style="background: rgba(0,0,0,0.25); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 14px 24px; font-weight: 600;">
+        <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn" style="background: rgba(0,0,0,0.25); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 14px 24px; font-weight: 600;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9.67l1.42 1.42L11 6.83V16h2V6.83l4.25 4.25 1.42-1.42L12 2z" transform="rotate(180 12 12)"/></svg>
           Direct APK Download (39 MB)
         </a>
@@ -1623,10 +1645,11 @@
       <div class="footer-col">
         <h5>Trust & Safety</h5>
         <ul>
+          <li><a href="./privacy.html">Privacy Policy</a></li>
+          <li><a href="./delete-account.html">Delete Account & Data</a></li>
           <li><a href="#market">Safe-Haven Guidelines</a></li>
           <li><a href="#radar">Master Ghost Privacy</a></li>
           <li><a href="#">UGC Content Policy</a></li>
-          <li><a href="#">Community Standards</a></li>
         </ul>
       </div>
 
@@ -1635,7 +1658,7 @@
         <ul>
           <li><a href="mailto:pradeepchandrazzwarr@gmail.com">pradeepchandrazzwarr@gmail.com</a></li>
           <li><a href="https://ais-dev-4dr4uba5q4ohbxd3nqa7pf-906260591053.asia-southeast1.run.app" target="_blank">Dev Cloud Console</a></li>
-          <li><a href="app-debug.apk" download>Download APK</a></li>
+          <li><a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank">Download APK</a></li>
         </ul>
       </div>
     </div>
@@ -1703,13 +1726,7 @@
     let isGhostMode = false;
     let sweepAngle = 0;
 
-    let blips = [
-      { x: 0.25, y: -0.35, label: "Maya (Ceramics)", type: "user", dist: 0.4 },
-      { x: -0.45, y: -0.2, label: "Marcus (Connected)", type: "user", dist: 1.2 },
-      { x: 0.6, y: 0.4, label: "Vintage Camera ($85)", type: "market", dist: 2.1 },
-      { x: -0.3, y: 0.65, label: "Bike Repair Service ($35)", type: "market", dist: 3.4 },
-      { x: 0.1, y: 0.8, label: "Elena (Connected)", type: "user", dist: 4.2 }
-    ];
+    let blips = [];
 
     function updateRadius(val) {
       radarRadius = parseFloat(val);

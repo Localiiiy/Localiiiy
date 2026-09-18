@@ -83,8 +83,8 @@ fun AuthScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var confirmPasswordError by remember { mutableStateOf<String?>(null) }
-    var neighborhood by remember { mutableStateOf("Capitol Hill, Seattle") }
-    var phoneNumber by remember { mutableStateOf("+1 (206) 555-0192") }
+    var neighborhood by remember { mutableStateOf("") }
+    var phoneNumber by remember { mutableStateOf("") }
     var phoneNumberError by remember { mutableStateOf<String?>(null) }
     var isEmailVerified by remember { mutableStateOf(false) }
     var emailOtpInput by remember { mutableStateOf("") }
@@ -96,7 +96,7 @@ fun AuthScreen(
     var isSendingPhoneOtp by remember { mutableStateOf(false) }
     var showPhoneOtpField by remember { mutableStateOf(false) }
 
-    var dobString by remember { mutableStateOf("15/06/2000") }
+    var dobString by remember { mutableStateOf("") }
     var showInNeighborhood by remember { mutableStateOf(true) }
     var acceptedNDA by remember { mutableStateOf(false) }
     var acceptedLawDisclosure by remember { mutableStateOf(false) }
@@ -1485,61 +1485,6 @@ fun AuthScreen(
                                 fontSize = 15.sp
                             )
                         }
-                    }
-
-                    // Quick Demo / Testing Shortcut Button
-                    OutlinedButton(
-                        onClick = {
-                            email = "alex.rivera@Localiiiy.app"
-                            password = PasswordSecurityHelper.DEFAULT_PASSWORD
-                            if (currentMode == AuthScreenMode.REGISTER) {
-                                fullName = "Alex Rivera"
-                                username = "alex_creative"
-                                confirmPassword = PasswordSecurityHelper.DEFAULT_PASSWORD
-                            }
-                            coroutineScope.launch {
-                                isLoading = true
-                                val result = FirebaseAuthService.signInWithEmail(
-                                    "alex.rivera@Localiiiy.app",
-                                    PasswordSecurityHelper.DEFAULT_PASSWORD
-                                )
-                                isLoading = false
-                                when (result) {
-                                    is AuthResult.Success -> {
-                                        onAuthSuccess(result.user, "alex_creative", "Alex Rivera", "Pike Place Market, Seattle")
-                                    }
-                                    is AuthResult.Error -> {
-                                        // Demo auto-fallback
-                                        val mockUser = AuthUserState(
-                                            uid = "demo_alex_1",
-                                            email = "alex.rivera@Localiiiy.app",
-                                            displayName = "Alex Rivera"
-                                        )
-                                        onAuthSuccess(mockUser, "alex_creative", "Alex Rivera", "Pike Place Market, Seattle")
-                                    }
-                                }
-                            }
-                        },
-                        shape = RoundedCornerShape(100.dp),
-                        border = BorderStroke(1.dp, LocaliiiyAccentMint.copy(alpha = 0.5f)),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(46.dp)
-                            .testTag("auth_demo_quick_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Bolt,
-                            contentDescription = null,
-                            tint = LocaliiiyAccentMint,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "⚡ Quick Demo Creator (@alex_creative)",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
                     }
                 }
             }

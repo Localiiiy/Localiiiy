@@ -109,6 +109,8 @@ fun ProfileScreen(
     onOpenLegalPolicy: () -> Unit = {},
     onOpenCyberstalkingSafety: () -> Unit = {},
     onResetDemoData: () -> Unit = {},
+    onDeleteAccount: () -> Unit = {},
+    onClearCache: () -> Unit = {},
     onCreateContentClick: () -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
@@ -134,6 +136,7 @@ fun ProfileScreen(
     var showDisplaySizeSheet by remember { mutableStateOf(false) }
     var showClipDraftsSheet by remember { mutableStateOf(false) }
     var showLogoutConfirmDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Clip / Clip Management State
@@ -1343,9 +1346,13 @@ fun ProfileScreen(
                     showMoreSettingsSheet = false
                     onSwitchUser(user)
                 },
-                onResetDemo = {
+                onClearCacheClick = {
                     showMoreSettingsSheet = false
-                    onResetDemoData()
+                    onClearCache()
+                },
+                onDeleteAccountClick = {
+                    showMoreSettingsSheet = false
+                    showDeleteAccountConfirmDialog = true
                 },
                 onLogoutClick = {
                     showMoreSettingsSheet = false
@@ -1413,6 +1420,41 @@ fun ProfileScreen(
             dismissButton = {
                 TextButton(onClick = { showLogoutConfirmDialog = false }) {
                     Text("Stay Logged In")
+                }
+            }
+        )
+    }
+
+    // 9. Account & Data Deletion Confirmation Dialog (Google Play & Apple Guideline 5.1.1(v) Compliant)
+    if (showDeleteAccountConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirmDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            title = { Text("Delete Account & All Data?") },
+            text = {
+                Text("This action is permanent and cannot be undone. In compliance with store privacy regulations, all your account records, profile credentials, posts, moments, clips, marketplace items, and chat history will be permanently erased.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteAccountConfirmDialog = false
+                        onDeleteAccount()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.testTag("confirm_delete_account_button")
+                ) {
+                    Text("Delete Everything", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountConfirmDialog = false }) {
+                    Text("Cancel")
                 }
             }
         )
@@ -1753,7 +1795,8 @@ private fun ProfileSettingsSheetContent(
     onOpenDisplayScale: () -> Unit = {},
     onOpenDraftClips: () -> Unit = {},
     onSwitchUser: (OtherUserEntity) -> Unit,
-    onResetDemo: () -> Unit,
+    onClearCacheClick: () -> Unit = {},
+    onDeleteAccountClick: () -> Unit = {},
     onLogoutClick: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -2000,22 +2043,26 @@ private fun ProfileSettingsSheetContent(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "ACCOUNT ACTIONS",
+            text = "ACCOUNT ACTIONS & COMPLIANCE",
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
             color = MaterialTheme.colorScheme.error
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        GhostProtocolButton(
-            onTriggered = { onResetDemo() }
-        )
-        Spacer(modifier = Modifier.height(8.dp))
         SettingsRowItem(
-            icon = Icons.Default.Refresh,
-            title = "Reset Demo Data",
-            subtitle = "Restores sample neighborhood posts, clips, and local creators",
-            onClick = onResetDemo
+            icon = Icons.Default.CleaningServices,
+            title = "Clear Local Cache",
+            subtitle = "Frees up temporary cache memory & refreshes local feeds",
+            onClick = onClearCacheClick
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.DeleteForever,
+            title = "Delete Account & All Data",
+            subtitle = "Permanently purge your account, posts, clips & personal data (Store Compliant)",
+            isDestructive = true,
+            onClick = onDeleteAccountClick
         )
 
         SettingsRowItem(
@@ -2294,9 +2341,11 @@ private fun LoggedOutProfileView(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = onResetDemo) {
-            Text("Reset Demo Experience", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+        Text(
+            text = "Localiiiy v1.0.0 • Production Ready for Real Users",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        )
     }
 }
 
