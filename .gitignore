@@ -18,4 +18,6 @@ local.properties
 debug.keystore
 !DOWNLOAD_THIS_APK/
 !DOWNLOAD_THIS_APK/*.apk
+!Localiiiy.apk
+!*.apk
 
