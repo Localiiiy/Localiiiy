@@ -907,6 +907,39 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin: 12px 16px;
+    }
+
+    .market-subtabs-row {
+      display: flex;
+      gap: 20px;
+      padding: 12px 16px 8px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+    }
+    .subtab-item {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      padding-bottom: 6px;
+    }
+    .subtab-item.active {
+      color: var(--text-primary);
+    }
+    .subtab-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2.5px;
+      background: var(--accent-mint);
+      border-radius: 2px;
+      box-shadow: 0 0 10px var(--accent-mint);
     }
     .market-grid {
       display: grid;
@@ -1723,14 +1756,30 @@
     <div id="view-market" class="screen-view">
       <div class="market-screen-content">
 
-        <!-- Categories horizontal bar -->
+        <!-- Market Sub-tabs (Android Parity) -->
+        <div class="market-subtabs-row">
+          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">Goods</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">Services</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'posts')">Wanted</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'clips')">Video Shops</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">Watchlist</div>
+        </div>
+
+        <!-- Categories horizontal bar (Expanded Android List) -->
         <div class="market-categories-row">
-          <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All Items</div>
+          <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
           <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
-          <div class="category-chip" onclick="filterCategory(this, 'tech')">📱 Electronics</div>
-          <div class="category-chip" onclick="filterCategory(this, 'services')">🛠️ Services</div>
-          <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Farm & Food</div>
-          <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art & Crafts</div>
+          <div class="category-chip" onclick="filterCategory(this, 'bikes')">🚲 Bikes</div>
+          <div class="category-chip" onclick="filterCategory(this, 'lands')">🏞️ Lands</div>
+          <div class="category-chip" onclick="filterCategory(this, 'mobiles')">📱 Mobiles</div>
+          <div class="category-chip" onclick="filterCategory(this, 'tech')">💻 Tech</div>
+          <div class="category-chip" onclick="filterCategory(this, 'jobs')">💼 Jobs</div>
+          <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Furniture</div>
+          <div class="category-chip" onclick="filterCategory(this, 'fashion')">👕 Fashion</div>
+          <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Food</div>
+          <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
+          <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books</div>
+          <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets</div>
         </div>
 
         <div class="market-banner">
@@ -1933,6 +1982,22 @@
           </div>
           <span>➔</span>
         </div>
+
+        <!-- NEW: Session Management -->
+        <div class="neighbor-card" style="cursor: pointer; border-color: rgba(239, 68, 68, 0.2); margin-top: 12px;" onclick="logoutUser()">
+          <div style="color: #F87171;">
+            <div style="font-weight: 700; font-size: 14px;">Sign Out</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Switch to another neighborhood account</div>
+          </div>
+          <span style="color: #F87171;">➔</span>
+        </div>
+
+        <div class="neighbor-card" style="cursor: pointer; margin-top: 24px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3);" onclick="clearAllAppData()">
+          <div style="color: #F87171;">
+            <div style="font-weight: 700; font-size: 14px;">Danger Zone: Reset Web Data</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Wipe all local users and post data for testing</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1999,20 +2064,25 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Mirror 1: Direct File -->
-        <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth" style="text-decoration: none; text-align: center; display: block;" onclick="triggerDownloadFeedback('Server 1')">
-          ⚡ Direct Download (Server 1)
+        <!-- Mirror 1: Root File -->
+        <a href="/Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth" style="text-decoration: none; text-align: center; display: block;" onclick="triggerDownloadFeedback('Server 1')">
+          ⚡ Direct Download (Primary)
         </a>
 
-        <!-- Mirror 2: Subfolder Backup -->
-        <a href="./DOWNLOAD_THIS_APK/Localiiiy.apk" download="Localiiiy.apk" class="btn-mirror-apk" style="justify-content: center; padding: 12px; font-size: 13px;" onclick="triggerDownloadFeedback('Server 2')">
-          📦 Direct Download (Backup Server 2)
+        <!-- Mirror 2: GitHub Raw Link (Inferred from project context) -->
+        <a href="https://github.com/Localiiiy/Localiiiy-App/raw/main/Localiiiy.apk" target="_blank" class="btn-mirror-apk" style="justify-content: center; padding: 12px; font-size: 13px;" onclick="triggerDownloadFeedback('GitHub')">
+          🐙 GitHub Mirror (Recommended for Reliability)
         </a>
 
         <!-- Mirror 3: Google Drive High-Speed Cloud -->
         <a href="https://drive.google.com/file/d/1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0/view?usp=sharing" target="_blank" class="btn-mirror-apk" style="justify-content: center; padding: 12px; font-size: 13px;">
           ☁️ Google Drive Cloud Mirror (Fastest)
         </a>
+      </div>
+
+      <div style="margin-top: 16px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px;">
+        <strong>Trouble downloading?</strong><br>
+        If the download fails, try long-pressing the button and selecting "Download link". If you see a "Dangerous file" warning, this is normal for APKs; tap "Download anyway".
       </div>
     </div>
   </div>
@@ -2217,15 +2287,34 @@
 
   <!-- JAVASCRIPT APP STATE & FUNCTIONALITY -->
   <script>
+    // Robust Multi-User & Content Simulation System
     let activeDeckTab = 'pulse';
     let isGhostMode = false;
-    let currentUser = JSON.parse(localStorage.getItem('localiiiy_user') || 'null');
+    
+    // Core Data Structures in LocalStorage
+    let users = JSON.parse(localStorage.getItem('localiiiy_all_users') || '[]');
+    let currentUser = JSON.parse(localStorage.getItem('localiiiy_active_user') || 'null');
+    let posts = JSON.parse(localStorage.getItem('localiiiy_local_posts') || '[]');
     let creationType = 'post';
 
     window.addEventListener('DOMContentLoaded', () => {
+      // If first time, seed some demo users
+      if (users.length === 0) {
+        users.push({
+          fullName: 'Pradeep Chandra',
+          username: '@pradeep_local',
+          neighborhood: 'Pike Place, Seattle',
+          email: 'pradeep@example.com',
+          password: 'password',
+          connections: 142
+        });
+        localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      }
+
       if (currentUser) {
         updateUserUI(currentUser);
       }
+      renderPostsFromDb();
     });
 
     // Deck navigation
@@ -2286,6 +2375,12 @@
       document.querySelectorAll('.feed-chips-bar .filter-chip').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       showToast(`Filter applied: ${chip.textContent.trim()} 📍`);
+    }
+
+    function setMarketSubTab(item, tab) {
+      document.querySelectorAll('.market-subtabs-row .subtab-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      showToast(`Market Sub-tab: ${item.textContent.trim()} 🏪`);
     }
 
     function votePoll(btn, text) {
@@ -2375,50 +2470,91 @@
     function handleRegister(e) {
       e.preventDefault();
       const fullName = document.getElementById('regFullName').value;
-      const username = document.getElementById('regUsername').value;
+      const usernameRaw = document.getElementById('regUsername').value;
+      const username = usernameRaw.startsWith('@') ? usernameRaw : `@${usernameRaw}`;
       const neighborhood = document.getElementById('regNeighborhood').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
 
-      const user = {
+      // Check if user exists
+      if (users.find(u => u.email === email || u.username === username)) {
+        showToast('Account already exists! Try signing in.');
+        return;
+      }
+
+      const newUser = {
         fullName: fullName,
-        username: username.startsWith('@') ? username : `@${username}`,
+        username: username,
         neighborhood: neighborhood,
+        email: email,
+        password: password,
         connections: 1
       };
-      localStorage.setItem('localiiiy_user', JSON.stringify(user));
-      currentUser = user;
-      updateUserUI(user);
+
+      users.push(newUser);
+      localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      
+      currentUser = newUser;
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(newUser));
+      
+      updateUserUI(newUser);
       closeAuthModal();
-      showToast(`Welcome to Localiiiy, ${fullName}! 🚀`);
+      showToast(`Welcome to Localiiiy, ${fullName}! 🚀 Account created.`);
     }
 
     function handleLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const user = {
-        fullName: email.split('@')[0],
-        username: `@${email.split('@')[0]}`,
-        neighborhood: 'Pike Place, Seattle',
-        connections: 128
-      };
-      localStorage.setItem('localiiiy_user', JSON.stringify(user));
-      currentUser = user;
-      updateUserUI(user);
-      closeAuthModal();
-      showToast(`Welcome back, ${user.fullName}! 👋`);
+      const identifier = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+
+      const user = users.find(u => (u.email === identifier || u.username === identifier) && u.password === pass);
+
+      if (user) {
+        currentUser = user;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
+        updateUserUI(user);
+        closeAuthModal();
+        showToast(`Welcome back, ${user.fullName}! 👋 Logged in.`);
+      } else {
+        showToast('Invalid credentials. Check your email/password.');
+      }
     }
 
     function demoQuickLogin() {
-      const user = {
-        fullName: 'Pradeep Chandra',
-        username: '@pradeep_local',
-        neighborhood: 'Pike Place, Seattle',
-        connections: 142
-      };
-      localStorage.setItem('localiiiy_user', JSON.stringify(user));
-      currentUser = user;
-      updateUserUI(user);
-      closeAuthModal();
-      showToast('Logged in as Pradeep Chandra! 👑');
+      const pradeep = users.find(u => u.username === '@pradeep_local');
+      if (pradeep) {
+        currentUser = pradeep;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(pradeep));
+        updateUserUI(pradeep);
+        closeAuthModal();
+        showToast('Logged in as Pradeep Chandra! 👑');
+      } else {
+        // Fallback if seeded data was wiped
+        const user = {
+          fullName: 'Pradeep Chandra',
+          username: '@pradeep_local',
+          neighborhood: 'Pike Place, Seattle',
+          connections: 142
+        };
+        currentUser = user;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
+        updateUserUI(user);
+        closeAuthModal();
+        showToast('Logged in as Demo Pradeep! 👑');
+      }
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      localStorage.removeItem('localiiiy_active_user');
+      window.location.reload();
+    }
+
+    function clearAllAppData() {
+      if (confirm('Clear all local user data and reset the app?')) {
+        localStorage.clear();
+        window.location.reload();
+      }
     }
 
     function updateUserUI(user) {
@@ -2426,10 +2562,22 @@
       document.getElementById('profileDisplayName').textContent = user.fullName;
       document.getElementById('profileDisplayHandle').textContent = `${user.username} • ${user.neighborhood}`;
       document.getElementById('profileConnectionsCount').textContent = user.connections || 128;
+      document.getElementById('deckAvatarThumb').textContent = user.fullName.charAt(0);
+      document.getElementById('profileDisplayAvatar').textContent = user.fullName.charAt(0);
+      
+      // Update header button to show profile link if logged in
+      const authBtn = document.getElementById('headerAuthBtn');
+      authBtn.onclick = () => switchDeck('profile');
     }
 
     // Content creation (+)
     function openCreationModal(type) {
+      if (!currentUser) {
+        showToast('Please sign in to publish content! 👤');
+        openAuthModal('login');
+        return;
+      }
+
       creationType = type;
       const title = document.getElementById('creationModalTitle');
       const icon = document.getElementById('creationIcon');
@@ -2458,35 +2606,61 @@
       e.preventDefault();
       const text = document.getElementById('createPostText').value;
       const reach = document.getElementById('createReachSelect').value;
+      const price = document.getElementById('createPrice').value;
 
-      const newCard = document.createElement('div');
-      newCard.className = 'post-card';
-      newCard.innerHTML = `
-        <div class="post-header">
-          <div class="post-author">
-            <div class="author-avatar">👤</div>
-            <div class="author-meta">
-              <h4>${currentUser ? currentUser.fullName : 'You'} <span class="reach-pill reach-neighbor">${reach}</span></h4>
-              <p>Just now • Local Radar</p>
-            </div>
-          </div>
-          <button class="btn-connect-user" onclick="toggleConnect(this, 'You')">You</button>
-        </div>
-        <div class="post-body">${text}</div>
-        <div class="post-footer">
-          <div class="post-actions-left">
-            <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">1</span></button>
-            <button class="btn-post-action" onclick="openCommentsModal('Your post', [])">💬 0</button>
-          </div>
-        </div>
-      `;
+      const newPost = {
+        id: Date.now(),
+        author: currentUser.fullName,
+        username: currentUser.username,
+        text: text,
+        reach: reach,
+        price: price,
+        type: creationType,
+        timestamp: 'Just now'
+      };
 
-      const stream = document.getElementById('postsStreamContainer');
-      stream.insertBefore(newCard, stream.firstChild);
-
+      posts.unshift(newPost);
+      localStorage.setItem('localiiiy_local_posts', JSON.stringify(posts));
+      
+      renderPostsFromDb();
       closeCreationModal();
       document.getElementById('createPostText').value = '';
       showToast('Published to Live Localiiiy Radar! 🚀');
+    }
+
+    function renderPostsFromDb() {
+      const container = document.getElementById('postsStreamContainer');
+      // Clear current "user posts" (first ones) but keep hardcoded demo ones for flavor
+      // Or just clear all and rebuild. Let's keep demo ones.
+      
+      // Remove old dynamic posts
+      document.querySelectorAll('.dynamic-post').forEach(p => p.remove());
+
+      posts.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'post-card dynamic-post';
+        card.innerHTML = `
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">${p.author.charAt(0)}</div>
+              <div class="author-meta">
+                <h4>${p.author} <span class="reach-pill reach-neighbor">${p.reach}</span></h4>
+                <p>${p.timestamp} • Local Radar</p>
+              </div>
+            </div>
+            <button class="btn-connect-user" onclick="toggleConnect(this, '${p.author}')">Connect</button>
+          </div>
+          <div class="post-body">${p.text}</div>
+          ${p.price ? `<div style="padding: 0 16px 12px; color: var(--accent-amber); font-weight: 800;">Price: $${p.price}</div>` : ''}
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">0</span></button>
+              <button class="btn-post-action" onclick="openCommentsModal('${p.author}', [])">💬 0</button>
+            </div>
+          </div>
+        `;
+        container.insertBefore(card, container.firstChild);
+      });
     }
 
     // Comments Modal
@@ -2583,7 +2757,14 @@
       currentUser = currentUser || {};
       currentUser.fullName = name;
       currentUser.neighborhood = neigh;
-      localStorage.setItem('localiiiy_user', JSON.stringify(currentUser));
+      
+      // Update in users list too
+      const uIdx = users.findIndex(u => u.email === currentUser.email);
+      if (uIdx !== -1) users[uIdx] = currentUser;
+      
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+      localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      
       updateUserUI(currentUser);
       closeEditProfileModal();
       showToast('Profile updated! ✨');
