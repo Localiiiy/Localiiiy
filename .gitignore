@@ -16,3 +16,6 @@
 local.properties
 .env
 debug.keystore
+!DOWNLOAD_THIS_APK/
+!DOWNLOAD_THIS_APK/*.apk
+
