@@ -1,23 +1,21 @@
+# Localiiiy Project Ignores
 *.iml
 .gradle
 .kotlin
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea/
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 .env
 debug.keystore
-!DOWNLOAD_THIS_APK/
-!DOWNLOAD_THIS_APK/*.apk
-!Localiiiy.apk
-!*.apk
 
+# Force Include Assets and App Files
+!assets/
+!Localiiiy_Installer.apk
+!manifest.json
+!sw.js
+!404.html
+!metadata.json
