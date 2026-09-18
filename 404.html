@@ -284,9 +284,38 @@
       display: block;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Material Ripple Simulation */
+    .ripple-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple-effect::after {
+      content: "";
+      background: rgba(255, 255, 255, 0.2);
+      display: block;
+      position: absolute;
+      border-radius: 50%;
+      padding-top: 240%;
+      padding-left: 240%;
+      margin-left: -120%;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.6s;
+    }
+    .ripple-effect:active::after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .screen-view.active {
+      display: block;
+      animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
     /* ========================================================
@@ -1432,6 +1461,38 @@
 <body data-theme="default">
 
   <!-- Ambient Light Backdrops -->
+  <!-- Splash Screen -->
+  <div id="splashScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-base); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s;">
+    <div class="brand-radar-icon" style="width: 80px; height: 80px; font-size: 40px; margin-bottom: 20px; animation: pulseGlow 2s infinite;">📡</div>
+    <h1 style="font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #FFFFFF, #10B981); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Localiiiy</h1>
+    <div style="margin-top: 30px; width: 40px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 1px; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: var(--accent-mint); transform: translateX(-100%); animation: loadingProgress 1.5s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 20px var(--accent-mint-glow); transform: scale(1); }
+      50% { box-shadow: 0 0 40px var(--accent-mint-glow); transform: scale(1.05); }
+      100% { box-shadow: 0 0 20px var(--accent-mint-glow); transform: scale(1); }
+    }
+    @keyframes loadingProgress {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(0); }
+      100% { transform: translateX(100%); }
+    }
+  </style>
+
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.visibility = 'hidden', 500);
+      }, 1500);
+    });
+  </script>
+
   <div class="ambient-bg"></div>
 
   <!-- Toast Element -->
@@ -1458,7 +1519,20 @@
   <!-- TOP APPBAR (MATCHING JETPACK COMPOSE LOCALIIIY TOP BAR) -->
   <header class="app-topbar">
     <div class="topbar-brand" onclick="switchDeck('pulse')">
-      <div class="brand-radar-icon">📡</div>
+      <div class="brand-radar-icon" style="background: none; box-shadow: none;">
+        <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
+          <defs>
+            <linearGradient id="emeraldGradWeb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#34D399" /><stop offset="100%" stop-color="#059669" /></linearGradient>
+            <radialGradient id="radarGlowWeb" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#10B981" stop-opacity="0.4" /><stop offset="100%" stop-color="#10B981" stop-opacity="0" /></radialGradient>
+          </defs>
+          <circle cx="256" cy="256" r="200" fill="url(#radarGlowWeb)" />
+          <circle cx="256" cy="256" r="180" fill="none" stroke="#10B981" stroke-width="12" stroke-opacity="0.2" />
+          <circle cx="256" cy="256" r="125" fill="none" stroke="#10B981" stroke-width="12" stroke-opacity="0.35" stroke-dasharray="20 20" />
+          <line x1="256" y1="256" x2="390" y2="122" stroke="#34D399" stroke-width="15" stroke-linecap="round" />
+          <circle cx="256" cy="256" r="35" fill="url(#emeraldGradWeb)" />
+          <circle cx="256" cy="256" r="15" fill="#FFFFFF" />
+        </svg>
+      </div>
       <div class="brand-title">Localiiiy</div>
     </div>
 
@@ -1760,8 +1834,8 @@
         <div class="market-subtabs-row">
           <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">Goods</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">Services</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'posts')">Wanted</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'clips')">Video Shops</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'wanted')">Wanted</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'video')">Video Shops</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">Watchlist</div>
         </div>
 
@@ -1780,6 +1854,8 @@
           <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
           <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books</div>
           <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets</div>
+          <div class="category-chip" onclick="filterCategory(this, 'crypto')">₿ Crypto</div>
+          <div class="category-chip" onclick="filterCategory(this, 'wellness')">🧘 Wellness</div>
         </div>
 
         <div class="market-banner">
@@ -1794,53 +1870,53 @@
 
         <div class="market-grid" id="marketGridContainer">
           <!-- Item 1 -->
-          <div class="market-card">
+          <div class="market-card ripple-effect">
             <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80" alt="Item">
             <div class="market-info">
               <div class="market-price">$120</div>
               <h4 style="font-size: 13px; font-weight: 700;">Vintage 35mm Film Camera</h4>
               <p style="font-size: 11px; color: var(--text-muted);">0.8 km • Mint Condition</p>
-              <button class="btn-buy-handshake" onclick="openEscrowModal('Vintage 35mm Camera', '$120')">
-                Request Handshake
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('120')">
+                Request Handshake 🤝
               </button>
             </div>
           </div>
 
           <!-- Item 2 -->
-          <div class="market-card">
+          <div class="market-card ripple-effect">
             <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80" alt="Item">
             <div class="market-info">
               <div class="market-price">$12 / loaf</div>
               <h4 style="font-size: 13px; font-weight: 700;">Artisan Sourdough Loaves</h4>
               <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Maya's Bakehouse</p>
-              <button class="btn-buy-handshake" onclick="openEscrowModal('Artisan Sourdough', '$12')">
-                Request Handshake
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('12')">
+                Request Handshake 🤝
               </button>
             </div>
           </div>
 
           <!-- Item 3 -->
-          <div class="market-card">
+          <div class="market-card ripple-effect">
             <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80" alt="Bicycle">
             <div class="market-info">
               <div class="market-price">$45 / hr</div>
               <h4 style="font-size: 13px; font-weight: 700;">Bicycle Tune-up & Safety Check</h4>
               <p style="font-size: 11px; color: var(--text-muted);">1.1 km • Devon's Mobile Shop</p>
-              <button class="btn-buy-handshake" onclick="openEscrowModal('Bicycle Tune-up', '$45')">
-                Request Service
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('45')">
+                Request Service 🤝
               </button>
             </div>
           </div>
 
           <!-- Item 4 -->
-          <div class="market-card">
+          <div class="market-card ripple-effect">
             <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
             <div class="market-info">
               <div class="market-price">$38</div>
               <h4 style="font-size: 13px; font-weight: 700;">Hand-thrown Ceramic Mug Set</h4>
               <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
-              <button class="btn-buy-handshake" onclick="openEscrowModal('Ceramic Mug Set', '$38')">
-                Request Handshake
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('38')">
+                Request Handshake 🤝
               </button>
             </div>
           </div>
@@ -1906,11 +1982,24 @@
          ======================================================== -->
     <div id="view-studio" class="screen-view">
       <div class="studio-screen-content">
+        <!-- Studio Categories (Matched with Android StudioScreen.kt) -->
+        <div class="market-categories-row" style="padding: 12px 16px 6px;">
+          <div class="category-chip active" onclick="filterCategory(this, 'all')">All Content</div>
+          <div class="category-chip" onclick="filterCategory(this, 'music')">Music</div>
+          <div class="category-chip" onclick="filterCategory(this, 'news')">News</div>
+          <div class="category-chip" onclick="filterCategory(this, 'tech')">Tech</div>
+          <div class="category-chip" onclick="filterCategory(this, 'lifestyle')">Lifestyle</div>
+          <div class="category-chip" onclick="filterCategory(this, 'podcasts')">Podcasts</div>
+          <div class="category-chip" onclick="filterCategory(this, 'documentaries')">Docs</div>
+          <div class="category-chip" onclick="filterCategory(this, 'gaming')">Gaming</div>
+          <div class="category-chip" onclick="filterCategory(this, 'culture')">Culture</div>
+        </div>
+
         <div class="studio-card-hero">
           <span style="font-size: 11px; font-weight: 800; color: #C084FC; text-transform: uppercase;">Creator Monetization & Tips</span>
           <div style="font-size: 32px; font-weight: 800; color: #FFFFFF;">$142.50</div>
           <p style="font-size: 12px; color: #D1D5DB;">Earned from Super Thanks tips & local goods handshake commissions.</p>
-          <button class="btn-submit-auth" style="margin-top: 6px;" onclick="showToast('Instant cashout dispatched to safe wallet! 💸')">
+          <button class="btn-submit-auth ripple-effect" style="margin-top: 6px;" onclick="showToast('Instant cashout dispatched to safe wallet! 💸')">
             Cash Out to Local Bank
           </button>
         </div>
@@ -2065,24 +2154,26 @@
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <!-- Mirror 1: Root File -->
-        <a href="/Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth" style="text-decoration: none; text-align: center; display: block;" onclick="triggerDownloadFeedback('Server 1')">
-          ⚡ Direct Download (Primary)
+        <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center;" onclick="triggerDownloadFeedback('Server 1')">
+          ⚡ Direct Download (Primary Server)
         </a>
 
-        <!-- Mirror 2: GitHub Raw Link (Inferred from project context) -->
-        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy.apk" target="_blank" class="btn-mirror-apk" style="justify-content: center; padding: 12px; font-size: 13px;" onclick="triggerDownloadFeedback('GitHub')">
-          🐙 GitHub Mirror (Recommended for Reliability)
+        <!-- Mirror 2: GitHub Raw Link (CDN) -->
+        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy.apk" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub CDN')">
+          🐙 GitHub Mirror (Recommended)
         </a>
 
-        <!-- Mirror 3: Google Drive High-Speed Cloud -->
-        <a href="https://drive.google.com/file/d/1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0/view?usp=sharing" target="_blank" class="btn-mirror-apk" style="justify-content: center; padding: 12px; font-size: 13px;">
-          ☁️ Google Drive Cloud Mirror (Fastest)
+        <!-- Mirror 3: External Storage Fallback -->
+        <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Cloud Mirror')">
+          ☁️ High-Speed Cloud Mirror
         </a>
       </div>
 
-      <div style="margin-top: 16px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px;">
+      <div style="margin-top: 16px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px; line-height: 1.4;">
         <strong>Trouble downloading?</strong><br>
-        If the download fails, try long-pressing the button and selecting "Download link". If you see a "Dangerous file" warning, this is normal for APKs; tap "Download anyway".
+        1. If the download doesn't start, long-press/right-click the button and select "Download link".<br>
+        2. If you see a "Harmful file" warning, this is normal for external APKs. Tap "Download anyway".<br>
+        3. Make sure you are using a mobile browser (Chrome/Edge) for the best install experience.
       </div>
     </div>
   </div>
@@ -2319,6 +2410,7 @@
 
     // Deck navigation
     function switchDeck(tabName) {
+      if (window.navigator.vibrate) window.navigator.vibrate(5);
       activeDeckTab = tabName;
 
       document.querySelectorAll('.deck-pill-btn').forEach(btn => btn.classList.remove('active'));
@@ -2381,6 +2473,19 @@
       document.querySelectorAll('.market-subtabs-row .subtab-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       showToast(`Market Sub-tab: ${item.textContent.trim()} 🏪`);
+    }
+
+    function initiateHandshake(price) {
+      if (!currentUser) {
+        showToast('Please sign in to initiate a Safe-Haven Handshake! 👤');
+        openAuthModal('login');
+        return;
+      }
+      const code = Math.floor(100000 + Math.random() * 900000);
+      showToast(`Handshake Initiated! Escrow Secure 🔒`);
+      setTimeout(() => {
+        alert(`Safe-Haven Handshake Established!\n\nOTP Code: ${code}\nLocation: Nearest Police Precinct (Green Zone)\nPrice: $${price}\n\nShow this code to the seller at the precinct to release funds.`);
+      }, 500);
     }
 
     function votePoll(btn, text) {
