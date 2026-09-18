@@ -1,13 +1,15 @@
 // Localiiiy Service Worker v1.0.0
 const CACHE_NAME = 'localiiiy-cache-v1';
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png',
-  '/assets/icon-maskable-192.png',
-  '/assets/icon-maskable-512.png',
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/icon-maskable-192.png',
+  './assets/icon-maskable-512.png',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
 ];
 
@@ -66,7 +68,7 @@ self.addEventListener('fetch', (event) => {
             if (cachedResponse) {
               return cachedResponse;
             }
-            return caches.match('/index.html');
+            return caches.match('./index.html');
           });
         })
     );
