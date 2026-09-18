@@ -1,1 +1,0 @@
-sed -i 's/fun PulseFeedComponent(/fun PulseFeedComponent(\n    posts: List<PostEntity>,\n    reels: List<com.example.data.ReelEntity> = emptyList(),\n    studioVideos: List<com.example.data.StudioVideoEntity> = emptyList(),/' app/src/main/java/com/example/ui/components/PulseFeedComponent.kt

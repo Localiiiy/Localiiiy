@@ -1,1 +1,0 @@
-            ExploreViewMode.GRID -> {
