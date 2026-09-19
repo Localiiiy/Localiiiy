@@ -1472,20 +1472,20 @@
             <stop offset="100%" stop-color="#0F172A" />
           </linearGradient>
           <radialGradient id="circleBg" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#075985" />
-            <stop offset="100%" stop-color="#064E3B" />
+            <stop offset="0%" stop-color="#0E7490" />
+            <stop offset="100%" stop-color="#0F172A" />
           </radialGradient>
         </defs>
-        <!-- Background Circle -->
+        <!-- Background Circle with Gradient -->
         <circle cx="256" cy="256" r="230" fill="url(#circleBg)" />
-        <!-- Arcs -->
-        <path d="M150,220 Q120,180 170,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
-        <path d="M362,220 Q392,180 342,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
-        <!-- Main Pin -->
-        <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
-        <!-- Eye / Center Circle -->
-        <circle cx="256" cy="260" r="45" fill="#020617" />
-        <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
+        <!-- Stylized Arcs (Radio Waves) -->
+        <path d="M140,230 Q100,170 170,140" fill="none" stroke="#2DD4BF" stroke-width="22" stroke-linecap="round" stroke-opacity="0.9" />
+        <path d="M372,230 Q412,170 342,140" fill="none" stroke="#2DD4BF" stroke-width="22" stroke-linecap="round" stroke-opacity="0.9" />
+        <!-- Main Location Pin -->
+        <path d="M256,100 C170,100 110,170 110,260 C110,350 256,460 256,460 C256,460 402,350 402,260 C402,170 342,100 256,100 Z" fill="#FFFFFF" />
+        <!-- Teal Eye Center -->
+        <circle cx="256" cy="260" r="48" fill="#0F172A" />
+        <circle cx="256" cy="260" r="24" fill="#14B8A6" />
       </svg>
     </div>
     <h1 style="font-size: 38px; font-weight: 900; color: #FFFFFF; letter-spacing: -1.5px; margin: 0;">localiiiy</h1>
@@ -1604,11 +1604,23 @@
          VIEW 1: PULSE (FEED SCREEN)
          ======================================================== -->
     <div id="view-pulse" class="screen-view active">
+      <!-- Hyperlocal Discovery Filter Header -->
+      <div style="padding: 12px 16px 4px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 800; color: var(--accent-mint);">Pulse Feed</h2>
+          <p style="font-size: 11px; color: var(--text-muted);" id="pulseStatusLabel">Showing all neighborhood pulses</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div class="icon-action-btn" onclick="toggleStrictChronological()" id="btn-chronological" title="Zero-Algorithm Feed">🕒</div>
+          <div class="icon-action-btn" onclick="toggleDataSaver()" id="btn-datasaver" title="Smart Data Saver">📶</div>
+        </div>
+      </div>
+
       <!-- Tactile Tri-Dial Blast Radius Lens (Neighbor / City / Earth) -->
       <div class="tactile-tri-dial-lens">
-        <button class="dial-lens-btn active" onclick="setTriDial(this, 'neighbor')">🏡 Neighbor (5km)</button>
-        <button class="dial-lens-btn" onclick="setTriDial(this, 'city')">🏙️ City (50km)</button>
-        <button class="dial-lens-btn" onclick="setTriDial(this, 'earth')">🌍 Earth (Global)</button>
+        <button class="dial-lens-btn active" onclick="setTriDial(this, 'NEIGHBOR')">🏡 Neighbor (5km)</button>
+        <button class="dial-lens-btn" onclick="setTriDial(this, 'CITY')">🏙️ City (50km)</button>
+        <button class="dial-lens-btn" onclick="setTriDial(this, 'EARTH')">🌍 Earth (Global)</button>
       </div>
 
       <!-- Stories Tray -->
@@ -2125,6 +2137,13 @@
       </div>
     </div>
 
+    <!-- Ghost Mode Floating Watermark Pill (Android Parity) -->
+    <div id="ghostWatermark" style="position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); padding: 6px 16px; border-radius: var(--radius-full); z-index: 100; display: none; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+      <span style="font-size: 14px;">👻</span>
+      <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.5px; color: #FFFFFF;">GHOST MODE ACTIVE</span>
+      <button onclick="document.getElementById('ghostWatermark').style.display='none'" style="background: none; border: none; color: #FFFFFF; font-size: 14px; margin-left: 4px; cursor: pointer;">✕</button>
+    </div>
+
   </main>
 
   <!-- ========================================================
@@ -2190,17 +2209,17 @@
       <div style="display: flex; flex-direction: column; gap: 10px;">
         <!-- Mirror 1: Root File -->
         <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center;" onclick="triggerDownloadFeedback('Server 1')">
-          ⚡ Direct Download (Primary Server)
+          ⚡ Direct Download (.apk)
         </a>
 
-        <!-- Mirror 2: GitHub Raw Link (CDN) -->
-        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy.apk" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub CDN')">
-          🐙 GitHub Mirror (Recommended)
+        <!-- Mirror 2: Compressed Package -->
+        <a href="./Localiiiy_Package.tar.gz" download="Localiiiy_Package.tar.gz" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Compressed Package')">
+          📦 Download Package (.tar.gz)
         </a>
 
         <!-- Mirror 3: External Storage Fallback -->
         <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Cloud Mirror')">
-          ☁️ High-Speed Cloud Mirror
+          ☁️ Direct Google Drive Mirror
         </a>
       </div>
 
