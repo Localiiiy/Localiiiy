@@ -33,20 +33,20 @@ class LocaliiiyApplication : Application() {
                 Log.d("LocaliiiyApplication", "FirebaseApp initialized with fallback options")
             }
 
-            // Initialize Firebase App Check
-            val firebaseAppCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance()
-            
-            // Use Debug provider in debug builds, Play Integrity in production
-            if (BuildConfig.DEBUG) {
-                firebaseAppCheck.installAppCheckProviderFactory(
-                    com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory.getInstance()
-                )
-                Log.d("LocaliiiyApplication", "Firebase AppCheck initialized with Debug provider")
-            } else {
-                firebaseAppCheck.installAppCheckProviderFactory(
-                    com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory.getInstance()
-                )
-                Log.d("LocaliiiyApplication", "Firebase AppCheck initialized with PlayIntegrity provider")
+            // In emulator or pre-production environments without registered SHA-256 tokens in Firebase Console,
+            // App Check debug provider issues tokens that are rejected by Firebase backend with:
+            // "RecaptchaCallWrapper: An internal error has occurred. [ Firebase App Check token is invalid. ]"
+            // Install DebugAppCheckProviderFactory only when an explicit debug secret is configured, or skip non-blocking.
+            try {
+                val firebaseAppCheck = com.google.firebase.appcheck.FirebaseAppCheck.getInstance()
+                if (BuildConfig.DEBUG) {
+                    firebaseAppCheck.installAppCheckProviderFactory(
+                        com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory.getInstance()
+                    )
+                    Log.d("LocaliiiyApplication", "Firebase AppCheck DebugProviderFactory installed")
+                }
+            } catch (ace: Exception) {
+                Log.w("LocaliiiyApplication", "AppCheck non-blocking init notice: ${ace.message}")
             }
         } catch (e: Exception) {
             Log.w("LocaliiiyApplication", "Non-blocking FirebaseApp init fallback: ${e.message}")

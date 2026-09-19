@@ -80,19 +80,6 @@
                     android:host="clip" />
             </intent-filter>
         </activity>
-        <activity-alias 
-            android:name=".DecoyActivity" 
-            android:enabled="false" 
-            android:exported="true" 
-            android:icon="@mipmap/ic_launcher" 
-            android:label="Calculator" 
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity-alias>
-
         <!-- Favorite Proximity Background Service (Monitors 5KM proximity for favorite creators/sellers) -->
         <service
             android:name=".service.FavoriteProximityService"

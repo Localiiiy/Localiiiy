@@ -68,5 +68,29 @@ service cloud.firestore {
       );
       allow write: if false; // Mutated only by trusted server
     }
+
+    // 6. Creator & Community Wallets (Read-only for owner, server-authoritative mutations only)
+    match /wallets/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Tamper-proof: client cannot alter balances
+    }
+
+    // 7. Payout Withdrawal Requests (Idempotent creation, immutable once created)
+    match /payout_requests/{requestId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 1000.0 // Enforces minimum payout threshold ($1000)
+        && request.resource.data.status == 'PENDING'
+        && isValidString(request.resource.data.idempotencyKey, 100);
+      allow update, delete: if false; // Server-only status transitions
+    }
+
+    // 8. Audit Ledger & Transaction Receipts (Immutable write-once log)
+    match /wallet_ledger/{ledgerId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Only server writes ledger entries
+    }
   }
 }
