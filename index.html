@@ -1541,14 +1541,14 @@
       <span><strong>Localiiiy Android APK (Official Build)</strong> • 37 MB</span>
     </div>
     <div class="apk-btn-group">
-      <!-- One-click Download Helper Modal -->
-      <button class="btn-download-apk" onclick="openDownloadModal()">
-        ⬇️ Download APK
-      </button>
-      <!-- Direct Cloud Mirror -->
-      <a href="https://drive.google.com/file/d/1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0/view?usp=sharing" target="_blank" class="btn-mirror-apk">
-        ☁️ Google Drive
+      <!-- Direct Fast Download Button -->
+      <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-download-apk" style="text-decoration: none; display: inline-flex; align-items: center;">
+        ⬇️ Direct APK
       </a>
+      <!-- One-click Download Helper Modal -->
+      <button class="btn-mirror-apk" onclick="openDownloadModal()">
+        ⚙️ More Mirrors
+      </button>
     </div>
   </div>
 
@@ -2188,9 +2188,14 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Verified High-Speed APK Direct Link -->
+        <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 14px;" onclick="triggerDownloadFeedback('High-Speed Cloud Mirror')">
+          ⚡ Download Localiiiy APK (High-Speed Mirror)
+        </a>
+
         <!-- Mirror 0: GitHub Releases Official APK -->
-        <a href="https://github.com/Localiiiy/Localiiiy/releases" target="_blank" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px;" onclick="triggerDownloadFeedback('GitHub Releases')">
-          🚀 Download from GitHub Releases (.apk)
+        <a href="https://github.com/Localiiiy/Localiiiy/releases" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub Releases')">
+          🚀 GitHub Releases
         </a>
 
         <!-- Mirror 1: Root File -->
