@@ -1,5 +1,5 @@
-// Localiiiy Service Worker v1.0.0
-const CACHE_NAME = 'localiiiy-cache-v1';
+// Localiiiy Service Worker v1.0.1
+const CACHE_NAME = 'localiiiy-cache-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -49,6 +49,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url);
+
+  // Exclude APK files and downloads from service worker intercept
+  if (url.pathname.endsWith('.apk') || url.pathname.includes('/downloads/')) {
+    return;
+  }
 
   // For HTML documents / navigation: Network-first, fallback to cache
   if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {

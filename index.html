@@ -1812,17 +1812,17 @@
   <div class="apk-alert-banner">
     <div class="left-info">
       <span>📱</span>
-      <span><strong>Localiiiy Android APK (v1.2.0 Stable)</strong> • 38.5 MB</span>
+      <span><strong>Localiiiy Android APK (v1.1 Stable)</strong> • 40 MB</span>
     </div>
     <div class="apk-btn-group">
-      <!-- Direct Fast Download Button -->
+      <!-- Option 1: Direct Fast Download Button -->
       <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-download-apk" style="text-decoration: none; display: inline-flex; align-items: center;" onclick="triggerDownloadFeedback('Direct APK')">
-        ⬇️ Direct APK
+        ⬇️ Direct APK (40 MB)
       </a>
-      <!-- One-click Download Helper Modal -->
-      <button class="btn-mirror-apk" onclick="openDownloadModal()">
-        ⚙️ More Mirrors
-      </button>
+      <!-- Option 2: Google Drive APK Link -->
+      <a href="https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="btn-mirror-apk" style="text-decoration: none; display: inline-flex; align-items: center; background: rgba(59, 130, 246, 0.25); border-color: #60A5FA;">
+        📁 Google Drive APK
+      </a>
     </div>
   </div>
 
@@ -1884,8 +1884,8 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
           <div>
             <div class="apk-badge-tag">OFFICIAL PRODUCTION APK</div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 4px 0 2px;">Localiiiy Android v1.2.0 Stable</h3>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Size: 38.5 MB • SHA-256: 52041ee5... • Android 8.0+</p>
+            <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 4px 0 2px;">Localiiiy Android v1.1 Stable</h3>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Size: 40 MB • Build Verified Clean • Android 8.0+</p>
           </div>
           <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--accent-mint); white-space: nowrap;">
             Verified Clean
@@ -1893,11 +1893,13 @@
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-          <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-hero-download" onclick="triggerDownloadFeedback('Direct Root')">
-            ⬇️ Download Localiiiy.apk
+          <!-- Option 1: Direct APK Download -->
+          <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-hero-download" onclick="triggerDownloadFeedback('Direct APK')">
+            ⬇️ Download Localiiiy.apk (40 MB)
           </a>
-          <a href="./downloads/Localiiiy.apk" download="Localiiiy.apk" class="btn-hero-secondary" onclick="triggerDownloadFeedback('Distribution Mirror')">
-            ⚡ Mirror Link
+          <!-- Option 2: Google Drive APK Link -->
+          <a href="https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="btn-hero-secondary" style="background: rgba(59, 130, 246, 0.2); border-color: #60A5FA; color: #93C5FD;">
+            📁 Download via Google Drive
           </a>
           <button class="btn-hero-secondary" onclick="openDownloadModal()">
             📖 Install Guide
@@ -2475,7 +2477,14 @@
 
     <!-- Radar -->
     <button class="deck-pill-btn" onclick="switchDeck('radar')" id="tab-radar">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+      <svg viewBox="0 0 24 24">
+        <!-- Radar concentric rings and scanning sweep line -->
+        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-opacity="0.8"/>
+        <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+        <line x1="12" y1="12" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="16" cy="8" r="1.2" fill="currentColor"/>
+      </svg>
       <span>Radar</span>
     </button>
 
@@ -2511,37 +2520,27 @@
       <div style="text-align: center;">
         <div style="font-size: 38px;">📱</div>
         <h3 style="font-size: 20px; font-weight: 800; margin-top: 6px;">Download Localiiiy APK</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • 37 MB • Verified Clean</p>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • 40 MB • Build Verified Clean</p>
       </div>
 
       <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 14px; margin: 16px 0; font-size: 13px; line-height: 1.6;">
         <strong>How to install on your Android phone:</strong>
         <ol style="margin-left: 18px; margin-top: 6px; font-size: 12px; color: #CBD5E1;">
-          <li>Tap a download button below.</li>
+          <li>Tap one of the 2 download options below.</li>
           <li>If Chrome says <em>"File might be harmful"</em>, tap <strong>"Download anyway"</strong> (standard Android prompt for external APKs).</li>
           <li>Once finished, open your notification or Files app and tap <strong>Localiiiy.apk</strong> to install!</li>
         </ol>
       </div>
 
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Verified Direct Local APK Download -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <!-- Option 1: Verified Direct Local APK Download -->
         <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 14px;" onclick="triggerDownloadFeedback('Direct Web Server')">
-          ⚡ Download Localiiiy APK (Direct 38.5 MB)
+          ⚡ Option 1: Direct APK Download (40 MB)
         </a>
 
-        <!-- Mirror 1: Distribution Folder -->
-        <a href="./downloads/Localiiiy.apk" download="Localiiiy.apk" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Distribution Mirror')">
-          📦 Static Distribution Mirror (Localiiiy.apk)
-        </a>
-
-        <!-- Mirror 2: GitHub Releases Official APK -->
-        <a href="https://github.com/Localiiiy/Localiiiy/releases" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub Releases')">
-          🚀 GitHub Releases (Official Repo)
-        </a>
-
-        <!-- Mirror 3: High-Speed Cloud Fallback -->
-        <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('High-Speed Cloud Mirror')">
-          ☁️ High-Speed Cloud Mirror
+        <!-- Option 2: Google Drive APK Download -->
+        <a href="https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 14px; font-size: 14px; display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.18); border-color: #3B82F6; color: #93C5FD;" onclick="triggerDownloadFeedback('Google Drive APK')">
+          📁 Option 2: Download via Google Drive (APK)
         </a>
       </div>
 
