@@ -1434,6 +1434,162 @@
       margin-top: 8px;
     }
 
+    /* Mandatory Fullscreen Auth Gate */
+    #mandatoryAuthGate {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #020617;
+      z-index: 9998;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding: 24px 16px 40px;
+      transition: opacity 0.4s ease, visibility 0.4s;
+    }
+    #mandatoryAuthGate.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .auth-gate-box {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      margin: auto 0;
+    }
+    .category-selection-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .category-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .category-card.selected {
+      border-color: var(--accent-mint);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .category-card .cat-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .category-card .cat-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.2;
+    }
+
+    /* Hero APK Download Card & Store Announcement */
+    .apk-hero-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 165, 233, 0.08) 100%);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .apk-badge-tag {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--accent-mint);
+      text-transform: uppercase;
+    }
+    .btn-hero-download {
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      color: #032417;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px var(--accent-mint-glow);
+    }
+    .btn-hero-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: #E2E8F0;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-full);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .store-badges-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .store-badge-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .store-badge-card:hover {
+      border-color: var(--accent-mint);
+    }
+    .store-badge-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .store-badge-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .store-sub {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .store-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #FFFFFF;
+    }
+    .store-notify-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
     /* Live Toast Notification */
     #liveToast {
       position: fixed;
@@ -1534,15 +1690,133 @@
   <!-- Toast Element -->
   <div id="liveToast">Notification</div>
 
+  <!-- ========================================================
+       MANDATORY AUTHENTICATION & ONBOARDING GATE
+       (Enforces systematic registration & login before app entry)
+       ======================================================== -->
+  <div id="mandatoryAuthGate">
+    <div class="auth-gate-box">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 64px; height: 64px; margin: 0 auto 12px;">
+          <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
+            <circle cx="256" cy="256" r="230" fill="#075985" />
+            <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
+            <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
+          </svg>
+        </div>
+        <h2 style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; margin: 0; color: #FFFFFF;">localiiiy</h2>
+        <p style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Hyperlocal Social Network • Real Radar & Secure Community</p>
+      </div>
+
+      <!-- Auth Mode Switcher -->
+      <div class="auth-tab-switch" style="margin-bottom: 20px;">
+        <button class="auth-tab-btn active" id="gateTabLogin" onclick="switchGateTab('login')">Sign In</button>
+        <button class="auth-tab-btn" id="gateTabRegister" onclick="switchGateTab('register')">Create Account</button>
+      </div>
+
+      <!-- Gate Form: Sign In -->
+      <form class="auth-form" id="gateLoginForm" onsubmit="handleGateLogin(event)">
+        <div class="form-field">
+          <label>Email or Username</label>
+          <input type="text" class="form-input" id="gateLoginEmail" placeholder="e.g. alex_creative or name@mail.com" required>
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" class="form-input" id="gateLoginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit-auth">Sign In to Radar 🚀</button>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 14px; text-align: center;">
+          <button type="button" style="background: none; border: none; color: var(--accent-mint); font-size: 13px; font-weight: 700; cursor: pointer;" onclick="gateInstantDemoLogin()">
+            ⚡ Instant Review Login (Alex Rivera)
+          </button>
+          <span style="font-size: 11px; color: var(--text-muted);">
+            Need an account? <a href="javascript:void(0)" onclick="switchGateTab('register')" style="color: var(--accent-cyan); font-weight: 700; text-decoration: none;">Register below</a>
+          </span>
+        </div>
+      </form>
+
+      <!-- Gate Form: Systematic Registration -->
+      <form class="auth-form" id="gateRegisterForm" style="display: none;" onsubmit="handleGateRegister(event)">
+        <!-- Step 1: Identity & Credentials -->
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" class="form-input" id="gateRegFullName" placeholder="e.g. Pradeep Chandra" required>
+        </div>
+
+        <div class="form-field">
+          <label>Choose Handle / Username</label>
+          <input type="text" class="form-input" id="gateRegUsername" placeholder="@your_handle" required>
+        </div>
+
+        <!-- Step 2: Accurate Location & Neighborhood -->
+        <div class="form-field">
+          <label>Accurate Neighborhood / City Landmark</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="gateRegNeighborhood" placeholder="e.g. Pike Place or Local District" style="flex: 1;" required>
+            <button type="button" class="btn-hero-secondary" style="padding: 0 12px; font-size: 12px; white-space: nowrap;" onclick="autoDetectGateLocation()" title="Detect accurate GPS coordinates">
+              📍 Auto GPS
+            </button>
+          </div>
+          <span id="gateGpsStatus" style="font-size: 10px; color: var(--accent-mint); min-height: 14px;"></span>
+        </div>
+
+        <div class="form-field">
+          <label>Email Address</label>
+          <input type="email" class="form-input" id="gateRegEmail" placeholder="name@domain.com" required>
+        </div>
+
+        <div class="form-field">
+          <label>Create Password</label>
+          <input type="password" class="form-input" id="gateRegPassword" placeholder="Minimum 6 characters" required>
+        </div>
+
+        <!-- Step 3: Creator Monetization & Participation Category -->
+        <div class="form-field">
+          <label>Choose How You Participate & Earn</label>
+          <input type="hidden" id="gateRegCategory" value="Local Creator">
+          <div class="category-selection-grid">
+            <div class="category-card selected" onclick="selectCategory(this, 'Local Creator')">
+              <span class="cat-title">🎨 Local Creator</span>
+              <span class="cat-sub">Clips, tips & creator fund</span>
+            </div>
+            <div class="category-card" onclick="selectCategory(this, 'Artisan / Merchant')">
+              <span class="cat-title">🛍️ Local Merchant</span>
+              <span class="cat-sub">Marketplace & Safe Escrow</span>
+            </div>
+            <div class="category-card" onclick="selectCategory(this, 'Community Neighbor')">
+              <span class="cat-title">🏡 Neighbor</span>
+              <span class="cat-sub">Proximity radar & news</span>
+            </div>
+            <div class="category-card" onclick="selectCategory(this, 'Local Host / Services')">
+              <span class="cat-title">🛎️ Service Host</span>
+              <span class="cat-sub">Local bounties & bookings</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Community Agreement -->
+        <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 6px;">
+          <input type="checkbox" id="gateRegTerms" required style="margin-top: 3px; accent-color: var(--accent-mint);">
+          <label for="gateRegTerms" style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+            I agree to Community Safety Guidelines, Safe-Haven Handshake Protocols & Zero-Knowledge Architecture.
+          </label>
+        </div>
+
+        <button type="submit" class="btn-submit-auth">Complete Registration & Launch 🚀</button>
+      </form>
+    </div>
+  </div>
+
   <!-- TOP STICKY APK DOWNLOAD BAR -->
   <div class="apk-alert-banner">
     <div class="left-info">
       <span>📱</span>
-      <span><strong>Localiiiy Android APK (Official Build)</strong> • 37 MB</span>
+      <span><strong>Localiiiy Android APK (v1.2.0 Stable)</strong> • 38.5 MB</span>
     </div>
     <div class="apk-btn-group">
       <!-- Direct Fast Download Button -->
-      <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-download-apk" style="text-decoration: none; display: inline-flex; align-items: center;">
+      <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-download-apk" style="text-decoration: none; display: inline-flex; align-items: center;" onclick="triggerDownloadFeedback('Direct APK')">
         ⬇️ Direct APK
       </a>
       <!-- One-click Download Helper Modal -->
@@ -1566,9 +1840,9 @@
     </div>
 
     <!-- Clickable Live GPS Location Chip -->
-    <div class="topbar-location" onclick="triggerGpsDetection()">
+    <div class="topbar-location" onclick="openLocationPickerModal()" title="Click to detect or refine GPS location">
       <span class="pulse"></span>
-      <span id="currentLocationText">Pike Place, Seattle</span>
+      <span id="currentLocationText">Detecting GPS...</span>
     </div>
 
     <div class="topbar-actions">
@@ -1604,6 +1878,59 @@
          VIEW 1: PULSE (FEED SCREEN)
          ======================================================== -->
     <div id="view-pulse" class="screen-view active">
+
+      <!-- HIGH VISIBILITY APK DOWNLOAD & STORE LAUNCH CARD -->
+      <div class="apk-hero-card">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
+          <div>
+            <div class="apk-badge-tag">OFFICIAL PRODUCTION APK</div>
+            <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 4px 0 2px;">Localiiiy Android v1.2.0 Stable</h3>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Size: 38.5 MB • SHA-256: 52041ee5... • Android 8.0+</p>
+          </div>
+          <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--accent-mint); white-space: nowrap;">
+            Verified Clean
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+          <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-hero-download" onclick="triggerDownloadFeedback('Direct Root')">
+            ⬇️ Download Localiiiy.apk
+          </a>
+          <a href="./downloads/Localiiiy.apk" download="Localiiiy.apk" class="btn-hero-secondary" onclick="triggerDownloadFeedback('Distribution Mirror')">
+            ⚡ Mirror Link
+          </a>
+          <button class="btn-hero-secondary" onclick="openDownloadModal()">
+            📖 Install Guide
+          </button>
+        </div>
+
+        <!-- Official Store Badges & "Coming Soon" Notice -->
+        <div class="store-badges-row">
+          <div class="store-badge-card" onclick="promptStoreNotification('Google Play')">
+            <svg viewBox="0 0 512 512" class="store-badge-icon"><path fill="#4285F4" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z"/><path fill="#34A853" d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0z"/><path fill="#FBBC04" d="M410.7 282.8L104.6 459l220.7-224.7 85.4 48.5z"/><path fill="#EA4335" d="M410.7 229.2L325.3 174.2l60.1 60.1 25.3-5.1z"/></svg>
+            <div class="store-badge-text">
+              <span class="store-sub">Coming Soon to</span>
+              <span class="store-title">Google Play</span>
+            </div>
+          </div>
+
+          <div class="store-badge-card" onclick="promptStoreNotification('Apple App Store')">
+            <svg viewBox="0 0 170 170" class="store-badge-icon" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.93-14.3-5.99-9.13-10.76-19.6-14.3-31.42-3.54-11.82-5.31-23.08-5.31-33.78 0-14.28 3.59-26.04 10.76-35.27 7.18-9.24 16.2-13.96 27.06-14.18 5.43 0 11.19 1.41 17.27 4.23 6.08 2.83 10.15 4.35 12.21 4.56 1.74-.21 6.08-1.79 13.03-4.73 6.95-2.93 13.03-4.29 18.24-4.07 13.8.76 24.66 5.86 32.59 15.31-12.17 7.39-18.14 17.27-17.92 29.65.22 9.78 3.96 17.98 11.22 24.6 7.26 6.62 16.03 10.37 26.31 11.25-2.28 7.06-5.16 14.07-8.64 21.03zM119.22 33.02c0-7.82 2.82-15.15 8.47-21.99 5.65-6.84 12.71-10.86 21.19-12.03.22 1.09.33 2.17.33 3.26 0 7.82-3.04 15.31-9.12 22.48-6.08 7.17-13.36 11.19-21.84 12.06-.22-1.3-.33-2.55-.33-3.78z"/></svg>
+            <div class="store-badge-text">
+              <span class="store-sub">Coming Soon to</span>
+              <span class="store-title">App Store</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="store-notify-row">
+          <input type="email" id="storeNotifyEmail" class="form-input" placeholder="Enter email to get notified on store launch" style="font-size: 11px; padding: 7px 10px;">
+          <button class="btn-submit-auth" style="margin: 0; padding: 0 12px; font-size: 11px; white-space: nowrap;" onclick="subscribeStoreNotification()">
+            Notify Me
+          </button>
+        </div>
+      </div>
+
       <!-- Tactile Tri-Dial Blast Radius Lens (Neighbor / City / Earth) -->
       <div class="tactile-tri-dial-lens">
         <button class="dial-lens-btn active" onclick="setTriDial(this, 'neighbor')">🏡 Neighbor (5km)</button>
@@ -2107,6 +2434,15 @@
           <span>➔</span>
         </div>
 
+        <!-- Official Support & Helpdesk -->
+        <div class="neighbor-card" style="cursor: pointer; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); margin-top: 12px;" onclick="window.location.href='mailto:Localiiiy.Helpdesk@gmail.com'">
+          <div>
+            <div style="font-weight: 700; font-size: 14px; color: var(--accent-mint);">Official Support & Helpdesk</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Localiiiy.Helpdesk@gmail.com</div>
+          </div>
+          <span style="color: var(--accent-mint);">✉️</span>
+        </div>
+
         <!-- NEW: Session Management -->
         <div class="neighbor-card" style="cursor: pointer; border-color: rgba(239, 68, 68, 0.2); margin-top: 12px;" onclick="logoutUser()">
           <div style="color: #F87171;">
@@ -2188,32 +2524,68 @@
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Verified High-Speed APK Direct Link -->
-        <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 14px;" onclick="triggerDownloadFeedback('High-Speed Cloud Mirror')">
-          ⚡ Download Localiiiy APK (High-Speed Mirror)
+        <!-- Verified Direct Local APK Download -->
+        <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 14px;" onclick="triggerDownloadFeedback('Direct Web Server')">
+          ⚡ Download Localiiiy APK (Direct 38.5 MB)
         </a>
 
-        <!-- Mirror 0: GitHub Releases Official APK -->
+        <!-- Mirror 1: Distribution Folder -->
+        <a href="./downloads/Localiiiy.apk" download="Localiiiy.apk" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Distribution Mirror')">
+          📦 Static Distribution Mirror (Localiiiy.apk)
+        </a>
+
+        <!-- Mirror 2: GitHub Releases Official APK -->
         <a href="https://github.com/Localiiiy/Localiiiy/releases" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub Releases')">
-          🚀 GitHub Releases
+          🚀 GitHub Releases (Official Repo)
         </a>
 
-        <!-- Mirror 1: Root File -->
-        <a href="./Localiiiy.apk" download="Localiiiy.apk" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Server 1')">
-          ⚡ Direct Download (Localiiiy.apk)
-        </a>
-
-        <!-- Mirror 2: External Storage Fallback -->
-        <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Cloud Mirror')">
-          ☁️ Direct Google Drive Mirror
+        <!-- Mirror 3: High-Speed Cloud Fallback -->
+        <a href="https://gofile.io/d/jc379BIP" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('High-Speed Cloud Mirror')">
+          ☁️ High-Speed Cloud Mirror
         </a>
       </div>
 
-      <div style="margin-top: 16px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px; line-height: 1.4;">
+      <div style="margin-top: 14px; font-size: 10px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; font-family: monospace; word-break: break-all;">
+        SHA-256: 6edf76cb8c95d33646117c6576e4955d7645f2c628595e96bef08157908ef707
+      </div>
+
+      <div style="margin-top: 12px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px; line-height: 1.4;">
         <strong>Trouble downloading?</strong><br>
         1. If the download doesn't start, long-press/right-click the button and select "Download link".<br>
         2. If you see a "Harmful file" warning, this is normal for external APKs. Tap "Download anyway".<br>
-        3. Make sure you are using a mobile browser (Chrome/Edge) for the best install experience.
+        3. Make sure you are using an Android mobile browser (Chrome/Edge/Brave) for the smoothest installation.
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL: ACCURATE LOCATION PICKER & REFINEMENT
+       ======================================================== -->
+  <div class="modal-backdrop" id="locationPickerModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeLocationPickerModal()">✕</button>
+      <div style="text-align: center;">
+        <div style="font-size: 36px;">📍</div>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 4px;">Set Accurate Radar Location</h3>
+        <p style="font-size: 12px; color: var(--text-secondary);">Position your live neighborhood radar anywhere in the world</p>
+      </div>
+
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <button class="btn-submit-auth" onclick="triggerGpsDetection(true)" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          🛰️ Auto-Detect High-Accuracy GPS
+        </button>
+
+        <div style="text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 4px;">— OR ENTER NEIGHBORHOOD MANUALLY —</div>
+
+        <div class="form-field">
+          <label>City or Neighborhood Landmark</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="manualLocationSearchInput" placeholder="e.g. Brooklyn, NY or Shinjuku, Tokyo" style="flex: 1;">
+            <button class="btn-hero-secondary" onclick="searchAndApplyManualLocation()">Apply</button>
+          </div>
+        </div>
+
+        <div id="manualLocationResults" style="font-size: 11px; color: var(--accent-mint); min-height: 16px;"></div>
       </div>
     </div>
   </div>
@@ -2245,7 +2617,7 @@
       <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-field">
           <label>Email or Username</label>
-          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. pradeep or name@mail.com" required>
+          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. alex_creative or name@mail.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
@@ -2255,7 +2627,7 @@
 
         <div style="text-align: center; margin-top: 10px;">
           <button type="button" style="background: none; border: none; color: var(--accent-mint); font-size: 12px; cursor: pointer;" onclick="demoQuickLogin()">
-            ⚡ Instant Demo Login (Pradeep)
+            ⚡ Instant Demo Login (Alex)
           </button>
         </div>
       </form>
@@ -2264,11 +2636,11 @@
       <form class="auth-form" id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
         <div class="form-field">
           <label>Full Name</label>
-          <input type="text" class="form-input" id="regFullName" placeholder="Pradeep Chandra" required>
+          <input type="text" class="form-input" id="regFullName" placeholder="Alex Rivera" required>
         </div>
         <div class="form-field">
           <label>Choose Username</label>
-          <input type="text" class="form-input" id="regUsername" placeholder="@pradeep_local" required>
+          <input type="text" class="form-input" id="regUsername" placeholder="@alex_creative" required>
         </div>
         <div class="form-field">
           <label>Neighborhood / City Landmark</label>
@@ -2276,7 +2648,7 @@
         </div>
         <div class="form-field">
           <label>Email Address</label>
-          <input type="email" class="form-input" id="regEmail" placeholder="pradeep@example.com" required>
+          <input type="email" class="form-input" id="regEmail" placeholder="alex@example.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
@@ -2432,26 +2804,320 @@
     let currentUser = JSON.parse(localStorage.getItem('localiiiy_active_user') || 'null');
     let posts = JSON.parse(localStorage.getItem('localiiiy_local_posts') || '[]');
     let creationType = 'post';
+    let currentLocationLabel = localStorage.getItem('localiiiy_user_location_label') || '';
 
     window.addEventListener('DOMContentLoaded', () => {
-      // If first time, seed some demo users
+      // If first time, seed default users
       if (users.length === 0) {
         users.push({
-          fullName: 'Pradeep Chandra',
-          username: '@pradeep_local',
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
           neighborhood: 'Pike Place, Seattle',
-          email: 'pradeep@example.com',
+          email: 'alex@example.com',
           password: 'password',
-          connections: 142
+          connections: 142,
+          category: 'Local Creator'
         });
         localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
       }
 
-      if (currentUser) {
+      // Check Mandatory Authentication Gate
+      const gate = document.getElementById('mandatoryAuthGate');
+      if (!currentUser) {
+        // User MUST authenticate or register
+        if (gate) {
+          gate.classList.remove('hidden');
+          gate.style.display = 'flex';
+        }
+      } else {
+        if (gate) {
+          gate.classList.add('hidden');
+          gate.style.display = 'none';
+        }
         updateUserUI(currentUser);
       }
+
+      // Restore or auto-detect location
+      if (currentLocationLabel) {
+        applyUserLocationDisplay(currentLocationLabel);
+      } else if (currentUser && currentUser.neighborhood) {
+        applyUserLocationDisplay(currentUser.neighborhood);
+      } else {
+        triggerGpsDetection(false);
+      }
+
       renderPostsFromDb();
     });
+
+    // Gate tab switcher
+    function switchGateTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('gateTabLogin').classList.toggle('active', isLogin);
+      document.getElementById('gateTabRegister').classList.toggle('active', !isLogin);
+      document.getElementById('gateLoginForm').style.display = isLogin ? 'flex' : 'none';
+      document.getElementById('gateRegisterForm').style.display = isLogin ? 'none' : 'flex';
+    }
+
+    // Category selector in registration
+    function selectCategory(el, cat) {
+      document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      document.getElementById('gateRegCategory').value = cat;
+    }
+
+    // Auto GPS detection on registration form
+    function autoDetectGateLocation() {
+      const statusEl = document.getElementById('gateGpsStatus');
+      statusEl.textContent = '🛰️ Querying device GPS sensors...';
+      if (!navigator.geolocation) {
+        statusEl.textContent = 'Geolocation not supported by browser.';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          statusEl.textContent = `📍 Geocoding (${lat.toFixed(3)}, ${lng.toFixed(3)})...`;
+          const detected = await reverseGeocode(lat, lng);
+          document.getElementById('gateRegNeighborhood').value = detected;
+          statusEl.textContent = `✓ GPS Locked: ${detected}`;
+          showToast(`Location Locked: ${detected}`);
+        },
+        (err) => {
+          statusEl.textContent = '⚠️ Location access denied. Please enter landmark manually.';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
+
+    // Gate Registration handler
+    function handleGateRegister(e) {
+      e.preventDefault();
+      const fullName = document.getElementById('gateRegFullName').value.trim();
+      const usernameRaw = document.getElementById('gateRegUsername').value.trim();
+      const username = usernameRaw.startsWith('@') ? usernameRaw : `@${usernameRaw}`;
+      const neighborhood = document.getElementById('gateRegNeighborhood').value.trim();
+      const email = document.getElementById('gateRegEmail').value.trim().toLowerCase();
+      const password = document.getElementById('gateRegPassword').value;
+      const category = document.getElementById('gateRegCategory').value;
+
+      if (users.find(u => u.email.toLowerCase() === email || u.username.toLowerCase() === username.toLowerCase())) {
+        showToast('Account with this email or username already exists. Please Sign In.');
+        switchGateTab('login');
+        return;
+      }
+
+      const newUser = {
+        fullName,
+        username,
+        neighborhood,
+        email,
+        password,
+        category,
+        connections: 1
+      };
+
+      users.push(newUser);
+      localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+
+      currentUser = newUser;
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(newUser));
+      localStorage.setItem('localiiiy_user_location_label', neighborhood);
+
+      updateUserUI(newUser);
+      applyUserLocationDisplay(neighborhood);
+
+      const gate = document.getElementById('mandatoryAuthGate');
+      if (gate) {
+        gate.classList.add('hidden');
+        setTimeout(() => gate.style.display = 'none', 400);
+      }
+      showToast(`Welcome to Localiiiy, ${fullName}! 🚀`);
+    }
+
+    // Gate Login handler
+    function handleGateLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('gateLoginEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('gateLoginPassword').value;
+
+      const user = users.find(u => (u.email.toLowerCase() === identifier || u.username.toLowerCase() === identifier) && u.password === pass);
+      if (user) {
+        currentUser = user;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
+        if (user.neighborhood) {
+          applyUserLocationDisplay(user.neighborhood);
+        }
+        updateUserUI(user);
+        const gate = document.getElementById('mandatoryAuthGate');
+        if (gate) {
+          gate.classList.add('hidden');
+          setTimeout(() => gate.style.display = 'none', 400);
+        }
+        showToast(`Welcome back, ${user.fullName}! 👋`);
+      } else {
+        showToast('Invalid credentials. Please check your email/password.');
+      }
+    }
+
+    function gateInstantDemoLogin() {
+      demoQuickLogin();
+      const gate = document.getElementById('mandatoryAuthGate');
+      if (gate) {
+        gate.classList.add('hidden');
+        setTimeout(() => gate.style.display = 'none', 400);
+      }
+    }
+
+    // Real Reverse Geocoding via OpenStreetMap Nominatim with BigDataCloud Fallback
+    async function reverseGeocode(lat, lng) {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address || {};
+          const landmark = addr.suburb || addr.neighbourhood || addr.amenity || addr.quarter || addr.residential || addr.road;
+          const city = addr.city || addr.town || addr.village || addr.county || addr.state_district;
+          const country = addr.country;
+          if (landmark && city) return `${landmark}, ${city}`;
+          if (city) return `${city}, ${country || ''}`.trim();
+          if (data.display_name) return data.display_name.split(',').slice(0, 2).join(',').trim();
+        }
+      } catch (e) {
+        console.warn('Nominatim error, trying BigDataCloud...', e);
+      }
+      try {
+        const res2 = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+        if (res2.ok) {
+          const data2 = await res2.json();
+          const loc = data2.locality || data2.city || 'Nearby District';
+          const country = data2.countryName || '';
+          return `${loc}, ${country}`.trim();
+        }
+      } catch (_e) {}
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+
+    // High-Accuracy GPS Detection
+    function triggerGpsDetection(interactive = true) {
+      if (interactive) showToast('🛰️ Requesting high-accuracy GPS coordinates...');
+      if (!navigator.geolocation) {
+        showToast('GPS geolocation not supported by browser.');
+        if (interactive) openLocationPickerModal();
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const accuracy = Math.round(position.coords.accuracy);
+
+          localStorage.setItem('localiiiy_user_lat', lat.toString());
+          localStorage.setItem('localiiiy_user_lng', lng.toString());
+
+          const detectedPlace = await reverseGeocode(lat, lng);
+          applyUserLocationDisplay(detectedPlace);
+          localStorage.setItem('localiiiy_user_location_label', detectedPlace);
+
+          if (currentUser) {
+            currentUser.neighborhood = detectedPlace;
+            localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+            updateUserUI(currentUser);
+          }
+
+          showToast(`📍 GPS Verified: ${detectedPlace} (±${accuracy}m)`);
+          closeLocationPickerModal();
+        },
+        (error) => {
+          console.warn('Geolocation failed:', error);
+          if (interactive) {
+            showToast('GPS lock unavailable. Set location manually in dialog.');
+            openLocationPickerModal();
+          }
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    function applyUserLocationDisplay(name) {
+      const chip = document.getElementById('currentLocationText');
+      if (chip) chip.textContent = name;
+      const radarOrigin = document.getElementById('radarOriginLabel');
+      if (radarOrigin) radarOrigin.textContent = name;
+    }
+
+    function openLocationPickerModal() {
+      document.getElementById('locationPickerModalBackdrop').classList.add('open');
+    }
+
+    function closeLocationPickerModal() {
+      document.getElementById('locationPickerModalBackdrop').classList.remove('open');
+    }
+
+    async function searchAndApplyManualLocation() {
+      const q = document.getElementById('manualLocationSearchInput').value.trim();
+      if (!q) return;
+      const resBox = document.getElementById('manualLocationResults');
+      resBox.textContent = `Searching for "${q}"...`;
+
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            const place = data[0];
+            const name = place.display_name.split(',').slice(0, 2).join(',').trim();
+            applyUserLocationDisplay(name);
+            localStorage.setItem('localiiiy_user_location_label', name);
+            localStorage.setItem('localiiiy_user_lat', place.lat);
+            localStorage.setItem('localiiiy_user_lng', place.lon);
+            if (currentUser) {
+              currentUser.neighborhood = name;
+              localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+              updateUserUI(currentUser);
+            }
+            resBox.textContent = `✓ Selected: ${name}`;
+            showToast(`Location set to: ${name} 📍`);
+            setTimeout(closeLocationPickerModal, 800);
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Geocoding search failed:', e);
+      }
+      applyUserLocationDisplay(q);
+      localStorage.setItem('localiiiy_user_location_label', q);
+      if (currentUser) {
+        currentUser.neighborhood = q;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+        updateUserUI(currentUser);
+      }
+      resBox.textContent = `✓ Applied: ${q}`;
+      showToast(`Location set to: ${q} 📍`);
+      setTimeout(closeLocationPickerModal, 800);
+    }
+
+    // App Store launch notification
+    function promptStoreNotification(storeName) {
+      showToast(`Localiiiy is coming soon to ${storeName}! 📱 Subscribe below for launch alerts.`);
+      const input = document.getElementById('storeNotifyEmail');
+      if (input) input.focus();
+    }
+
+    function subscribeStoreNotification() {
+      const input = document.getElementById('storeNotifyEmail');
+      const email = input.value.trim();
+      if (!email || !email.includes('@')) {
+        showToast('Please enter a valid email address.');
+        return;
+      }
+      localStorage.setItem('localiiiy_store_notify_email', email);
+      input.value = '';
+      showToast(`🎉 Priority list confirmed! We'll email ${email} upon store release.`);
+    }
 
     // Deck navigation
     function switchDeck(tabName) {
@@ -2671,18 +3337,18 @@
     }
 
     function demoQuickLogin() {
-      const pradeep = users.find(u => u.username === '@pradeep_local');
-      if (pradeep) {
-        currentUser = pradeep;
-        localStorage.setItem('localiiiy_active_user', JSON.stringify(pradeep));
-        updateUserUI(pradeep);
+      const alex = users.find(u => u.username === '@alex_creative');
+      if (alex) {
+        currentUser = alex;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(alex));
+        updateUserUI(alex);
         closeAuthModal();
-        showToast('Logged in as Pradeep Chandra! 👑');
+        showToast('Logged in as Alex Rivera! ✨');
       } else {
         // Fallback if seeded data was wiped
         const user = {
-          fullName: 'Pradeep Chandra',
-          username: '@pradeep_local',
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
           neighborhood: 'Pike Place, Seattle',
           connections: 142
         };
@@ -2690,7 +3356,7 @@
         localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
         updateUserUI(user);
         closeAuthModal();
-        showToast('Logged in as Demo Pradeep! 👑');
+        showToast('Logged in as Demo Alex! ✨');
       }
     }
 

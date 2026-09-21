@@ -273,21 +273,6 @@ fun ProfileScreen(
                     }
                 }
 
-                // Language & Currency Button
-                IconButton(
-                    onClick = onOpenLanguageCurrency,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .testTag("profile_language_currency_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Public,
-                        contentDescription = "Language & Currency",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
                 // Privacy Settings Button
                 IconButton(
                     onClick = onOpenPrivacySettings,
@@ -334,8 +319,22 @@ fun ProfileScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                 ) {
-                    // Avatar & Stats Row
-                    ProfileIdentityCard(userProfile, posts.size, userClips.size, marketplaceItems.size, 0)
+                    // Avatar & Stats Row with 3D Holographic Identity Card
+                    ProfileIdentityCard(
+                        userProfile = userProfile,
+                        postsCount = if (posts.isNotEmpty()) posts.size else userProfile.postsCount,
+                        clipsCount = userClips.size,
+                        marketItemsCount = marketplaceItems.count { it.sellerUsername == userProfile.username },
+                        studioVideosCount = 0,
+                        isGhostMode = isGhostMode,
+                        userPosts = posts,
+                        userClips = userClips,
+                        userMarketItems = marketplaceItems.filter { it.sellerUsername == userProfile.username },
+                        onCreatePostClick = onCreateContentClick,
+                        onPostClick = onPostClick,
+                        onClipClick = onClipClick,
+                        onMarketItemClick = onMarketItemClick
+                    )
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // 100% FREE PASSIVE GHOST MODE STATUS (Distinct Look)
@@ -615,7 +614,8 @@ fun ProfileScreen(
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    modifier = Modifier.weight(1f, fill = false)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.NearMe,
@@ -624,22 +624,26 @@ fun ProfileScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Text(
-                                        text = "Neighborhood Proximity Beacon",
+                                        text = "Proximity Beacon",
                                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
 
                                 TextButton(
                                     onClick = onOpenPrivacySettings,
-                                    contentPadding = PaddingValues(0.dp),
-                                    modifier = Modifier.height(26.dp)
+                                    contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
+                                    modifier = Modifier.defaultMinSize(minHeight = 28.dp)
                                 ) {
                                     Text(
                                         text = "Privacy Settings ›",
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -1868,7 +1872,7 @@ private fun ProfileSettingsSheetContent(
 
         SettingsRowItem(
             icon = Icons.Default.Public,
-            title = "Worldwide Language & Currency",
+            title = "Worldwide Localization (Language & Currency)",
             subtitle = "${currentLanguage.nativeName} (${currentLanguage.code.uppercase()}) • ${currentCurrency.name} (${currentCurrency.symbol})",
             onClick = onOpenLanguageCurrency
         )
@@ -2088,8 +2092,10 @@ private fun SettingsRowItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+            .padding(vertical = 10.dp, horizontal = 4.dp)
+            .testTag("neighbor_card"),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -2123,7 +2129,8 @@ private fun SettingsRowItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Justify
             )
         }
 

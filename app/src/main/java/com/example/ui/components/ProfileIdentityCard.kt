@@ -187,16 +187,19 @@ fun ProfileIdentityCard(
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
+            val actualUserName = userProfile.fullName.ifBlank { userProfile.username.ifBlank { "User" } }
             Text(
-                text = "LOCALIIIY ID",
+                text = actualUserName.uppercase(),
                 color = Color.Transparent,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 style = androidx.compose.ui.text.TextStyle(
                     brush = Brush.linearGradient(
                         colors = listOf(Color(0xFF6366F1), Color(0xFF14B8A6), Color(0xFFF59E0B))
                     ),
                     fontWeight = FontWeight.Black,
-                    letterSpacing = 2.sp,
-                    fontSize = 24.sp,
+                    letterSpacing = 1.5.sp,
+                    fontSize = 22.sp,
                     fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                     textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
                 )
@@ -1721,8 +1724,9 @@ fun ProfileIdentityCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
                         .padding(vertical = 10.dp, horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IdentityStatColumn(
@@ -1753,68 +1757,24 @@ fun ProfileIdentityCard(
                             },
                             testTag = "stat_mutual"
                         )
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { 
-                                    listDialogTitle = "Connections"
-                                    showListDialog = true
-                                }
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                                .testTag("stat_connections"),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = formatCompactNumber(userProfile.neighborsCount.toLong()),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Connections",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { 
-                                    listDialogTitle = "Connected"
-                                    showListDialog = true
-                                }
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                                .testTag("stat_connected"),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = formatCompactNumber(userProfile.followingCount.toLong()),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Connected",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        IdentityStatColumn(
+                            count = formatCompactNumber(userProfile.neighborsCount.toLong()),
+                            label = "Connections",
+                            onClick = {
+                                listDialogTitle = "Connections"
+                                showListDialog = true
+                            },
+                            testTag = "stat_connections"
+                        )
+                        IdentityStatColumn(
+                            count = formatCompactNumber(userProfile.followingCount.toLong()),
+                            label = "Connected",
+                            onClick = {
+                                listDialogTitle = "Connected"
+                                showListDialog = true
+                            },
+                            testTag = "stat_connected"
+                        )
                     } else {
                         IdentityStatColumn(
                             count = formatCompactNumber(marketItemsCount.toLong()),
@@ -1834,68 +1794,24 @@ fun ProfileIdentityCard(
                             },
                             testTag = "stat_studio"
                         )
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { 
-                                    listDialogTitle = "Connections"
-                                    showListDialog = true
-                                }
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                                .testTag("stat_connections"),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = formatCompactNumber(userProfile.neighborsCount.toLong()),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Connections",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { 
-                                    listDialogTitle = "Connected"
-                                    showListDialog = true
-                                }
-                                .padding(horizontal = 4.dp, vertical = 2.dp)
-                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                                .testTag("stat_connected"),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = formatCompactNumber(userProfile.followingCount.toLong()),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text = "Connected",
-                                fontSize = 10.sp,
-                                color = MaterialTheme.colorScheme.primary,
-                                textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
+                        IdentityStatColumn(
+                            count = formatCompactNumber(userProfile.neighborsCount.toLong()),
+                            label = "Connections",
+                            onClick = {
+                                listDialogTitle = "Connections"
+                                showListDialog = true
+                            },
+                            testTag = "stat_connections"
+                        )
+                        IdentityStatColumn(
+                            count = formatCompactNumber(userProfile.followingCount.toLong()),
+                            label = "Connected",
+                            onClick = {
+                                listDialogTitle = "Connected"
+                                showListDialog = true
+                            },
+                            testTag = "stat_connected"
+                        )
                     }
                 }
             }
@@ -1945,8 +1861,7 @@ private fun IdentityStatColumn(
             color = if (onClick != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             textDecoration = if (onClick != null) androidx.compose.ui.text.style.TextDecoration.Underline else null,
             maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Ellipsis
+            softWrap = false
         )
     }
 }

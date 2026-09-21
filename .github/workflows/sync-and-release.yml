@@ -1,0 +1,111 @@
+name: Automated APK Compilation, Web Sync & Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'index.html'
+      - 'firebase.json'
+      - '.github/workflows/**'
+      - 'clean_build.sh'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-compile-deploy:
+    name: Sync APK & Deploy Unified Web App
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 📱 Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🔐 Prepare Environment & Secrets
+        run: |
+          if [ ! -f ".env" ]; then
+            cp .env.example .env || touch .env
+          fi
+          echo "MAPS_API_KEY=AIzaSyLocaliiiyMapsRadarApiKeyForDev" >> .env
+          echo "FIREBASE_API_KEY=AIzaSyLocaliiiyFirebaseApiKeyMock" >> .env
+
+      - name: 🧹 Purge Stale Artifacts & Grant Permissions
+        run: |
+          rm -rf /tmp/localiiiy_* .cache build app/build dist .next || true
+          chmod +x gradlew clean_build.sh
+
+      - name: 🔨 Compile Android Production APK (assembleDebug)
+        run: |
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: 📦 Package APK & Sync Static Web Distribution
+        run: |
+          mkdir -p downloads
+          cp app/build/outputs/apk/debug/app-debug.apk Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk downloads/Localiiiy.apk
+          sha256sum Localiiiy.apk > downloads/checksums.txt
+          echo "APK Size: $(du -h Localiiiy.apk | awk '{print $1}')"
+          echo "APK SHA256: $(cat downloads/checksums.txt)"
+
+      - name: 📤 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Localiiiy-Android-APK
+          path: Localiiiy.apk
+
+      - name: 🚀 Deploy to Firebase Hosting (Unified Web App & APK Mirrors)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        if: ${{ env.FIREBASE_SERVICE_ACCOUNT != '' }}
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: localiiiy
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: 🏷️ Publish / Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.2.0
+          name: "Localiiiy v1.2.0 — Official Android Release & Web Parity Sync"
+          body: |
+            ### 📱 Localiiiy Android Official Release (v1.2.0)
+            100% synchronized with live Web app deployment.
+
+            #### Features in this Build:
+            - **Live Spatial Radar**: Real GPS coordinates & geocoding anywhere in the world.
+            - **Mandatory Auth & Monetization Gate**: Secure registration, creator earnings category, and instant community access.
+            - **Safe-Haven Handshakes**: OTP escrow physical transactions with zero data tracking.
+            - **Hyperlocal Clips & Dual Reach**: Neighbor (5km), City (50km), and Earth (Global) filters.
+
+            #### Verify Package Integrity:
+            - **File**: `Localiiiy.apk`
+            - **Version**: `v1.2.0 Stable`
+          draft: false
+          prerelease: false
+          files: |
+            Localiiiy.apk
+            downloads/Localiiiy.apk
+            downloads/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -43,6 +43,7 @@ import com.example.data.PrivacySettingsEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.LiveRadarComponent
+import com.example.ui.components.LocaliiiySearchBar
 import com.example.ui.components.MasterGhostModeTooltip
 import com.example.ui.components.EnergeticPulseBadge
 import com.example.ui.components.PostCard
@@ -188,48 +189,12 @@ fun ExploreScreen(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = {
-                    Text(
-                        text = LocalizationHelper.getString(LocaliiiyStringKey.SEARCH_HINT, currentLanguage),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotBlank()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(100.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                ),
-                modifier = Modifier
-                    .weight(1f)
-                    .height(46.dp)
-                    .testTag("explore_search_field")
+            LocaliiiySearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                placeholderText = LocalizationHelper.getString(LocaliiiyStringKey.SEARCH_HINT, currentLanguage),
+                modifier = Modifier.weight(1f),
+                testTag = "explore_search_field"
             )
 
             // Switch between Live Radar view and Grid View

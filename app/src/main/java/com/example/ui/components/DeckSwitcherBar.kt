@@ -152,7 +152,7 @@ fun DeckSwitcherBar(
                     if (userAvatarUrl.isNotBlank()) {
                         AsyncImage(
                             model = userAvatarUrl,
-                            contentDescription = "Profile Deck",
+                            contentDescription = "Space Deck",
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(CircleShape)
@@ -166,7 +166,7 @@ fun DeckSwitcherBar(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Person,
-                                contentDescription = "Profile",
+                                contentDescription = "Space",
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(18.dp)
                             )

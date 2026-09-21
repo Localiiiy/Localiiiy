@@ -6,9 +6,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -906,6 +908,7 @@ fun ProximityConnectionDiscoveryView(
 }
 
 // Feature 11: Interest Constellation Mapping (3-8 core interests)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InterestConstellationMapping(
     selectedInterests: List<String>,
@@ -938,12 +941,18 @@ fun InterestConstellationMapping(
                 text = "Interest Constellation",
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
             )
-            Text(
-                text = "${selectedInterests.size} of 8 selected",
-                fontSize = 11.sp,
-                color = if (selectedInterests.size >= 3) LocaliiiyAccentMint else LocaliiiyTertiary,
-                fontWeight = FontWeight.Bold
-            )
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = if (selectedInterests.size >= 3) LocaliiiyAccentMint.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                Text(
+                    text = "${selectedInterests.size} of 8 selected",
+                    fontSize = 11.sp,
+                    color = if (selectedInterests.size >= 3) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
         }
         Text(
             text = "Calibrates both your coarse local pulse seed and global feed exploration.",
@@ -973,34 +982,30 @@ fun InterestConstellationMapping(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 12.dp)
+                .padding(bottom = 8.dp)
         )
 
-        // Multi-line chip wrapping row
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            val chunked = filteredInterests.chunked(3)
-            chunked.forEach { rowItems ->
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    rowItems.forEach { interest ->
-                        val isSelected = selectedInterests.contains(interest)
-                        FilterChip(
-                            selected = isSelected,
-                            onClick = { onToggleInterest(interest) },
-                            label = { Text(interest, fontSize = 11.sp) },
-                            leadingIcon = if (isSelected) {
-                                { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(12.dp)) }
-                            } else null,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = LocaliiiyPrimaryTeal.copy(alpha = 0.2f),
-                                selectedLabelColor = LocaliiiyPrimaryTeal
-                            ),
-                            modifier = Modifier.testTag("interest_chip_${interest.replace(" ", "_")}")
-                        )
-                    }
-                }
+        // Multi-line chip wrapping row with FlowRow
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            filteredInterests.forEach { interest ->
+                val isSelected = selectedInterests.contains(interest)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = { onToggleInterest(interest) },
+                    label = { Text(interest, fontSize = 11.5.sp, maxLines = 1) },
+                    leadingIcon = if (isSelected) {
+                        { Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(12.dp)) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = LocaliiiyPrimaryTeal.copy(alpha = 0.2f),
+                        selectedLabelColor = LocaliiiyPrimaryTeal
+                    ),
+                    modifier = Modifier.testTag("interest_chip_${interest.replace(" ", "_")}")
+                )
             }
         }
     }
@@ -1228,17 +1233,17 @@ fun AgeAppropriateGatingCard(
     modifier: Modifier = Modifier
 ) {
     val currentYear = 2026
-    val userAge = currentYear - birthYear
+    val userAge = (currentYear - birthYear).coerceAtLeast(0)
     val isMinor = userAge < 18
     var inputDob by remember { mutableStateOf(dobString) }
 
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = if (isMinor) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface,
+        color = if (isMinor) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.25f) else MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, if (isMinor) MaterialTheme.colorScheme.error.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant),
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1246,26 +1251,36 @@ fun AgeAppropriateGatingCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Cake,
                         contentDescription = null,
                         tint = if (isMinor) MaterialTheme.colorScheme.error else LocaliiiyPrimaryTeal,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Text(
-                        text = "Age & Proximity Gating (DOB / Birth Year)",
-                        fontSize = 12.5.sp,
+                        text = "Age & Proximity Gating",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Text(
-                    text = "$userAge years old",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isMinor) MaterialTheme.colorScheme.error else LocaliiiyPrimaryTeal
-                )
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = if (isMinor) MaterialTheme.colorScheme.errorContainer else LocaliiiyPrimaryTeal.copy(alpha = 0.15f),
+                    modifier = Modifier.padding(start = 6.dp)
+                ) {
+                    Text(
+                        text = "$userAge years old",
+                        fontSize = 11.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isMinor) MaterialTheme.colorScheme.error else LocaliiiyPrimaryTeal,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(6.dp))
             Text(
@@ -1273,10 +1288,10 @@ fun AgeAppropriateGatingCard(
                     "🔒 Under 18: Physical radar blip broadcasting and in-person marketplace meetup zones are automatically cloaked for child safety."
                 else
                     "✓ 18+: Full Proximity access unlocked. Real local community discovery and meetup zones enabled.",
-                fontSize = 10.5.sp,
+                fontSize = 11.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Date of Birth (DOB) and Birth Year fields
             Row(
@@ -1320,7 +1335,9 @@ fun AgeAppropriateGatingCard(
 
             Spacer(modifier = Modifier.height(8.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 listOf(1995, 1998, 2000, 2003, 2006).forEach { year ->

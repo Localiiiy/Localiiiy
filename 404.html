@@ -2240,7 +2240,7 @@
       <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-field">
           <label>Email or Username</label>
-          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. pradeep or name@mail.com" required>
+          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. alex_creative or name@mail.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
@@ -2250,7 +2250,7 @@
 
         <div style="text-align: center; margin-top: 10px;">
           <button type="button" style="background: none; border: none; color: var(--accent-mint); font-size: 12px; cursor: pointer;" onclick="demoQuickLogin()">
-            ⚡ Instant Demo Login (Pradeep)
+            ⚡ Instant Demo Login (Alex)
           </button>
         </div>
       </form>
@@ -2259,11 +2259,11 @@
       <form class="auth-form" id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
         <div class="form-field">
           <label>Full Name</label>
-          <input type="text" class="form-input" id="regFullName" placeholder="Pradeep Chandra" required>
+          <input type="text" class="form-input" id="regFullName" placeholder="Alex Rivera" required>
         </div>
         <div class="form-field">
           <label>Choose Username</label>
-          <input type="text" class="form-input" id="regUsername" placeholder="@pradeep_local" required>
+          <input type="text" class="form-input" id="regUsername" placeholder="@alex_creative" required>
         </div>
         <div class="form-field">
           <label>Neighborhood / City Landmark</label>
@@ -2271,7 +2271,7 @@
         </div>
         <div class="form-field">
           <label>Email Address</label>
-          <input type="email" class="form-input" id="regEmail" placeholder="pradeep@example.com" required>
+          <input type="email" class="form-input" id="regEmail" placeholder="alex@example.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
@@ -2432,10 +2432,10 @@
       // If first time, seed some demo users
       if (users.length === 0) {
         users.push({
-          fullName: 'Pradeep Chandra',
-          username: '@pradeep_local',
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
           neighborhood: 'Pike Place, Seattle',
-          email: 'pradeep@example.com',
+          email: 'alex@example.com',
           password: 'password',
           connections: 142
         });
@@ -2666,18 +2666,18 @@
     }
 
     function demoQuickLogin() {
-      const pradeep = users.find(u => u.username === '@pradeep_local');
-      if (pradeep) {
-        currentUser = pradeep;
-        localStorage.setItem('localiiiy_active_user', JSON.stringify(pradeep));
-        updateUserUI(pradeep);
+      const alex = users.find(u => u.username === '@alex_creative');
+      if (alex) {
+        currentUser = alex;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(alex));
+        updateUserUI(alex);
         closeAuthModal();
-        showToast('Logged in as Pradeep Chandra! 👑');
+        showToast('Logged in as Alex Rivera! ✨');
       } else {
         // Fallback if seeded data was wiped
         const user = {
-          fullName: 'Pradeep Chandra',
-          username: '@pradeep_local',
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
           neighborhood: 'Pike Place, Seattle',
           connections: 142
         };
@@ -2685,7 +2685,7 @@
         localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
         updateUserUI(user);
         closeAuthModal();
-        showToast('Logged in as Demo Pradeep! 👑');
+        showToast('Logged in as Demo Alex! ✨');
       }
     }
 

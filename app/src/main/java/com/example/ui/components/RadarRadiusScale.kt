@@ -105,7 +105,7 @@ object RadarRadiusPresets {
         RadarRadiusOption(100000.0, "100k", "100,000 KM • Exosphere", "Space", "🛰️"),
         RadarRadiusOption(500000.0, "500K", "500,000 KM • Deep Space", "Space", "🌕"),
         RadarRadiusOption(5000.0, "Country", "Country Name • Nationwide", "Country", "🇺🇸"),
-        RadarRadiusOption(20000.0, "Earth 🌍", "Earth • Global / Worldwide", "Global", "🌍"),
+        RadarRadiusOption(20000.0, "Earth 🌍", "Earth • Global / Worldwide", "Space", "🌍"),
         RadarRadiusOption(10000000.0, "Galaxy 🌌", "Galaxy • Intergalactic Scale", "Cosmic", "🌌")
     )
 
@@ -122,7 +122,7 @@ object RadarRadiusPresets {
         RadarRadiusOption(100000.0, "100k", "100k", "Space", "🛰️"),
         RadarRadiusOption(500000.0, "500K", "500K", "Space", "🌕"),
         RadarRadiusOption(5000.0, "Country", "Country", "Country", "🇺🇸"),
-        RadarRadiusOption(20000.0, "Earth", "Earth", "Global", "🌍"),
+        RadarRadiusOption(20000.0, "Earth", "Earth", "Space", "🌍"),
         RadarRadiusOption(10000000.0, "Galaxy", "Galaxy", "Cosmic", "🌌")
     )
 

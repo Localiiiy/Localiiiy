@@ -867,7 +867,7 @@ fun TacticalRadarView(
                             .weight(1f)
                             .height(30.dp)
                     ) {
-                        Text("Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TacticalBrightGreen, fontFamily = FontFamily.Monospace)
+                        Text("Space", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TacticalBrightGreen, fontFamily = FontFamily.Monospace)
                     }
 
                     IconButton(

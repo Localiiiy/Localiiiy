@@ -87,24 +87,30 @@ fun LiveRadarScreen(
     ) {
         if (hasLocationPermission) {
             // Main Live Proximity Radar view
-            LiveRadarComponent(
-                userProfile = userProfile,
-                nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
-                nearbyPosts = posts,
-                selectedRadiusKm = currentRadius,
-                isLocationEnabled = true,
-                isPrivateAccount = isGhostModeActive,
-                hidePreciseLocationOnRadar = isGhostModeActive,
-                onToggleHidePreciseLocation = { isGhostModeActive = it },
-                onRadiusChange = { radius ->
-                    currentRadius = radius
-                    onRadiusFilterChange(radius)
-                },
-                onUserClick = { user -> onUserProfileClick(user.username) },
-                onPostClick = onPostClick,
-                onWaveAtUser = { /* waved */ },
+            androidx.compose.foundation.lazy.LazyColumn(
                 modifier = Modifier.fillMaxSize()
-            )
+            ) {
+                item {
+                    LiveRadarComponent(
+                        userProfile = userProfile,
+                        nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
+                        nearbyPosts = posts,
+                        selectedRadiusKm = currentRadius,
+                        isLocationEnabled = true,
+                        isPrivateAccount = isGhostModeActive,
+                        hidePreciseLocationOnRadar = isGhostModeActive,
+                        onToggleHidePreciseLocation = { isGhostModeActive = it },
+                        onRadiusChange = { radius ->
+                            currentRadius = radius
+                            onRadiusFilterChange(radius)
+                        },
+                        onUserClick = { user -> onUserProfileClick(user.username) },
+                        onPostClick = onPostClick,
+                        onWaveAtUser = { /* waved */ },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
         } else {
             // Accompanist Location Permission Request Rationale View
             LocationPermissionRationaleView(

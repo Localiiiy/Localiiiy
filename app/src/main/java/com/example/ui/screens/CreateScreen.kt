@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -72,6 +73,7 @@ fun CreateScreen(
     var caption by remember { mutableStateOf("") }
     var isAiContent by remember { mutableStateOf(false) }
     var locationOptional by remember { mutableStateOf(true) }
+    var showLocationOnClip by remember { mutableStateOf(true) }
     var selectedLocation by remember { mutableStateOf(detectedLocation?.locationName ?: "Seattle, WA") }
     var selectedLandmark by remember { mutableStateOf(detectedLocation?.landmark ?: "Pike Place Market") }
     var selectedSound by remember { mutableStateOf<String?>("Original Audio • Locality Vibes") }
@@ -142,6 +144,7 @@ fun CreateScreen(
 
     var musicSearchQuery by remember { mutableStateOf("") }
     var showCameraScreen by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -237,15 +240,20 @@ fun CreateScreen(
 
                 Button(
                     onClick = {
-                        onPublish(
-                            caption,
-                            selectedLocation,
-                            selectedLandmark,
-                            detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT,
-                            detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG,
-                            selectedSound
-                        )
+                        if (!isUploading) {
+                            isUploading = true
+                            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SUCCESS)
+                            onPublish(
+                                caption,
+                                selectedLocation,
+                                selectedLandmark,
+                                detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT,
+                                detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG,
+                                selectedSound
+                            )
+                        }
                     },
+                    enabled = !isUploading,
                     shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary,
@@ -256,11 +264,25 @@ fun CreateScreen(
                         .height(36.dp)
                         .testTag("publish_post_button")
                 ) {
-                    Text(
-                        text = "Broadcast",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    if (isUploading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Posting...",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        Text(
+                            text = "Broadcast",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
@@ -503,43 +525,67 @@ fun CreateScreen(
                         )
                     )
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                 modifier = Modifier
-                    .weight(1.2f)
-                    .height(48.dp)
+                    .weight(1f)
+                    .height(44.dp)
                     .testTag("upload_from_storage_button")
             ) {
-                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "Gallery 📁", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Gallery",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
 
             OutlinedButton(
                 onClick = { showStandardMediaSelector = true },
                 shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                 modifier = Modifier
-                    .weight(1.1f)
-                    .height(48.dp)
+                    .weight(1f)
+                    .height(44.dp)
                     .testTag("media_selector_sheet_button")
             ) {
                 Icon(imageVector = Icons.Default.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Studio ✂️", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Text(
+                    text = "Studio",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
 
             Button(
                 onClick = { showCameraScreen = true },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
                 shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 0.dp),
                 modifier = Modifier
-                    .weight(1.1f)
-                    .height(48.dp)
+                    .weight(1f)
+                    .height(44.dp)
                     .testTag("live_camera_button")
             ) {
                 Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Camera 📷", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold))
+                Text(
+                    text = "Camera",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
         }
 
@@ -851,6 +897,191 @@ fun CreateScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Advanced Locality Broadcast Upload Action Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .testTag("broadcast_upload_card"),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            ),
+            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = when (creationMode) {
+                                        CreationMode.POST -> Icons.Default.Public
+                                        CreationMode.CLIP -> Icons.Default.Videocam
+                                        CreationMode.STORY -> Icons.Default.Bolt
+                                    },
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Column {
+                            Text(
+                                text = when (creationMode) {
+                                    CreationMode.POST -> "Locality Post Broadcast"
+                                    CreationMode.CLIP -> "Viral Clip Broadcast"
+                                    CreationMode.STORY -> "24h Locality Story"
+                                },
+                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "$selectedLandmark • Connected & Locality Reach",
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    ) {
+                        Text(
+                            text = if (showLocationOnClip) "GPS Visible" else "GPS Hidden",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                // Optional Location Visibility Toggle during Broadcast / Upload
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = if (showLocationOnClip) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Show Location on Clip",
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Text(
+                            text = if (showLocationOnClip) "Display locality & landmark badge on clip" else "Location hidden • Private locality broadcast",
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = showLocationOnClip,
+                        onCheckedChange = { showLocationOnClip = it },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.primary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
+                        modifier = Modifier.testTag("toggle_show_location_on_clip")
+                    )
+                }
+
+                if (isUploading) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(100.dp)),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        if (!isUploading) {
+                            isUploading = true
+                            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SUCCESS)
+                            onPublish(
+                                caption,
+                                if (showLocationOnClip) selectedLocation else null,
+                                if (showLocationOnClip) selectedLandmark else null,
+                                if (showLocationOnClip) (detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT) else null,
+                                if (showLocationOnClip) (detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG) else null,
+                                selectedSound
+                            )
+                        }
+                    },
+                    enabled = !isUploading,
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .testTag("publish_bottom_button")
+                ) {
+                    if (isUploading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Publishing to Locality...",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Send,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Broadcast ${creationMode.name.lowercase().replaceFirstChar { it.uppercase() }} Now",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        )
                     }
                 }
             }

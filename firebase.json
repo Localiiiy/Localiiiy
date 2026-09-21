@@ -6,9 +6,42 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "app/**",
+      "gradle/**",
+      ".gradle/**",
+      ".idea/**",
+      ".git/**",
+      ".github/**",
+      "build/**",
+      "clean_build.sh"
     ],
     "headers": [
+      {
+        "source": "**/*.@(html|js|css|json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          },
+          {
+            "key": "Pragma",
+            "value": "no-cache"
+          },
+          {
+            "key": "Expires",
+            "value": "0"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          }
+        ]
+      },
       {
         "source": "**/*.apk",
         "headers": [
@@ -18,9 +51,27 @@
           },
           {
             "key": "Content-Disposition",
-            "value": "attachment"
+            "value": "attachment; filename=\"Localiiiy.apk\""
+          },
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=3600"
           }
         ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/downloads/Localiiiy.apk",
+        "destination": "/Localiiiy.apk"
+      },
+      {
+        "source": "/app",
+        "destination": "/index.html"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   }

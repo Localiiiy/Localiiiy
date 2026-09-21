@@ -54,6 +54,7 @@ import androidx.compose.material.icons.outlined.DataSaverOn
 
 enum class PulseFeedFilter(val label: String, val icon: ImageVector) {
     ALL("All", Icons.Default.Public),
+    LIVE("Live", Icons.Default.Videocam),
     TRENDING("Trending", Icons.Default.TrendingUp),
     NEARBY("Nearby", Icons.Default.NearMe),
     CONNECTED("Connected", Icons.Default.Person),
@@ -117,6 +118,26 @@ fun PulseFeedComponent(
     // Section 2.19: Dismissed posts set for swipe to dismiss
     var dismissedPostIds by remember { mutableStateOf(setOf<Long>()) }
 
+    // Go Live Broadcast state
+    var showGoLiveDialog by remember { mutableStateOf(false) }
+    var isCurrentlyLive by remember { mutableStateOf(false) }
+    var liveBroadcastTitle by remember { mutableStateOf("") }
+    var liveBroadcastReach by remember { mutableStateOf("NEIGHBOR (5 km)") }
+    var liveElapsedSeconds by remember { mutableStateOf(0) }
+    var liveViewersCount by remember { mutableStateOf(1) }
+
+    LaunchedEffect(isCurrentlyLive) {
+        if (isCurrentlyLive) {
+            while (isCurrentlyLive) {
+                kotlinx.coroutines.delay(1000)
+                liveElapsedSeconds++
+                if (liveElapsedSeconds % 5 == 0 && liveViewersCount < 85) {
+                    liveViewersCount += (1..4).random()
+                }
+            }
+        }
+    }
+
     val systematicOptions = remember(countryName) {
         SystematicDistanceScale.getOptions(countryName)
     }
@@ -146,6 +167,7 @@ fun PulseFeedComponent(
         } else {
             when (selectedFilter) {
                 PulseFeedFilter.ALL -> baseFiltered.sortedByDescending { it.timestamp }
+                PulseFeedFilter.LIVE -> baseFiltered.filter { it.isLive }.sortedByDescending { it.timestamp }
                 PulseFeedFilter.TRENDING -> baseFiltered.sortedByDescending { (it.likesCount * 3) + it.commentsCount }
                 PulseFeedFilter.NEARBY -> {
                     val radius = selectedRadiusKm ?: 3.0
@@ -211,20 +233,23 @@ fun PulseFeedComponent(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text(
-                                    text = "Pulse Feed",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    LocaliiiyAppLogoBadge(size = 20.dp)
+                                    Text(
+                                        text = "Localiiiy",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = when {
-                                        isStrictChronological -> "${displayedPosts.size} Pulses • Pure Chronological Feed (Zero Algorithmic Bias)"
+                                        isStrictChronological -> "${displayedPosts.size} Pulses • Pure Chronological Feed"
                                         selectedFilter == PulseFeedFilter.ALL -> "${displayedPosts.size} Pulses • Showing all local posts"
                                         selectedFilter == PulseFeedFilter.TRENDING -> "${displayedPosts.size} Pulses • Trending in your community"
-                                        selectedFilter == PulseFeedFilter.NEARBY -> "${displayedPosts.size} Pulses • Hyperlocal (within ${selectedRadiusKm ?: 3.0} km)"
-                                        selectedFilter == PulseFeedFilter.CONNECTED -> "${displayedPosts.size} Pulses • Strict Connection isolation"
+                                        selectedFilter == PulseFeedFilter.NEARBY -> "${displayedPosts.size} Pulses • Hyperlocal (<${selectedRadiusKm ?: 3.0} km)"
+                                        selectedFilter == PulseFeedFilter.CONNECTED -> "${displayedPosts.size} Pulses • Connected connections"
                                         else -> "${displayedPosts.size} Pulses • Freshly shared moments"
                                     },
                                     style = MaterialTheme.typography.bodySmall,
@@ -233,7 +258,36 @@ fun PulseFeedComponent(
                             }
 
                             // Section 2.17 & 2.20 Controls (Zero Algorithm & Smart Data Saver)
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Button(
+                                    onClick = {
+                                        if (isCurrentlyLive) {
+                                            isCurrentlyLive = false
+                                        } else {
+                                            showGoLiveDialog = true
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (isCurrentlyLive) Color(0xFF10B981) else Color.Red
+                                    ),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                    modifier = Modifier.height(30.dp).testTag("btn_go_live")
+                                ) {
+                                    Icon(
+                                        imageVector = if (isCurrentlyLive) Icons.Default.CheckCircle else Icons.Default.Videocam,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(14.dp),
+                                        tint = Color.White
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = if (isCurrentlyLive) "Live Active" else "Go Live",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+
                                 IconButton(
                                     onClick = { isStrictChronological = !isStrictChronological },
                                     modifier = Modifier
@@ -353,6 +407,60 @@ fun PulseFeedComponent(
                                             )
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Active Live Stream Broadcast Banner
+                if (isCurrentlyLive) {
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFFDC2626).copy(alpha = 0.12f),
+                            border = BorderStroke(1.2.dp, Color(0xFFDC2626)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.Red)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = "🔴 LIVE: ${liveBroadcastTitle.ifBlank { "Neighborhood Live" }}",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "⏱️ ${liveElapsedSeconds / 60}m ${liveElapsedSeconds % 60}s • 👥 $liveViewersCount watching • Reach: $liveBroadcastReach",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                                Button(
+                                    onClick = { isCurrentlyLive = false },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                    modifier = Modifier.height(28.dp)
+                                ) {
+                                    Text("End", fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
                                 }
                             }
                         }
@@ -519,6 +627,157 @@ fun PulseFeedComponent(
             onDismiss = { showGhostWatermark = false },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
+
+        // Go Live Setup Modal
+        if (showGoLiveDialog) {
+            GoLiveSetupModal(
+                onDismiss = { showGoLiveDialog = false },
+                onStartBroadcast = { title, reach ->
+                    liveBroadcastTitle = title
+                    liveBroadcastReach = reach
+                    isCurrentlyLive = true
+                    liveElapsedSeconds = 0
+                    liveViewersCount = 3
+                    showGoLiveDialog = false
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GoLiveSetupModal(
+    onDismiss: () -> Unit,
+    onStartBroadcast: (title: String, reach: String) -> Unit
+) {
+    var title by remember { mutableStateOf("") }
+    var selectedReach by remember { mutableStateOf("NEIGHBOR (5 km)") }
+    var selectedCategory by remember { mutableStateOf("Community Moments") }
+    var enableChat by remember { mutableStateOf(true) }
+
+    val reachOptions = listOf("NEIGHBOR (5 km)", "CITY (50 km)", "EARTH (Global)")
+    val categories = listOf("Community Moments", "Local News / Alert", "Live Music / Arts", "Marketplace Goods", "Open Discussion")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red)
+                    )
+                    Text(
+                        text = "Go Live to Community",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                    Icon(imageVector = Icons.Default.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Broadcast Title
+            Text("Broadcast Title:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(4.dp))
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                placeholder = { Text("e.g., Live Coffee Roasting at Market Square...", fontSize = 13.sp) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Blast Radius / Reach Selector
+            Text("Audience Reach:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                reachOptions.forEach { reach ->
+                    val isSelected = selectedReach == reach
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedReach = reach },
+                        label = { Text(reach, fontSize = 11.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Category Chips
+            Text("Category:", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(6.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(categories) { cat ->
+                    val isSelected = selectedCategory == cat
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedCategory = cat },
+                        label = { Text(cat, fontSize = 11.sp) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Chat & Remarks Toggle
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text("Live Community Remarks", fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                    Text("Allow viewers to send live remarks & reactions", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Switch(
+                    checked = enableChat,
+                    onCheckedChange = { enableChat = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Start Live Broadcast Button
+            Button(
+                onClick = {
+                    val finalTitle = title.ifBlank { "Live Community Stream" }
+                    onStartBroadcast(finalTitle, selectedReach)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Videocam, contentDescription = null, tint = Color.White)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Start Live Stream 🔴", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
 

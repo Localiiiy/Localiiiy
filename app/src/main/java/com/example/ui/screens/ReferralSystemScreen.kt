@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -120,94 +121,77 @@ fun ReferralSystemScreen(
             // Hero Growth Loop Banner
             item {
                 Card(
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF131A2B)),
-                    border = BorderStroke(1.5.dp, Color(0xFF3B82F6).copy(alpha = 0.6f)),
+                    border = BorderStroke(1.dp, Color(0xFF3B82F6).copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(20.dp)) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color(0xFF3B82F6).copy(alpha = 0.2f),
-                                modifier = Modifier.size(50.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("🤝", fontSize = 26.sp)
-                                }
-                            }
+                            Text("🤝", fontSize = 20.sp)
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Hyperlocal Growth Loop",
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
+                                    text = "HYPERLOCAL GROWTH LOOP",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Black,
                                     color = Color(0xFF60A5FA),
-                                    letterSpacing = 0.5.sp
+                                    letterSpacing = 1.sp
                                 )
                                 Text(
                                     text = "Invite Neighbors, Unlock Perks",
-                                    fontSize = 18.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Black,
                                     color = Color.White
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Every neighbor you connect to Localiiiy strengthens your hyperlocal network. Earn bonus points, unlock 2x radar scan reach, and fast-track to the $1,000 creator payout threshold!",
-                            fontSize = 12.5.sp,
-                            color = Color.LightGray
+                            text = "Every neighbor you connect strengthens your hyperlocal network. Earn bonus points and unlock 2x radar scan reach.",
+                            fontSize = 11.5.sp,
+                            color = Color.LightGray,
+                            lineHeight = 15.sp,
+                            textAlign = TextAlign.Justify,
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         // Stats Highlights
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            horizontalArrangement = Arrangement.SpaceAround
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "${referralState.totalNeighborsInvited}",
-                                    fontSize = 22.sp,
+                                    fontSize = 17.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color(0xFF60A5FA)
                                 )
-                                Text("Neighbors Joined", fontSize = 11.sp, color = Color.Gray)
+                                Text("Joined", fontSize = 9.sp, color = Color.Gray)
                             }
-                            Divider(
-                                modifier = Modifier
-                                    .height(32.dp)
-                                    .width(1.dp),
-                                color = Color.DarkGray
-                            )
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "${referralState.bonusPointsEarned}",
-                                    fontSize = 22.sp,
+                                    fontSize = 17.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color(0xFF00FF41)
                                 )
-                                Text("Bonus Points", fontSize = 11.sp, color = Color.Gray)
+                                Text("Bonus Pts", fontSize = 9.sp, color = Color.Gray)
                             }
-                            Divider(
-                                modifier = Modifier
-                                    .height(32.dp)
-                                    .width(1.dp),
-                                color = Color.DarkGray
-                            )
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "2x",
-                                    fontSize = 22.sp,
+                                    fontSize = 17.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = Color(0xFFFFD700)
                                 )
-                                Text("Radar Reach", fontSize = 11.sp, color = Color.Gray)
+                                Text("Radar Reach", fontSize = 9.sp, color = Color.Gray)
                             }
                         }
                     }
@@ -217,61 +201,71 @@ fun ReferralSystemScreen(
             // Share Referral Code Card
             item {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            text = "Your Unique Neighbor Invite Code",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Your Neighbor Invite Code",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.5.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                            ) {
+                                Text(
+                                    text = "+100 Pts",
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
 
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                    .padding(6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Column {
-                                    Text(
-                                        text = referralState.userReferralCode,
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 18.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        letterSpacing = 1.sp
-                                    )
-                                    Text(
-                                        text = "Tap Copy to share link with nearby friends",
-                                        fontSize = 10.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                Text(
+                                    text = referralState.userReferralCode,
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 16.sp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    letterSpacing = 0.5.sp,
+                                    modifier = Modifier.weight(1f)
+                                )
 
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    OutlinedButton(
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    IconButton(
                                         onClick = {
                                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                             val clip = ClipData.newPlainText("Localiiiy Invite Code", referralState.userReferralCode)
                                             clipboard.setPrimaryClip(clip)
-                                            Toast.makeText(context, "Invite code copied to clipboard!", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(context, "Invite code copied!", Toast.LENGTH_SHORT).show()
                                         },
-                                        shape = RoundedCornerShape(100.dp),
-                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                                        modifier = Modifier.size(30.dp).background(MaterialTheme.colorScheme.surface, CircleShape)
                                     ) {
-                                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(16.dp))
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Copy", fontSize = 12.sp)
+                                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(13.dp), tint = MaterialTheme.colorScheme.primary)
                                     }
 
                                     Button(
@@ -282,19 +276,67 @@ fun ReferralSystemScreen(
                                                 putExtra(Intent.EXTRA_TEXT, shareText)
                                                 type = "text/plain"
                                             }
-                                            val shareIntent = Intent.createChooser(sendIntent, "Invite Neighbors to Localiiiy")
+                                            val shareIntent = Intent.createChooser(sendIntent, "Invite Neighbors")
                                             context.startActivity(shareIntent)
                                         },
                                         shape = RoundedCornerShape(100.dp),
-                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                        modifier = Modifier.testTag("share_invite_button")
+                                        contentPadding = PaddingValues(horizontal = 10.dp),
+                                        modifier = Modifier.height(30.dp)
                                     ) {
-                                        Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(16.dp))
+                                        Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(11.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Share", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                        Text("Invite", fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            // Share App Directly with custom note
+            item {
+                Card(
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF0F172A)),
+                    border = BorderStroke(1.dp, Color(0xFF3B82F6).copy(alpha = 0.2f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(Icons.Default.IosShare, contentDescription = null, tint = Color(0xFF60A5FA), modifier = Modifier.size(14.dp))
+                            Text("Share Localiiiy App", fontWeight = FontWeight.Bold, fontSize = 12.5.sp, color = Color.White)
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Share our webapp link so your neighbors can download and install Localiiiy directly on any device.",
+                            fontSize = 11.sp,
+                            color = Color.LightGray,
+                            lineHeight = 14.sp,
+                            textAlign = TextAlign.Justify,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Button(
+                            onClick = {
+                                val webappLink = "https://localiiiy.app"
+                                val shareNote = "Neighbor, you need to try Localiiiy! It's a private, tracker-free neighborhood network where we can see what's happening nearby on a live radar. No ads, just community."
+                                val shareText = "$shareNote\n\nDownload it here: $webappLink\n\nUse my invite code: ${referralState.userReferralCode} to claim +100 bonus points!"
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, shareText)
+                                    type = "text/plain"
+                                }
+                                val shareIntent = Intent.createChooser(sendIntent, "Share Localiiiy App")
+                                context.startActivity(shareIntent)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
+                            contentPadding = PaddingValues(vertical = 6.dp)
+                        ) {
+                            Text("Share App Link & Custom Note", fontWeight = FontWeight.Bold, fontSize = 11.5.sp)
                         }
                     }
                 }
@@ -400,70 +442,63 @@ fun ReferralSystemScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     milestones.forEach { milestone ->
-                        Card(
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (milestone.isAchieved) Color(0xFF112918) else MaterialTheme.colorScheme.surface
-                            ),
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = if (milestone.isAchieved) Color(0xFF112918) else MaterialTheme.colorScheme.surface,
                             border = BorderStroke(
                                 1.dp,
-                                if (milestone.isAchieved) Color(0xFF00FF41) else MaterialTheme.colorScheme.outlineVariant
+                                if (milestone.isAchieved) Color(0xFF00FF41).copy(alpha = 0.5f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp)
+                                .padding(vertical = 3.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(14.dp),
+                                modifier = Modifier.padding(10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Surface(
                                     shape = CircleShape,
-                                    color = if (milestone.isAchieved) Color(0xFF00FF41).copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
-                                    modifier = Modifier.size(42.dp)
+                                    color = if (milestone.isAchieved) Color(0xFF00FF41).copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(36.dp)
                                 ) {
                                     Box(contentAlignment = Alignment.Center) {
-                                        Text(milestone.badgeEmoji, fontSize = 20.sp)
+                                        Text(milestone.badgeEmoji, fontSize = 18.sp)
                                     }
                                 }
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Text(
-                                            text = milestone.title,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp,
-                                            color = if (milestone.isAchieved) Color.White else MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Surface(
-                                            shape = RoundedCornerShape(100.dp),
-                                            color = if (milestone.isAchieved) Color(0xFF00FF41) else MaterialTheme.colorScheme.surfaceVariant
-                                        ) {
-                                            Text(
-                                                text = "${milestone.inviteCount} Neighbors",
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = if (milestone.isAchieved) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = milestone.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.5.sp,
+                                        color = if (milestone.isAchieved) Color.White else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                     Text(
                                         text = milestone.bonusReward,
-                                        fontSize = 11.5.sp,
-                                        color = if (milestone.isAchieved) Color(0xFF81C784) else MaterialTheme.colorScheme.onSurfaceVariant
+                                        fontSize = 10.sp,
+                                        color = if (milestone.isAchieved) Color(0xFF81C784) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
-                                Text(
-                                    text = if (milestone.isAchieved) "UNLOCKED ✓" else "LOCKED",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = if (milestone.isAchieved) Color(0xFF00FF41) else Color.Gray
-                                )
+                                
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = if (milestone.isAchieved) Color(0xFF00FF41) else MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier.height(22.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 8.dp)) {
+                                        Text(
+                                            text = if (milestone.isAchieved) "✓" else "${milestone.inviteCount} Neighbors",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = if (milestone.isAchieved) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

@@ -605,7 +605,7 @@ fun GoogleMapMomentsComponent(
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                             modifier = Modifier.height(34.dp)
                         ) {
-                            Text("Profile", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                            Text("Space", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

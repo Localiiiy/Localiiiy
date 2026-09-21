@@ -252,7 +252,7 @@ object LocalizationHelper {
             "nl" to "Clips", "el" to "Βίντεο", "he" to "קליפים", "fa" to "کلیپ‌ها"
         ),
         LocaliiiyStringKey.TAB_PROFILE to mapOf(
-            "en" to "Profile", "en-gb" to "Profile", "es" to "Perfil", "es-mx" to "Perfil",
+            "en" to "Space", "en-gb" to "Space", "es" to "Perfil", "es-mx" to "Perfil",
             "fr" to "Profil", "fr-ca" to "Profil", "de" to "Profil", "hi" to "प्रोफ़ाइल",
             "zh" to "个人中心", "zh-tw" to "個人檔案", "zh-hk" to "個人檔案", "ja" to "プロフィール",
             "pt" to "Perfil", "pt-pt" to "Perfil", "ar" to "الملف الشخصي", "ru" to "Профиль",

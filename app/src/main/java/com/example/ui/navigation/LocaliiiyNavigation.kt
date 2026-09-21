@@ -85,7 +85,7 @@ sealed class LocaliiiyNavScreen(
 
     object Profile : LocaliiiyNavScreen(
         route = "profile",
-        title = "Profile",
+        title = "Space",
         selectedIcon = Icons.Default.Person,
         unselectedIcon = Icons.Outlined.Person,
         testTag = "nav_tab_profile"
@@ -158,7 +158,7 @@ fun LocaliiiyNavigationComposeBottomBar(
                             ) {
                                 AsyncImage(
                                     model = userAvatarUrl,
-                                    contentDescription = "Profile",
+                                    contentDescription = "Space",
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(CircleShape)

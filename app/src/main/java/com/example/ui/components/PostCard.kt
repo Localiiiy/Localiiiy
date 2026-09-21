@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -451,6 +452,35 @@ fun PostCard(
                     )
                 }
 
+                if (post.isLive) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color.Red,
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.White)
+                            )
+                            Text(
+                                text = "LIVE",
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
+                    }
+                }
+
                 // Neighborhood Tag on media corner if < 1.5km
                 if (post.isNeighbor) {
                     Surface(
@@ -494,10 +524,25 @@ fun PostCard(
                         testTag = "like_button_${post.id}"
                     )
 
-                    CommentActionButton(
-                        onClick = onCommentClick,
-                        testTag = "comment_button_${post.id}"
-                    )
+                    if (post.isLive) {
+                        Button(
+                            onClick = onCommentClick,
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red.copy(alpha = 0.1f), contentColor = Color.Red),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                            modifier = Modifier.height(38.dp).testTag("live_remarks_button_${post.id}"),
+                            shape = RoundedCornerShape(100.dp),
+                            border = BorderStroke(1.dp, Color.Red.copy(alpha = 0.3f))
+                        ) {
+                            Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text("Live Remarks", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        CommentActionButton(
+                            onClick = onCommentClick,
+                            testTag = "comment_button_${post.id}"
+                        )
+                    }
 
                     IconButton(
                         onClick = onShareClick,

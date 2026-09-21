@@ -51,6 +51,9 @@ import com.example.ui.components.SystematicDistanceOption
 import com.example.ui.components.studio.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
 
 val StudioCategories = listOf(
     "All",
@@ -1075,27 +1078,11 @@ private fun StudioHeader(
             }
         }
 
-        // Action Buttons: Language/Currency, Creator Dashboard & Upload Long Video
+        // Action Buttons: Creator Dashboard & Upload Long Video
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            IconButton(
-                onClick = onOpenLanguageCurrency,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .testTag("studio_world_language_button")
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Public,
-                    contentDescription = "Language & Currency",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
             IconButton(
                 onClick = onToggleDashboard,
                 modifier = Modifier
@@ -2431,6 +2418,23 @@ private fun StudioUploadDialog(
     var isScheduled by remember { mutableStateOf(false) }
     var selectedScheduleWindow by remember { mutableStateOf("12:30 PM (Lunch Pulse)") }
     var notifyConnections by remember { mutableStateOf(true) }
+    var isPublishing by remember { mutableStateOf(false) }
+
+    val videoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            videoUrl = uri.toString()
+        }
+    }
+
+    val thumbnailPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            thumbnailUrl = uri.toString()
+        }
+    }
 
     val totalDurationSeconds = remember(durationHoursText, durationMinutesText, durationSecondsText) {
         val hrs = durationHoursText.toIntOrNull() ?: 0
@@ -2439,9 +2443,10 @@ private fun StudioUploadDialog(
         (hrs * 3600) + (mins * 60) + secs
     }
 
-    // Validation rule: Not less than 60 seconds, unlimited maximum time
-    val isDurationValid = totalDurationSeconds >= 60
-    val isFormValid = title.isNotBlank() && isDurationValid
+    // Flexible duration: any duration or default
+    val effectiveDuration = if (totalDurationSeconds <= 0) 60 else totalDurationSeconds
+    val isDurationValid = totalDurationSeconds >= 0
+    val isFormValid = title.isNotBlank()
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -2650,55 +2655,66 @@ private fun StudioUploadDialog(
 
                     // Thumbnail Presets / URL
                     item {
-                        OutlinedTextField(
-                            value = thumbnailUrl,
-                            onValueChange = { thumbnailUrl = it },
-                            label = { Text("16:9 Thumbnail Image URL") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("16:9 Thumbnail Cover", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                TextButton(
+                                    onClick = {
+                                        thumbnailPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                                ) {
+                                    Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Pick from Gallery", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            OutlinedTextField(
+                                value = thumbnailUrl,
+                                onValueChange = { thumbnailUrl = it },
+                                label = { Text("Cover Image URL or Gallery URI") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
                     }
 
-                    // Video Stream URL with Unrestricted Upload & Camera buttons
+                    // Video Stream URL with Device Picker & Stream Options
                     item {
                         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
+                                Text("Video Content File", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                 Button(
                                     onClick = {
-                                        // Unrestricted storage video file picker simulation
-                                        videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4"
+                                        videoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                                        )
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                                     shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.weight(1f).height(38.dp)
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                    modifier = Modifier.height(34.dp)
                                 ) {
                                     Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Upload Storage 📁", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-
-                                Button(
-                                    onClick = {
-                                        // Unrestricted live camera capture video stream simulation
-                                        videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4"
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.weight(1f).height(38.dp)
-                                ) {
-                                    Icon(imageVector = Icons.Default.Videocam, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Live Camera 📷", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("Select Video File 📁", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
                             OutlinedTextField(
                                 value = videoUrl,
                                 onValueChange = { videoUrl = it },
-                                label = { Text("Video MP4 / HLS Stream URL (Unrestricted)") },
+                                label = { Text("Video MP4 / HLS Stream URL or Path") },
                                 modifier = Modifier.fillMaxWidth(),
                                 singleLine = true
                             )
@@ -2794,22 +2810,27 @@ private fun StudioUploadDialog(
                 // Bottom CTA Button
                 Button(
                     onClick = {
-                        val success = onPublish(
-                            title,
-                            description,
-                            selectedCategory,
-                            totalDurationSeconds,
-                            videoUrl,
-                            thumbnailUrl,
-                            resolution,
-                            tags,
-                            chapters
-                        )
-                        if (success) {
-                            onDismiss()
+                        if (!isPublishing) {
+                            isPublishing = true
+                            val success = onPublish(
+                                title,
+                                description,
+                                selectedCategory,
+                                effectiveDuration,
+                                videoUrl,
+                                thumbnailUrl,
+                                resolution,
+                                tags,
+                                chapters
+                            )
+                            if (success) {
+                                onDismiss()
+                            } else {
+                                isPublishing = false
+                            }
                         }
                     },
-                    enabled = isFormValid,
+                    enabled = isFormValid && !isPublishing,
                     shape = RoundedCornerShape(100.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFFFF3366)
@@ -2819,18 +2840,33 @@ private fun StudioUploadDialog(
                         .height(48.dp)
                         .testTag("publish_studio_video_button")
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CloudUpload,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Publish to Localiiiy Studio 🚀",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                    if (isPublishing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Publishing to Studio...",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Publish to Localiiiy Studio 🚀",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }

@@ -2,10 +2,13 @@ package com.example.util
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationManager
 import android.os.Build
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -13,6 +16,7 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.math.*
@@ -28,62 +32,153 @@ data class UserLocationData(
 
 object LocationHelper {
 
-    // Default reference location (Downtown cultural district)
+    // Default reference location (Downtown cultural district) used strictly as last-resort fallback
     const val DEFAULT_LAT = 47.608013
     const val DEFAULT_LNG = -122.335167
-    const val DEFAULT_NAME = "Pike Place Market, Seattle"
+    const val DEFAULT_NAME = "Local Radar Zone"
 
     @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context): UserLocationData {
+    suspend fun getCurrentLocation(
+        context: Context,
+        fallbackNeighborhood: String? = null,
+        fallbackCity: String? = null
+    ): UserLocationData {
         return withContext(Dispatchers.IO) {
-            try {
-                val fusedLocationClient: FusedLocationProviderClient =
-                    LocationServices.getFusedLocationProviderClient(context)
+            val hasFine = ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            val hasCoarse = ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
 
-                val cancellationTokenSource = CancellationTokenSource()
+            var bestLocation: Location? = null
 
-                val location: Location? = suspendCancellableCoroutine { continuation ->
-                    fusedLocationClient.getCurrentLocation(
-                        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
-                        cancellationTokenSource.token
-                    ).addOnSuccessListener { loc ->
-                        continuation.resume(loc)
-                    }.addOnFailureListener {
-                        continuation.resume(null)
+            if (hasFine || hasCoarse) {
+                try {
+                    val fusedLocationClient: FusedLocationProviderClient =
+                        LocationServices.getFusedLocationProviderClient(context)
+
+                    // 1. First attempt: Quick check on lastLocation (instant and cached by system)
+                    val lastLoc: Location? = suspendCancellableCoroutine { continuation ->
+                        fusedLocationClient.lastLocation
+                            .addOnSuccessListener { loc -> continuation.resume(loc) }
+                            .addOnFailureListener { continuation.resume(null) }
                     }
-                }
 
-                if (location != null) {
-                    val geoData = reverseGeocode(context, location.latitude, location.longitude)
-                    UserLocationData(
-                        latitude = location.latitude,
-                        longitude = location.longitude,
-                        locationName = geoData.locationName,
-                        landmark = geoData.landmark,
-                        neighborhood = geoData.neighborhood,
-                        city = geoData.city
-                    )
-                } else {
-                    // Fallback to default reference location
-                    val geoData = reverseGeocode(context, DEFAULT_LAT, DEFAULT_LNG)
-                    UserLocationData(
-                        latitude = DEFAULT_LAT,
-                        longitude = DEFAULT_LNG,
-                        locationName = DEFAULT_NAME,
-                        landmark = "Pike Place Market",
-                        neighborhood = "Downtown",
-                        city = "Seattle"
-                    )
+                    if (lastLoc != null && (System.currentTimeMillis() - lastLoc.time) < 1000 * 60 * 30) {
+                        bestLocation = lastLoc
+                    }
+
+                    // 2. Second attempt: Fresh high-accuracy reading with timeout
+                    if (bestLocation == null) {
+                        val freshLoc: Location? = withTimeoutOrNull(6500) {
+                            suspendCancellableCoroutine { continuation ->
+                                val cancellationTokenSource = CancellationTokenSource()
+                                fusedLocationClient.getCurrentLocation(
+                                    Priority.PRIORITY_HIGH_ACCURACY,
+                                    cancellationTokenSource.token
+                                ).addOnSuccessListener { loc ->
+                                    continuation.resume(loc)
+                                }.addOnFailureListener {
+                                    continuation.resume(null)
+                                }
+                            }
+                        }
+                        if (freshLoc != null) {
+                            bestLocation = freshLoc
+                        }
+                    }
+
+                    // 3. Third attempt: Native Android LocationManager fallback
+                    if (bestLocation == null) {
+                        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+                        if (locationManager != null) {
+                            val gpsLoc = try {
+                                locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                            } catch (_: Exception) { null }
+
+                            val netLoc = try {
+                                locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+                            } catch (_: Exception) { null }
+
+                            val passiveLoc = try {
+                                locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
+                            } catch (_: Exception) { null }
+
+                            bestLocation = listOfNotNull(gpsLoc, netLoc, passiveLoc)
+                                .maxByOrNull { it.time }
+                        }
+                    }
+                } catch (_: Exception) {
+                    // Fall through to geocoding or fallback
                 }
-            } catch (e: Exception) {
+            }
+
+            if (bestLocation != null) {
+                val geoData = reverseGeocode(context, bestLocation.latitude, bestLocation.longitude)
+                UserLocationData(
+                    latitude = bestLocation.latitude,
+                    longitude = bestLocation.longitude,
+                    locationName = geoData.locationName,
+                    landmark = geoData.landmark,
+                    neighborhood = geoData.neighborhood,
+                    city = geoData.city
+                )
+            } else if (!fallbackNeighborhood.isNullOrBlank() || !fallbackCity.isNullOrBlank()) {
+                val query = listOfNotNull(fallbackNeighborhood, fallbackCity).joinToString(", ")
+                val geocoded = geocodeAddressString(context, query)
+                geocoded ?: UserLocationData(
+                    latitude = DEFAULT_LAT,
+                    longitude = DEFAULT_LNG,
+                    locationName = query,
+                    landmark = fallbackNeighborhood,
+                    neighborhood = fallbackNeighborhood,
+                    city = fallbackCity ?: "Local City"
+                )
+            } else {
+                val geoData = reverseGeocode(context, DEFAULT_LAT, DEFAULT_LNG)
                 UserLocationData(
                     latitude = DEFAULT_LAT,
                     longitude = DEFAULT_LNG,
-                    locationName = DEFAULT_NAME,
-                    landmark = "Pike Place Market",
-                    neighborhood = "Downtown",
-                    city = "Seattle"
+                    locationName = geoData.locationName.ifBlank { "Live Radar Area" },
+                    landmark = geoData.landmark ?: "Neighborhood Hub",
+                    neighborhood = geoData.neighborhood ?: "Local Zone",
+                    city = geoData.city ?: "Local City"
                 )
+            }
+        }
+    }
+
+    suspend fun geocodeAddressString(context: Context, query: String): UserLocationData? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    suspendCancellableCoroutine<List<Address>?> { cont ->
+                        geocoder.getFromLocationName(query, 1) { list -> cont.resume(list) }
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    geocoder.getFromLocationName(query, 1)
+                }
+
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    val subLocality = addr.subLocality ?: addr.subAdminArea ?: query
+                    val locality = addr.locality ?: addr.adminArea ?: ""
+                    UserLocationData(
+                        latitude = addr.latitude,
+                        longitude = addr.longitude,
+                        locationName = if (locality.isNotBlank()) "$subLocality, $locality" else subLocality,
+                        landmark = addr.featureName ?: subLocality,
+                        neighborhood = subLocality,
+                        city = locality
+                    )
+                } else null
+            } catch (_: Exception) {
+                null
             }
         }
     }
@@ -107,7 +202,7 @@ object LocationHelper {
                     val address = addresses[0]
                     val feature = address.featureName
                     val subLocality = address.subLocality ?: address.subAdminArea
-                    val locality = address.locality ?: address.adminArea ?: "Local District"
+                    val locality = address.locality ?: address.adminArea ?: address.countryName ?: "Local District"
                     val landmark = if (!feature.isNullOrBlank() && feature != address.subThoroughfare) feature else null
 
                     val displayName = when {
@@ -121,8 +216,8 @@ object LocationHelper {
                         latitude = lat,
                         longitude = lng,
                         locationName = displayName,
-                        landmark = landmark,
-                        neighborhood = subLocality,
+                        landmark = landmark ?: subLocality,
+                        neighborhood = subLocality ?: locality,
                         city = locality
                     )
                 } else {

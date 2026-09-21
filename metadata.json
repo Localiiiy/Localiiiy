@@ -1,6 +1,6 @@
 {
   "name": "Localiiiy",
-  "description": "Hyperlocal community platform with Live Radar privacy controls, atmospheric space themes (Black hole, Moon, Galaxy, Custom), unlimited long-form Studio playback, and native clip deep linking.",
+  "description": "Localiiiy — Connect with your neighborhood Earth through live radar, creator clips, and local pulses, Market and Studio.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -421,7 +421,7 @@ fun LocaliiiyOpeningAnimation(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Radar,
+                        imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
                         tint = LocaliiiyAccentMint,
                         modifier = Modifier.size(13.dp)

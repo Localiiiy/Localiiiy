@@ -3,41 +3,41 @@ package com.example.ui.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.widget.Toast
 import coil.compose.AsyncImage
-import com.example.util.HapticHelper
-import androidx.compose.foundation.gestures.detectTapGestures
-import com.example.data.OtherUserEntity
-import com.example.data.PostEntity
 import com.example.data.ClipEntity
 import com.example.data.MarketplaceItemEntity
+import com.example.data.OtherUserEntity
+import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
 import com.example.ui.components.radar.*
-import com.example.ui.components.MasterGhostModeTooltip
-import com.example.ui.components.EnergeticTooltipBox
-import com.example.ui.components.EnergeticLiveSoundWave
+import com.example.util.HapticHelper
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -75,496 +75,71 @@ fun LiveRadarComponent(
     val currentHudTheme = if (isPremium) selectedTheme else RadarHudTheme.PHOSPHOR_GREEN
     val radarColor = currentHudTheme.primaryColor
     val gridColor = currentHudTheme.gridColor
-    val sweepColors = if (isPremium) {
-        listOf(radarColor.copy(alpha = 0f), radarColor.copy(alpha = 0.25f), radarColor)
-    } else {
-        listOf(radarColor.copy(alpha = 0f), radarColor.copy(alpha = 0.35f), radarColor)
-    }
-    val shieldCyan = Color(0xFF00E5FF)
 
     val currentDistanceOption = remember(selectedRadiusKm, radarCountryName) {
         SystematicDistanceScale.findOption(selectedRadiusKm, radarCountryName)
     }
     val pulseDurationMs = currentDistanceOption.pulseDurationMs
-    
+
     val infiniteTransition = rememberInfiniteTransition(label = "RadarSweeper")
     val sweepAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing),
+            animation = tween(2800, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "sweepAngle"
     )
 
-    // Visual 'pulse' animation synced with user's distance range setting
+    // Pulse expanding animation
     val pulseTransition = rememberInfiniteTransition(label = "RadarPulseAnimation")
-    val pulse1 by pulseTransition.animateFloat(
+    val pulseWave by pulseTransition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = pulseDurationMs, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "pulse1"
-    )
-    val pulse2 by pulseTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = pulseDurationMs, delayMillis = pulseDurationMs / 3, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "pulse2"
-    )
-    val pulse3 by pulseTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = pulseDurationMs, delayMillis = (pulseDurationMs * 2) / 3, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "pulse3"
+        label = "pulseWave"
     )
 
-    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
 
-    val systematicRanges = remember(radarCountryName) {
-        SystematicDistanceScale.getOptions(radarCountryName)
-    }
-
-    var showRangePickerInRadar by remember { mutableStateOf(false) }
-
-    // Section 3: Spatial Sonar & Live Radar Discovery State
     var isGhostActive by remember { mutableStateOf(hidePreciseLocationOnRadar) }
     var is3DPerspective by remember { mutableStateOf(false) }
     var isDayTheme by remember { mutableStateOf(false) }
     var isBatterySaver by remember { mutableStateOf(false) }
-    var sweepSpeedMultiplier by remember { mutableStateOf(1.0f) }
-    var isSoundscapePlaying by remember { mutableStateOf(false) }
-    var isOfflineCached by remember { mutableStateOf(true) }
-    var isProximityPingEnabled by remember { mutableStateOf(true) }
-    var selectedBeaconId by remember { mutableStateOf<String?>(null) }
     var dispatchUserTarget by remember { mutableStateOf<OtherUserEntity?>(null) }
 
-    // Sample Section 3 Landmark Geo-Portal Beacons
-    val sampleGeoBeacons = remember {
-        listOf(
-            GeoPortalBeacon("b1", "Market Square Hub", "Civic", 0.4, 18, "432 Hz Ambient", 88, 37.7749, -122.4194),
-            GeoPortalBeacon("b2", "Pier Waterfront Park", "Nature", 1.2, 34, "528 Hz Solfeggio", 94, 37.7849, -122.4094),
-            GeoPortalBeacon("b3", "Arts & Sound District", "Culture", 2.1, 27, "440 Hz Pulse", 76, 37.7649, -122.4294),
-            GeoPortalBeacon("b4", "Tech Innovation Plaza", "Hub", 3.5, 12, "639 Hz Drone", 65, 37.7549, -122.4394)
-        )
-    }
-
-    Column(modifier = modifier.fillMaxWidth().background(if (isDayTheme) Color(0xFFF8FAFC) else Color.Black)) {
-        // Section 3.0: Master Radar Power & Broadcast Controller (Exclusive to Radar Page)
-        Surface(
-            color = if (isLocationEnabled) Color(0xFF031405) else Color(0xFF1E1010),
-            shape = RoundedCornerShape(14.dp),
-            border = BorderStroke(
-                1.dp,
-                if (isLocationEnabled) Color(0xFF00FF41).copy(alpha = 0.6f) else Color(0xFFFF5252).copy(alpha = 0.5f)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .testTag("radar_master_power_card")
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Surface(
-                        shape = CircleShape,
-                        color = if (isLocationEnabled) Color(0xFF00FF41).copy(alpha = 0.2f) else Color(0xFFFF5252).copy(alpha = 0.2f),
-                        modifier = Modifier.size(34.dp)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = if (isLocationEnabled) "📡" else "🛑",
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-                    Column {
-                        Text(
-                            text = if (isLocationEnabled) "Radar Online" else "Radar Offline",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252),
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = if (isLocationEnabled) {
-                                "Scanning within ${currentDistanceOption.fullLabel}"
-                            } else {
-                                "Tap to activate nearby scanner"
-                            },
-                            fontSize = 10.sp,
-                            color = Color.LightGray
-                        )
-                    }
-                }
-
-                Button(
-                    onClick = { 
-                        HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                        onLocationToggle(!isLocationEnabled) 
-                    },
-                    shape = RoundedCornerShape(100.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isLocationEnabled) Color(0xFF1B2E1D) else Color(0xFF00FF41),
-                        contentColor = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFF020E04)
-                    ),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                    modifier = Modifier.testTag("radar_page_power_toggle_btn")
-                ) {
-                    Text(
-                        text = if (isLocationEnabled) "Turn OFF" else "Turn Radar ON 📡",
-                        fontSize = 11.5.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-
-        // Section 3.2: Passive Sonar Ghost Cloak Mode Banner
-        PassiveSonarGhostBanner(
-            isGhostActive = isGhostActive,
-            onToggleGhost = {
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                isGhostActive = !isGhostActive
-                onToggleHidePreciseLocation?.invoke(isGhostActive)
-            },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-        )
-
-        // Active Gamified Radar Visibility Perk HUD Banner
-        if (activeRadarPerk != null) {
-            val perkColor = Color(activeRadarPerk.glowColorHex)
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = perkColor.copy(alpha = 0.15f),
-                border = BorderStroke(1.dp, perkColor.copy(alpha = 0.7f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(activeRadarPerk.emoji, fontSize = 20.sp)
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(
-                                text = "ACTIVE RADAR PERK",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Black,
-                                color = perkColor,
-                                letterSpacing = 0.5.sp
-                            )
-                            Text(
-                                text = "• ${activeRadarPerk.remainingHours}h remaining",
-                                fontSize = 10.sp,
-                                color = Color.White.copy(alpha = 0.8f)
-                            )
-                        }
-                        Text(
-                            text = "${activeRadarPerk.name}: ${activeRadarPerk.description}",
-                            fontSize = 11.sp,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
-                }
-            }
-        }
-
-        // Section 3.20: Master Tactical HUD Control Bar (3D Pitch, Day/Night HUD, Battery Saver)
-        Section3MasterControlBar(
-            isGhostActive = isGhostActive,
-            is3DPerspective = is3DPerspective,
-            isDayTheme = isDayTheme,
-            isBatterySaver = isBatterySaver,
-            onToggleGhost = {
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                isGhostActive = !isGhostActive
-                onToggleHidePreciseLocation?.invoke(isGhostActive)
-            },
-            onTogglePerspective = { 
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                is3DPerspective = it 
-            },
-            onToggleDayTheme = { 
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                isDayTheme = !isDayTheme 
-            },
-            onToggleBatterySaver = { 
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                isBatterySaver = !isBatterySaver 
-            }
-        )
-
-        // Section 3.8 & 3.16 & 3.17: Heading, Kalman Filter & Vibrancy Telemetry Strip
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RealTimeCompassHeadingBadge(headingDeg = sweepAngle)
-            NeighborhoodVibrancyScoreBadge(score = 82)
-            MovementKalmanFilterIndicator(isKalmanFiltered = true, speedKmh = 4.6f)
-            LocationJitterMaskIndicator(isJitterEnabled = isGhostActive, jitterRadiusMeters = 200)
-            OfflineRadarCacheBadge(isOfflineCached = isOfflineCached, onSyncCache = { isOfflineCached = !isOfflineCached })
-            ProximityPingNotificationsToggle(
-                isProximityPingEnabled = isProximityPingEnabled,
-                onToggle = { isProximityPingEnabled = !isProximityPingEnabled }
-            )
-        }
-
-        // Section 3.7: Unified Range Slider (Premium Gated)
-        UnifiedRadarRangeSlider(
-            currentRadiusKm = selectedRadiusKm,
-            onRadiusChange = { radius ->
-                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                onRadiusChange(radius)
-            },
-            isPremium = userProfile.isVerified
-        )
-
-        // Premium HUD Themes & Signal Aura Selector Bar with Energetic Motion
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = "HUD THEME:",
-                    fontSize = 8.5.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = radarColor,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                )
-                EnergeticLiveSoundWave(color = radarColor, modifier = Modifier.padding(end = 4.dp))
-                RadarHudTheme.values().forEach { theme ->
-                    val isSelected = currentHudTheme == theme
-                    val isLocked = theme.isPremiumOnly && !isPremium
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = if (isSelected) theme.primaryColor.copy(alpha = 0.25f) else Color.Transparent,
-                        border = BorderStroke(
-                            0.7.dp,
-                            if (isSelected) theme.primaryColor else if (isLocked) Color.DarkGray else Color.Gray.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.clickable {
-                            HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                            if (isLocked) {
-                                android.widget.Toast.makeText(context, "Premium Feature: Upgrade to unlock Cyberpunk Gold, Electric Cyan & more 🔒", android.widget.Toast.LENGTH_SHORT).show()
-                            } else {
-                                selectedTheme = theme
-                            }
-                        }
-                    ) {
-                        Text(
-                            text = if (isLocked) "${theme.title.take(3)}🔒" else theme.title.take(4),
-                            fontSize = 8.sp,
-                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                            color = if (isSelected) theme.primaryColor else if (isLocked) Color.Gray else Color.LightGray,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-
-            // Signal Aura Toggle with Hover & Tap Tooltip
-            EnergeticTooltipBox(
-                title = "Signal Aura (Boost)",
-                description = "Expands your beacon visual presence by +25% across neighbor radars with dynamic glowing gold sweep rings for maximum discovery.",
-                accentColor = Color(0xFFFFD700)
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(100.dp),
-                    color = if (signalAuraEnabled) Color(0xFFFFD700).copy(alpha = 0.2f) else Color.Transparent,
-                    border = BorderStroke(0.8.dp, if (signalAuraEnabled) Color(0xFFFFD700) else Color.Gray),
-                    modifier = Modifier.clickable {
-                        HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
-                        if (!isPremium) {
-                            android.widget.Toast.makeText(context, "Premium Feature: Signal Aura Glow (+25%) 🔒", android.widget.Toast.LENGTH_SHORT).show()
-                        } else {
-                            signalAuraEnabled = !signalAuraEnabled
-                        }
-                    }
-                ) {
-                    Text(
-                        text = if (signalAuraEnabled) "AURA +25% ✨ ⓘ" else "AURA OFF ⓘ",
-                        fontSize = 8.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (signalAuraEnabled) Color(0xFFFFD700) else Color.Gray,
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                    )
-                }
-            }
-        }
-
-        // Section 3.10 & 3.13: Safe Haven & Event Geofence Indicators
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            EmergencySafeHavenMarker(
-                havenName = "Central Clinic",
-                distanceKm = 0.8,
-                onClick = {}
-            )
-            EventGeoFenceOverlayTag(
-                eventName = "Block Party",
-                radiusMeters = 300,
-                attendeesCount = 42
-            )
-            RadarSweepVelocityController(
-                sweepSpeedMultiplier = sweepSpeedMultiplier,
-                onSpeedChange = { sweepSpeedMultiplier = it }
-            )
-        }
-        // Radar Privacy & Range Quick Bar with Master Ghost Mode Tooltip
-        MasterGhostModeTooltip(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-            Surface(
-                color = Color(0xFF031405),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(
-                    1.dp,
-                    if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.5f) else Color(0xFF005511)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.2f) else Color(0xFF00FF41).copy(alpha = 0.2f),
-                                modifier = Modifier.size(26.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = if (hidePreciseLocationOnRadar) "🛡️" else "📡",
-                                        fontSize = 12.sp
-                                    )
-                                }
-                            }
-                            Column {
-                                Text(
-                                    text = if (hidePreciseLocationOnRadar) "GHOST MODE: PRECISE PIN HIDDEN ⓘ" else "LIVE RADAR: PRECISE COORDINATES ⓘ",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (hidePreciseLocationOnRadar) shieldCyan else Color(0xFF00FF41),
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                                )
-                                Text(
-                                    text = if (hidePreciseLocationOnRadar) {
-                                        "Simulated as $radarObfuscatedRange far out (Hover for details)"
-                                    } else {
-                                        "Your exact street blip is broadcasting (Hover for details)"
-                                    },
-                                    fontSize = 10.sp,
-                                    color = Color.LightGray
-                                )
-                            }
-                        }
-
-                        // Quick Toggle Button
-                        if (onToggleHidePreciseLocation != null) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = if (hidePreciseLocationOnRadar) shieldCyan else Color(0xFF1B2E1D),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { onToggleHidePreciseLocation(!hidePreciseLocationOnRadar) }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = if (hidePreciseLocationOnRadar) "Hidden 🛡️" else "Hide Pin",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (hidePreciseLocationOnRadar) Color.Black else Color.White
-                                )
-                            }
-                        } else {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = Color(0xFF1B2E1D),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .clickable { onOpenPrivacySettings() }
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = "Settings ⚙️",
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        // Radar Screen with Dynamic Touch Pinch-to-Zoom
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Color.Black)
+    ) {
+        // =====================================================================
+        // 1. CIRCULAR RADAR SCREEN (PLACED IMMEDIATELY AT TOP BELOW SEARCH BAR)
+        // =====================================================================
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp, horizontal = 16.dp),
+                .padding(horizontal = 14.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {
-            val radarDiameterDp = minOf(maxWidth, 340.dp)
-            val density = androidx.compose.ui.platform.LocalDensity.current
+            val radarDiameterDp = minOf(maxWidth - 12.dp, 330.dp)
+            val density = LocalDensity.current
             val radarRadiusPx = with(density) { (radarDiameterDp / 2).toPx() }
             val centerPx = radarRadiusPx
-            val bezelThicknessPx = with(density) { 24.dp.toPx() }
+            val bezelThicknessPx = with(density) { 22.dp.toPx() }
             val sweepRadiusPx = radarRadiusPx - bezelThicknessPx
 
-            val combinedCount = minOf(nearbyUsers.size + nearbyPosts.size, 10)
-            // Section 3.4 Live Status Visibility Gate: Blips cleared when offline or ghost mode active
+            val combinedCount = minOf(nearbyUsers.size + nearbyPosts.size, 12)
             val combinedItems = remember(nearbyUsers, nearbyPosts, isLocationEnabled, isGhostActive) {
                 if (!isLocationEnabled || isGhostActive) emptyList()
                 else (nearbyUsers + nearbyPosts).take(combinedCount)
             }
 
-            // Radar circular display strictly clipped to CircleShape with touch gesture zoom
             Box(
                 modifier = Modifier
                     .size(radarDiameterDp)
@@ -581,26 +156,16 @@ fun LiveRadarComponent(
                             }
                         }
                     }
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                            }
-                        )
-                    }
+                    .testTag("live_radar_circular_display")
             ) {
-                // 1. Canvas with outer bezel compass, concentric rings, crosshairs, and rotating sweep
+                // Background Radar Grid, Rings, Compass and Sweep Canvas
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     val center = Offset(size.width / 2, size.height / 2)
                     val outerRimRadius = size.minDimension / 2
-                    val sweepRadius = outerRimRadius - 22.dp.toPx()
+                    val sweepRadius = outerRimRadius - 20.dp.toPx()
 
-                    // Outer Bezel Rim Track
-                    drawCircle(
-                        color = Color(0xFF020E04),
-                        radius = outerRimRadius,
-                        center = center
-                    )
+                    // Outer Bezel Rim
+                    drawCircle(color = Color(0xFF020E04), radius = outerRimRadius, center = center)
                     drawCircle(
                         color = radarColor.copy(alpha = 0.5f),
                         radius = outerRimRadius - 1.dp.toPx(),
@@ -608,7 +173,7 @@ fun LiveRadarComponent(
                         style = Stroke(width = 1.5.dp.toPx())
                     )
 
-                    // Inner Sweep Circle Border
+                    // Inner Sweep Border Ring
                     drawCircle(
                         color = radarColor.copy(alpha = 0.85f),
                         radius = sweepRadius,
@@ -616,77 +181,58 @@ fun LiveRadarComponent(
                         style = Stroke(width = 1.8.dp.toPx())
                     )
 
-                    // North Glowing Chevron in Bezel
-                    val northChevron = Path().apply {
-                        moveTo(center.x, center.y - outerRimRadius + 2.dp.toPx())
-                        lineTo(center.x - 4.dp.toPx(), center.y - outerRimRadius + 8.dp.toPx())
-                        lineTo(center.x + 4.dp.toPx(), center.y - outerRimRadius + 8.dp.toPx())
-                        close()
-                    }
-                    drawPath(northChevron, color = radarColor)
-
+                    // Compass North Chevron and Text Paints
                     val textPaint = android.graphics.Paint().apply {
-                        color = android.graphics.Color.parseColor(
-                            if (isPremium) "#FFD700" else "#00FF41"
-                        )
+                        color = android.graphics.Color.parseColor(if (isPremium) "#FFD700" else "#00FF41")
                         textSize = 8.5.dp.toPx()
                         textAlign = android.graphics.Paint.Align.CENTER
                         typeface = android.graphics.Typeface.MONOSPACE
                         isFakeBoldText = true
                         isAntiAlias = true
-                        alpha = 235
+                        alpha = 240
                     }
 
-                    // Cardinal Coordinates strictly in Outer Bezel
-                    drawContext.canvas.nativeCanvas.drawText("N 000°", center.x, center.y - sweepRadius - 5.dp.toPx(), textPaint)
+                    // Cardinal Coordinates & Azimuth Ticks
+                    // Top: ▲ N 000°
+                    drawContext.canvas.nativeCanvas.drawText("▲", center.x, center.y - sweepRadius - 10.dp.toPx(), textPaint)
+                    drawContext.canvas.nativeCanvas.drawText("N 000°", center.x, center.y - sweepRadius - 2.dp.toPx(), textPaint)
+
+                    // Bottom: S 180°
                     drawContext.canvas.nativeCanvas.drawText("S 180°", center.x, center.y + sweepRadius + 14.dp.toPx(), textPaint)
-                    drawContext.canvas.nativeCanvas.drawText("W 270°", center.x - sweepRadius - 11.dp.toPx(), center.y + 3.dp.toPx(), textPaint)
-                    drawContext.canvas.nativeCanvas.drawText("E 090°", center.x + sweepRadius + 11.dp.toPx(), center.y + 3.dp.toPx(), textPaint)
 
-                    // Azimuth Degree Ticks around the outer rim
-                    for (deg in 0 until 360 step 30) {
-                        if (deg % 90 == 0) continue
-                        val rad = Math.toRadians(deg.toDouble())
-                        val tickStart = outerRimRadius - 5.dp.toPx()
-                        val tickEnd = outerRimRadius - 2.dp.toPx()
-                        val startX = center.x + tickStart * cos(rad).toFloat()
-                        val startY = center.y + tickStart * sin(rad).toFloat()
-                        val endX = center.x + tickEnd * cos(rad).toFloat()
-                        val endY = center.y + tickEnd * sin(rad).toFloat()
-                        drawLine(
-                            color = radarColor.copy(alpha = 0.4f),
-                            start = Offset(startX, startY),
-                            end = Offset(endX, endY),
-                            strokeWidth = 1.dp.toPx()
-                        )
-                    }
+                    // Left: W 270°
+                    val sideTextPaint = android.graphics.Paint(textPaint).apply { textSize = 7.5.dp.toPx() }
+                    drawContext.canvas.nativeCanvas.drawText("W 270°", center.x - sweepRadius - 10.dp.toPx(), center.y + 3.dp.toPx(), sideTextPaint)
 
-                    // Polar Acoustic Radial Spokes (inside sweep circle)
-                    for (deg in 0 until 360 step 30) {
+                    // Right: E 090°
+                    drawContext.canvas.nativeCanvas.drawText("E 090°", center.x + sweepRadius + 10.dp.toPx(), center.y + 3.dp.toPx(), sideTextPaint)
+
+                    // Polar Acoustic Radial Spokes (45° intervals)
+                    for (deg in 0 until 360 step 45) {
                         val rad = Math.toRadians(deg.toDouble())
                         val spokeEndX = center.x + sweepRadius * cos(rad).toFloat()
                         val spokeEndY = center.y + sweepRadius * sin(rad).toFloat()
                         drawLine(
-                            color = radarColor.copy(alpha = 0.09f),
+                            color = radarColor.copy(alpha = 0.12f),
                             start = center,
                             end = Offset(spokeEndX, spokeEndY),
                             strokeWidth = 1.dp.toPx()
                         )
                     }
 
-                    // Concentric Acoustic Range Rings synced to selectedRadiusKm
-                    val acousticRings = listOf(0.20f, 0.40f, 0.60f, 0.80f, 1.0f)
+                    // 5 Concentric Range Rings with distance labels (0.2, 0.4, 0.6, 0.8, 1.0)
+                    val ringFractions = listOf(0.2f, 0.4f, 0.6f, 0.8f, 1.0f)
                     val currentMaxKm = selectedRadiusKm
-                    acousticRings.forEachIndexed { idx, frac ->
+                    ringFractions.forEach { frac ->
                         val r = sweepRadius * frac
                         drawCircle(
-                            color = radarColor.copy(alpha = 0.25f + (idx * 0.08f)),
+                            color = radarColor.copy(alpha = 0.22f),
                             radius = r,
                             center = center,
-                            style = Stroke(width = if (idx == acousticRings.lastIndex) 1.5.dp.toPx() else 1.dp.toPx())
+                            style = Stroke(width = 1.dp.toPx())
                         )
 
-                        // Scaled distance annotations on range rings
+                        // Distance label along the north vertical axis (0.6k, 1.2k, 1.8k, 2.4k, 3.0k)
                         val km = currentMaxKm * frac
                         val label = when {
                             km >= 1000 -> String.format("%.0fK", km / 1000)
@@ -694,47 +240,33 @@ fun LiveRadarComponent(
                             else -> String.format("%.1fk", km)
                         }
                         val ringDistPaint = android.graphics.Paint().apply {
-                            color = android.graphics.Color.parseColor(
-                                if (isPremium) "#FFD700" else "#00FF41"
-                            )
-                            textSize = 7.5.dp.toPx()
-                            textAlign = android.graphics.Paint.Align.LEFT
+                            color = android.graphics.Color.parseColor(if (isPremium) "#FFD700" else "#00FF41")
+                            textSize = 7.dp.toPx()
+                            textAlign = android.graphics.Paint.Align.CENTER
                             typeface = android.graphics.Typeface.MONOSPACE
                             isAntiAlias = true
-                            alpha = 195
+                            alpha = 200
                         }
-                        drawContext.canvas.nativeCanvas.drawText(
-                            label,
-                            center.x + 3.dp.toPx(),
-                            center.y - r - 2.dp.toPx(),
-                            ringDistPaint
-                        )
+                        drawContext.canvas.nativeCanvas.drawText(label, center.x, center.y - r + 8.dp.toPx(), ringDistPaint)
                     }
 
-                    // Dynamic Pulse Shockwaves (Synced with range)
-                    val pulseColor = if (hidePreciseLocationOnRadar) shieldCyan else radarColor
-                    val pulseProgressList = listOf(pulse1, pulse2, pulse3)
-                    for (progress in pulseProgressList) {
-                        if (progress > 0.01f) {
-                            val waveRadius = sweepRadius * progress
-                            val fadeAlpha = ((1f - progress) * (if (hidePreciseLocationOnRadar) 0.65f else 0.80f)).coerceIn(0f, 1f)
-                            drawCircle(
-                                color = pulseColor.copy(alpha = fadeAlpha * 0.45f),
-                                radius = waveRadius,
-                                center = center,
-                                style = Stroke(width = 1.5.dp.toPx())
-                            )
-                        }
-                    }
+                    // Expanding Pulse Shockwave
+                    drawCircle(
+                        color = radarColor.copy(alpha = 0.35f * (1f - pulseWave)),
+                        radius = sweepRadius * pulseWave,
+                        center = center,
+                        style = Stroke(width = 1.5.dp.toPx())
+                    )
 
-                    // Crosshairs
-                    drawLine(radarColor.copy(alpha = 0.12f), start = Offset(center.x, center.y - sweepRadius), end = Offset(center.x, center.y + sweepRadius), strokeWidth = 1.dp.toPx())
-                    drawLine(radarColor.copy(alpha = 0.12f), start = Offset(center.x - sweepRadius, center.y), end = Offset(center.x + sweepRadius, center.y), strokeWidth = 1.dp.toPx())
-
-                    // Sweep Beam
+                    // Rotating Radar Sweep Line and Wedge Gradient
                     drawArc(
                         brush = Brush.sweepGradient(
-                            colors = listOf(Color.Transparent, radarColor.copy(alpha = 0.08f), radarColor.copy(alpha = 0.65f)),
+                            colors = listOf(
+                                Color.Transparent,
+                                radarColor.copy(alpha = 0.05f),
+                                radarColor.copy(alpha = 0.25f),
+                                radarColor.copy(alpha = 0.70f)
+                            ),
                             center = center
                         ),
                         startAngle = sweepAngle - 90f,
@@ -743,58 +275,87 @@ fun LiveRadarComponent(
                         topLeft = Offset(center.x - sweepRadius, center.y - sweepRadius),
                         size = Size(sweepRadius * 2, sweepRadius * 2)
                     )
+
+                    // Leading Sweep Line
+                    val sweepRad = Math.toRadians((sweepAngle).toDouble())
+                    val lineEndX = center.x + sweepRadius * cos(sweepRad).toFloat()
+                    val lineEndY = center.y + sweepRadius * sin(sweepRad).toFloat()
                     drawLine(
-                        color = radarColor,
+                        color = if (isPremium) Color(0xFFFFD700) else Color(0xFF00FF41),
                         start = center,
-                        end = Offset(
-                            x = center.x + sweepRadius * cos(Math.toRadians(sweepAngle.toDouble())).toFloat(),
-                            y = center.y + sweepRadius * sin(Math.toRadians(sweepAngle.toDouble())).toFloat()
-                        ),
+                        end = Offset(lineEndX, lineEndY),
                         strokeWidth = 2.dp.toPx()
                     )
 
-                    // Signal Aura (Center User Pulse for Premium)
-                    if (signalAuraEnabled) {
-                        drawCircle(
-                            color = Color(0xFFFFD700).copy(alpha = 0.28f * (1f - pulse1)),
-                            radius = (16.dp.toPx() + 10.dp.toPx() * (1f - pulse1)),
-                            center = center
-                        )
-                    }
-
-                    // Center Pulse Beacon Ping
-                    val centerPulseGlow = ((1f - pulse1) * 0.45f).coerceAtLeast(0f)
+                    // Center Blip Beacon & Glow
                     drawCircle(
-                        color = pulseColor.copy(alpha = centerPulseGlow),
-                        radius = (12.dp.toPx() + 6.dp.toPx() * (1f - pulse1)),
+                        color = radarColor.copy(alpha = 0.3f),
+                        radius = 12.dp.toPx(),
                         center = center
                     )
+                    drawCircle(
+                        color = if (isPremium) Color(0xFFFFD700) else radarColor,
+                        radius = 4.5.dp.toPx(),
+                        center = center
+                    )
+                    drawCircle(
+                        color = Color.White,
+                        radius = 1.8.dp.toPx(),
+                        center = center
+                    )
+                }
 
-                    // Center Blip
-                    if (hidePreciseLocationOnRadar) {
-                        drawCircle(color = shieldCyan.copy(alpha = 0.35f), radius = 10.dp.toPx(), center = center)
-                        drawCircle(color = shieldCyan, radius = 5.dp.toPx(), center = center)
-                        drawCircle(color = Color.White, radius = 2.dp.toPx(), center = center)
-                    } else {
-                        if (isPremium) {
-                            drawCircle(color = Color(0xFFFFD700), radius = 6.dp.toPx(), center = center)
-                            drawCircle(color = Color.White, radius = 2.5.dp.toPx(), center = center)
-                        } else {
-                            drawCircle(color = radarColor, radius = 5.dp.toPx(), center = center)
-                            drawCircle(color = Color.White, radius = 2.dp.toPx(), center = center)
-                        }
+                // Plotting User & Post Blip Avatars inside the circular radar
+                val blipSizeDp = 32.dp
+                val blipRadiusPx = with(density) { 16.dp.toPx() }
+                val maxBlipDist = sweepRadiusPx - blipRadiusPx - with(density) { 6.dp.toPx() }
+
+                combinedItems.forEachIndexed { i, item ->
+                    val angle = (i * 137.5f + 25f) % 360f
+                    val distFactor = 0.22f + 0.68f * (((i * 37 + 19) % 100) / 100f)
+                    val dist = blipRadiusPx + maxBlipDist * distFactor
+                    val bx = centerPx + (dist * cos(Math.toRadians(angle.toDouble()))).toFloat()
+                    val by = centerPx + (dist * sin(Math.toRadians(angle.toDouble()))).toFloat()
+
+                    val avatarUrl = if (item is OtherUserEntity) item.avatarUrl else (item as PostEntity).userAvatar
+
+                    Box(
+                        modifier = Modifier
+                            .offset(
+                                x = with(density) { (bx - blipRadiusPx).toDp() },
+                                y = with(density) { (by - blipRadiusPx).toDp() }
+                            )
+                            .size(blipSizeDp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF021405))
+                            .border(1.5.dp, if (item is OtherUserEntity && item.isVerified) Color(0xFFFFD700) else radarColor, CircleShape)
+                            .clickable {
+                                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                if (item is OtherUserEntity) {
+                                    dispatchUserTarget = item
+                                    onUserClick(item)
+                                } else {
+                                    onPostClick(item as PostEntity)
+                                }
+                            }
+                    ) {
+                        AsyncImage(
+                            model = avatarUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
 
-                // Dynamic Radar Scale Calibration Pill (Relocated to BottomCenter to avoid colliding with North)
+                // Bottom Sync Badge inside Radar: • PULSE SYNC: 3KM • 1.2s
                 Surface(
-                    color = Color.Black.copy(alpha = 0.75f),
+                    color = Color.Black.copy(alpha = 0.85f),
                     shape = RoundedCornerShape(100.dp),
-                    border = BorderStroke(0.8.dp, if (hidePreciseLocationOnRadar) shieldCyan.copy(alpha = 0.6f) else radarColor.copy(alpha = 0.6f)),
+                    border = BorderStroke(0.8.dp, radarColor.copy(alpha = 0.6f)),
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(bottom = 8.dp)
-                        .testTag("radar_pulse_sync_badge")
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
@@ -803,115 +364,352 @@ fun LiveRadarComponent(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(5.dp)
+                                .size(6.dp)
                                 .clip(CircleShape)
-                                .background(if (hidePreciseLocationOnRadar) shieldCyan else radarColor)
+                                .background(if (isLocationEnabled) Color(0xFF00FF41) else Color.Red)
                         )
                         Text(
-                            text = "PULSE SYNC: ${currentDistanceOption.shortLabel} • ${(pulseDurationMs / 1000.0)}s",
+                            text = "PULSE SYNC: ${currentDistanceOption.shortLabel.uppercase()} • 1.2s",
                             fontSize = 8.5.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
-                        )
-                    }
-                }
-                
-                // 2. Miniature Cards plotted strictly INSIDE the sweep circle
-                val blipCardSizeDp = 34.dp
-                val blipCardRadiusPx = with(density) { 17.dp.toPx() }
-                val maxDist = sweepRadiusPx - blipCardRadiusPx - with(density) { 4.dp.toPx() }
-                val minDist = blipCardRadiusPx + with(density) { 10.dp.toPx() }
-
-                combinedItems.forEachIndexed { i, item ->
-                    val angle = (i * 137.5f) % 360f
-                    val distFactor = 0.18f + 0.78f * (((i * 29 + 17) % 100) / 100f)
-                    val dist = minDist + (maxDist - minDist) * distFactor
-                    
-                    val blipCenterX = centerPx + dist * cos(Math.toRadians(angle.toDouble())).toFloat()
-                    val blipCenterY = centerPx + dist * sin(Math.toRadians(angle.toDouble())).toFloat()
-                    
-                    val offsetX = blipCenterX - blipCardRadiusPx
-                    val offsetY = blipCenterY - blipCardRadiusPx
-                    
-                    // Calculate opacity and highlight based on radar sweep
-                    val angleDiff = (sweepAngle - angle + 360f) % 360f
-                    val isSwept = angleDiff < 45f
-                    val alpha = if (isSwept) 1f else (0.45f + 0.25f * (1f - (angleDiff / 360f)))
-                    val scale = if (isSwept) 1.15f else 1f
-                    val isPremiumBlip = (item is OtherUserEntity && item.isVerified) || (item is PostEntity && item.isVerified)
-                    val actualBorderGlow = if (isPremiumBlip) Color(0xFFFFD700) else (if (isSwept) radarColor else radarColor.copy(alpha = 0.4f))
-                    val borderSize = if (isPremiumBlip) 2.dp else 1.5.dp
-                    
-                    val avatarUrl = when (item) {
-                        is OtherUserEntity -> item.avatarUrl
-                        is PostEntity -> item.userAvatar
-                        else -> ""
-                    }
-                    
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .offset(
-                                x = with(density) { offsetX.toDp() },
-                                y = with(density) { offsetY.toDp() }
-                            )
-                            .size(if (isPremiumBlip) blipCardSizeDp + 6.dp else blipCardSizeDp)
-                            .let {
-                                if (isPremiumBlip && signalAuraEnabled) {
-                                    it.background(
-                                        Brush.radialGradient(
-                                            colors = listOf(Color(0xFFFFD700).copy(alpha = 0.45f), Color.Transparent)
-                                        ),
-                                        CircleShape
-                                    )
-                                } else it
-                            }
-                            .clip(CircleShape)
-                            .background(Color(0xFF031405))
-                            .border(
-                                borderSize,
-                                if (isPremiumBlip) Brush.sweepGradient(listOf(Color(0xFFFFD700), Color(0xFFFFF8DC), Color(0xFFDAA520), Color(0xFFFFD700)))
-                                else Brush.linearGradient(listOf(actualBorderGlow, actualBorderGlow)),
-                                CircleShape
-                            )
-                            .clickable {
-                                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
-                                if (item is OtherUserEntity) {
-                                    dispatchUserTarget = item
-                                    if (isPremium) {
-                                        onUserClick(item)
-                                    }
-                                } else if (item is PostEntity) {
-                                    onPostClick(item)
-                                }
-                            }
-                            .padding(2.dp)
-                    ) {
-                        AsyncImage(
-                            model = avatarUrl,
-                            contentDescription = "Radar blip",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
-                            contentScale = ContentScale.Crop,
-                            alpha = alpha
+                            fontFamily = FontFamily.Monospace
                         )
                     }
                 }
             }
         }
 
-        // Section 3.15: Direct Tactical Chat Dispatch Sheet if Target Blip clicked
-        val currentTarget = dispatchUserTarget
-        AnimatedVisibility(
-            visible = currentTarget != null,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // =====================================================================
+        // 2. ALL CONTROLS POSITIONED STRICTLY BELOW THE RADAR SCREEN
+        // =====================================================================
+
+        // 1. Radar Online Card
+        Surface(
+            color = if (isLocationEnabled) Color(0xFF031405) else Color(0xFF1E1010),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(
+                1.dp,
+                if (isLocationEnabled) Color(0xFF00FF41).copy(alpha = 0.5f) else Color(0xFFFF5252).copy(alpha = 0.5f)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 3.dp)
+                .testTag("radar_online_card")
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isLocationEnabled) Color(0xFF0B2E10) else Color(0xFF3B1212),
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Sensors,
+                                contentDescription = null,
+                                tint = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = if (isLocationEnabled) "Radar Online" else "Radar Offline",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252)
+                        )
+                        Text(
+                            text = if (isLocationEnabled) "Scanning within ${currentDistanceOption.fullLabel}" else "Location radar disabled",
+                            fontSize = 10.sp,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        onLocationToggle(!isLocationEnabled)
+                    },
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isLocationEnabled) Color(0xFF1B2E1D) else Color(0xFF00FF41),
+                        contentColor = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFF020E04)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                    modifier = Modifier.height(32.dp).testTag("radar_power_toggle_button")
+                ) {
+                    Text(
+                        text = if (isLocationEnabled) "Turn OFF" else "Turn ON",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // 2. RADAR BEACON: BROADCASTING (PassiveSonarGhostBanner)
+        PassiveSonarGhostBanner(
+            isGhostActive = isGhostActive,
+            onToggleGhost = {
+                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                isGhostActive = !isGhostActive
+                onToggleHidePreciseLocation?.invoke(isGhostActive)
+            },
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp)
+        )
+
+        // 3. Active Radar Perk Card
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF021B2B),
+            border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.5f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 3.dp)
+                .testTag("active_radar_perk_card")
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = "Active Perk",
+                    tint = Color(0xFFFFD700),
+                    modifier = Modifier.size(20.dp)
+                )
+                Column {
+                    Text(
+                        text = "ACTIVE RADAR PERK • 19h remaining",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00E5FF),
+                        fontFamily = FontFamily.Monospace
+                    )
+                    Text(
+                        text = "Signal Aura Glow (+25%): Brightens your proximity",
+                        fontSize = 9.5.sp,
+                        color = Color.LightGray
+                    )
+                }
+            }
+        }
+
+        // 4. Master Control Pills Row (2D TOP-DOWN, NIGHT HUD, LIVE SCAN)
+        Section3MasterControlBar(
+            isGhostActive = isGhostActive,
+            is3DPerspective = is3DPerspective,
+            isDayTheme = isDayTheme,
+            isBatterySaver = isBatterySaver,
+            onToggleGhost = {
+                isGhostActive = !isGhostActive
+                onToggleHidePreciseLocation?.invoke(isGhostActive)
+            },
+            onTogglePerspective = { is3DPerspective = it },
+            onToggleDayTheme = { isDayTheme = !isDayTheme },
+            onToggleBatterySaver = { isBatterySaver = !isBatterySaver }
+        )
+
+        // 5. Telemetry Row (Heading, Vibrancy, Kalman Filter)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RealTimeCompassHeadingBadge(headingDeg = 86f)
+            NeighborhoodVibrancyScoreBadge(score = 82)
+            MovementKalmanFilterIndicator(isKalmanFiltered = true, speedKmh = 4.8f)
+        }
+
+        // 6. Unified Range Slider & Presets
+        UnifiedRadarRangeSlider(
+            currentRadiusKm = selectedRadiusKm,
+            onRadiusChange = { radius ->
+                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                onRadiusChange(radius)
+            },
+            isPremium = userProfile.isVerified
+        )
+
+        // 7. HUD Themes & Signal Aura Selector Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "HUD THEME: .....",
+                    fontSize = 8.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = radarColor,
+                    fontFamily = FontFamily.Monospace
+                )
+                RadarHudTheme.values().forEach { theme ->
+                    val isSelected = currentHudTheme == theme
+                    val isLocked = theme.isPremiumOnly && !isPremium
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = if (isSelected) theme.primaryColor.copy(alpha = 0.25f) else Color.Transparent,
+                        border = BorderStroke(
+                            0.7.dp,
+                            if (isSelected) theme.primaryColor else if (isLocked) Color.DarkGray else Color.Gray.copy(alpha = 0.4f)
+                        ),
+                        modifier = Modifier.clickable {
+                            if (!isLocked) {
+                                selectedTheme = theme
+                            } else {
+                                Toast.makeText(context, "Premium Theme: ${theme.title} 🔒", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = if (isLocked) "${theme.title.take(3)}🔒" else theme.title.take(4),
+                            fontSize = 8.sp,
+                            color = if (isSelected) theme.primaryColor else Color.Gray,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = if (signalAuraEnabled) Color(0xFFFFD700).copy(alpha = 0.2f) else Color.Transparent,
+                border = BorderStroke(0.8.dp, if (signalAuraEnabled) Color(0xFFFFD700) else Color.Gray),
+                modifier = Modifier.clickable {
+                    if (isPremium) {
+                        signalAuraEnabled = !signalAuraEnabled
+                    } else {
+                        Toast.makeText(context, "Premium Feature: Signal Aura 🔒", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            ) {
+                Text(
+                    text = if (signalAuraEnabled) "AURA ✨" else "AURA OFF ⓘ",
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (signalAuraEnabled) Color(0xFFFFD700) else Color.Gray,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+        }
+
+        // 8. Safe Haven & Event Geofence Markers
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            EmergencySafeHavenMarker(havenName = "Central Clinic", distanceKm = 0.8, onClick = {})
+            EventGeoFenceOverlayTag(eventName = "Block Party", radiusMeters = 300, attendeesCount = 42)
+        }
+
+        // 9. LIVE RADAR: PRECISE COORDINATES Card (Hide Pin)
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF031808),
+            border = BorderStroke(1.dp, Color(0xFF00FF41).copy(alpha = 0.45f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 4.dp)
+                .testTag("precise_coordinates_card")
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFF0A2B11),
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.SatelliteAlt,
+                                contentDescription = null,
+                                tint = Color(0xFF00FF41),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = "LIVE RADAR: PRECISE COORDINATES ⓘ",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF00FF41),
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = "Your exact street blip is broadcasting (Hover for details)",
+                            fontSize = 9.5.sp,
+                            color = Color.LightGray
+                        )
+                    }
+                }
+
+                Button(
+                    onClick = {
+                        isGhostActive = !isGhostActive
+                        onToggleHidePreciseLocation?.invoke(isGhostActive)
+                    },
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isGhostActive) Color(0xFF00E5FF) else Color(0xFF0F2615),
+                        contentColor = if (isGhostActive) Color.Black else Color.White
+                    ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                    modifier = Modifier.height(30.dp)
+                ) {
+                    Text(
+                        text = if (isGhostActive) "Hidden 🛡️" else "Hide Pin",
+                        fontSize = 10.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // Direct Radar Chat Dispatch sheet (when a blip is tapped)
+        val currentTarget = dispatchUserTarget
+        AnimatedVisibility(visible = currentTarget != null) {
             if (currentTarget != null) {
                 DirectRadarChatDispatchSheet(
                     targetUser = currentTarget,
                     isPremiumViewer = isPremium,
-                    onSendQuickGreeting = { _ -> dispatchUserTarget = null },
+                    onSendQuickGreeting = { dispatchUserTarget = null },
                     onClose = { dispatchUserTarget = null },
                     modifier = Modifier.padding(14.dp)
                 )

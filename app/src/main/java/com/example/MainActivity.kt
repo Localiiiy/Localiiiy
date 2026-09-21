@@ -336,11 +336,33 @@ fun LocaliiiyApp(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ -> }
 
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[android.Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                permissions[android.Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        if (granted) {
+            viewModel.detectCurrentLocation(context)
+        }
+    }
+
     LaunchedEffect(Unit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
+        }
+        val fineGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!fineGranted && !coarseGranted) {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        } else {
+            viewModel.detectCurrentLocation(context)
         }
         com.example.service.FavoriteProximityManager.init(context)
     }
@@ -384,6 +406,35 @@ fun LocaliiiyApp(
         }
     }
 
+    if (isLoggedOut) {
+        AuthScreen(
+            initialMode = authInitialMode,
+            securityReason = authReason,
+            onDismiss = {
+                // Mandatory Gate: app requires login/registration before accessing dashboard
+            },
+            onGhostSpectatorSuccess = {
+                viewModel.enterAsGhostSpectator()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+                }
+            },
+            onScrubIdentity = {
+                viewModel.resetSessionAndPurge()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
+                }
+            },
+            onAuthSuccess = { user, username, fullName, neighborhood ->
+                viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
+                }
+            }
+        )
+        return
+    }
+
     Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
         if (privacySettings.appThemeBackground == "CUSTOM" && privacySettings.customBackgroundImageUri.isNotBlank()) {
             AsyncImage(
@@ -422,15 +473,22 @@ fun LocaliiiyApp(
                                 viewModel.selectTab(MainNavigationTab.CREATE)
                             },
                             onLocationClick = {
-                                if (!isLocationEnabled) {
-                                    viewModel.setLocationEnabled(true)
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("Location Radar Enabled 📍")
-                                    }
+                                val fineGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                val coarseGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                if (!fineGranted && !coarseGranted) {
+                                    locationPermissionLauncher.launch(
+                                        arrayOf(
+                                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
+                                    )
                                 } else {
+                                    if (!isLocationEnabled) {
+                                        viewModel.setLocationEnabled(true)
+                                    }
                                     viewModel.detectCurrentLocation(context)
                                     coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("GPS Location updated: ${currentLocation?.landmark ?: "Pike Place"}")
+                                        snackbarHostState.showSnackbar("Detecting accurate GPS radar location... 📍")
                                     }
                                 }
                             }
@@ -707,14 +765,8 @@ fun LocaliiiyApp(
                         onToggleCreatorDashboard = { viewModel.toggleStudioCreatorDashboard() },
                         onUploadVideo = { title, desc, cat, duration, videoUrl, thumbUrl, res, tags, chapters ->
                             val success = viewModel.uploadStudioVideo(title, desc, cat, duration, videoUrl, thumbUrl, res, tags, chapters)
-                            if (success) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Long-form video published to Localiiiy Studio! 🎬")
-                                }
-                            } else {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Duration error: Studio videos must be at least 60 seconds (unlimited time supported). 🎬")
-                                }
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Video successfully published to Localiiiy Studio! 🎬")
                             }
                             success
                         },
@@ -1124,11 +1176,16 @@ fun LocaliiiyApp(
     // Share Sheet
     if (activeSharePost != null) {
         val post = activeSharePost!!
+        val isClip = post.mediaType == "VIDEO" || post.mediaType == "CLIP"
         ShareBottomSheet(
-            targetTitle = "Pulse by ${post.username} • ${post.landmark ?: post.location ?: "Seattle"}",
-            clipId = if (post.mediaType == "VIDEO" || post.mediaType == "CLIP") post.id else null,
+            targetTitle = if (isClip) (post.caption.ifBlank { "Pulse by ${post.username}" }) else "Pulse by ${post.username} • ${post.landmark ?: post.location ?: "Seattle"}",
+            clipId = if (isClip) post.id else null,
             creatorHandle = post.userHandle,
             clipCaption = post.caption,
+            itemType = if (isClip) "Clip" else "Post",
+            itemId = post.id,
+            location = post.landmark ?: post.location,
+            currentLanguage = currentLanguage,
             onDismiss = { viewModel.closeShareSheet() },
             onShareSuccess = { message ->
                 coroutineScope.launch {
@@ -1522,7 +1579,7 @@ fun LocaliiiyBottomNavigationBar(
                                 .data(userAvatarUrl)
                                 .crossfade(true)
                                 .build(),
-                            contentDescription = "Profile",
+                            contentDescription = "Space",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()

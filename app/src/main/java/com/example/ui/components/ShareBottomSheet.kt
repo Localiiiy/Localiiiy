@@ -39,6 +39,8 @@ import coil.request.ImageRequest
 import com.example.data.InitialData
 import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyPrimaryTeal
+import com.example.util.LocaliiiyLanguage
+import com.example.util.ShareHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +49,11 @@ fun ShareBottomSheet(
     clipId: Long? = null,
     creatorHandle: String? = null,
     clipCaption: String? = null,
+    itemType: String = if (clipId != null) "Clip" else "Post",
+    itemId: Any? = clipId,
+    location: String? = null,
+    priceFormatted: String? = null,
+    currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
     onDismiss: () -> Unit,
     onShareSuccess: (String) -> Unit
 ) {
@@ -55,13 +62,23 @@ fun ShareBottomSheet(
     var sentUsers by remember { mutableStateOf(setOf<String>()) }
     var copiedLink by remember { mutableStateOf(false) }
 
-    // Generate Deep Link URL for Creator Clips or general posts
-    val generatedDeepLink = remember(clipId) {
-        if (clipId != null) {
-            "https://localiiiy.app/clip/$clipId"
-        } else {
-            "https://localiiiy.app/share/${Math.abs(targetTitle.hashCode())}"
-        }
+    // Generate Deep Link URL for Creator Clips, Posts, Market, or Studio items
+    val effectiveId = itemId ?: clipId ?: Math.abs(targetTitle.hashCode())
+    val generatedDeepLink = remember(effectiveId, itemType) {
+        ShareHelper.buildDeepLink(itemType, effectiveId)
+    }
+
+    val fullShareMessage = remember(targetTitle, itemType, effectiveId, creatorHandle, clipCaption, location, priceFormatted, currentLanguage) {
+        ShareHelper.buildShareText(
+            title = targetTitle,
+            itemType = itemType,
+            id = effectiveId,
+            creatorHandle = creatorHandle,
+            caption = clipCaption,
+            location = location,
+            priceFormatted = priceFormatted,
+            language = currentLanguage
+        )
     }
 
     val suggestedContacts = listOf(
@@ -73,18 +90,12 @@ fun ShareBottomSheet(
     )
 
     fun launchNativeShare() {
-        val shareText = if (clipId != null && creatorHandle != null) {
-            "Watch @${creatorHandle.removePrefix("@")}'s creator clip on Localiiiy:\n\"${clipCaption ?: targetTitle}\"\n\n🔗 Deep Link: $generatedDeepLink"
-        } else {
-            "Check this out on Localiiiy:\n$targetTitle\n\n🔗 $generatedDeepLink"
-        }
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_SUBJECT, "Shared via Localiiiy")
-            putExtra(Intent.EXTRA_TEXT, shareText)
-        }
-        val chooserIntent = Intent.createChooser(sendIntent, "Share Creator Clip Outside App")
-        context.startActivity(chooserIntent)
+        ShareHelper.launchNativeShare(
+            context = context,
+            shareText = fullShareMessage,
+            subject = "Share on Localiiiy",
+            chooserTitle = "Share Outside App"
+        )
         onShareSuccess("Opening native share sheet...")
         onDismiss()
     }

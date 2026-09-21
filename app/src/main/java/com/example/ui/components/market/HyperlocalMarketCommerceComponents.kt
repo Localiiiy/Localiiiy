@@ -960,12 +960,13 @@ data class LocalServiceGig(
     val title: String,
     val providerName: String,
     val providerAvatar: String,
-    val category: String, // "Audio/Video Production", "Repairs", "Lessons", "Emergency Help"
+    val category: String, // "Repairs & Mechanics", "Audio/Video & Creative", "Home Cleaning & Trades", "Tech & Development", "Tutoring & Lessons", "Beauty & Wellness"
     val rateText: String,
     val distanceKm: Double,
     val landmark: String,
     val rating: Double = 4.9,
     val completedGigs: Int = 32,
+    val completionRate: Int = 98,
     val description: String
 )
 
@@ -975,12 +976,13 @@ val defaultLocalServiceGigs = listOf(
         title = "Mobile Podcast Recording & Audio Mastering",
         providerName = "Marcus Vance",
         providerAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
-        category = "Audio/Video Production",
-        rateText = "$45 / hr",
+        category = "Audio/Video & Creative",
+        rateText = "$45/hr",
         distanceKm = 0.4,
         landmark = "Capitol Hill Studio Hub",
         rating = 5.0,
         completedGigs = 48,
+        completionRate = 99,
         description = "On-location multitrack recording with Shure SM7B mics and immediate rough mix."
     ),
     LocalServiceGig(
@@ -988,12 +990,13 @@ val defaultLocalServiceGigs = listOf(
         title = "Bicycle Tune-Up & Hydraulic Brake Bleed",
         providerName = "Elena Rostova",
         providerAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9",
-        category = "Repairs",
-        rateText = "$35 Flat",
+        category = "Repairs & Mechanics",
+        rateText = "$35/hr",
         distanceKm = 0.8,
         landmark = "Pike Place Public Commons",
         rating = 4.9,
         completedGigs = 73,
+        completionRate = 98,
         description = "Same-day drivetrain cleaning, gear indexing, brake pads, and tire inspection."
     ),
     LocalServiceGig(
@@ -1001,39 +1004,84 @@ val defaultLocalServiceGigs = listOf(
         title = "Analog Synth & Ableton Production Lessons",
         providerName = "Kaito Tanaka",
         providerAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d",
-        category = "Lessons",
-        rateText = "$50 / hr",
+        category = "Tutoring & Lessons",
+        rateText = "$50/hr",
         distanceKm = 1.1,
         landmark = "Fremont Sound Lab",
         rating = 4.8,
         completedGigs = 29,
+        completionRate = 97,
         description = "Hands-on synthesis, patching modular gear, and mixing electronic music in person."
     ),
     LocalServiceGig(
         id = 4,
-        title = "Emergency Battery Jump & Spare Tire Swapping",
-        providerName = "Dave Miller",
-        providerAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-        category = "Emergency Help",
-        rateText = "$25 Flat",
-        distanceKm = 0.3,
-        landmark = "Downtown Safe Exchange Point",
-        rating = 5.0,
-        completedGigs = 95,
-        description = "Hyperlocal quick response within 15 minutes across Downtown and Belltown."
+        title = "Deep Home Eco-Cleaning & Air Purification",
+        providerName = "Maria Santos",
+        providerAvatar = "https://images.unsplash.com/photo-1544005313-94ddf0286df2",
+        category = "Home Cleaning & Trades",
+        rateText = "$40/hr",
+        distanceKm = 0.6,
+        landmark = "Belltown Residential Hub",
+        rating = 4.9,
+        completedGigs = 64,
+        completionRate = 99,
+        description = "Non-toxic organic cleaning supplies, HEPA vacuuming, and kitchen sanitization."
     ),
     LocalServiceGig(
         id = 5,
+        title = "Kotlin & Jetpack Compose Mentorship",
+        providerName = "Alex Rivera",
+        providerAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        category = "Tech & Development",
+        rateText = "$65/hr",
+        distanceKm = 1.2,
+        landmark = "South Lake Union Tech Hub",
+        rating = 5.0,
+        completedGigs = 52,
+        completionRate = 100,
+        description = "1-on-1 pair programming, architecture reviews, and production Android debugging."
+    ),
+    LocalServiceGig(
+        id = 6,
+        title = "Holistic Hair Styling & Beard Grooming",
+        providerName = "Liam O'Connor",
+        providerAvatar = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d",
+        category = "Beauty & Wellness",
+        rateText = "$55/hr",
+        distanceKm = 0.5,
+        landmark = "Pioneer Square Barber Studio",
+        rating = 4.9,
+        completedGigs = 88,
+        completionRate = 98,
+        description = "Private studio scissor cuts, organic beard oils, and hot towel facial treatments."
+    ),
+    LocalServiceGig(
+        id = 7,
         title = "4K Drone Architectural & Showcase Videography",
         providerName = "Chloe Chen",
         providerAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-        category = "Audio/Video Production",
-        rateText = "$70 / hr",
+        category = "Audio/Video & Creative",
+        rateText = "$70/hr",
         distanceKm = 1.6,
         landmark = "South Lake Union Park",
         rating = 4.9,
         completedGigs = 41,
+        completionRate = 96,
         description = "FAA Part 107 certified drone operator for local businesses, creator sets, and real estate."
+    ),
+    LocalServiceGig(
+        id = 8,
+        title = "Car Diagnostic & Battery Jump Service",
+        providerName = "Dave Miller",
+        providerAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        category = "Repairs & Mechanics",
+        rateText = "$45/hr",
+        distanceKm = 0.3,
+        landmark = "Downtown Safe Exchange Point",
+        rating = 5.0,
+        completedGigs = 95,
+        completionRate = 100,
+        description = "Hyperlocal quick response within 15 minutes across Downtown and Belltown."
     )
 )
 
@@ -1043,7 +1091,15 @@ fun LocalServicesCatalogView(
     modifier: Modifier = Modifier
 ) {
     var selectedServiceCategory by remember { mutableStateOf("All Services") }
-    val categories = listOf("All Services", "Audio/Video Production", "Repairs", "Lessons", "Emergency Help")
+    val categories = listOf(
+        "All Services",
+        "Repairs & Mechanics",
+        "Audio/Video & Creative",
+        "Home Cleaning & Trades",
+        "Tech & Development",
+        "Tutoring & Lessons",
+        "Beauty & Wellness"
+    )
 
     val filteredGigs = remember(selectedServiceCategory) {
         if (selectedServiceCategory == "All Services") defaultLocalServiceGigs
@@ -1064,11 +1120,12 @@ fun LocalServicesCatalogView(
                     modifier = Modifier
                         .clip(RoundedCornerShape(100.dp))
                         .clickable { selectedServiceCategory = cat }
+                        .testTag("service_cat_${cat.replace(" ", "_")}")
                 ) {
                     Text(
                         text = cat,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = 11.5.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                         color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                     )
@@ -1077,110 +1134,94 @@ fun LocalServicesCatalogView(
         }
 
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(bottom = 88.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 96.dp)
         ) {
             items(filteredGigs, key = { it.id }) { gig ->
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().testTag("service_card_${gig.id}")
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.Top
                         ) {
-                            // Left side: Image and below it the cost/money per hour
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.width(IntrinsicSize.Min)
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AsyncImage(
                                     model = gig.providerAvatar,
                                     contentDescription = gig.providerName,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .size(48.dp)
+                                        .size(46.dp)
                                         .clip(CircleShape)
                                         .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
                                 )
-                                // Cost / money per hour shown below image on the left side
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
-                                    modifier = Modifier.testTag("service_cost_below_image")
-                                ) {
-                                    Text(
-                                        text = gig.rateText,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
-                                        maxLines = 1,
-                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                    )
-                                }
-                            }
-
-                            // Right side: Gig Title, Provider Name, Ratings, and Category
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Column {
                                     Text(
                                         text = gig.title,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 14.sp,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.weight(1f)
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
-                                    Surface(
-                                        shape = RoundedCornerShape(100.dp),
-                                        color = MaterialTheme.colorScheme.surfaceVariant,
-                                        modifier = Modifier.padding(start = 4.dp)
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                                     ) {
                                         Text(
-                                            text = gig.category,
-                                            fontSize = 9.5.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            text = gig.providerName,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text("•", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
+                                        Text(
+                                            text = "⭐ ${gig.rating} (${gig.completedGigs})",
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFFF59E0B)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = gig.providerName,
-                                        fontSize = 11.5.sp,
-                                        fontWeight = FontWeight.Medium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text("•", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
-                                    Text(
-                                        text = "⭐ ${gig.rating} (${gig.completedGigs} completed)",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFFF59E0B)
-                                    )
-                                }
+                            }
+
+                            // Auto-sizing rate badge (fixes "$45 /" clipping)
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFF00C853),
+                                modifier = Modifier
+                                    .padding(start = 6.dp)
+                                    .testTag("service_rate_badge_${gig.id}")
+                            ) {
+                                Text(
+                                    text = gig.rateText,
+                                    fontSize = 13.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = gig.description,
-                            fontSize = 11.5.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -1200,13 +1241,35 @@ fun LocalServicesCatalogView(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
-                            Button(
-                                onClick = { onInquireService(gig) },
-                                shape = RoundedCornerShape(100.dp),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                modifier = Modifier.height(34.dp)
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("Inquire Gig", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFF10B981).copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = "✓ ${gig.completionRate}% Verified",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF059669),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                    )
+                                }
+
+                                Button(
+                                    onClick = { onInquireService(gig) },
+                                    shape = RoundedCornerShape(100.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                    modifier = Modifier
+                                        .height(34.dp)
+                                        .testTag("service_book_btn_${gig.id}")
+                                ) {
+                                    Text("Book / Inquire Gig", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
                             }
                         }
                     }

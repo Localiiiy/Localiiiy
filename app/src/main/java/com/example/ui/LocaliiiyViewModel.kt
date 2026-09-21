@@ -130,7 +130,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             )
         }
         val allMerged = (dbPosts + convertedCache)
-            .distinctBy { it.mediaUrl.ifBlank { it.caption } }
+            .distinctBy { it.id }
             .filter { it.username !in blocked }
             .sortedByDescending { it.timestamp }
         if (query.isBlank()) allMerged else allMerged.filter { it.caption.contains(query, ignoreCase = true) || (it.location?.contains(query, ignoreCase = true) == true) || it.username.contains(query, ignoreCase = true) || (it.landmark?.contains(query, ignoreCase = true) == true) }
@@ -328,7 +328,9 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     private val _profileTab = MutableStateFlow(ProfileTab.POSTS)
     val profileTab: StateFlow<ProfileTab> = _profileTab.asStateFlow()
 
-    private val _isLoggedOut = MutableStateFlow(false)
+    private val authPrefs = application.getSharedPreferences("localiiiy_auth_session", android.content.Context.MODE_PRIVATE)
+
+    private val _isLoggedOut = MutableStateFlow(!authPrefs.getBoolean("is_user_authenticated", false))
     val isLoggedOut: StateFlow<Boolean> = _isLoggedOut.asStateFlow()
 
     private val _showAuthScreen = MutableStateFlow(false)
@@ -361,6 +363,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         neighborhood: String
     ) {
         viewModelScope.launch(Dispatchers.IO) {
+            authPrefs.edit().putBoolean("is_user_authenticated", true).putString("auth_username", username).apply()
             val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
             val updated = current.copy(
                 username = username.ifBlank { current.username },
@@ -621,7 +624,9 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             _isDetectingLocation.value = true
             try {
-                val loc = LocationHelper.getCurrentLocation(context)
+                val profileNeighborhood = userProfile.value.neighborhood.takeIf { it.isNotBlank() }
+                val profileLocationName = userProfile.value.locationName.takeIf { it.isNotBlank() }
+                val loc = LocationHelper.getCurrentLocation(context, profileNeighborhood, profileLocationName)
                 _currentLocation.value = loc
                 _autoDetectedLocation.value = loc
 
@@ -630,6 +635,29 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                     lastAlertedHotspotId = hotspot.id
                     repository.sendHotspotNotification(alert.message)
                 }
+            } catch (_: Exception) {
+            } finally {
+                _isDetectingLocation.value = false
+            }
+        }
+    }
+
+    fun setUserCustomLocation(context: Context, landmark: String, neighborhood: String, city: String) {
+        viewModelScope.launch {
+            _isDetectingLocation.value = true
+            try {
+                val query = listOfNotNull(neighborhood.takeIf { it.isNotBlank() }, city.takeIf { it.isNotBlank() }).joinToString(", ")
+                val geocoded = LocationHelper.geocodeAddressString(context, query)
+                val newLoc = geocoded ?: UserLocationData(
+                    latitude = _currentLocation.value?.latitude ?: LocationHelper.DEFAULT_LAT,
+                    longitude = _currentLocation.value?.longitude ?: LocationHelper.DEFAULT_LNG,
+                    locationName = if (landmark.isNotBlank()) "$landmark, $city" else "$neighborhood, $city",
+                    landmark = landmark.ifBlank { neighborhood },
+                    neighborhood = neighborhood,
+                    city = city
+                )
+                _currentLocation.value = newLoc
+                _autoDetectedLocation.value = newLoc
             } catch (_: Exception) {
             } finally {
                 _isDetectingLocation.value = false
@@ -1302,16 +1330,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         val filter = _selectedFilter.value
         val currentLoc = _autoDetectedLocation.value ?: _currentLocation.value
 
-        val finalLocation = location?.ifBlank { null } ?: currentLoc?.locationName ?: "Seattle, WA"
-        val finalLandmark = landmark?.ifBlank { null } ?: currentLoc?.landmark ?: "Pike Place Market"
-        val finalLat = latitude ?: currentLoc?.latitude ?: LocationHelper.DEFAULT_LAT
-        val finalLng = longitude ?: currentLoc?.longitude ?: LocationHelper.DEFAULT_LNG
-        val distanceKm = LocationHelper.calculateDistanceKm(
-            LocationHelper.DEFAULT_LAT, LocationHelper.DEFAULT_LNG,
-            finalLat, finalLng
-        )
+        val hasExplicitLocation = !location.isNullOrBlank()
+        val finalLocation = if (hasExplicitLocation) location else null
+        val finalLandmark = if (hasExplicitLocation) (landmark?.ifBlank { null } ?: currentLoc?.landmark ?: "Pike Place Market") else null
+        val finalLat = if (hasExplicitLocation) (latitude ?: currentLoc?.latitude ?: LocationHelper.DEFAULT_LAT) else null
+        val finalLng = if (hasExplicitLocation) (longitude ?: currentLoc?.longitude ?: LocationHelper.DEFAULT_LNG) else null
+        val distanceKm = if (finalLat != null && finalLng != null) {
+            LocationHelper.calculateDistanceKm(
+                LocationHelper.DEFAULT_LAT, LocationHelper.DEFAULT_LNG,
+                finalLat, finalLng
+            )
+        } else null
 
         viewModelScope.launch {
+            val safePostMedia = mediaUri.ifBlank { "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1080&auto=format&fit=crop&q=85" }
+            val isVideoMedia = safePostMedia.endsWith(".mp4", ignoreCase = true) || safePostMedia.contains("video", ignoreCase = true)
             when (_creationMode.value) {
                 CreationMode.POST -> {
                     val newPost = PostEntity(
@@ -1319,9 +1352,9 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                         userAvatar = profile.avatarUrl,
                         userHandle = "@${profile.username}",
                         isVerified = profile.isVerified,
-                        mediaUrl = mediaUri,
-                        mediaType = "IMAGE",
-                        caption = caption,
+                        mediaUrl = safePostMedia,
+                        mediaType = if (isVideoMedia) "VIDEO" else "IMAGE",
+                        caption = caption.ifBlank { "Sharing moments from $finalLandmark #Localiiiy" },
                         likesCount = 1,
                         commentsCount = 0,
                         isLiked = true,
@@ -1332,20 +1365,22 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                         latitude = finalLat,
                         longitude = finalLng,
                         distanceKm = distanceKm,
-                        isNeighbor = distanceKm < 3.0,
+                        isNeighbor = (distanceKm ?: 0.0) < 3.0,
                         soundTitle = soundTitle?.ifBlank { null },
                         filterName = filter.name
                     )
                     repository.createPost(newPost)
+                    repository.updateProfile(profile.copy(postsCount = profile.postsCount + 1))
                     _currentTab.value = MainNavigationTab.FEED
                 }
                 CreationMode.CLIP -> {
+                    val safeClipMedia = mediaUri.ifBlank { "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1080&auto=format&fit=crop&q=85" }
                     val newClip = ClipEntity(
                         username = profile.username,
                         userAvatar = profile.avatarUrl,
                         userHandle = "@${profile.username}",
                         isVerified = profile.isVerified,
-                        mediaUrl = mediaUri,
+                        mediaUrl = safeClipMedia,
                         caption = caption.ifBlank { "New clip from $finalLandmark #nearby #Localiiiy" },
                         soundTitle = soundTitle?.ifBlank { null } ?: "Original Audio • ${profile.username}",
                         soundArtist = profile.fullName,
@@ -1361,19 +1396,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                         latitude = finalLat,
                         longitude = finalLng,
                         distanceKm = distanceKm,
-                        isNeighbor = distanceKm < 3.0,
-                        filterName = filter.name
+                        isNeighbor = distanceKm != null && distanceKm < 3.0,
+                        filterName = filter.name,
+                        showLocation = hasExplicitLocation
                     )
                     repository.createClip(newClip)
                     _currentTab.value = MainNavigationTab.CLIPS
                 }
                 CreationMode.STORY -> {
+                    val safeStoryMedia = mediaUri.ifBlank { "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1080&auto=format&fit=crop&q=85" }
                     val newStory = StoryEntity(
                         userId = profile.username,
                         username = "Your Story",
                         userAvatar = profile.avatarUrl,
-                        mediaUrl = mediaUri,
-                        caption = caption,
+                        mediaUrl = safeStoryMedia,
+                        caption = caption.ifBlank { "Live from $finalLandmark" },
                         location = finalLocation,
                         distanceKm = distanceKm,
                         isViewed = false,
@@ -1824,6 +1861,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 isVerified = false
             )
             repository.updateProfile(blankProfile)
+            authPrefs.edit().putBoolean("is_user_authenticated", false).apply()
             com.example.auth.FirebaseAuthService.signOut()
             _isLoggedOut.value = true
         }
@@ -1841,11 +1879,13 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun logoutUser() {
+        authPrefs.edit().putBoolean("is_user_authenticated", false).apply()
         com.example.auth.FirebaseAuthService.signOut()
         _isLoggedOut.value = true
     }
 
     fun loginUser() {
+        authPrefs.edit().putBoolean("is_user_authenticated", true).apply()
         _isLoggedOut.value = false
     }
 
@@ -1963,15 +2003,13 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         tags: String = "#Localiiiy #Studio",
         chapters: String = ""
     ): Boolean {
-        // Enforce Standard long-video duration: minimum 60 seconds, unlimited maximum duration
-        if (durationSeconds < 60) {
-            return false
-        }
+        // Video duration: supports short, medium, or long-form videos (defaulting to 60s if not specified)
+        val finalDuration = if (durationSeconds <= 0) 60 else durationSeconds
 
         viewModelScope.launch(Dispatchers.IO) {
             val profile = userProfile.value
-            val minutes = durationSeconds / 60
-            val seconds = durationSeconds % 60
+            val minutes = finalDuration / 60
+            val seconds = finalDuration % 60
             val formattedDuration = if (minutes >= 60) {
                 val hours = minutes / 60
                 val remainingMins = minutes % 60
@@ -1985,7 +2023,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 description = description.trim().ifEmpty { "Created with Localiiiy Studio. Full length creator video ($formattedDuration)." },
                 videoUrl = videoUrl.trim().ifEmpty { "https://media.w3.org/2010/05/sintel/trailer.mp4" },
                 thumbnailUrl = thumbnailUrl.trim().ifEmpty { "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80" },
-                durationSeconds = durationSeconds,
+                durationSeconds = finalDuration,
                 category = category,
                 creatorUsername = profile.studioUsername.ifEmpty { profile.username },
                 creatorFullName = profile.studioChannelName.ifEmpty { profile.fullName },

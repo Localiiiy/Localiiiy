@@ -23,10 +23,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -41,6 +43,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -82,11 +85,68 @@ import com.example.ui.components.RadarRadiusOption
 import com.example.ui.components.RadarRadiusPresets
 import com.example.ui.components.SystematicDistanceScale
 import com.example.ui.theme.LocaliiiyAccentMint
+import androidx.compose.foundation.text.BasicTextField
+import com.example.data.SellerCatalog
 import com.example.util.LocationHelper
 
 data class MarketCategoryItem(
     val name: String,
     val icon: ImageVector
+)
+
+val defaultSellerCatalogs = listOf(
+    SellerCatalog(
+        id = "cat_1",
+        name = "West Coast Precision Cycles",
+        sellerUsername = "pedal_power_sea",
+        sellerFullName = "Marco Veloce",
+        sellerAvatar = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
+        badge = "Verified Workshop",
+        bannerUrl = "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=800&auto=format&fit=crop&q=80",
+        category = "Bikes & Scooters",
+        description = "Hand-built gravel, road, and commuter bikes tuned by certified race mechanics in Seattle.",
+        rating = 4.9,
+        totalItems = 6
+    ),
+    SellerCatalog(
+        id = "cat_2",
+        name = "Pacific Heritage Vintage Audio & Vinyl",
+        sellerUsername = "analog_groove",
+        sellerFullName = "Clara Kensington",
+        sellerAvatar = "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=80",
+        badge = "Vintage Curator",
+        bannerUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
+        category = "Electronics & Tech",
+        description = "Restored Marantz, Technics turntables, McIntosh tube amps, and mint original vinyl pressings.",
+        rating = 5.0,
+        totalItems = 8
+    ),
+    SellerCatalog(
+        id = "cat_3",
+        name = "Emerald Coast Electric & Hybrid Mobility",
+        sellerUsername = "emerald_fleet",
+        sellerFullName = "Jordan Sterling",
+        sellerAvatar = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&auto=format&fit=crop&q=80",
+        badge = "Top Dealer",
+        bannerUrl = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80",
+        category = "Cars & Vehicles",
+        description = "Certified pre-owned Tesla, Rivian, and European EV wagons with complete battery health audits.",
+        rating = 4.9,
+        totalItems = 5
+    ),
+    SellerCatalog(
+        id = "cat_4",
+        name = "Pike Sound Artisan Leather & Craft",
+        sellerUsername = "artisan_crafts_co",
+        sellerFullName = "Nora Lindqvist",
+        sellerAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=80",
+        badge = "Master Artisan",
+        bannerUrl = "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&auto=format&fit=crop&q=80",
+        category = "Fashion & Style",
+        description = "Vegetable-tanned full-grain leather bags, minimalist wallets, and camera straps hand-stitched locally.",
+        rating = 4.9,
+        totalItems = 7
+    )
 )
 
 val marketCategories = listOf(
@@ -125,10 +185,13 @@ val sampleMarketPhotos = listOf(
 )
 
 enum class MarketSubTab {
+    ALL,
     GOODS,
     SERVICES,
-    POSTS,
     CLIPS,
+    CATALOGS,
+    FLASH_DEALS,
+    POSTS,
     WATCHLIST
 }
 
@@ -175,6 +238,9 @@ fun MarketScreen(
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     var activeSubTab by remember { mutableStateOf(MarketSubTab.GOODS) }
     var showLocationSearchExpanded by remember { mutableStateOf(false) }
+    var showLocationPickerModal by remember { mutableStateOf(false) }
+    var selectedLocationLabel by remember { mutableStateOf("Near Me") }
+    var selectedSellerCatalogForDetail by remember { mutableStateOf<SellerCatalog?>(null) }
 
     val sortOptionsList = listOf("Most Popular", "Newest Upload", "Price: Low to High", "Price: High to Low", "Distance: Nearest")
 
@@ -280,15 +346,17 @@ fun MarketScreen(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            // Header Bar
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
+            // UNIFIED HEADER, MERGED SEARCH & CLEAN FILTER STRIP
+            // When in Market Clips mode, headers are dismissed to give 100% viewport visibility to 9:16 vertical video.
+            if (activeSubTab != MarketSubTab.CLIPS) {
+                // Row 1: Unified Single-Line Header (flush below status bar)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -303,251 +371,244 @@ fun MarketScreen(
                             text = "Localiiiy Market",
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontWeight = FontWeight.Black,
-                                fontSize = 22.sp
+                                fontSize = 20.sp
                             ),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                    Text(
-                        text = "Hyperlocal Buy, Sell, Posts & Clips",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
 
-                // Unified Sell / Post Button
-                Button(
-                    onClick = onOpenSellDialog,
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                    shape = RoundedCornerShape(100.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                    modifier = Modifier.testTag("market_sell_button")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Sell or Post",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "List / Post",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
-                    )
-                }
-            }
-
-            // Search Bar
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                placeholder = {
-                    Text(
-                        "Search goods, gear, buy/sell posts & clips...",
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onSearchQueryChange("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Clear search",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp)
-                    .testTag("market_search_field")
-            )
-
-            // Location-Wise Search Bar & Quick World Location Filter Row
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 2.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    OutlinedTextField(
-                        value = locationQuery,
-                        onValueChange = onLocationQueryChange,
-                        placeholder = {
-                            Text(
-                                "Search by location anywhere (e.g. Tokyo, NY, Paris)...",
-                                fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Location Search",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        },
-                        trailingIcon = {
-                            if (locationQuery.isNotEmpty()) {
-                                IconButton(onClick = { onLocationQueryChange("") }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "Clear location search",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(14.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                        ),
+                    // + List / Post button aligned on the same horizontal row
+                    Button(
+                        onClick = onOpenSellDialog,
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        shape = RoundedCornerShape(100.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                         modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .testTag("market_location_search_field")
-                    )
-
-                    if (locationQuery.isNotBlank()) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .clickable { onLocationQueryChange("") }
-                        ) {
-                            Text(
-                                text = "Clear",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)
-                            )
-                        }
+                            .height(36.dp)
+                            .testTag("market_sell_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "List or Post",
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "+ List / Post",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.5.sp
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Quick Popular World Location Pills
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                // Row 2: Merged Single-Line Search Bar [ 🔍 Search items, services, or sellers... | 📍 Near Me ▾ ]
+                // Explicitly scoped to the Localiiiy Market database
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 2.dp)
+                        .height(46.dp)
+                        .testTag("market_unified_search_bar")
                 ) {
-                    items(quickLocations) { (locName, icon) ->
-                        val isSelected = locationQuery.equals(locName, ignoreCase = true) ||
-                                (locName == "Anywhere (Global)" && locationQuery.isBlank())
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            border = BorderStroke(
-                                1.dp,
-                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search Market",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = onSearchQueryChange,
+                            placeholder = {
+                                Text(
+                                    text = "Search items, services, or sellers...",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                cursorColor = MaterialTheme.colorScheme.primary
                             ),
                             modifier = Modifier
-                                .clip(RoundedCornerShape(100.dp))
-                                .clickable {
-                                    if (locName == "Anywhere (Global)") {
-                                        onLocationQueryChange("")
-                                    } else {
-                                        onLocationQueryChange(locName)
-                                    }
-                                }
-                                .testTag("quick_loc_${locName.replace(" ", "_")}")
+                                .weight(1f)
+                                .testTag("market_search_input")
+                        )
+
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(
+                                onClick = { onSearchQueryChange("") },
+                                modifier = Modifier.size(26.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Clear",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                        }
+
+                        // Divider between scoped text search and location segment
+                        VerticalDivider(
+                            modifier = Modifier
+                                .height(22.dp)
+                                .padding(horizontal = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+
+                        // Location Segment [ 📍 Near Me ▾ ] -> Tapping opens compact location picker modal
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (selectedLocationLabel != "Near Me (Current GPS)" || locationQuery.isNotBlank())
+                                MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { showLocationPickerModal = true }
+                                .testTag("market_location_segment_btn")
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
-                                Text(icon, fontSize = 10.sp)
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Location",
+                                    tint = if (selectedLocationLabel != "Near Me (Current GPS)" || locationQuery.isNotBlank())
+                                        MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                                val displayLoc = when {
+                                    locationQuery.isNotBlank() -> locationQuery.take(9)
+                                    selectedLocationLabel.isNotBlank() -> selectedLocationLabel.replace(" (Current GPS)", "").take(9)
+                                    else -> "Near Me"
+                                }
                                 Text(
-                                    text = locName,
-                                    fontSize = 10.5.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = displayLoc,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (selectedLocationLabel != "Near Me (Current GPS)" || locationQuery.isNotBlank())
+                                        MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Change location",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(15.dp)
                                 )
                             }
                         }
                     }
                 }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(modifier = Modifier.width(12.dp))
-                listOf(
-                    Triple(MarketSubTab.GOODS, "Goods", Icons.Default.Storefront),
-                    Triple(MarketSubTab.SERVICES, "Services", Icons.Default.Build),
-                    Triple(MarketSubTab.POSTS, "Posts", Icons.Default.PhotoLibrary),
-                    Triple(MarketSubTab.CLIPS, "Clips", Icons.Default.PlayCircle),
-                    Triple(MarketSubTab.WATCHLIST, "Saved", Icons.Default.PushPin)
-                ).forEach { (tab, label, icon) ->
-                    val isSelected = activeSubTab == tab
-                    Surface(
-                        shape = RoundedCornerShape(100.dp),
-                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(100.dp))
-                            .clickable { activeSubTab = tab }
-                            .testTag("market_subtab_${tab.name.lowercase()}")
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 7.dp, horizontal = 12.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
+
+                // Row 3: Clean Filter Strip (Single horizontal scroll row)
+                val filterStripTabs = listOf(
+                    Pair(MarketSubTab.ALL, "All"),
+                    Pair(MarketSubTab.GOODS, "🛍️ Goods"),
+                    Pair(MarketSubTab.SERVICES, "🛠️ Services"),
+                    Pair(MarketSubTab.CLIPS, "🎬 Market Clips"),
+                    Pair(MarketSubTab.CATALOGS, "📚 Catalogs"),
+                    Pair(MarketSubTab.FLASH_DEALS, "⚡ Flash Deals"),
+                    Pair(MarketSubTab.POSTS, "📸 Posts"),
+                    Pair(MarketSubTab.WATCHLIST, "🔖 Saved")
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(12.dp))
+                    filterStripTabs.forEach { (tab, label) ->
+                        val isSelected = activeSubTab == tab
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { activeSubTab = tab }
+                                .testTag("market_filter_${tab.name.lowercase()}")
                         ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = label,
-                                tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = label,
                                 fontSize = 11.5.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                 maxLines = 1,
                                 softWrap = false
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+
+                // Row 4: Dynamic Sub-category Row (only appears when "Goods" or "All" is active, styled as subtle 32dp secondary line)
+                if (activeSubTab == MarketSubTab.GOODS || activeSubTab == MarketSubTab.ALL) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(32.dp)
+                            .padding(bottom = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        items(marketCategories) { cat ->
+                            val isSelected = selectedCategory == cat.name
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.secondary else Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { onSelectCategory(cat.name) }
+                                    .testTag("market_subcat_${cat.name.replace(" ", "_")}")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = cat.icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = cat.name,
+                                        fontSize = 10.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             // Sub-Content Views with Pull-to-Refresh
@@ -560,7 +621,7 @@ fun MarketScreen(
                     .testTag("market_pull_to_refresh_box")
             ) {
                 when (activeSubTab) {
-                    MarketSubTab.GOODS -> {
+                    MarketSubTab.ALL, MarketSubTab.GOODS -> {
                         GoodsCatalogView(
                             filteredItems = sortedItems,
                             selectedCategory = selectedCategory,
@@ -600,6 +661,41 @@ fun MarketScreen(
                         )
                     }
 
+                    MarketSubTab.CATALOGS -> {
+                        SellerCatalogsCatalogView(
+                            catalogs = defaultSellerCatalogs,
+                            items = sortedItems,
+                            onSelectCatalog = { catalog ->
+                                selectedSellerCatalogForDetail = catalog
+                            },
+                            onItemClick = onItemClick,
+                            currentCurrency = currentCurrency
+                        )
+                    }
+
+                    MarketSubTab.FLASH_DEALS -> {
+                        val flashDeals = remember(sortedItems) {
+                            sortedItems.filter { it.isFlashDeal || it.description.contains("Urgent", ignoreCase = true) || it.price < 45.0 }
+                        }
+                        GoodsCatalogView(
+                            filteredItems = flashDeals,
+                            selectedCategory = selectedCategory,
+                            radiusFilterKm = radiusFilterKm,
+                            sortOption = sortOption,
+                            onSortOptionChange = onSortOptionChange,
+                            onSelectCategory = onSelectCategory,
+                            onRadiusFilterChange = onRadiusFilterChange,
+                            onItemClick = onItemClick,
+                            onToggleSaveItem = onToggleSaveItem,
+                            onOpenSellDialog = onOpenSellDialog,
+                            onOpenComments = onOpenComments,
+                            onPreviewVideoTour = { itemForVideoTour = it },
+                            onFlagItem = { itemToFlag = it },
+                            currentCurrency = currentCurrency,
+                            countryName = countryName
+                        )
+                    }
+
                     MarketSubTab.POSTS -> {
                         MarketPostsFeedView(
                             posts = buySellPosts,
@@ -623,6 +719,10 @@ fun MarketScreen(
                             onConvertClipToMarket = onConvertClipToMarket,
                             onOpenSellDialog = onOpenSellDialog,
                             onOpenComments = onOpenComments,
+                            onBackToGoods = { activeSubTab = MarketSubTab.GOODS },
+                            onSelectCatalog = { catalog ->
+                                selectedSellerCatalogForDetail = catalog
+                            },
                             currentCurrency = currentCurrency
                         )
                     }
@@ -641,7 +741,6 @@ fun MarketScreen(
             }
         }
 
-        // Sell an Item Dialog / Sheet
         // Sell an Item Dialog / Sheet
         if (showSellDialog) {
             MarketSellMultiDialog(
@@ -697,6 +796,40 @@ fun MarketScreen(
                     itemToFlag = null
                 },
                 onDismiss = { itemToFlag = null }
+            )
+        }
+
+        // Compact Location Picker Modal (GPS / Saved Cities / Distance Slider)
+        if (showLocationPickerModal) {
+            MarketLocationPickerModal(
+                currentLocation = selectedLocationLabel,
+                currentRadiusKm = radiusFilterKm ?: 10.0,
+                onSelectLocation = { locLabel ->
+                    selectedLocationLabel = locLabel
+                    onLocationQueryChange(locLabel)
+                },
+                onRadiusChange = { radius ->
+                    onRadiusFilterChange(radius)
+                },
+                onDismiss = { showLocationPickerModal = false }
+            )
+        }
+
+        // Branded Seller Catalog Details Sheet
+        if (selectedSellerCatalogForDetail != null) {
+            SellerCatalogDetailDialog(
+                catalog = selectedSellerCatalogForDetail!!,
+                items = items,
+                onDismiss = { selectedSellerCatalogForDetail = null },
+                onItemClick = { item ->
+                    selectedSellerCatalogForDetail = null
+                    onItemClick(item)
+                },
+                onMessageSeller = { item ->
+                    selectedSellerCatalogForDetail = null
+                    onMessageSeller(item)
+                },
+                currentCurrency = currentCurrency
             )
         }
     }
@@ -1260,6 +1393,729 @@ private fun MarketPostCard(
 }
 
 @Composable
+fun MarketLocationPickerModal(
+    currentLocation: String,
+    currentRadiusKm: Double,
+    onSelectLocation: (String) -> Unit,
+    onRadiusChange: (Double) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var customCity by remember { mutableStateOf(currentLocation) }
+    var sliderRadius by remember { mutableFloatStateOf(currentRadiusKm.toFloat().coerceIn(1f, 100f)) }
+
+    val popularCities = listOf(
+        "Current GPS (Near Me)" to "📍",
+        "Downtown Seattle" to "☕",
+        "Capitol Hill" to "🏳️‍🌈",
+        "Ballard & Fremont" to "🌉",
+        "Bellevue & Eastside" to "🏢",
+        "Tacoma & South Sound" to "🌲",
+        "Portland, OR" to "🌹",
+        "Vancouver, BC" to "🇨🇦",
+        "San Francisco, CA" to "🌁",
+        "New York, NY" to "🗽",
+        "Tokyo, JP" to "🗼",
+        "London, UK" to "🏰"
+    )
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .wrapContentHeight()
+                .padding(vertical = 24.dp)
+                .testTag("market_location_picker_dialog")
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Column {
+                            Text(
+                                text = "Market Discovery Radius",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Isolated strictly to Market listings",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Distance Range: ${sliderRadius.toInt()} km",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Slider(
+                    value = sliderRadius,
+                    onValueChange = {
+                        sliderRadius = it
+                        onRadiusChange(it.toDouble())
+                    },
+                    valueRange = 1f..100f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.fillMaxWidth().testTag("market_radius_slider")
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("1 km (Walking)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("25 km (Metro)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("100 km (Regional)", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = customCity,
+                    onValueChange = { customCity = it },
+                    placeholder = { Text("Search city, neighborhood, or postal code...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    },
+                    trailingIcon = {
+                        if (customCity.isNotBlank()) {
+                            IconButton(onClick = { customCity = "" }) {
+                                Icon(Icons.Default.Close, contentDescription = "Clear", modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("location_picker_input")
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Text(
+                    text = "Saved & Suggested Locations",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(popularCities) { (city, icon) ->
+                        val isSelected = (city.startsWith("Current GPS") && customCity.isBlank()) ||
+                                customCity.equals(city, ignoreCase = true)
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = BorderStroke(
+                                1.dp,
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable {
+                                    if (city.startsWith("Current GPS")) {
+                                        customCity = ""
+                                        onSelectLocation("")
+                                    } else {
+                                        customCity = city
+                                        onSelectLocation(city)
+                                    }
+                                    onDismiss()
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(icon, fontSize = 11.sp)
+                                Text(
+                                    text = city,
+                                    fontSize = 11.5.sp,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Button(
+                    onClick = {
+                        onSelectLocation(customCity)
+                        onDismiss()
+                    },
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .testTag("apply_location_btn")
+                ) {
+                    Text("Apply Discovery Location", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SellerCatalogsCatalogView(
+    catalogs: List<SellerCatalog>,
+    items: List<MarketplaceItemEntity>,
+    onSelectCatalog: (SellerCatalog) -> Unit,
+    onItemClick: (MarketplaceItemEntity) -> Unit,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
+) {
+    var selectedFilterCategory by remember { mutableStateOf("All") }
+    val bulkFilterCategories = listOf("All", "Vintage", "Audio", "Vehicles", "Electronics", "Handmade", "Bikes")
+
+    val filteredCatalogs = remember(catalogs, selectedFilterCategory) {
+        if (selectedFilterCategory == "All") catalogs
+        else catalogs.filter { it.category.contains(selectedFilterCategory, ignoreCase = true) || it.name.contains(selectedFilterCategory, ignoreCase = true) }
+    }
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag("seller_catalogs_view"),
+        contentPadding = PaddingValues(bottom = 90.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item {
+            Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Text(
+                    text = "Curated Seller Storefronts & Catalogs",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Text(
+                    text = "Explore verified local vendors, artisans, and boutique spaces",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    items(bulkFilterCategories) { category ->
+                        val isSelected = selectedFilterCategory == category
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { selectedFilterCategory = category }
+                                .testTag("catalog_filter_$category")
+                        ) {
+                            Text(
+                                text = category,
+                                fontSize = 11.5.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        items(filteredCatalogs) { catalog ->
+            val catalogItems = remember(items, catalog.name) {
+                items.filter { it.catalogName == catalog.name || it.category.equals(catalog.category, ignoreCase = true) }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .clickable { onSelectCatalog(catalog) }
+                    .testTag("catalog_card_${catalog.id}")
+            ) {
+                Column {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(130.dp)
+                    ) {
+                        AsyncImage(
+                            model = catalog.bannerUrl,
+                            contentDescription = catalog.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.75f)
+                                        )
+                                    )
+                                )
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF10B981),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text("✓", fontSize = 10.sp, color = Color.White, fontWeight = FontWeight.Black)
+                                Text(
+                                    text = catalog.badge,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = Color.Black.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = "🤝 ${catalog.totalItems} Items",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                            )
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            AsyncImage(
+                                model = catalog.sellerAvatar,
+                                contentDescription = catalog.sellerFullName,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, Color.White, CircleShape)
+                            )
+                            Column {
+                                Text(
+                                    text = catalog.name,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "By ${catalog.sellerFullName} • ⭐ ${catalog.rating}",
+                                    fontSize = 11.sp,
+                                    color = Color.White.copy(alpha = 0.9f)
+                                )
+                            }
+                        }
+                    }
+
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = catalog.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        if (catalogItems.isNotEmpty()) {
+                            Text(
+                                text = "Featured Catalog Stock (${catalogItems.size} items)",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(catalogItems.take(5)) { item ->
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .clickable { onItemClick(item) }
+                                    ) {
+                                        Column {
+                                            Box(modifier = Modifier.fillMaxWidth().height(65.dp)) {
+                                                AsyncImage(
+                                                    model = item.imageUrl,
+                                                    contentDescription = item.title,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                                Surface(
+                                                    shape = RoundedCornerShape(4.dp),
+                                                    color = Color.Black.copy(alpha = 0.7f),
+                                                    modifier = Modifier.align(Alignment.BottomEnd).padding(4.dp)
+                                                ) {
+                                                    Text(
+                                                        text = "$${item.price.toInt()}",
+                                                        fontSize = 9.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFFFBBF24),
+                                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                    )
+                                                }
+                                            }
+                                            Text(
+                                                text = item.title,
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier.padding(4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "📍 Seattle Metro Hub",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "Open Storefront ➔",
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SellerCatalogDetailDialog(
+    catalog: SellerCatalog,
+    items: List<MarketplaceItemEntity>,
+    onDismiss: () -> Unit,
+    onItemClick: (MarketplaceItemEntity) -> Unit,
+    onMessageSeller: (MarketplaceItemEntity) -> Unit,
+    currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
+) {
+    var isConnectedWithSeller by remember { mutableStateOf(false) }
+
+    val catalogItems = remember(items, catalog.name) {
+        items.filter { it.catalogName == catalog.name || it.category.equals(catalog.category, ignoreCase = true) }
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.92f)
+                .testTag("seller_catalog_detail_modal")
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(170.dp)
+                ) {
+                    AsyncImage(
+                        model = catalog.bannerUrl,
+                        contentDescription = catalog.name,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.4f),
+                                        Color.Black.copy(alpha = 0.8f)
+                                    )
+                                )
+                            )
+                    )
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.6f)
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White, modifier = Modifier.padding(6.dp))
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF10B981),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = catalog.badge,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        AsyncImage(
+                            model = catalog.sellerAvatar,
+                            contentDescription = catalog.sellerFullName,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape)
+                        )
+                        Column {
+                            Text(
+                                text = catalog.name,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Black,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "${catalog.sellerFullName} • ⭐ ${catalog.rating} (${catalog.totalItems} Active Listings)",
+                                fontSize = 11.5.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                        }
+                    }
+                }
+
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = catalog.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Button(
+                            onClick = { isConnectedWithSeller = !isConnectedWithSeller },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isConnectedWithSeller) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
+                            ),
+                            modifier = Modifier.weight(1f).height(42.dp)
+                        ) {
+                            Text(
+                                text = if (isConnectedWithSeller) "🤝 Connected" else "🤝 Connect",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp,
+                                color = if (isConnectedWithSeller) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                val firstItem = catalogItems.firstOrNull() ?: items.first()
+                                onMessageSeller(firstItem)
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.weight(1f).height(42.dp)
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Message Store", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider()
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Storefront Inventory (${catalogItems.size} items)",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    catalogItems.chunked(2).forEach { rowPair ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            rowPair.forEach { item ->
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            onItemClick(item)
+                                        }
+                                ) {
+                                    Column {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(110.dp)
+                                        ) {
+                                            AsyncImage(
+                                                model = item.imageUrl,
+                                                contentDescription = item.title,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = Color.Black.copy(alpha = 0.75f),
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomEnd)
+                                                    .padding(6.dp)
+                                            ) {
+                                                Text(
+                                                    text = "$${item.price.toInt()}",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = Color(0xFFFBBF24),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                        Column(modifier = Modifier.padding(8.dp)) {
+                                            Text(
+                                                text = item.title,
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            Text(
+                                                text = item.condition,
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            if (rowPair.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun MarketClipsFeedView(
     clips: List<ClipEntity>,
     items: List<MarketplaceItemEntity>,
@@ -1267,10 +2123,16 @@ private fun MarketClipsFeedView(
     onConvertClipToMarket: (Long, Double, String, String) -> Unit,
     onOpenSellDialog: () -> Unit,
     onOpenComments: (String, Long) -> Unit,
+    onBackToGoods: () -> Unit = {},
+    onSelectCatalog: (SellerCatalog) -> Unit = {},
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD
 ) {
     var isReelViewMode by remember { mutableStateOf(true) }
     var clipToConvert by remember { mutableStateOf<ClipEntity?>(null) }
+    var expandedClipItem by remember { mutableStateOf<MarketplaceItemEntity?>(null) }
+    var showOfferDialogForItem by remember { mutableStateOf<MarketplaceItemEntity?>(null) }
+    var showLocationPinDialogForClip by remember { mutableStateOf<ClipEntity?>(null) }
+    var savedClipIds by remember { mutableStateOf(setOf<Long>()) }
 
     if (clips.isEmpty()) {
         Box(
@@ -1309,7 +2171,8 @@ private fun MarketClipsFeedView(
         }
     } else if (isReelViewMode) {
         val pagerState = rememberPagerState(pageCount = { clips.size })
-        Box(modifier = Modifier.fillMaxSize().testTag("market_clips_pager_container")) {
+        // Full-Bleed 9:16 Vertical Viewport (100% viewing area, headers dismissed)
+        Box(modifier = Modifier.fillMaxSize().background(Color.Black).testTag("market_clips_pager_container")) {
             VerticalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize().testTag("market_clips_pager")
@@ -1349,7 +2212,7 @@ private fun MarketClipsFeedView(
                             showPlayPauseIcon = true
                         }
                 ) {
-                    // Visual / Video Canvas
+                    // Full-Bleed Vertical Video / Image Surface
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(clip.mediaUrl)
@@ -1360,14 +2223,14 @@ private fun MarketClipsFeedView(
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // Scrim Gradients
+                    // Scrim Gradients for legible text over video
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        Color.Black.copy(alpha = 0.45f),
+                                        Color.Black.copy(alpha = 0.55f),
                                         Color.Transparent,
                                         Color.Black.copy(alpha = 0.85f)
                                     )
@@ -1393,29 +2256,61 @@ private fun MarketClipsFeedView(
                         }
                     }
 
-                    // Top Bar Header Overlay
+                    // Top Bar Header Overlay (Dedicated Back to Goods & Pitch Controls)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.TopCenter)
-                            .padding(top = 12.dp, start = 12.dp, end = 12.dp),
+                            .statusBarsPadding()
+                            .padding(top = 8.dp, start = 12.dp, end = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        // Slim Return to Goods button
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = Color.Black.copy(alpha = 0.6f),
+                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { onBackToGoods() }
+                                .testTag("market_clips_back_to_goods_btn")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Return to Goods",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Goods",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
+
+                        // Category Pill
                         Surface(
                             shape = RoundedCornerShape(100.dp),
                             color = Color.Black.copy(alpha = 0.65f),
                             border = BorderStroke(1.dp, Color(0xFFF59E0B).copy(alpha = 0.6f))
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Text("🛍️", fontSize = 12.sp)
+                                Text("🎬", fontSize = 12.sp)
                                 Text(
-                                    text = "Market Clips • Reel",
-                                    fontSize = 11.sp,
+                                    text = "Market Clips",
+                                    fontSize = 11.5.sp,
                                     color = Color(0xFFFDE68A),
                                     fontWeight = FontWeight.Bold
                                 )
@@ -1433,16 +2328,16 @@ private fun MarketClipsFeedView(
                                 modifier = Modifier.clickable { isReelViewMode = false }
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
-                                    Icon(imageVector = Icons.Default.GridView, contentDescription = "Grid View", tint = Color.White, modifier = Modifier.size(14.dp))
+                                    Icon(imageVector = Icons.Default.GridView, contentDescription = "Grid View", tint = Color.White, modifier = Modifier.size(13.dp))
                                     Text("Grid", fontSize = 11.sp, color = Color.White)
                                 }
                             }
 
-                            // Post Clip Button
+                            // Post Pitch Button
                             Surface(
                                 shape = RoundedCornerShape(100.dp),
                                 color = Color(0xFFF59E0B),
@@ -1453,21 +2348,21 @@ private fun MarketClipsFeedView(
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Black,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                                 )
                             }
                         }
                     }
 
-                    // Right Side Action Column
+                    // STREAMLINED MARKETPLACE RIGHT-HAND RAIL (6 COMMERCE-FOCUSED ACTIONS)
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .padding(end = 12.dp, bottom = 120.dp),
+                            .padding(end = 10.dp, bottom = 90.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Like Button
+                        // 1. Like / Upvote (Heart counter)
                         var isLiked by remember(clip.id) { mutableStateOf(clip.isLiked) }
                         var likesCount by remember(clip.id) { mutableStateOf(clip.likesCount) }
                         com.example.ui.components.AnimatedLikeButton(
@@ -1478,21 +2373,22 @@ private fun MarketClipsFeedView(
                             },
                             likesCount = likesCount,
                             showCount = true,
-                            symbolSize = 24.sp,
-                            touchTargetSize = 44.dp,
+                            symbolSize = 22.sp,
+                            touchTargetSize = 42.dp,
                             labelColor = Color.White,
                             modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                                .background(Color.Black.copy(alpha = 0.55f), CircleShape),
                             testTag = "market_reel_like_${clip.id}"
                         )
 
-                        // Inquiry / Comments Button
+                        // 2. Inquire / Chat (Chat bubble with seller)
                         Surface(
                             shape = CircleShape,
-                            color = Color.Black.copy(alpha = 0.5f),
+                            color = Color.Black.copy(alpha = 0.55f),
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(42.dp)
                                 .clickable { onOpenComments("CLIP", clip.id) }
+                                .testTag("market_reel_chat_${clip.id}")
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -1501,27 +2397,27 @@ private fun MarketClipsFeedView(
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Outlined.Chat,
-                                    contentDescription = "Inquire",
+                                    contentDescription = "Inquire with seller",
                                     tint = Color.White,
-                                    modifier = Modifier.size(20.dp)
+                                    modifier = Modifier.size(19.dp)
                                 )
                                 Text(
                                     text = "${clip.commentsCount}",
-                                    fontSize = 10.sp,
+                                    fontSize = 9.sp,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
                                 )
                             }
                         }
 
-                        // Convert / Edit Market Listing
+                        // 3. Buy Now / Make Offer (Direct checkout / escrow bid trigger)
                         Surface(
                             shape = CircleShape,
-                            color = Color(0xFFF59E0B).copy(alpha = 0.85f),
+                            color = Color(0xFF10B981).copy(alpha = 0.95f),
                             modifier = Modifier
-                                .size(44.dp)
-                                .clickable { clipToConvert = clip }
-                                .testTag("convert_market_clip_${clip.id}")
+                                .size(42.dp)
+                                .clickable { showOfferDialogForItem = matchedGoods }
+                                .testTag("market_reel_buy_offer_${clip.id}")
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -1529,28 +2425,88 @@ private fun MarketClipsFeedView(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Convert",
-                                    tint = Color.Black,
+                                    imageVector = Icons.Default.Handshake,
+                                    contentDescription = "Make Escrow Offer",
+                                    tint = Color.White,
                                     modifier = Modifier.size(18.dp)
                                 )
                                 Text(
-                                    text = "List",
-                                    fontSize = 9.sp,
-                                    color = Color.Black,
+                                    text = "Offer",
+                                    fontSize = 8.5.sp,
+                                    color = Color.White,
                                     fontWeight = FontWeight.ExtraBold
                                 )
                             }
                         }
 
-                        // Direct Redirect to Goods Shortcut Icon
+                        // 4. Save Item (Bookmark)
+                        val isSaved = savedClipIds.contains(clip.id)
                         Surface(
                             shape = CircleShape,
-                            color = Color(0xFF10B981).copy(alpha = 0.9f),
+                            color = if (isSaved) Color(0xFFF59E0B) else Color.Black.copy(alpha = 0.55f),
                             modifier = Modifier
-                                .size(44.dp)
-                                .clickable { onNavigateToGoods(matchedGoods) }
-                                .testTag("jump_goods_btn_${clip.id}")
+                                .size(42.dp)
+                                .clickable {
+                                    savedClipIds = if (isSaved) savedClipIds - clip.id else savedClipIds + clip.id
+                                }
+                                .testTag("market_reel_save_${clip.id}")
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                    contentDescription = "Save Item",
+                                    tint = if (isSaved) Color.Black else Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        // 5. Seller Mini-Avatar (Tap opens Seller Space & Catalog)
+                        val matchingCatalog = defaultSellerCatalogs.firstOrNull {
+                            it.sellerUsername.equals(clip.username, ignoreCase = true)
+                        } ?: defaultSellerCatalogs.first()
+
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Transparent,
+                            border = BorderStroke(2.dp, Color(0xFFF59E0B)),
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clickable { onSelectCatalog(matchingCatalog) }
+                                .testTag("market_reel_seller_avatar_${clip.id}")
+                        ) {
+                            Box {
+                                AsyncImage(
+                                    model = clip.userAvatar,
+                                    contentDescription = "Seller: ${clip.username}",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize().clip(CircleShape)
+                                )
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color(0xFFF59E0B),
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .align(Alignment.BottomEnd)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Storefront,
+                                        contentDescription = null,
+                                        tint = Color.Black,
+                                        modifier = Modifier.padding(1.5.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        // 6. Item Location Pin (Tap reveals distance and pickup point)
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.55f),
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clickable { showLocationPinDialogForClip = clip }
+                                .testTag("market_reel_location_pin_${clip.id}")
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -1558,68 +2514,55 @@ private fun MarketClipsFeedView(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Storefront,
-                                    contentDescription = "Goods",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Location & Distance",
+                                    tint = Color(0xFF34D399),
+                                    modifier = Modifier.size(17.dp)
                                 )
                                 Text(
-                                    text = "Goods",
-                                    fontSize = 9.sp,
+                                    text = "${clip.distanceKm ?: 0.5}k",
+                                    fontSize = 8.5.sp,
                                     color = Color.White,
-                                    fontWeight = FontWeight.ExtraBold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1
                                 )
                             }
                         }
                     }
 
-                    // Bottom-Left Info Column & HYBRID CLIP-TO-MARKETPLACE COMMERCE OVERLAY
-                    Column(
+                    // BOTTOM PRODUCT CARD OVERLAY (MAX 20% HEIGHT)
+                    // Slim frosted-glass strip:
+                    // Left: Item Title, Verified Seller badge, and Price in bold accent color.
+                    // Right: "View Details" or "Buy / Handshake" button.
+                    // Expandable: Tap opens a half-sheet with full item description and seller catalog.
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color.Black.copy(alpha = 0.82f),
+                        border = BorderStroke(1.2.dp, Color(0xFFF59E0B).copy(alpha = 0.85f)),
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .fillMaxWidth(0.82f)
-                            .padding(start = 12.dp, bottom = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                            .fillMaxWidth()
+                            .padding(start = 12.dp, end = 68.dp, bottom = 12.dp)
+                            .testTag("market_clip_bottom_product_overlay_${clip.id}")
                     ) {
-                        // Proximity & Location Tag
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = Color.Black.copy(alpha = 0.6f)
+                        Column(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
+                            // Top Row: Creator, Verified Badge, and Price
                             Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(imageVector = Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF34D399), modifier = Modifier.size(12.dp))
-                                Text(
-                                    text = "${clip.distanceKm ?: 0.5} km • ${clip.location ?: "Nearby Safe-Haven"}",
-                                    fontSize = 10.5.sp,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-
-                        // Creator Info
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            AsyncImage(
-                                model = clip.userAvatar,
-                                contentDescription = clip.username,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape)
-                            )
-                            Column {
-                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
                                     Text(
                                         text = "@${clip.username}",
+                                        fontSize = 11.5.sp,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
                                         color = Color.White
                                     )
                                     Surface(
@@ -1628,105 +2571,387 @@ private fun MarketClipsFeedView(
                                     ) {
                                         Text(
                                             text = "Verified Seller",
-                                            fontSize = 9.sp,
+                                            fontSize = 8.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
                                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
                                         )
                                     }
                                 }
+
+                                val displayPrice = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else matchedGoods.price
+                                Text(
+                                    text = "$${displayPrice.toInt()}",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFFFBBF24)
+                                )
                             }
-                        }
 
-                        // Caption
-                        Text(
-                            text = clip.caption,
-                            fontSize = 12.sp,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            color = Color.White.copy(alpha = 0.95f)
-                        )
+                            // Item Title
+                            Text(
+                                text = matchedGoods.title,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
 
-                        // HYBRID CLIP-TO-MARKETPLACE COMMERCE OVERLAY
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.Black.copy(alpha = 0.85f),
-                            border = BorderStroke(1.2.dp, Color(0xFFF59E0B)),
-                            modifier = Modifier.fillMaxWidth().testTag("market_clip_commerce_overlay_${clip.id}")
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            // Action Buttons Row: View Details ▾ & Buy / Handshake ➔
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                OutlinedButton(
+                                    onClick = { expandedClipItem = matchedGoods },
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(28.dp)
+                                        .testTag("clip_view_details_btn_${clip.id}")
                                 ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text("🛍️", fontSize = 13.sp)
-                                        Text(
-                                            text = matchedGoods.title.take(22),
-                                            fontSize = 11.5.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color(0xFFFBBF24),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                    val displayPrice = if (clip.marketPriceUSD > 0) clip.marketPriceUSD else matchedGoods.price
                                     Text(
-                                        text = "$${displayPrice.toInt()}",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color = Color(0xFFFDE68A)
+                                        text = "View Details ▾",
+                                        fontSize = 10.5.sp,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
 
-                                Text(
-                                    text = "Condition: ${clip.marketCondition.ifBlank { matchedGoods.condition }} • Safe-Haven: ${clip.marketPickupSpot.ifBlank { matchedGoods.safeHavenHubName ?: "Civic Plaza CCTV Hub" }}",
-                                    fontSize = 9.5.sp,
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-
-                                Text(
-                                    text = "🔒 Safe-Haven Handshake Escrow Protected",
-                                    fontSize = 9.sp,
-                                    color = Color(0xFF6EE7B7),
-                                    fontWeight = FontWeight.Medium
-                                )
-
-                                // PRIMARY REDIRECT TO GOODS BUTTON
                                 Button(
                                     onClick = { onNavigateToGoods(matchedGoods) },
                                     shape = RoundedCornerShape(8.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF59E0B)),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(34.dp)
+                                        .weight(1.1f)
+                                        .height(28.dp)
                                         .testTag("redirect_to_goods_btn_${clip.id}")
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Storefront,
-                                        contentDescription = null,
-                                        tint = Color.Black,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = "View Connected Goods in Market ➔",
-                                        fontSize = 11.sp,
+                                        text = "Buy / Handshake ➔",
+                                        fontSize = 10.5.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.Black
+                                        color = Color.Black,
+                                        maxLines = 1
                                     )
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Expandable Product Half-Sheet Modal
+        if (expandedClipItem != null) {
+            val item = expandedClipItem!!
+            val matchingCatalog = defaultSellerCatalogs.firstOrNull {
+                it.sellerUsername.equals(item.sellerUsername, ignoreCase = true)
+            } ?: defaultSellerCatalogs.first()
+
+            Dialog(
+                onDismissRequest = { expandedClipItem = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.65f)
+                        .padding(top = 100.dp)
+                        .testTag("clip_expanded_product_sheet")
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(18.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Drag handle
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .width(36.dp)
+                                .height(4.dp)
+                                .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(2.dp))
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.title,
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { expandedClipItem = null },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = "Close")
+                            }
+                        }
+
+                        // Price & Condition
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "$${item.price.toInt()}",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Text(
+                                    text = item.condition,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+
+                        HorizontalDivider()
+
+                        // Full Description
+                        Text(
+                            text = "Item Description",
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                        )
+                        Text(
+                            text = item.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        // Seller Space & Catalog Link
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    expandedClipItem = null
+                                    onSelectCatalog(matchingCatalog)
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                AsyncImage(
+                                    model = matchingCatalog.sellerAvatar,
+                                    contentDescription = matchingCatalog.name,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.size(36.dp).clip(CircleShape)
+                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = matchingCatalog.name,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.5.sp
+                                    )
+                                    Text(
+                                        text = "Curated Storefront • Tap to browse full catalog",
+                                        fontSize = 10.5.sp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Escrow protection guarantee
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF10B981).copy(alpha = 0.1f),
+                            border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(Icons.Default.Security, contentDescription = null, tint = Color(0xFF10B981), modifier = Modifier.size(18.dp))
+                                Text(
+                                    text = "Safe-Haven Handshake Escrow: Funds released only after meetup inspection.",
+                                    fontSize = 10.5.sp,
+                                    color = Color(0xFF065F46),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+
+                        // CTA Buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    expandedClipItem = null
+                                    onNavigateToGoods(item)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Text("View in Market", fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = {
+                                    expandedClipItem = null
+                                    showOfferDialogForItem = item
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                                modifier = Modifier.weight(1f).height(42.dp)
+                            ) {
+                                Text("Make Offer", fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Direct Escrow Offer Modal
+        if (showOfferDialogForItem != null) {
+            val item = showOfferDialogForItem!!
+            var offerAmount by remember { mutableStateOf("${item.price.toInt()}") }
+            var offerSuccess by remember { mutableStateOf(false) }
+
+            Dialog(onDismissRequest = { showOfferDialogForItem = null }) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text("🤝 Make Handshake Escrow Offer", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("Item: ${item.title}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+
+                        if (!offerSuccess) {
+                            OutlinedTextField(
+                                value = offerAmount,
+                                onValueChange = { offerAmount = it },
+                                label = { Text("Your Offer Amount ($)") },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "Funds are securely placed into local Safe-Haven escrow and only released after physical handshake inspection.",
+                                fontSize = 10.5.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(onClick = { showOfferDialogForItem = null }) {
+                                    Text("Cancel")
+                                }
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Button(
+                                    onClick = { offerSuccess = true },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                                ) {
+                                    Text("Submit Offer", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        } else {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFF10B981).copy(alpha = 0.15f),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "✓ Offer of $$offerAmount sent to @${item.sellerUsername} with Escrow Hold!",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF047857),
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                            Button(
+                                onClick = { showOfferDialogForItem = null },
+                                modifier = Modifier.align(Alignment.End)
+                            ) {
+                                Text("Done")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Location Pin Details Modal
+        if (showLocationPinDialogForClip != null) {
+            val clip = showLocationPinDialogForClip!!
+            Dialog(onDismissRequest = { showLocationPinDialogForClip = null }) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color(0xFF34D399))
+                            Text("Item Location & Safe-Haven", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        }
+                        Text(
+                            text = "📍 Spot: ${clip.location ?: "Nearby Safe-Haven Meetup"}",
+                            fontSize = 12.5.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "📏 Distance: ${clip.distanceKm ?: 0.5} km from your current GPS location",
+                            fontSize = 11.5.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "🏛️ Recommended CCTV Safe Hub: ${clip.marketPickupSpot.ifBlank { "Civic Plaza Police Precinct (CCTV Zone)" }}",
+                            fontSize = 11.5.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Button(
+                            onClick = { showLocationPinDialogForClip = null },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text("Got it")
                         }
                     }
                 }
@@ -2427,11 +3652,12 @@ fun MarketSellMultiDialog(
     var isUrgentSale by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Cars & Vehicles") }
     var selectedCondition by remember { mutableStateOf("Like New") }
+    var selectedPhotos by remember { mutableStateOf(sampleMarketPhotos.take(7)) }
     var selectedPhotoUrl by remember { mutableStateOf(sampleMarketPhotos.first()) }
+    var clipDurationSeconds by remember { mutableIntStateOf(60) } // Capped at 300s (5:00 max)
     var selectedDelivery by remember { mutableStateOf("Local Meetup / Pickup") }
     var landmark by remember { mutableStateOf("Pike Place Market") }
     var acceptedPaymentMethods by remember { mutableStateOf(listOf("💵 Cash on Meetup", "📱 Digital Transfer")) }
-    var itemDimensionsText by remember { mutableStateOf("") }
     var soundTrack by remember { mutableStateOf("Original Audio • Marketplace Pitch") }
     var musicSearchQuery by remember { mutableStateOf("") }
     var showSoundPicker by remember { mutableStateOf(false) }
@@ -2444,12 +3670,15 @@ fun MarketSellMultiDialog(
         "Algorithmic bypass: Open distribution to the entire world network."
     )
     var showStandardMediaSelector by remember { mutableStateOf(false) }
+    var isPublishing by remember { mutableStateOf(false) }
 
     val storageMediaPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri ->
-        uri?.let {
-            selectedPhotoUrl = it.toString()
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 15)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            val newUrls = uris.map { it.toString() }
+            selectedPhotos = (selectedPhotos + newUrls).distinct()
+            selectedPhotoUrl = selectedPhotos.first()
         }
     }
 
@@ -2540,99 +3769,393 @@ fun MarketSellMultiDialog(
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
-                // Select Media
-                Text(
-                    text = if (creationFormat == SellCreationFormat.SHOWCASE_CLIP) "1. Product Video Preview" else "1. Item Photo",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(6.dp))
+                // Select Media Section
+                if (creationFormat == SellCreationFormat.SHOWCASE_CLIP) {
+                    // DEDICATED 9:16 VERTICAL VIDEO CLIP (NO 16:9, CAPPED AT 5 MINUTES)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "1. Dedicated 9:16 Vertical Video Clip",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Text(
+                                    text = "9:16 Reel • Max 5:00",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(selectedPhotoUrl)
-                            .crossfade(true)
-                            .build(),
-                        contentDescription = "Selected media",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                        // Enforced vertical format disclaimer
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhoneAndroid,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "Enforcing 9:16 vertical format. Standard 16:9 landscape video is disabled to guarantee full-bleed immersive playback in Localiiiy Clips.",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    lineHeight = 14.sp
+                                )
+                            }
+                        }
 
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // Sample Photo Picker
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                ) {
-                    items(sampleMarketPhotos) { photo ->
+                        // 9:16 Vertical Preview Container
                         Box(
                             modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable { selectedPhotoUrl = photo }
-                                .then(
-                                    if (selectedPhotoUrl == photo) Modifier.background(MaterialTheme.colorScheme.primary)
-                                    else Modifier
-                                )
-                                .padding(if (selectedPhotoUrl == photo) 2.dp else 0.dp)
+                                .fillMaxWidth(0.55f)
+                                .aspectRatio(9f / 16f)
+                                .align(Alignment.CenterHorizontally)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.Black)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                         ) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
-                                    .data(photo)
+                                    .data(selectedPhotoUrl)
                                     .crossfade(true)
                                     .build(),
-                                contentDescription = null,
+                                contentDescription = "9:16 Clip Preview",
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(RoundedCornerShape(6.dp))
+                                modifier = Modifier.fillMaxSize()
                             )
+
+                            // Top overlay badge
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color.Black.copy(alpha = 0.75f),
+                                modifier = Modifier
+                                    .align(Alignment.TopStart)
+                                    .padding(8.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(Icons.Default.Videocam, contentDescription = null, tint = Color(0xFF00E676), modifier = Modifier.size(12.dp))
+                                    Text("9:16 REEL", fontSize = 9.sp, fontWeight = FontWeight.Black, color = Color.White)
+                                }
+                            }
+
+                            // Bottom duration overlay
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color.Black.copy(alpha = 0.75f),
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(8.dp)
+                            ) {
+                                Text(
+                                    text = "${clipDurationSeconds / 60}:${(clipDurationSeconds % 60).toString().padStart(2, '0')} / 5:00",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Video Duration Slider (Capped strictly at 5:00 minutes / 300s)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Clip Duration (Max 5 Minutes):", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "${clipDurationSeconds / 60}m ${clipDurationSeconds % 60}s",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Slider(
+                                value = clipDurationSeconds.toFloat(),
+                                onValueChange = { clipDurationSeconds = it.toInt().coerceIn(10, 300) },
+                                valueRange = 10f..300f,
+                                steps = 28,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("0:10 min", fontSize = 9.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Capped at 5:00 min max ⏱️", fontSize = 9.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        // Video Source Selectors
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    storageMediaPicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).height(40.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.VideoLibrary, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Pick 9:16 Video 🎥", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = { showStandardMediaSelector = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).height(40.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Media Vault 📁", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            }
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            storageMediaPicker.launch(
-                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                } else {
+                    // MANDATORY 7-PHOTO MINIMUM FOR GOODS, CATALOG, AND POSTS
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "1. Item Photos (7 Minimum Required)",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f).height(40.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Device Storage 📱", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
-                    }
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (selectedPhotos.size >= 7) Color(0xFF00C853).copy(alpha = 0.2f) else MaterialTheme.colorScheme.errorContainer
+                            ) {
+                                Text(
+                                    text = "${selectedPhotos.size}/7 Photos",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (selectedPhotos.size >= 7) Color(0xFF00C853) else MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
 
-                    Button(
-                        onClick = { showStandardMediaSelector = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.weight(1f).height(40.dp)
-                    ) {
-                        Icon(imageVector = Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Media Picker 📁", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                        // 7 Photos Requirement Status Banner
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (selectedPhotos.size >= 7)
+                                Color(0xFF00C853).copy(alpha = 0.12f)
+                            else
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
+                            border = BorderStroke(
+                                1.dp,
+                                if (selectedPhotos.size >= 7) Color(0xFF00C853).copy(alpha = 0.4f) else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (selectedPhotos.size >= 7) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = if (selectedPhotos.size >= 7) Color(0xFF00C853) else MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = if (selectedPhotos.size >= 7)
+                                        "✓ Minimum 7-Photo Requirement Met (${selectedPhotos.size} uploaded). Comprehensive photos build buyer confidence."
+                                    else
+                                        "⚠️ Mandatory Minimum 7 Photos Required (${selectedPhotos.size}/7 uploaded). Please add at least ${7 - selectedPhotos.size} more angles (Front, Back, Side, Top, Detail, Label, Defect/Wear).",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (selectedPhotos.size >= 7) Color(0xFF00C853) else MaterialTheme.colorScheme.onErrorContainer,
+                                    lineHeight = 14.sp
+                                )
+                            }
+                        }
+
+                        // Active Selected Main Photo Preview
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(selectedPhotoUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Selected media",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color.Black.copy(alpha = 0.7f),
+                                modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
+                            ) {
+                                Text(
+                                    text = "Cover Photo • Slot ${selectedPhotos.indexOf(selectedPhotoUrl) + 1}",
+                                    fontSize = 9.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Multi-Photo Carousel with Slot Numbers
+                        Text("Uploaded Photo Slots (Tap to preview as cover):", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        ) {
+                            itemsIndexed(selectedPhotos) { index, photo ->
+                                val isCover = selectedPhotoUrl == photo
+                                Box(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .border(
+                                            2.dp,
+                                            if (isCover) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                            RoundedCornerShape(10.dp)
+                                        )
+                                        .clickable { selectedPhotoUrl = photo }
+                                ) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(photo)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Photo ${index + 1}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(bottomEnd = 6.dp),
+                                        color = Color.Black.copy(alpha = 0.7f),
+                                        modifier = Modifier.align(Alignment.TopStart)
+                                    ) {
+                                        Text(
+                                            text = "#${index + 1}",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
+                                        )
+                                    }
+                                    if (selectedPhotos.size > 7) {
+                                        IconButton(
+                                            onClick = {
+                                                val updated = selectedPhotos.toMutableList().apply { removeAt(index) }
+                                                selectedPhotos = updated
+                                                if (selectedPhotoUrl == photo) {
+                                                    selectedPhotoUrl = updated.firstOrNull() ?: ""
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(18.dp)
+                                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                        ) {
+                                            Icon(Icons.Default.Close, contentDescription = "Delete", tint = Color.White, modifier = Modifier.size(12.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Action Buttons: Multi-Photo Picker & Quick Auto-Fill Angles
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    storageMediaPicker.launch(
+                                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f).height(40.dp)
+                            ) {
+                                Icon(imageVector = Icons.Default.AddPhotoAlternate, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("Add Photos (${selectedPhotos.size}/7) 📸", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            if (selectedPhotos.size < 7) {
+                                Button(
+                                    onClick = {
+                                        val combined = (selectedPhotos + sampleMarketPhotos).distinct().take(7)
+                                        selectedPhotos = combined
+                                        selectedPhotoUrl = combined.first()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.height(40.dp)
+                                ) {
+                                    Icon(imageVector = Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Fill 7 Angles ⚡", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -2641,7 +4164,12 @@ fun MarketSellMultiDialog(
                         onDismiss = { showStandardMediaSelector = false },
                         onMediaSelected = { selectedList ->
                             if (selectedList.isNotEmpty()) {
-                                selectedPhotoUrl = selectedList.first()
+                                if (creationFormat == SellCreationFormat.SHOWCASE_CLIP) {
+                                    selectedPhotoUrl = selectedList.first()
+                                } else {
+                                    selectedPhotos = (selectedPhotos + selectedList).distinct()
+                                    selectedPhotoUrl = selectedPhotos.first()
+                                }
                             }
                         }
                     )
@@ -2925,21 +4453,6 @@ fun MarketSellMultiDialog(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Dimensions (Section 4.18)
-                OutlinedTextField(
-                    value = itemDimensionsText,
-                    onValueChange = { itemDimensionsText = it },
-                    label = { Text("Approx. Dimensions / Scale (e.g. 45 x 30 x 15 cm)") },
-                    leadingIcon = {
-                        Icon(imageVector = Icons.Default.Straighten, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 if (creationFormat == SellCreationFormat.SHOWCASE_CLIP || creationFormat == SellCreationFormat.BUY_SELL_POST) {
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -3091,8 +4604,13 @@ fun MarketSellMultiDialog(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Publish Button
-                val isFormValid = title.isNotBlank() && (isBarterTrade || (priceText.toDoubleOrNull() ?: 0.0) >= 0.0)
+                // Publish Button Validation (7 Photos minimum for non-clips, dedicated 9:16 vertical capped at 5:00 max for clips)
+                val hasRequiredMedia = if (creationFormat == SellCreationFormat.SHOWCASE_CLIP) {
+                    selectedPhotoUrl.isNotBlank() && clipDurationSeconds <= 300
+                } else {
+                    selectedPhotos.size >= 7
+                }
+                val isFormValid = title.isNotBlank() && (isBarterTrade || (priceText.toDoubleOrNull() ?: 0.0) >= 0.0) && hasRequiredMedia
 
                 Button(
                     onClick = {
@@ -3105,8 +4623,7 @@ fun MarketSellMultiDialog(
                         val urgentInfo = if (isUrgentSale) "\n[⚡ Urgent Sale Today]" else ""
                         val reachText = "\n[Broadcast Reach: ${blastRadiusLabels[blastRadiusIndex.toInt()]}]"
                         val paymentInfo = "\n[Settlement: ${acceptedPaymentMethods.joinToString(", ")}]"
-                        val dimensionsInfo = if (itemDimensionsText.isNotBlank()) "\n[Dimensions: $itemDimensionsText]" else ""
-                        val finalDesc = description.ifBlank { "Available for local meetup near $landmark on Localiiiy." } + barterInfo + discountInfo + artisanInfo + urgentInfo + reachText + paymentInfo + dimensionsInfo
+                        val finalDesc = description.ifBlank { "Available for local meetup near $landmark on Localiiiy." } + barterInfo + discountInfo + artisanInfo + urgentInfo + reachText + paymentInfo
                         when (creationFormat) {
                             SellCreationFormat.CATALOG_ITEM -> {
                                 onPublishListing(
@@ -3148,8 +4665,9 @@ fun MarketSellMultiDialog(
                                 )
                             }
                         }
+                        onDismiss()
                     },
-                    enabled = isFormValid,
+                    enabled = isFormValid && !isPublishing,
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier
@@ -3157,24 +4675,50 @@ fun MarketSellMultiDialog(
                         .height(50.dp)
                         .testTag("publish_market_item_button")
                 ) {
-                    Icon(
-                        imageVector = when (creationFormat) {
-                            SellCreationFormat.BUY_SELL_POST -> Icons.Default.PhotoCamera
-                            SellCreationFormat.SHOWCASE_CLIP -> Icons.Default.Videocam
-                            SellCreationFormat.CATALOG_ITEM -> Icons.Default.Storefront
-                        },
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = when (creationFormat) {
-                            SellCreationFormat.BUY_SELL_POST -> "Broadcast Buy / Sell Post"
-                            SellCreationFormat.SHOWCASE_CLIP -> "Publish Video Showcase Clip"
-                            SellCreationFormat.CATALOG_ITEM -> "Publish to Localiiiy Market"
-                        },
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+                    if (isPublishing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Publishing Listing...",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    } else if (creationFormat != SellCreationFormat.SHOWCASE_CLIP && selectedPhotos.size < 7) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Upload 7 Photos Minimum (${selectedPhotos.size}/7)",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.5.sp
+                        )
+                    } else {
+                        Icon(
+                            imageVector = when (creationFormat) {
+                                SellCreationFormat.BUY_SELL_POST -> Icons.Default.PhotoCamera
+                                SellCreationFormat.SHOWCASE_CLIP -> Icons.Default.Videocam
+                                SellCreationFormat.CATALOG_ITEM -> Icons.Default.Storefront
+                            },
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = when (creationFormat) {
+                                SellCreationFormat.BUY_SELL_POST -> "Broadcast Buy / Sell Post (7 Photos ✓)"
+                                SellCreationFormat.SHOWCASE_CLIP -> "Publish 9:16 Video Clip 🎥"
+                                SellCreationFormat.CATALOG_ITEM -> "Publish to Localiiiy Market (7 Photos ✓)"
+                            },
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }

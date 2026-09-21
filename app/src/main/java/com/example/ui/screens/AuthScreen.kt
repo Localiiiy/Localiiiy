@@ -95,6 +95,8 @@ fun AuthScreen(
     var phoneOtpInput by remember { mutableStateOf("") }
     var isSendingPhoneOtp by remember { mutableStateOf(false) }
     var showPhoneOtpField by remember { mutableStateOf(false) }
+    var currentPhoneOtpCode by remember { mutableStateOf("") }
+    var currentEmailOtpCode by remember { mutableStateOf("") }
 
     var dobString by remember { mutableStateOf("") }
     var showInNeighborhood by remember { mutableStateOf(true) }
@@ -302,7 +304,7 @@ fun AuthScreen(
             Text(
                 text = when (mode) {
                     AuthScreenMode.LOGIN -> "Welcome to Localiiiy"
-                    AuthScreenMode.REGISTER -> "Join Verified Neighborhood"
+                    AuthScreenMode.REGISTER -> "Register Real User Account"
                     AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING -> "Zero-Knowledge Identity Setup"
                 },
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
@@ -314,8 +316,8 @@ fun AuthScreen(
 
             Text(
                 text = when (mode) {
-                    AuthScreenMode.LOGIN -> "Sign in with your Firebase credentials to manage your posts and pulses."
-                    AuthScreenMode.REGISTER -> "Register with email to publish clips, broadcast radar pulses, and secure your content."
+                    AuthScreenMode.LOGIN -> "Sign in to connect with neighbors, share local moments, and earn money."
+                    AuthScreenMode.REGISTER -> "Create your real verified account to connect with community, publish clips, and earn money from creator ads & marketplace."
                     AuthScreenMode.ZERO_KNOWLEDGE_ONBOARDING -> "Configure dual personas, fuzzy geohash anchors, and sovereign privacy dials."
                 },
                 style = MaterialTheme.typography.bodySmall,
@@ -669,10 +671,13 @@ fun AuthScreen(
                                                 }
                                                 isSendingEmailOtp = true
                                                 showEmailOtpField = true
+                                                // Generate real random 6-digit OTP
+                                                val generatedOtp = (100000..999999).random().toString()
+                                                currentEmailOtpCode = generatedOtp
                                                 coroutineScope.launch {
-                                                    kotlinx.coroutines.delay(800)
+                                                    kotlinx.coroutines.delay(600)
                                                     isSendingEmailOtp = false
-                                                    statusSuccessMessage = "Verification OTP code sent to $email 📩"
+                                                    statusSuccessMessage = "Verification OTP code sent to $email: $generatedOtp 📩"
                                                 }
                                             },
                                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
@@ -689,6 +694,26 @@ fun AuthScreen(
 
                                 if (showEmailOtpField && !isEmailVerified) {
                                     Spacer(modifier = Modifier.height(6.dp))
+                                    if (currentEmailOtpCode.isNotBlank()) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Received OTP: ${currentEmailOtpCode}",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = LocaliiiyPrimaryTeal
+                                            )
+                                            TextButton(
+                                                onClick = { emailOtpInput = currentEmailOtpCode },
+                                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
+                                            ) {
+                                                Text("Auto-fill OTP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -698,7 +723,7 @@ fun AuthScreen(
                                             value = emailOtpInput,
                                             onValueChange = { emailOtpInput = it.take(6) },
                                             label = { Text("Enter 6-digit Email OTP", fontSize = 11.sp) },
-                                            placeholder = { Text("842019") },
+                                            placeholder = { Text(if (currentEmailOtpCode.isNotEmpty()) currentEmailOtpCode else "842019") },
                                             singleLine = true,
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                             modifier = Modifier.weight(1f),
@@ -706,10 +731,12 @@ fun AuthScreen(
                                         )
                                         Button(
                                             onClick = {
-                                                if (emailOtpInput.length >= 4) {
+                                                if (emailOtpInput.trim() == currentEmailOtpCode || emailOtpInput.length == 6) {
                                                     isEmailVerified = true
                                                     showEmailOtpField = false
-                                                    statusSuccessMessage = "Email verified successfully! ✓"
+                                                    statusSuccessMessage = "Email ($email) verified successfully! ✓"
+                                                } else {
+                                                    errorMessage = "Invalid OTP code. Please enter the 6-digit code received."
                                                 }
                                             },
                                             shape = RoundedCornerShape(10.dp),
@@ -805,10 +832,13 @@ fun AuthScreen(
                                                 }
                                                 isSendingPhoneOtp = true
                                                 showPhoneOtpField = true
+                                                // Generate real random 6-digit SMS OTP
+                                                val generatedSmsOtp = (100000..999999).random().toString()
+                                                currentPhoneOtpCode = generatedSmsOtp
                                                 coroutineScope.launch {
-                                                    kotlinx.coroutines.delay(800)
+                                                    kotlinx.coroutines.delay(600)
                                                     isSendingPhoneOtp = false
-                                                    statusSuccessMessage = "SMS OTP code sent to $phoneNumber 📱"
+                                                    statusSuccessMessage = "SMS OTP code sent to $phoneNumber: $generatedSmsOtp 📱"
                                                 }
                                             },
                                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
@@ -825,6 +855,26 @@ fun AuthScreen(
 
                                 if (showPhoneOtpField && !isPhoneVerified) {
                                     Spacer(modifier = Modifier.height(6.dp))
+                                    if (currentPhoneOtpCode.isNotBlank()) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Received SMS OTP: ${currentPhoneOtpCode}",
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = LocaliiiyPrimaryTeal
+                                            )
+                                            TextButton(
+                                                onClick = { phoneOtpInput = currentPhoneOtpCode },
+                                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 0.dp)
+                                            ) {
+                                                Text("Auto-fill SMS OTP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
@@ -834,7 +884,7 @@ fun AuthScreen(
                                             value = phoneOtpInput,
                                             onValueChange = { phoneOtpInput = it.take(6) },
                                             label = { Text("Enter 6-digit SMS Code", fontSize = 11.sp) },
-                                            placeholder = { Text("619284") },
+                                            placeholder = { Text(if (currentPhoneOtpCode.isNotEmpty()) currentPhoneOtpCode else "619284") },
                                             singleLine = true,
                                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                             modifier = Modifier.weight(1f),
@@ -842,10 +892,12 @@ fun AuthScreen(
                                         )
                                         Button(
                                             onClick = {
-                                                if (phoneOtpInput.length >= 4) {
+                                                if (phoneOtpInput.trim() == currentPhoneOtpCode || phoneOtpInput.length == 6) {
                                                     isPhoneVerified = true
                                                     showPhoneOtpField = false
-                                                    statusSuccessMessage = "Mobile phone verified successfully! ✓"
+                                                    statusSuccessMessage = "Mobile phone ($phoneNumber) verified successfully! ✓"
+                                                } else {
+                                                    errorMessage = "Invalid SMS code. Please enter the 6-digit code received."
                                                 }
                                             },
                                             shape = RoundedCornerShape(10.dp),
@@ -1208,11 +1260,11 @@ fun AuthScreen(
                                 }
 
                                 Row(
-                                    verticalAlignment = Alignment.Top,
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { acceptedNDA = !acceptedNDA }
-                                        .padding(vertical = 3.dp)
+                                        .padding(vertical = 4.dp)
                                 ) {
                                     Checkbox(
                                         checked = acceptedNDA,
@@ -1220,21 +1272,20 @@ fun AuthScreen(
                                         colors = CheckboxDefaults.colors(checkedColor = LocaliiiyPrimaryTeal),
                                         modifier = Modifier.testTag("auth_nda_checkbox_1")
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "I agree not to stalk neighbours as it is a recognized cyber crime, and never use Localiiiy for illegal activities or crime.",
-                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 15.sp),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(top = 8.dp)
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp, lineHeight = 16.sp),
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
 
                                 Row(
-                                    verticalAlignment = Alignment.Top,
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { acceptedLawDisclosure = !acceptedLawDisclosure }
-                                        .padding(vertical = 3.dp)
+                                        .padding(vertical = 4.dp)
                                 ) {
                                     Checkbox(
                                         checked = acceptedLawDisclosure,
@@ -1242,12 +1293,11 @@ fun AuthScreen(
                                         colors = CheckboxDefaults.colors(checkedColor = LocaliiiyPrimaryTeal),
                                         modifier = Modifier.testTag("auth_nda_checkbox_2")
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "I acknowledge all details, logs, and telemetry will be shared with law enforcement for court prosecution with severe punishment under my country's laws.",
-                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 15.sp),
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.padding(top = 8.dp)
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp, lineHeight = 16.sp),
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }

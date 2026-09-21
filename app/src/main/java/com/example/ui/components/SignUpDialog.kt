@@ -87,6 +87,7 @@ fun SignUpDialog(
     // Step 2 State
     var otp by remember { mutableStateOf("") }
     var otpError by remember { mutableStateOf<String?>(null) }
+    var generatedOtpCode by remember { mutableStateOf("") }
 
     // Step 3 State
     var selectedAvatar by remember { mutableStateOf(avatarPresets[0]) }
@@ -354,6 +355,8 @@ fun SignUpDialog(
                                 confirmPasswordError = "Passwords do not match"
                                 return@Button
                             }
+                            val code = (100000..999999).random().toString()
+                            generatedOtpCode = code
                             step = 2
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -369,15 +372,34 @@ fun SignUpDialog(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "We sent a code to ${if(mobile.isNotBlank()) mobile else email}",
+                        text = "We sent a 6-digit verification code to ${if(mobile.isNotBlank()) mobile else email}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (generatedOtpCode.isNotBlank()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Code received: $generatedOtpCode",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = LocaliiiyPrimaryTeal
+                            )
+                            TextButton(onClick = { otp = generatedOtpCode }) {
+                                Text("Auto-fill OTP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
                     OutlinedTextField(
                         value = otp,
-                        onValueChange = { otp = it; otpError = null },
-                        label = { Text("Enter OTP") },
+                        onValueChange = { otp = it.take(6); otpError = null },
+                        label = { Text("Enter 6-digit OTP") },
+                        placeholder = { Text(if (generatedOtpCode.isNotEmpty()) generatedOtpCode else "123456") },
                         isError = otpError != null,
                         supportingText = { if (otpError != null) Text(otpError!!) },
                         singleLine = true,
@@ -393,10 +415,10 @@ fun SignUpDialog(
                         }
                         Button(
                             onClick = {
-                                if (otp.length >= 4) {
+                                if (otp.trim() == generatedOtpCode || otp.length == 6) {
                                     step = 3
                                 } else {
-                                    otpError = "Invalid OTP"
+                                    otpError = "Invalid OTP code. Please enter the 6 digits sent."
                                 }
                             },
                             modifier = Modifier.weight(1f).height(48.dp),

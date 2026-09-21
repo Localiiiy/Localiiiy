@@ -34,7 +34,8 @@ data class PostEntity(
     val flashExpiresAt: Long? = null,
     val isVoicePrint: Boolean = false,
     val voiceDurationSeconds: Int = 15,
-    val voiceWaveformData: String = "20,40,65,90,75,85,60,95,70,80,55,90,65,40,25"
+    val voiceWaveformData: String = "20,40,65,90,75,85,60,95,70,80,55,90,65,40,25",
+    val isLive: Boolean = false
 ) {
     val isConnected: Boolean get() = isFollowing
 }
@@ -72,7 +73,8 @@ data class ClipEntity(
     val marketPriceUSD: Double = 0.0,
     val marketCondition: String = "Like New",
     val marketPickupSpot: String = "Safe-Haven Hub • Civic Plaza",
-    val marketEscrowAvailable: Boolean = true
+    val marketEscrowAvailable: Boolean = true,
+    val showLocation: Boolean = true
 ) {
     val isConnected: Boolean get() = isFollowing
 }
@@ -297,7 +299,28 @@ data class MarketplaceItemEntity(
     val escrowStatus: String = "AVAILABLE", // "AVAILABLE", "FUNDS_IN_ESCROW", "COMPLETED_RELEASED"
     val safeHavenHubName: String? = "Civic Plaza Police Precinct (CCTV Zone)",
     val escrowBuyerUsername: String? = null,
-    val escrowToken: String? = null
+    val escrowToken: String? = null,
+    val catalogName: String? = null,
+    val catalogBadge: String? = null, // "Top Dealer", "Verified Workshop", "Vintage Curator", "Master Artisan", "Certified Studio"
+    val catalogBannerUrl: String? = null,
+    val additionalImagesJson: String = "",
+    val videoClipUrl: String? = null,
+    val videoDurationSeconds: Int = 0,
+    val isFlashDeal: Boolean = false
+)
+
+data class SellerCatalog(
+    val id: String,
+    val name: String,
+    val sellerUsername: String,
+    val sellerFullName: String,
+    val sellerAvatar: String,
+    val badge: String = "Top Dealer",
+    val bannerUrl: String,
+    val category: String,
+    val description: String,
+    val rating: Double = 4.9,
+    val totalItems: Int = 4
 )
 
 @Entity(tableName = "studio_videos")
