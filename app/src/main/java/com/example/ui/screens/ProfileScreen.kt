@@ -1,6 +1,7 @@
 
 
 package com.example.ui.screens
+import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -137,6 +138,7 @@ fun ProfileScreen(
     var showClipDraftsSheet by remember { mutableStateOf(false) }
     var showLogoutConfirmDialog by remember { mutableStateOf(false) }
     var showDeleteAccountConfirmDialog by remember { mutableStateOf(false) }
+    var showDownloadAppDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     // Clip / Clip Management State
@@ -1312,6 +1314,10 @@ fun ProfileScreen(
                     showMoreSettingsSheet = false
                     onOpenInformation()
                 },
+                onOpenDownloadApp = {
+                    showMoreSettingsSheet = false
+                    showDownloadAppDialog = true
+                },
                 onOpenMonetizationHub = {
                     showMoreSettingsSheet = false
                     onOpenMonetizationHub()
@@ -1459,6 +1465,165 @@ fun ProfileScreen(
             dismissButton = {
                 TextButton(onClick = { showDeleteAccountConfirmDialog = false }) {
                     Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // 10. Download Localiiiy App (Web App & Google Drive APK)
+    if (showDownloadAppDialog) {
+        AlertDialog(
+            onDismissRequest = { showDownloadAppDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.FileDownload,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = {
+                Text(
+                    text = "Download Localiiiy",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(
+                        text = "Access Localiiiy anywhere using our two official download & launch options:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // Option 1: Web App
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.WEBAPP_BASE_URL))
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Language,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "1. Official Web App",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "https://localiiiy.web.app",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    // Option 2: Google Drive Android APK
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL))
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                context.startActivity(intent)
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color(0xFF10B981).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Android,
+                                    contentDescription = null,
+                                    tint = Color(0xFF10B981),
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "2. Android APK (Google Drive)",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Download & install APK directly",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF10B981)
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val shareText = "Download & Connect on Localiiiy:\n\n🌐 Web App: ${com.example.util.ShareHelper.WEBAPP_BASE_URL}\n📦 Android APK (Google Drive): ${com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL}"
+                        com.example.util.ShareHelper.launchNativeShare(
+                            context = context,
+                            shareText = shareText,
+                            subject = "Download Localiiiy App",
+                            chooserTitle = "Share Localiiiy Download Links"
+                        )
+                    }
+                ) {
+                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Share Links")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDownloadAppDialog = false }) {
+                    Text("Close")
                 }
             }
         )
@@ -1788,6 +1953,7 @@ private fun ProfileSettingsSheetContent(
     onOpenDataAnalysis: () -> Unit = {},
     onOpenHelp: () -> Unit = {},
     onOpenInformation: () -> Unit = {},
+    onOpenDownloadApp: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
     onOpenBoostAds: () -> Unit = {},
     onEditProfileClick: () -> Unit,
@@ -1978,6 +2144,13 @@ private fun ProfileSettingsSheetContent(
             title = "Information & Badges",
             subtitle = "Creator tiers, terminology, app pages",
             onClick = onOpenInformation
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.FileDownload,
+            title = "Download & Access Localiiiy",
+            subtitle = "Open official Web App or download Android APK via Google Drive",
+            onClick = onOpenDownloadApp
         )
 
         Spacer(modifier = Modifier.height(16.dp))

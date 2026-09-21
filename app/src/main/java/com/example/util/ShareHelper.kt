@@ -10,21 +10,22 @@ import android.content.Intent
 object ShareHelper {
 
     const val WEBAPP_BASE_URL = "https://localiiiy.web.app"
+    const val GOOGLE_DRIVE_APK_URL = "https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk"
     const val PREVIEW_WEBAPP_URL = "https://ais-pre-4dr4uba5q4ohbxd3nqa7pf-906260591053.asia-southeast1.run.app"
 
     fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN): String {
         val message = when (language) {
-            LocaliiiyLanguage.HI -> "📲 Localiiiy ऐप डाउनलोड करें: अपने नजदीकी हाइपरलोकल पल्स, लाइव प्रॉक्सिमिटी रडार, क्रिएटर क्लिप्स और पड़ोस के मार्केटप्लेस सौदों की खोज करें।"
-            LocaliiiyLanguage.TE -> "📲 Localiiiy యాప్‌ను డౌన్‌లోడ్ చేసుకోండి: మీ సమీపంలోని హైపర్‌లోకల్ పల్స్‌లు, లైవ్ సామీప్య రాడార్, క్రియేటర్ క్లిప్‌లు మరియు పరిసరాల మార్కెట్‌ప్లేస్ ఆఫర్‌లను కనుగొనండి."
-            LocaliiiyLanguage.ES -> "📲 Descarga la app Localiiiy para descubrir pulsos hiperlocales, radar de proximidad en vivo, clips de creadores y ofertas del mercado vecinal cerca de ti."
-            LocaliiiyLanguage.FR -> "📲 Téléchargez l'application Localiiiy pour découvrir les pulsations hyperlocales, le radar de proximité en direct, les clips de créateurs et les annonces de quartier près de chez vous."
-            LocaliiiyLanguage.DE -> "📲 Lade die Localiiiy-App herunter: Entdecke hyperlokale Impulse, Live-Näherungsradar, Creator-Clips und Angebote des Nachbarschaftsmarktplatzes in deiner Nähe."
-            LocaliiiyLanguage.JA -> "📲 Localiiiyアプリをダウンロード: お近くのハイパーローカルなパルス、ライブ近接レーダー、クリエイター動画、地域マーケットプレイスを発見しよう。"
-            LocaliiiyLanguage.ZH -> "📲 下载 Localiiiy 应用程序：发现您附近的超本地脉搏、实时近距离雷达、创作者短片和社区集市好物。"
-            LocaliiiyLanguage.AR -> "📲 حمّل تطبيق Localiiiy: اكتشف النبضات المحلية ورادار القرب المباشر ومقاطع المبدعين وعروض السوق بالقرب منك."
+            LocaliiiyLanguage.HI -> "📲 Localiiiy डाउनलोड करें: वेबऐप से चलाएं या सीधे Android APK डाउनलोड करें।"
+            LocaliiiyLanguage.TE -> "📲 Localiiiy ని డౌన్‌లోడ్ చేసుకోండి: వెబ్‌యాప్ ద్వారా ఉపయోగించండి లేదా Android APK ని నేరుగా డౌన్‌లోడ్ చేయండి."
+            LocaliiiyLanguage.ES -> "📲 Descarga Localiiiy: Usa la webapp o descarga el APK oficial directamente."
+            LocaliiiyLanguage.FR -> "📲 Téléchargez Localiiiy : Utilisez l'application web ou téléchargez directement le fichier APK officiel."
+            LocaliiiyLanguage.DE -> "📲 Localiiiy herunterladen: Nutze die Webapp oder lade die offizielle Android-APK herunter."
+            LocaliiiyLanguage.JA -> "📲 Localiiiyをダウンロード: Webアプリを使用するか、公式Android APKを直接ダウンロードしてください。"
+            LocaliiiyLanguage.ZH -> "📲 下载 Localiiiy：使用 Web 应用或直接下载官方 Android APK。"
+            LocaliiiyLanguage.AR -> "📲 حمّل Localiiiy: استخدم تطبيق الويب أو حمّل ملف APK الرسمي مباشرة."
             else -> "📲 Localiiiy — Connect with your neighborhood Earth through live radar, creator clips, and local pulses, Market and Studio."
         }
-        return "$message\n🔗 $WEBAPP_BASE_URL"
+        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n📦 Android APK (Google Drive): $GOOGLE_DRIVE_APK_URL"
     }
 
     fun buildDeepLink(itemType: String, id: Any): String {

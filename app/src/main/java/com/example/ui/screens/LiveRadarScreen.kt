@@ -37,6 +37,7 @@ import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyDeepNavy
 import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 /**
@@ -76,7 +77,16 @@ fun LiveRadarScreen(
         isAppInForeground = false
     }
 
-    val hasLocationPermission = locationPermissionsState.allPermissionsGranted || exploreBypassAllowed
+    val hasLocationPermission = locationPermissionsState.allPermissionsGranted || 
+        locationPermissionsState.permissions.any { it.status.isGranted } || 
+        exploreBypassAllowed
+
+    // Automatically trigger the location permission dialog on first arrival
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission) {
+            locationPermissionsState.launchMultiplePermissionRequest()
+        }
+    }
     val shouldShowBlips = !isGhostModeActive && isAppInForeground
 
     Box(

@@ -309,7 +309,7 @@ fun ReferralSystemScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Share our webapp link so your neighbors can download and install Localiiiy directly on any device.",
+                            text = "Share our official download options so your neighbors can use the Web App or download the Android APK via Google Drive.",
                             fontSize = 11.sp,
                             color = Color.LightGray,
                             lineHeight = 14.sp,
@@ -320,9 +320,10 @@ fun ReferralSystemScreen(
                         
                         Button(
                             onClick = {
-                                val webappLink = "https://localiiiy.app"
+                                val webappLink = com.example.util.ShareHelper.WEBAPP_BASE_URL
+                                val driveApkLink = com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL
                                 val shareNote = "Neighbor, you need to try Localiiiy! It's a private, tracker-free neighborhood network where we can see what's happening nearby on a live radar. No ads, just community."
-                                val shareText = "$shareNote\n\nDownload it here: $webappLink\n\nUse my invite code: ${referralState.userReferralCode} to claim +100 bonus points!"
+                                val shareText = "$shareNote\n\n🌐 Web App: $webappLink\n📦 Android APK (Google Drive): $driveApkLink\n\nUse my invite code: ${referralState.userReferralCode} to claim +100 bonus points!"
                                 val sendIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     putExtra(Intent.EXTRA_TEXT, shareText)
@@ -336,7 +337,7 @@ fun ReferralSystemScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
                             contentPadding = PaddingValues(vertical = 6.dp)
                         ) {
-                            Text("Share App Link & Custom Note", fontWeight = FontWeight.Bold, fontSize = 11.5.sp)
+                            Text("Share Web App & Google Drive APK", fontWeight = FontWeight.Bold, fontSize = 11.5.sp)
                         }
                     }
                 }

@@ -1894,7 +1894,7 @@ fun ClipQrCodeDialog(
             Button(
                 onClick = {
                     onDismiss()
-                    val shareText = "Connect with @${clip.username} on Localiiiy!\nSpace ID: LOC-SP-${clip.userHandle.uppercase().replace("@", "")}-${clip.id}\nhttps://localiiiy.app/u/${clip.userHandle}"
+                    val shareText = "Connect with @${clip.username} on Localiiiy!\nSpace ID: LOC-SP-${clip.userHandle.uppercase().replace("@", "")}-${clip.id}\n${ShareHelper.WEBAPP_BASE_URL}/u/${clip.userHandle}\n\n📦 Android APK: ${ShareHelper.GOOGLE_DRIVE_APK_URL}"
                     ShareHelper.launchNativeShare(
                         context = context,
                         shareText = shareText,

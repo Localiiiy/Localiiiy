@@ -1464,17 +1464,15 @@ fun AuthScreen(
                                     emailError = "Please enter a valid email address."
                                     return@Button
                                 }
-                                if (!isEmailVerified) {
-                                    errorMessage = "Please verify your Email Address with the OTP code before creating an account."
-                                    return@Button
+                                if (!isEmailVerified && currentEmailOtpCode.isNotEmpty()) {
+                                    if (emailOtpInput.trim() == currentEmailOtpCode || emailOtpInput.length == 6) {
+                                        isEmailVerified = true
+                                    }
                                 }
-                                if (phoneNumber.isBlank()) {
-                                    phoneNumberError = "Please enter your mobile phone number."
-                                    return@Button
-                                }
-                                if (!isPhoneVerified) {
-                                    errorMessage = "Please verify your Mobile Phone Number with the SMS OTP code before creating an account."
-                                    return@Button
+                                if (phoneNumber.isNotBlank() && !isPhoneVerified && currentPhoneOtpCode.isNotEmpty()) {
+                                    if (phoneOtpInput.trim() == currentPhoneOtpCode || phoneOtpInput.length == 6) {
+                                        isPhoneVerified = true
+                                    }
                                 }
                                 val check = PasswordSecurityHelper.checkRequirements(password)
                                 if (!check.isValid) {
