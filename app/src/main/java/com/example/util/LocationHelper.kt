@@ -60,7 +60,7 @@ object LocationHelper {
                     val fusedLocationClient: FusedLocationProviderClient =
                         LocationServices.getFusedLocationProviderClient(context)
 
-                    // 1. First attempt: Quick check on lastLocation (instant and cached by system)
+                    // 1. First attempt: Quick check on lastLocation
                     val lastLoc: Location? = suspendCancellableCoroutine { continuation ->
                         fusedLocationClient.lastLocation
                             .addOnSuccessListener { loc -> continuation.resume(loc) }
@@ -71,9 +71,9 @@ object LocationHelper {
                         bestLocation = lastLoc
                     }
 
-                    // 2. Second attempt: Fresh high-accuracy reading with timeout
+                    // 2. Second attempt: Fresh high-accuracy reading
                     if (bestLocation == null) {
-                        val freshLoc: Location? = withTimeoutOrNull(6500) {
+                        val freshLoc: Location? = withTimeoutOrNull(8000) {
                             suspendCancellableCoroutine { continuation ->
                                 val cancellationTokenSource = CancellationTokenSource()
                                 fusedLocationClient.getCurrentLocation(
@@ -90,30 +90,7 @@ object LocationHelper {
                             bestLocation = freshLoc
                         }
                     }
-
-                    // 3. Third attempt: Native Android LocationManager fallback
-                    if (bestLocation == null) {
-                        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-                        if (locationManager != null) {
-                            val gpsLoc = try {
-                                locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-                            } catch (_: Exception) { null }
-
-                            val netLoc = try {
-                                locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-                            } catch (_: Exception) { null }
-
-                            val passiveLoc = try {
-                                locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER)
-                            } catch (_: Exception) { null }
-
-                            bestLocation = listOfNotNull(gpsLoc, netLoc, passiveLoc)
-                                .maxByOrNull { it.time }
-                        }
-                    }
-                } catch (_: Exception) {
-                    // Fall through to geocoding or fallback
-                }
+                } catch (_: Exception) {}
             }
 
             if (bestLocation != null) {
@@ -126,26 +103,15 @@ object LocationHelper {
                     neighborhood = geoData.neighborhood,
                     city = geoData.city
                 )
-            } else if (!fallbackNeighborhood.isNullOrBlank() || !fallbackCity.isNullOrBlank()) {
-                val query = listOfNotNull(fallbackNeighborhood, fallbackCity).joinToString(", ")
-                val geocoded = geocodeAddressString(context, query)
-                geocoded ?: UserLocationData(
-                    latitude = DEFAULT_LAT,
-                    longitude = DEFAULT_LNG,
-                    locationName = query,
-                    landmark = fallbackNeighborhood,
-                    neighborhood = fallbackNeighborhood,
-                    city = fallbackCity ?: "Local City"
-                )
             } else {
-                val geoData = reverseGeocode(context, DEFAULT_LAT, DEFAULT_LNG)
+                // Return a specific 'Unknown' state instead of a fake Seattle location
                 UserLocationData(
-                    latitude = DEFAULT_LAT,
-                    longitude = DEFAULT_LNG,
-                    locationName = geoData.locationName.ifBlank { "Live Radar Area" },
-                    landmark = geoData.landmark ?: "Neighborhood Hub",
-                    neighborhood = geoData.neighborhood ?: "Local Zone",
-                    city = geoData.city ?: "Local City"
+                    latitude = 0.0,
+                    longitude = 0.0,
+                    locationName = "Location Unavailable",
+                    landmark = null,
+                    neighborhood = null,
+                    city = null
                 )
             }
         }

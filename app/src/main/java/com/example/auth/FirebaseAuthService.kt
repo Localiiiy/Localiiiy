@@ -94,14 +94,7 @@ object FirebaseAuthService {
 
         val auth = authInstance
         if (auth == null) {
-            // Local fallback if Firebase engine cannot be loaded
-            val fallbackState = AuthUserState(
-                uid = "sec_local_" + System.currentTimeMillis(),
-                email = cleanEmail,
-                displayName = cleanEmail.substringBefore("@")
-            )
-            _currentUserState.value = fallbackState
-            return@withContext AuthResult.Success(fallbackState, "Signed in successfully (Secure Local Vault).")
+            return@withContext AuthResult.Error("Firebase is not initialized. Please ensure google-services.json is present.")
         }
 
         try {
@@ -114,43 +107,17 @@ object FirebaseAuthService {
                     displayName = user.displayName ?: cleanEmail.substringBefore("@")
                 )
                 _currentUserState.value = state
-                return@withContext AuthResult.Success(state, "Signed in successfully via Firebase Auth!")
+                return@withContext AuthResult.Success(state, "Signed in successfully!")
             } else {
                 return@withContext AuthResult.Error("Authentication succeeded but user profile was not returned.")
             }
         } catch (e: FirebaseAuthInvalidUserException) {
-            return@withContext AuthResult.Error("No account found with this email. Please register for an account.")
+            return@withContext AuthResult.Error("No account found with this email.")
         } catch (e: FirebaseAuthInvalidCredentialsException) {
-            return@withContext AuthResult.Error("Incorrect password or invalid email format. Please check your credentials.")
+            return@withContext AuthResult.Error("Incorrect password or invalid email format.")
         } catch (e: Exception) {
-            Log.w(TAG, "Firebase sign-in caught exception: ${e.message}", e)
-            val msg = e.message ?: "Authentication failed."
-            
-            // Sandbox/mock environment or emulator App Check/Recaptcha fallback
-            val isAppCheckOrRecaptcha = msg.contains("App Check", ignoreCase = true) ||
-                msg.contains("appcheck", ignoreCase = true) ||
-                msg.contains("recaptcha", ignoreCase = true) ||
-                msg.contains("An internal error has occurred", ignoreCase = true)
-            
-            if (msg.contains("API key not valid", ignoreCase = true) ||
-                msg.contains("network", ignoreCase = true) ||
-                msg.contains("PROJECT_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("CONFIGURATION_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("TOO_MANY_ATTEMPTS", ignoreCase = true) ||
-                isAppCheckOrRecaptcha
-            ) {
-                val fallbackState = AuthUserState(
-                    uid = "user_" + Math.abs(cleanEmail.hashCode()),
-                    email = cleanEmail,
-                    displayName = cleanEmail.substringBefore("@")
-                )
-                _currentUserState.value = fallbackState
-                return@withContext AuthResult.Success(
-                    fallbackState,
-                    "Signed in successfully!"
-                )
-            }
-            return@withContext AuthResult.Error(msg)
+            Log.e(TAG, "Firebase sign-in error", e)
+            return@withContext AuthResult.Error(e.message ?: "Authentication failed.")
         }
     }
 
@@ -175,13 +142,7 @@ object FirebaseAuthService {
 
         val auth = authInstance
         if (auth == null) {
-            val fallbackState = AuthUserState(
-                uid = "sec_local_" + System.currentTimeMillis(),
-                email = cleanEmail,
-                displayName = if (cleanName.isNotBlank()) cleanName else cleanEmail.substringBefore("@")
-            )
-            _currentUserState.value = fallbackState
-            return@withContext AuthResult.Success(fallbackState, "Account created & secured locally.")
+            return@withContext AuthResult.Error("Firebase is not initialized. Please ensure google-services.json is present.")
         }
 
         try {
@@ -200,9 +161,8 @@ object FirebaseAuthService {
                 }
                 try {
                     user.sendEmailVerification().await()
-                    Log.i(TAG, "Firebase email verification dispatched to ${user.email}")
                 } catch (ve: Exception) {
-                    Log.w(TAG, "Email verification dispatch skipped or failed: ${ve.message}")
+                    Log.w(TAG, "Email verification dispatch failed: ${ve.message}")
                 }
                 val state = AuthUserState(
                     uid = user.uid,
@@ -210,43 +170,17 @@ object FirebaseAuthService {
                     displayName = if (cleanName.isNotBlank()) cleanName else (user.displayName ?: cleanEmail.substringBefore("@"))
                 )
                 _currentUserState.value = state
-                return@withContext AuthResult.Success(state, "Account created and secured via Firebase Auth!")
+                return@withContext AuthResult.Success(state, "Account created successfully!")
             } else {
                 return@withContext AuthResult.Error("Failed to create user account.")
             }
         } catch (e: FirebaseAuthUserCollisionException) {
-            return@withContext AuthResult.Error("An account with this email address already exists. Please sign in.")
+            return@withContext AuthResult.Error("An account with this email already exists.")
         } catch (e: FirebaseAuthWeakPasswordException) {
-            return@withContext AuthResult.Error("Password is too weak. Please include at least 8 characters with numbers and symbols.")
+            return@withContext AuthResult.Error("Password is too weak.")
         } catch (e: Exception) {
-            Log.w(TAG, "Firebase sign-up caught exception: ${e.message}", e)
-            val msg = e.message ?: "Registration failed."
-            
-            // Sandbox/mock environment or emulator App Check/Recaptcha fallback
-            val isAppCheckOrRecaptcha = msg.contains("App Check", ignoreCase = true) ||
-                msg.contains("appcheck", ignoreCase = true) ||
-                msg.contains("recaptcha", ignoreCase = true) ||
-                msg.contains("An internal error has occurred", ignoreCase = true)
-            
-            if (msg.contains("API key not valid", ignoreCase = true) ||
-                msg.contains("network", ignoreCase = true) ||
-                msg.contains("PROJECT_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("CONFIGURATION_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("TOO_MANY_ATTEMPTS", ignoreCase = true) ||
-                isAppCheckOrRecaptcha
-            ) {
-                val fallbackState = AuthUserState(
-                    uid = "user_" + Math.abs(cleanEmail.hashCode()),
-                    email = cleanEmail,
-                    displayName = if (cleanName.isNotBlank()) cleanName else cleanEmail.substringBefore("@")
-                )
-                _currentUserState.value = fallbackState
-                return@withContext AuthResult.Success(
-                    fallbackState,
-                    "Account registered and secured successfully!"
-                )
-            }
-            return@withContext AuthResult.Error(msg)
+            Log.e(TAG, "Firebase sign-up error", e)
+            return@withContext AuthResult.Error(e.message ?: "Registration failed.")
         }
     }
 
