@@ -38,7 +38,7 @@ jobs:
           cache: gradle
 
       - name: 📱 Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: 🔐 Prepare Environment & Secrets
         run: |
@@ -74,14 +74,12 @@ jobs:
 
       - name: 🚀 Deploy to Firebase Hosting (Unified Web App & APK Mirrors)
         uses: FirebaseExtended/action-hosting-deploy@v0
-        if: ${{ env.FIREBASE_SERVICE_ACCOUNT != '' }}
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
           projectId: localiiiy
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
 
       - name: 🏷️ Publish / Update GitHub Release
         uses: softprops/action-gh-release@v2
