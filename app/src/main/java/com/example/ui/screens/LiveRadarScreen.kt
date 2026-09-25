@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,9 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.example.data.MarketplaceItemEntity
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
+import com.example.ui.components.GoogleMapMomentsComponent
 import com.example.ui.components.LiveRadarComponent
 import com.example.ui.theme.LocaliiiyAccentMint
 import com.example.ui.theme.LocaliiiyDeepNavy
@@ -50,12 +53,14 @@ fun LiveRadarScreen(
     posts: List<PostEntity>,
     userProfile: UserProfileEntity,
     nearbyUsers: List<OtherUserEntity> = emptyList(),
+    marketplaceItems: List<MarketplaceItemEntity> = emptyList(),
     selectedRadiusKm: Double? = 50.0,
     isPremiumSubscribed: Boolean = false,
     onRadiusFilterChange: (Double) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onLikePost: (PostEntity) -> Unit = {},
     onUserProfileClick: (String) -> Unit = {},
+    onMarketItemClick: (MarketplaceItemEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Accompanist Permissions boilerplate for runtime location permissions
@@ -72,6 +77,7 @@ fun LiveRadarScreen(
     var currentRadius by remember(isUserPremium) { mutableStateOf(defaultRadius) }
     var isGhostModeActive by remember { mutableStateOf(false) }
     var isAppInForeground by remember { mutableStateOf(true) }
+    var isMapMode by remember { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         isAppInForeground = true
@@ -99,30 +105,120 @@ fun LiveRadarScreen(
             .testTag("live_radar_screen")
     ) {
         if (hasLocationPermission) {
-            // Main Live Proximity Radar view
-            androidx.compose.foundation.lazy.LazyColumn(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                item {
-                    LiveRadarComponent(
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Segmented Bar: Radar Orbit vs Google Map View
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(3.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (!isMapMode) LocaliiiyDeepNavy else Color.Transparent,
+                            border = if (!isMapMode) androidx.compose.foundation.BorderStroke(1.dp, LocaliiiyAccentMint) else null,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { isMapMode = false }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Radar,
+                                    contentDescription = null,
+                                    tint = if (!isMapMode) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Radar Orbit",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (!isMapMode) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (isMapMode) LocaliiiyPrimaryTeal else Color.Transparent,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { isMapMode = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Map,
+                                    contentDescription = null,
+                                    tint = if (isMapMode) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    text = "Map View 🗺️",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isMapMode) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (isMapMode) {
+                    GoogleMapMomentsComponent(
+                        posts = posts,
                         userProfile = userProfile,
                         nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
-                        nearbyPosts = posts,
                         selectedRadiusKm = currentRadius,
-                        isLocationEnabled = true,
-                        isPremiumSubscribed = isPremiumSubscribed,
-                        isPrivateAccount = isGhostModeActive,
-                        hidePreciseLocationOnRadar = isGhostModeActive,
-                        onToggleHidePreciseLocation = { isGhostModeActive = it },
+                        marketplaceItems = marketplaceItems,
                         onRadiusChange = { radius ->
                             currentRadius = radius
                             onRadiusFilterChange(radius)
                         },
-                        onUserClick = { user -> onUserProfileClick(user.username) },
                         onPostClick = onPostClick,
-                        onWaveAtUser = { /* waved */ },
-                        modifier = Modifier.fillMaxWidth()
+                        onLikePost = onLikePost,
+                        onUserProfileClick = onUserProfileClick,
+                        onMarketItemClick = onMarketItemClick,
+                        modifier = Modifier.weight(1f)
                     )
+                } else {
+                    androidx.compose.foundation.lazy.LazyColumn(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        item {
+                            LiveRadarComponent(
+                                userProfile = userProfile,
+                                nearbyUsers = if (shouldShowBlips) nearbyUsers else emptyList(),
+                                nearbyPosts = posts,
+                                selectedRadiusKm = currentRadius,
+                                isLocationEnabled = true,
+                                isPremiumSubscribed = isPremiumSubscribed,
+                                isPrivateAccount = isGhostModeActive,
+                                hidePreciseLocationOnRadar = isGhostModeActive,
+                                onToggleHidePreciseLocation = { isGhostModeActive = it },
+                                onRadiusChange = { radius ->
+                                    currentRadius = radius
+                                    onRadiusFilterChange(radius)
+                                },
+                                onUserClick = { user -> onUserProfileClick(user.username) },
+                                onPostClick = onPostClick,
+                                onWaveAtUser = { /* waved */ },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
                 }
             }
         } else {

@@ -44,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.PostEntity
@@ -417,7 +420,11 @@ fun PostCard(
                 }
             }
 
-            // --- Post Media Container with Double Tap Heart Burst ---
+            // --- Post Media Carousel Container with Double Tap Heart Burst ---
+            val mediaList = post.mediaUrlsList
+            val isMultiPhoto = mediaList.size > 1
+            val pagerState = if (isMultiPhoto) rememberPagerState { mediaList.size } else null
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -433,12 +440,76 @@ fun PostCard(
                     },
                 contentAlignment = Alignment.Center
             ) {
-                ImageWithFilter(
-                    mediaUrl = post.mediaUrl,
-                    filterName = post.filterName,
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = post.caption
-                )
+                if (isMultiPhoto && pagerState != null) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { pageIndex ->
+                        ImageWithFilter(
+                            mediaUrl = mediaList[pageIndex],
+                            filterName = post.filterName,
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = "${post.caption} (Photo ${pageIndex + 1})"
+                        )
+                    }
+
+                    // Multi-photo count indicator badge (top right)
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = Color.Black.copy(alpha = 0.65f),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Collections,
+                                contentDescription = "Photos count",
+                                tint = Color.White,
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Text(
+                                text = "${pagerState.currentPage + 1}/${mediaList.size}",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    // Page Indicator dots (bottom center)
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 10.dp)
+                            .clip(RoundedCornerShape(100.dp))
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        repeat(mediaList.size) { iteration ->
+                            val isSelected = pagerState.currentPage == iteration
+                            Box(
+                                modifier = Modifier
+                                    .size(if (isSelected) 7.dp else 5.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) Color.White else Color.White.copy(alpha = 0.5f))
+                            )
+                        }
+                    }
+                } else {
+                    ImageWithFilter(
+                        mediaUrl = post.mediaUrl,
+                        filterName = post.filterName,
+                        modifier = Modifier.fillMaxSize(),
+                        contentDescription = post.caption
+                    )
+                }
 
                 // Animated Big Pop 👌 on Double Tap
                 androidx.compose.animation.AnimatedVisibility(

@@ -25,6 +25,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -225,12 +226,42 @@ fun CreateScreen(
 
     var showStandardMediaSelector by remember { mutableStateOf(false) }
 
+    val initialPhotos = remember(selectedMediaUri) {
+        if (selectedMediaUri.isNotBlank()) {
+            if (selectedMediaUri.contains(",")) selectedMediaUri.split(",").map { it.trim() }.filter { it.isNotBlank() }
+            else listOf(selectedMediaUri)
+        } else listOf("https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1080&auto=format&fit=crop&q=85")
+    }
+    var multiPhotosList by remember(selectedMediaUri) { mutableStateOf(initialPhotos) }
+    var activePhotoIndex by remember { mutableIntStateOf(0) }
+
     // Native Android Photo & Video Picker from Device Storage
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         if (uri != null) {
-            onSelectMedia(uri.toString())
+            val uriStr = uri.toString()
+            if (creationMode == CreationMode.POST) {
+                val updated = (multiPhotosList + uriStr).distinct().take(10)
+                multiPhotosList = updated
+                activePhotoIndex = (updated.size - 1).coerceAtLeast(0)
+                onSelectMedia(updated.joinToString(","))
+            } else {
+                onSelectMedia(uriStr)
+            }
+        }
+    }
+
+    val multiPhotoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            val uriStrings = uris.map { it.toString() }
+            val updated = (multiPhotosList + uriStrings).distinct().take(10)
+            multiPhotosList = updated
+            activePhotoIndex = (updated.size - 1).coerceAtLeast(0)
+            onSelectMedia(updated.joinToString(","))
+            Toast.makeText(context, "Added ${uris.size} photos to post carousel 📸", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -537,6 +568,12 @@ fun CreateScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Main Preview Window with Filter
+        val currentDisplayMedia = if (creationMode == CreationMode.POST && multiPhotosList.isNotEmpty()) {
+            multiPhotosList.getOrElse(activePhotoIndex) { multiPhotosList.first() }
+        } else {
+            selectedMediaUri
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -547,7 +584,7 @@ fun CreateScreen(
             contentAlignment = Alignment.Center
         ) {
             ImageWithFilter(
-                mediaUrl = selectedMediaUri,
+                mediaUrl = currentDisplayMedia,
                 filterName = selectedFilter.name,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
@@ -571,6 +608,25 @@ fun CreateScreen(
                     ),
                     color = Color.White
                 )
+            }
+
+            // Multi-photo indicator badge (if > 1 photo in POST mode)
+            if (creationMode == CreationMode.POST && multiPhotosList.size > 1) {
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = Color.Black.copy(alpha = 0.65f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "📸 ${activePhotoIndex + 1} of ${multiPhotosList.size}",
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
             }
 
             // Location watermark badge
@@ -598,6 +654,161 @@ fun CreateScreen(
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+            }
+        }
+
+        // Multi-Photo Carousel Manager Strip (for POST creation)
+        if (creationMode == CreationMode.POST) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Column(modifier = Modifier.padding(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Collections,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Post Photo Carousel (${multiPhotosList.size}/10)",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        Text(
+                            text = "Tap to switch • Carousel in feed",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Add More Photos Button
+                        item {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        multiPhotoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                                    .testTag("add_photo_to_carousel_button")
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddPhotoAlternate,
+                                        contentDescription = "Add Photos",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                    Text(
+                                        text = "Add +",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
+                        // Photo Thumbnails List
+                        itemsIndexed(multiPhotosList) { index, uri ->
+                            val isSelected = activePhotoIndex == index
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .then(
+                                        if (isSelected) Modifier.border(2.5.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(10.dp))
+                                        else Modifier.border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                                    )
+                                    .clickable { activePhotoIndex = index }
+                            ) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(uri)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "Photo ${index + 1}",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+
+                                // Photo sequence badge (top-left)
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color.Black.copy(alpha = 0.7f),
+                                    modifier = Modifier
+                                        .align(Alignment.TopStart)
+                                        .padding(3.dp)
+                                        .size(16.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = "${index + 1}",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+
+                                // Delete thumbnail button (if more than 1 photo)
+                                if (multiPhotosList.size > 1) {
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color.Red,
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(2.dp)
+                                            .size(16.dp)
+                                            .clickable {
+                                                val remaining = multiPhotosList.toMutableList().apply { removeAt(index) }
+                                                multiPhotosList = remaining
+                                                activePhotoIndex = (activePhotoIndex.coerceAtMost(remaining.size - 1)).coerceAtLeast(0)
+                                                onSelectMedia(remaining.joinToString(","))
+                                            }
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("✕", fontSize = 9.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -814,6 +1025,19 @@ fun CreateScreen(
                 value = caption,
                 onValueChange = { caption = it },
                 placeholder = { Text("Write a caption for your neighbors... #locality #Localiiiy") },
+                trailingIcon = {
+                    IconButton(
+                        onClick = { startVoiceToText() },
+                        modifier = Modifier.testTag("caption_voice_to_text_mic_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = "Tap to speak (Voice-to-Text)",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("create_caption_input"),
@@ -1519,7 +1743,16 @@ fun CreateScreen(
     if (showCameraScreen) {
         CreatorClipsCameraScreen(
             onClipRecorded = { uri ->
-                onSelectMedia(uri.toString())
+                val uriStr = uri.toString()
+                if (creationMode == CreationMode.POST) {
+                    val updated = (multiPhotosList + uriStr).distinct().take(10)
+                    multiPhotosList = updated
+                    activePhotoIndex = (updated.size - 1).coerceAtLeast(0)
+                    onSelectMedia(updated.joinToString(","))
+                    Toast.makeText(context, "Captured photo added to post carousel! 📸", Toast.LENGTH_SHORT).show()
+                } else {
+                    onSelectMedia(uriStr)
+                }
                 showCameraScreen = false
             },
             onSaveDraft = { uri ->

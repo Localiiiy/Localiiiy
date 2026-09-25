@@ -539,9 +539,12 @@ fun LocaliiiyApp(
                     val allStudioVideos by viewModel.allStudioVideos.collectAsState()
                     FeedScreen(
                         clips = allClips.filter { it.isFollowing },
+                        marketplaceItems = marketplaceItems,
                         posts = feedPosts,
                         stories = stories,
                         userProfile = userProfile,
+                        otherUsers = otherUsers,
+                        notifications = notifications,
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
@@ -587,6 +590,15 @@ fun LocaliiiyApp(
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Post reported for moderation review.")
                             }
+                        },
+                        onSendCommunityInvite = { username, avatar, communityName ->
+                            viewModel.sendCommunityInvite(username, avatar, communityName)
+                        },
+                        onAcceptCommunityInvite = { notifId, communityName ->
+                            viewModel.acceptCommunityInvite(notifId, communityName)
+                        },
+                        onDeclineCommunityInvite = { notifId ->
+                            viewModel.declineCommunityInvite(notifId)
                         },
                         sponsoredAds = sponsoredAds,
                         currentCurrency = currentCurrency,
@@ -1240,7 +1252,13 @@ fun LocaliiiyApp(
     if (showNotificationsSheet) {
         NotificationsBottomSheet(
             notifications = notifications,
-            onDismiss = { viewModel.closeNotificationsSheet() }
+            onDismiss = { viewModel.closeNotificationsSheet() },
+            onAcceptCommunityInvite = { notifId, communityName ->
+                viewModel.acceptCommunityInvite(notifId, communityName)
+            },
+            onDeclineCommunityInvite = { notifId ->
+                viewModel.declineCommunityInvite(notifId)
+            }
         )
     }
 

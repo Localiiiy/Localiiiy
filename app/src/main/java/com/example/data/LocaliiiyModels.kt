@@ -38,6 +38,15 @@ data class PostEntity(
     val isLive: Boolean = false
 ) {
     val isConnected: Boolean get() = isFollowing
+    val mediaUrlsList: List<String>
+        get() {
+            if (mediaUrl.isBlank()) return emptyList()
+            return if (mediaUrl.contains(",")) {
+                mediaUrl.split(",").map { it.trim() }.filter { it.isNotBlank() }
+            } else {
+                listOf(mediaUrl)
+            }
+        }
 }
 
 @Entity(tableName = "clips")

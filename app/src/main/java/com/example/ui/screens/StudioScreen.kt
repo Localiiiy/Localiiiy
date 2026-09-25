@@ -1322,7 +1322,11 @@ private fun CreatorStudioDashboardPanel(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Icon(
                         imageVector = Icons.Default.Analytics,
                         contentDescription = null,
@@ -1332,9 +1336,13 @@ private fun CreatorStudioDashboardPanel(
                     Text(
                         text = "Creator Studio Hub • @${userProfile.username}",
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Surface(
                     shape = RoundedCornerShape(100.dp),
@@ -1343,47 +1351,59 @@ private fun CreatorStudioDashboardPanel(
                 ) {
                     Text(
                         text = "Monetization Active 🟢",
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 4-Card Analytics Grid
-            Row(
+            // 4-Card Analytics Grid (2x2 spacious layout)
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StudioMetricCard(
-                    title = "Watch Hours",
-                    value = "1,840.2h",
-                    trend = "+28.4%",
-                    modifier = Modifier.weight(1f)
-                )
-                StudioMetricCard(
-                    title = "Studio Views",
-                    value = "192.4K",
-                    trend = "+14.8%",
-                    modifier = Modifier.weight(1f)
-                )
-                StudioMetricCard(
-                    title = "Connected",
-                    value = "${userProfile.followersCount / 1000}K",
-                    trend = "+182 new",
-                    modifier = Modifier.weight(1f)
-                )
-                StudioMetricCard(
-                    title = "Est. Earnings",
-                    value = formattedEarnings,
-                    trend = "55% RevShare",
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onOpenMonetizationHub() }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StudioMetricCard(
+                        title = "Watch Hours",
+                        value = "1,840.2h",
+                        trend = "+28.4%",
+                        modifier = Modifier.weight(1f)
+                    )
+                    StudioMetricCard(
+                        title = "Studio Views",
+                        value = "192.4K",
+                        trend = "+14.8%",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StudioMetricCard(
+                        title = "Connected",
+                        value = "${userProfile.followersCount / 1000}K",
+                        trend = "+182 new",
+                        modifier = Modifier.weight(1f)
+                    )
+                    StudioMetricCard(
+                        title = "Est. Earnings",
+                        value = formattedEarnings,
+                        trend = "55% RevShare",
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onOpenMonetizationHub() }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(14.dp))

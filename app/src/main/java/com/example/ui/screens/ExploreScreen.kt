@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.Map
 import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.*
@@ -41,6 +42,7 @@ import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.PrivacySettingsEntity
 import com.example.data.UserProfileEntity
+import com.example.ui.components.GoogleMapMomentsComponent
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.LiveRadarComponent
 import com.example.ui.components.LocaliiiySearchBar
@@ -65,6 +67,7 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 enum class ExploreViewMode {
     RADAR, // Circular Hyperlocal Proximity Radar Interface
+    MAP,   // Interactive Google Maps SDK Map View
     GRID   // Traditional 3-Column Stream Grid
 }
 
@@ -226,6 +229,25 @@ fun ExploreScreen(
                         )
                     }
 
+                    // Map View Button (Google Maps SDK)
+                    IconButton(
+                        onClick = { exploreViewMode = ExploreViewMode.MAP },
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (exploreViewMode == ExploreViewMode.MAP) LocaliiiyPrimaryTeal else Color.Transparent
+                            )
+                            .testTag("toggle_map_view_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Map,
+                            contentDescription = "Interactive Map View",
+                            tint = if (exploreViewMode == ExploreViewMode.MAP) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
                     // Grid View Button
                     IconButton(
                         onClick = { exploreViewMode = ExploreViewMode.GRID },
@@ -255,6 +277,25 @@ fun ExploreScreen(
             modifier = Modifier.fillMaxSize().testTag("explore_pull_to_refresh_box")
         ) {
             when (exploreViewMode) {
+                ExploreViewMode.MAP -> {
+                    GoogleMapMomentsComponent(
+                        posts = filteredPosts,
+                        userProfile = userProfile,
+                        nearbyUsers = nearbyUsers,
+                        selectedRadiusKm = localRadiusKm,
+                        marketplaceItems = marketplaceItems,
+                        onRadiusChange = { radius ->
+                            localRadiusKm = radius
+                            onRadiusFilterChange(radius)
+                        },
+                        onPostClick = { post -> selectedDetailPost = post },
+                        onLikePost = onLikePost,
+                        onUserProfileClick = onUserProfileClick,
+                        onMarketItemClick = { /* open market item */ },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+
                 ExploreViewMode.RADAR -> {
                     Column(
                         modifier = Modifier

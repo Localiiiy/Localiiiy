@@ -170,6 +170,9 @@ interface LocaliiiyDao {
     @Query("UPDATE notifications SET isRead = 1")
     suspend fun markAllNotificationsRead()
 
+    @Query("DELETE FROM notifications WHERE id = :id")
+    suspend fun deleteNotification(id: Long)
+
     // --- Conversations & Messages ---
     @Query("SELECT * FROM conversations ORDER BY timestamp DESC")
     fun getConversations(): Flow<List<DirectMessageEntity>>

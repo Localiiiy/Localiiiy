@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.AdPlacement
+import com.example.data.NotificationEntity
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.StoryEntity
@@ -55,6 +56,7 @@ fun FeedScreen(
     stories: List<StoryEntity>,
     userProfile: UserProfileEntity,
     otherUsers: List<OtherUserEntity> = emptyList(),
+    notifications: List<NotificationEntity> = emptyList(),
     selectedRadiusKm: Double? = 3.0,
     isLocationEnabled: Boolean = true,
     isPrivateAccount: Boolean = false,
@@ -76,6 +78,9 @@ fun FeedScreen(
     onMessageNeighbor: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onReportPost: (PostEntity, String) -> Unit = { _, _ -> },
+    onSendCommunityInvite: (String, String, String) -> Unit = { _, _, _ -> },
+    onAcceptCommunityInvite: (Long, String) -> Unit = { _, _ -> },
+    onDeclineCommunityInvite: (Long) -> Unit = {},
     sponsoredAds: List<AdPlacement> = emptyList(),
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
@@ -93,6 +98,7 @@ fun FeedScreen(
         stories = stories,
         userProfile = userProfile,
         otherUsers = otherUsers,
+        notifications = notifications,
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
         selectedRadiusKm = selectedRadiusKm,
@@ -109,6 +115,9 @@ fun FeedScreen(
         onWaveAtNeighbor = onWaveAtNeighbor,
         onPostClick = onPostClick,
         onReportPost = onReportPost,
+        onSendCommunityInvite = onSendCommunityInvite,
+        onAcceptCommunityInvite = onAcceptCommunityInvite,
+        onDeclineCommunityInvite = onDeclineCommunityInvite,
         sponsoredAds = sponsoredAds,
         currentCurrency = currentCurrency,
         currentLanguage = currentLanguage,

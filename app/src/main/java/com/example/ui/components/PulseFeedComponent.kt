@@ -1,6 +1,8 @@
 package com.example.ui.components
 
 import com.example.data.MarketplaceItemEntity
+import com.example.data.NotificationEntity
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.Color
 import coil.compose.AsyncImage
 import androidx.compose.material.icons.Icons
@@ -72,6 +74,7 @@ fun PulseFeedComponent(
     stories: List<StoryEntity>,
     userProfile: UserProfileEntity,
     otherUsers: List<OtherUserEntity> = emptyList(),
+    notifications: List<NotificationEntity> = emptyList(),
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     selectedRadiusKm: Double? = 3.0,
@@ -87,6 +90,9 @@ fun PulseFeedComponent(
     onWaveAtNeighbor: (OtherUserEntity) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onReportPost: (PostEntity, String) -> Unit = { _, _ -> },
+    onSendCommunityInvite: (String, String, String) -> Unit = { _, _, _ -> },
+    onAcceptCommunityInvite: (Long, String) -> Unit = { _, _ -> },
+    onDeclineCommunityInvite: (Long) -> Unit = {},
     sponsoredAds: List<AdPlacement> = emptyList(),
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
@@ -264,6 +270,7 @@ fun PulseFeedComponent(
                 marketplaceItems = marketplaceItems,
                 clips = clips,
                 onUserProfileClick = onUserProfileClick,
+                onSendInvite = onSendCommunityInvite,
                 modifier = Modifier.fillMaxSize()
             )
         } else {
@@ -282,6 +289,92 @@ fun PulseFeedComponent(
                 if (isRefreshing) {
                     item {
                         ConcentricSonarRefreshIndicator(isRefreshing = true)
+                    }
+                }
+
+                // Community Invitations & Requests Banner
+                val communityRequests = notifications.filter { it.actionType == "COMMUNITY_INVITE" || it.actionType == "COMMUNITY_REQUEST" }
+                if (communityRequests.isNotEmpty()) {
+                    item {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 6.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            communityRequests.forEach { req ->
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFF0F172A),
+                                    border = BorderStroke(1.dp, Color(0xFF10B981)),
+                                    modifier = Modifier.fillMaxWidth().testTag("community_invite_request_card")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            AsyncImage(
+                                                model = req.userAvatar,
+                                                contentDescription = req.username,
+                                                modifier = Modifier.size(40.dp).clip(CircleShape),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            Column {
+                                                Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFF10B981).copy(alpha = 0.2f)) {
+                                                    Text(
+                                                        "🏘️ COMMUNITY REQUEST",
+                                                        color = Color(0xFF10B981),
+                                                        fontSize = 8.5.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = "${req.username} ${req.content}",
+                                                    color = Color.White,
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 2
+                                                )
+                                            }
+                                        }
+
+                                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Button(
+                                                onClick = {
+                                                    onAcceptCommunityInvite(req.id, "Localiiiy Hyperlocal Hub")
+                                                    currentPulseTab = "COMMUNITY"
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                                                shape = RoundedCornerShape(6.dp),
+                                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                                modifier = Modifier.height(28.dp)
+                                            ) {
+                                                Text("Accept", fontSize = 10.5.sp, color = Color.Black, fontWeight = FontWeight.Bold)
+                                            }
+
+                                            OutlinedButton(
+                                                onClick = { onDeclineCommunityInvite(req.id) },
+                                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray),
+                                                border = BorderStroke(1.dp, Color(0xFF334155)),
+                                                shape = RoundedCornerShape(6.dp),
+                                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                                modifier = Modifier.height(28.dp)
+                                            ) {
+                                                Text("Decline", fontSize = 10.5.sp)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 

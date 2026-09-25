@@ -67,7 +67,65 @@ data class CommunityMember(
     val name: String,
     val handle: String,
     val avatar: String,
-    val role: String = "Neighbor", // Admin, Creator, Neighbor
+    val role: String = "Neighbor", // Admin, Elder, Creator, Resident, VIP
     val distanceKm: Double = 0.5,
-    val isOnline: Boolean = true
-)
+    val isOnline: Boolean = true,
+    val isPremium: Boolean = false,
+    val trustScore: Int = 98
+) : Serializable
+
+data class CommunityVoiceSpeaker(
+    val username: String,
+    val fullName: String,
+    val avatar: String,
+    val isSpeaking: Boolean = false,
+    val isMuted: Boolean = false,
+    val isHost: Boolean = false
+) : Serializable
+
+data class CommunityVoiceSpace(
+    val id: String = "space_1",
+    val title: String = "Neighborhood Coffee Lounge & Creator Jam ☕",
+    val activeTopic: String = "Upcoming Summer Artisan Street Market & Studio Collabs",
+    val isLive: Boolean = true,
+    val listenersCount: Int = 18,
+    val speakers: List<CommunityVoiceSpeaker> = emptyList()
+) : Serializable
+
+data class CommunityPollOption(
+    val id: String,
+    val text: String,
+    val votesCount: Int = 0,
+    val isSelectedByMe: Boolean = false
+) : Serializable
+
+data class CommunityPoll(
+    val id: String,
+    val communityId: String,
+    val authorName: String,
+    val question: String,
+    val options: List<CommunityPollOption>,
+    val totalVotes: Int,
+    val expiresAtText: String = "Ends in 2 days"
+) : Serializable
+
+data class CommunityResourceItem(
+    val id: String,
+    val title: String,
+    val category: String, // "Photography", "Home & Garden", "Maker Tools", "Audio Gear"
+    val ownerName: String,
+    val ownerAvatar: String,
+    val availabilityStatus: String = "Available Now",
+    val imageUrl: String,
+    val distanceKm: Double = 0.3
+) : Serializable
+
+data class CommunitySafetyAlert(
+    val id: String,
+    val title: String,
+    val details: String,
+    val severity: String = "HIGH", // "HIGH", "MODERATE", "ADVISORY"
+    val issuedAtText: String = "15m ago",
+    val safeHavenSpot: String = "Civic Plaza Community Hall"
+) : Serializable
+

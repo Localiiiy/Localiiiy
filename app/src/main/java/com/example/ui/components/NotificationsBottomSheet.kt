@@ -38,7 +38,9 @@ import com.example.service.FavoriteType
 @Composable
 fun NotificationsBottomSheet(
     notifications: List<NotificationEntity>,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onAcceptCommunityInvite: (Long, String) -> Unit = { _, _ -> },
+    onDeclineCommunityInvite: (Long) -> Unit = {}
 ) {
     val context = LocalContext.current
     var followedUsers by remember { mutableStateOf(setOf<String>()) }
@@ -440,7 +442,43 @@ fun NotificationsBottomSheet(
                                 }
                             }
 
-                            if (notification.actionType == "FOLLOW" || notification.actionType == "CONNECT") {
+                            if (notification.actionType == "COMMUNITY_INVITE" || notification.actionType == "COMMUNITY_REQUEST") {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Button(
+                                        onClick = {
+                                            onAcceptCommunityInvite(notification.id, "Localiiiy Community")
+                                            onDismiss()
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Text(
+                                            text = "Accept",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 10.5.sp,
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = Color.Black
+                                        )
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = { onDeclineCommunityInvite(notification.id) },
+                                        shape = RoundedCornerShape(8.dp),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray),
+                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Text(
+                                            text = "Decline",
+                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp)
+                                        )
+                                    }
+                                }
+                            } else if (notification.actionType == "FOLLOW" || notification.actionType == "CONNECT") {
                                 Button(
                                     onClick = {
                                         followedUsers = if (isFollowing) {

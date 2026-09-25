@@ -36,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.data.MarketplaceItemEntity
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.data.UserProfileEntity
@@ -59,18 +60,22 @@ fun GoogleMapMomentsComponent(
     userProfile: UserProfileEntity,
     nearbyUsers: List<OtherUserEntity>,
     selectedRadiusKm: Double,
+    marketplaceItems: List<MarketplaceItemEntity> = emptyList(),
     onRadiusChange: (Double) -> Unit,
     onPostClick: (PostEntity) -> Unit,
     onLikePost: (PostEntity) -> Unit,
     onUserProfileClick: (String) -> Unit,
+    onMarketItemClick: (MarketplaceItemEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var googleMapInstance by remember { mutableStateOf<GoogleMap?>(null) }
     var selectedPostMoment by remember { mutableStateOf<PostEntity?>(null) }
     var selectedUserMoment by remember { mutableStateOf<OtherUserEntity?>(null) }
+    var selectedMarketMoment by remember { mutableStateOf<MarketplaceItemEntity?>(null) }
     var mapType by remember { mutableStateOf(GoogleMap.MAP_TYPE_NORMAL) }
     var showMapTypeMenu by remember { mutableStateOf(false) }
+    var activeLayerFilter by remember { mutableStateOf("ALL") } // ALL, POSTS, MARKET, USERS
 
     // User coordinates
     val userLatLng = remember(userProfile.latitude, userProfile.longitude) {
@@ -83,8 +88,8 @@ fun GoogleMapMomentsComponent(
     // MapView lifecycle management
     val mapView = rememberMapViewWithLifecycle()
 
-    // Sync markers & radar radius circle when map is ready or data changes
-    LaunchedEffect(googleMapInstance, posts, nearbyUsers, selectedRadiusKm, mapType) {
+    // Sync markers & radar radius circle when map is ready or data changes (Exclusively Marketplace Items & Locations)
+    LaunchedEffect(googleMapInstance, marketplaceItems, selectedRadiusKm, mapType) {
         val map = googleMapInstance ?: return@LaunchedEffect
 
         map.mapType = mapType
@@ -100,8 +105,8 @@ fun GoogleMapMomentsComponent(
             CircleOptions()
                 .center(userLatLng)
                 .radius(radiusMeters)
-                .fillColor(0x220D9488) // Translucent teal fill
-                .strokeColor(0xFF0D9488.toInt()) // Solid teal stroke
+                .fillColor(0x22F59E0B) // Translucent amber fill
+                .strokeColor(0xFFF59E0B.toInt()) // Solid amber stroke
                 .strokeWidth(3f)
         )
 
@@ -114,54 +119,30 @@ fun GoogleMapMomentsComponent(
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
         )
 
-        // 3. Add Real-Time Moments Pins (Posts)
-        posts.forEachIndexed { index, post ->
-            val lat = post.latitude ?: (userLatLng.latitude + getDeterministicOffsetLat(post.id, index))
-            val lng = post.longitude ?: (userLatLng.longitude + getDeterministicOffsetLng(post.id, index))
+        // 3. Exclusively Add Marketplace Items & Pickup Location Pins
+        marketplaceItems.forEachIndexed { index, item ->
+            val lat = userLatLng.latitude + getDeterministicOffsetLat(item.id + 100L, index + 3)
+            val lng = userLatLng.longitude + getDeterministicOffsetLng(item.id + 100L, index + 3)
             val position = LatLng(lat, lng)
 
             val marker = map.addMarker(
                 MarkerOptions()
                     .position(position)
-                    .title(post.username)
-                    .snippet(post.landmark ?: post.location ?: "Hyperlocal Moment")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ROSE))
+                    .title("🛍️ ${item.title} ($${item.price.toInt()})")
+                    .snippet("${item.category} • ${item.condition} • 📍 ${item.landmark ?: item.location}")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE))
             )
-            marker?.tag = Pair("POST", post.id)
-        }
-
-        // 4. Add Live Neighbor / Creator Sparks Pins
-        nearbyUsers.forEachIndexed { index, user ->
-            val lat = user.latitude
-            val lng = user.longitude
-            val position = LatLng(lat, lng)
-
-            val marker = map.addMarker(
-                MarkerOptions()
-                    .position(position)
-                    .title(user.fullName)
-                    .snippet("${user.landmark ?: user.locationName} • In Radar Orbit")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
-            )
-            marker?.tag = Pair("USER", user.username)
+            marker?.tag = Pair("MARKET", item.id)
         }
 
         // Marker Click Listener
         map.setOnMarkerClickListener { marker ->
             val tag = marker.tag as? Pair<*, *>
-            if (tag != null) {
-                when (tag.first) {
-                    "POST" -> {
-                        val postId = tag.second as Long
-                        selectedPostMoment = posts.find { it.id == postId }
-                        selectedUserMoment = null
-                    }
-                    "USER" -> {
-                        val username = tag.second as String
-                        selectedUserMoment = nearbyUsers.find { it.username == username }
-                        selectedPostMoment = null
-                    }
-                }
+            if (tag != null && tag.first == "MARKET") {
+                val itemId = tag.second as Long
+                selectedMarketMoment = marketplaceItems.find { it.id == itemId }
+                selectedPostMoment = null
+                selectedUserMoment = null
             }
             marker.showInfoWindow()
             false
@@ -171,6 +152,7 @@ fun GoogleMapMomentsComponent(
         map.setOnMapClickListener {
             selectedPostMoment = null
             selectedUserMoment = null
+            selectedMarketMoment = null
         }
     }
 
@@ -216,10 +198,10 @@ fun GoogleMapMomentsComponent(
                                 modifier = Modifier
                                     .size(10.dp)
                                     .clip(CircleShape)
-                                    .background(LocaliiiyAccentMint)
+                                    .background(Color(0xFFF59E0B))
                             )
                             Text(
-                                text = "Live Radar Moments Map",
+                                text = "Marketplace Radar Map 🛍️",
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 13.5.sp
@@ -230,16 +212,24 @@ fun GoogleMapMomentsComponent(
 
                         Surface(
                             shape = RoundedCornerShape(100.dp),
-                            color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
+                            color = Color(0xFFF59E0B).copy(alpha = 0.15f)
                         ) {
                             Text(
-                                text = "${posts.size} Moments active",
+                                text = "${marketplaceItems.size} Market Listings",
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = LocaliiiyPrimaryTeal,
+                                color = Color(0xFFD97706),
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Visualizing local market posts, deals & pickup locations across your radar radius.",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -541,7 +531,127 @@ fun GoogleMapMomentsComponent(
             }
         }
 
-        // 5. Floating Nearby Neighbor Card (if user pin tapped)
+        // 6. Floating Marketplace Item Card (if market pin tapped)
+        AnimatedVisibility(
+            visible = selectedMarketMoment != null,
+            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            selectedMarketMoment?.let { item ->
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFF9800).copy(alpha = 0.6f)),
+                    modifier = Modifier.fillMaxWidth().testTag("map_market_moment_card")
+                ) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(item.imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = item.title,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(100.dp),
+                                        color = Color(0xFFFF9800).copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = "$${item.price.toInt()} USD",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFE65100),
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant
+                                    ) {
+                                        Text(
+                                            text = item.condition,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(3.dp))
+
+                                Text(
+                                    text = item.title,
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Text(
+                                    text = "${item.category} • by @${item.sellerUsername} • ${item.landmark ?: item.location}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { onUserProfileClick(item.sellerUsername) },
+                                shape = RoundedCornerShape(100.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.height(34.dp)
+                            ) {
+                                Text("Seller Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Button(
+                                onClick = { onMarketItemClick(item) },
+                                shape = RoundedCornerShape(100.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                                modifier = Modifier.weight(1f).height(34.dp)
+                            ) {
+                                Text("View Market Item 🛍️", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 7. Floating Nearby Neighbor Card (if user pin tapped)
         AnimatedVisibility(
             visible = selectedUserMoment != null,
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),

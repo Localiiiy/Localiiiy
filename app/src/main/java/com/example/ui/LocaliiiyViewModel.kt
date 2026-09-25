@@ -1824,6 +1824,29 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    fun sendCommunityInvite(neighborUsername: String, neighborAvatar: String, communityName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.sendCommunityInviteNotification(
+                neighborUsername = neighborUsername,
+                neighborAvatar = neighborAvatar,
+                communityName = communityName,
+                isIncomingRequest = false
+            )
+        }
+    }
+
+    fun acceptCommunityInvite(notificationId: Long, communityName: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteNotification(notificationId)
+        }
+    }
+
+    fun declineCommunityInvite(notificationId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteNotification(notificationId)
+        }
+    }
+
     // --- Profile Content Management Actions ---
     fun deletePost(postId: Long) {
         viewModelScope.launch(Dispatchers.IO) {

@@ -305,6 +305,29 @@ class LocaliiiyRepository(private val dao: LocaliiiyDao) {
         )
     }
 
+    suspend fun sendCommunityInviteNotification(
+        neighborUsername: String,
+        neighborAvatar: String,
+        communityName: String,
+        isIncomingRequest: Boolean = false,
+        distanceKm: Double = 0.4
+    ) {
+        dao.insertNotification(
+            NotificationEntity(
+                username = neighborUsername,
+                userAvatar = neighborAvatar.ifBlank { "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80" },
+                actionType = if (isIncomingRequest) "COMMUNITY_REQUEST" else "COMMUNITY_INVITE",
+                content = if (isIncomingRequest) "requested to join '$communityName' in your neighborhood hub" else "invited you to join '$communityName' 🏘️",
+                distanceKm = distanceKm,
+                timestamp = System.currentTimeMillis()
+            )
+        )
+    }
+
+    suspend fun deleteNotification(id: Long) {
+        dao.deleteNotification(id)
+    }
+
     suspend fun markNotificationsRead() {
         dao.markAllNotificationsRead()
     }
