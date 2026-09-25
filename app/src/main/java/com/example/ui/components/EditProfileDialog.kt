@@ -43,13 +43,23 @@ fun EditProfileDialog(
     onLocationToggle: (Boolean) -> Unit = {},
     onPrivateToggle: (Boolean) -> Unit = {},
     onDismiss: () -> Unit,
-    onSaveProfile: (String, String, String, String) -> Unit
+    onSaveProfile: (String, String, String, String) -> Unit,
+    onSaveProfileWithSocials: ((String, String, String, String, String, String, String, String, String, String, String, String) -> Unit)? = null
 ) {
     var fullName by remember { mutableStateOf(userProfile.fullName) }
     var bio by remember { mutableStateOf(userProfile.bio) }
     var pronouns by remember { mutableStateOf("") }
     var website by remember { mutableStateOf(userProfile.website) }
     var avatarUrl by remember { mutableStateOf(userProfile.avatarUrl) }
+    var instagramHandle by remember { mutableStateOf(userProfile.instagramHandle) }
+    var twitterHandle by remember { mutableStateOf(userProfile.twitterHandle) }
+    var youtubeHandle by remember { mutableStateOf(userProfile.youtubeHandle) }
+    var tiktokHandle by remember { mutableStateOf(userProfile.tiktokHandle) }
+    var githubHandle by remember { mutableStateOf(userProfile.githubHandle) }
+    var linkedinHandle by remember { mutableStateOf(userProfile.linkedinHandle) }
+    var telegramHandle by remember { mutableStateOf(userProfile.telegramHandle) }
+    var discordHandle by remember { mutableStateOf(userProfile.discordHandle) }
+    var showSocialsSection by remember { mutableStateOf(true) }
 
     val avatarPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -110,7 +120,16 @@ fun EditProfileDialog(
 
                     TextButton(
                         onClick = {
-                            onSaveProfile(fullName, bio, website, avatarUrl)
+                            if (onSaveProfileWithSocials != null) {
+                                onSaveProfileWithSocials(
+                                    fullName, bio, website, avatarUrl,
+                                    instagramHandle, twitterHandle, youtubeHandle,
+                                    tiktokHandle, githubHandle, linkedinHandle,
+                                    telegramHandle, discordHandle
+                                )
+                            } else {
+                                onSaveProfile(fullName, bio, website, avatarUrl)
+                            }
                             onDismiss()
                         },
                         modifier = Modifier.testTag("save_profile_button")
@@ -370,6 +389,132 @@ fun EditProfileDialog(
                         shape = RoundedCornerShape(12.dp),
                         maxLines = 4
                     )
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        thickness = 0.5.dp
+                    )
+
+                    // Link All Social Media Handles in Space ID
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Space ID • Linked Social Media Handles",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Link your channels to display verified badges on your Space ID",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Instagram
+                        OutlinedTextField(
+                            value = instagramHandle,
+                            onValueChange = { instagramHandle = it },
+                            label = { Text("Instagram Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("📸", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_instagram"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // X / Twitter
+                        OutlinedTextField(
+                            value = twitterHandle,
+                            onValueChange = { twitterHandle = it },
+                            label = { Text("X / Twitter Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("🐦", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_twitter"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // YouTube
+                        OutlinedTextField(
+                            value = youtubeHandle,
+                            onValueChange = { youtubeHandle = it },
+                            label = { Text("YouTube Channel") },
+                            placeholder = { Text("@ChannelName") },
+                            leadingIcon = { Text("▶️", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_youtube"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // TikTok
+                        OutlinedTextField(
+                            value = tiktokHandle,
+                            onValueChange = { tiktokHandle = it },
+                            label = { Text("TikTok Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("🎵", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_tiktok"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // GitHub
+                        OutlinedTextField(
+                            value = githubHandle,
+                            onValueChange = { githubHandle = it },
+                            label = { Text("GitHub Profile") },
+                            placeholder = { Text("username") },
+                            leadingIcon = { Text("🐙", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_github"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // LinkedIn
+                        OutlinedTextField(
+                            value = linkedinHandle,
+                            onValueChange = { linkedinHandle = it },
+                            label = { Text("LinkedIn Public URL") },
+                            placeholder = { Text("in/username") },
+                            leadingIcon = { Text("💼", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_linkedin"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // Telegram
+                        OutlinedTextField(
+                            value = telegramHandle,
+                            onValueChange = { telegramHandle = it },
+                            label = { Text("Telegram Username") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("✈️", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_telegram"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // Discord
+                        OutlinedTextField(
+                            value = discordHandle,
+                            onValueChange = { discordHandle = it },
+                            label = { Text("Discord Tag") },
+                            placeholder = { Text("user#0000") },
+                            leadingIcon = { Text("💬", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_discord"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                    }
                 }
             }
         }

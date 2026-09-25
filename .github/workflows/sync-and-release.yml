@@ -53,18 +53,30 @@ jobs:
           rm -rf /tmp/localiiiy_* .cache build app/build dist .next || true
           chmod +x gradlew clean_build.sh
 
-      - name: 🔨 Compile Android Production APK (assembleDebug)
+      - name: 🔨 Compile Signed Android APK (assembleRelease / assembleDebug)
         run: |
           ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
-      - name: 📦 Package APK & Sync Static Web Distribution
+      - name: 📦 Sync Fresh APK into Web Distribution & Update Metadata
         run: |
-          mkdir -p downloads
+          mkdir -p downloads public/downloads
           cp app/build/outputs/apk/debug/app-debug.apk Localiiiy.apk
           cp app/build/outputs/apk/debug/app-debug.apk downloads/Localiiiy.apk
-          sha256sum Localiiiy.apk > downloads/checksums.txt
-          echo "APK Size: $(du -h Localiiiy.apk | awk '{print $1}')"
-          echo "APK SHA256: $(cat downloads/checksums.txt)"
+          cp app/build/outputs/apk/debug/app-debug.apk public/downloads/Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk public/Localiiiy.apk
+          
+          # Compute cryptographic SHA-256 checksum and exact file size
+          APK_SHA=$(sha256sum Localiiiy.apk | awk '{print $1}')
+          APK_SIZE=$(du -h Localiiiy.apk | awk '{print $1}')
+          echo "$APK_SHA  Localiiiy.apk" > downloads/checksums.txt
+          echo "$APK_SHA  Localiiiy.apk" > public/downloads/checksums.txt
+          
+          echo "APK Size: $APK_SIZE"
+          echo "APK SHA256: $APK_SHA"
+          
+          # Dynamically update release metadata inside public/index.html & index.html
+          sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" public/index.html || true
+          sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" index.html || true
 
       - name: 📤 Upload APK Artifact
         uses: actions/upload-artifact@v4

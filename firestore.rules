@@ -54,10 +54,21 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && request.resource.data.sellerUid == request.auth.uid
         && request.resource.data.price is number
-        && request.resource.data.price >= 0
+        && request.resource.data.price > 0
         && isValidString(request.resource.data.title, 100);
-      allow update: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
+      allow update: if isAuthenticated() 
+        && resource.data.sellerUid == request.auth.uid
+        && request.resource.data.sellerUid == resource.data.sellerUid
+        && request.resource.data.price > 0;
       allow delete: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
+    }
+
+    // New: Username Reservation (Atomic)
+    match /usernames/{username} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false; 
     }
 
     // 5. Escrow Transactions
@@ -91,6 +102,62 @@ service cloud.firestore {
     match /wallet_ledger/{ledgerId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow write: if false; // Only server writes ledger entries
+    }
+
+    // 9. Media Fingerprints Catalog (Read-accessible for anti-theft lookups; creation authenticated)
+    match /content_fingerprints/{fingerprintId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerUid == request.auth.uid
+        && isValidString(request.resource.data.sha256, 64)
+        && isValidString(request.resource.data.pHash, 32);
+      allow update, delete: if isAuthenticated() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // 10. Copyright Claims (1-tap filing, rights-holder protection)
+    match /copyright_claims/{claimId} {
+      allow read: if isAuthenticated() && (
+        resource.data.claimantUid == request.auth.uid ||
+        resource.data.uploaderUid == request.auth.uid
+      );
+      allow create: if isAuthenticated()
+        && request.resource.data.claimantUid == request.auth.uid
+        && isValidString(request.resource.data.targetContentId, 100)
+        && request.resource.data.status == 'PENDING_JUSTIFICATION';
+      allow update: if isAuthenticated() && (
+        // Claimant can accept/drop or confirm strike
+        resource.data.claimantUid == request.auth.uid ||
+        // Uploader can update counter-notification within 7 days
+        (resource.data.uploaderUid == request.auth.uid && request.time < resource.data.counterNotificationDeadline)
+      );
+      allow delete: if false; // Audit retention
+    }
+
+    // 11. Counter-Justifications (7-day statutory window)
+    match /counter_justifications/{justificationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.uploaderUid == request.auth.uid
+        && isValidString(request.resource.data.writtenStatement, 3000)
+        && request.resource.data.perjuryAffirmation == true;
+      allow update, delete: if false;
+    }
+
+    // 12. Copyright Strikes & Revenue Reroutes (Server-authoritative mutations only)
+    match /copyright_strikes/{strikeId} {
+      allow read: if isAuthenticated() && (
+        resource.data.offenderUid == request.auth.uid ||
+        resource.data.claimantUid == request.auth.uid
+      );
+      allow write: if false; // Server-only strike issuance
+    }
+
+    match /revenue_reroutes/{rerouteId} {
+      allow read: if isAuthenticated() && (
+        resource.data.fromUploaderUid == request.auth.uid ||
+        resource.data.toCreatorUid == request.auth.uid
+      );
+      allow write: if false; // Tamper-proof 100% rerouting ledger
     }
   }
 }

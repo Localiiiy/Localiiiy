@@ -1,11 +1,21 @@
 package com.example.ui.screens
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.speech.RecognizerIntent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.draw.scale
 import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -42,6 +52,10 @@ import com.example.ui.FilterPreset
 import com.example.ui.PhotoFilters
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.StandardMediaSelectorBottomSheet
+import com.example.data.copyright.ContentLicensingConfig
+import com.example.data.copyright.MediaFingerprintEngine
+import com.example.data.copyright.CopyrightManager
+import com.example.ui.components.copyright.LicensingAndReuseRightsUploadSection
 import com.example.util.LocationHelper
 import com.example.util.UserLocationData
 import com.example.util.HapticHelper
@@ -61,7 +75,7 @@ fun CreateScreen(
     onModeChange: (CreationMode) -> Unit,
     onSelectMedia: (String) -> Unit,
     onSelectFilter: (FilterPreset) -> Unit,
-    onPublish: (caption: String, location: String?, landmark: String?, latitude: Double?, longitude: Double?, soundTitle: String?) -> Unit,
+    onPublish: (caption: String, location: String?, landmark: String?, latitude: Double?, longitude: Double?, soundTitle: String?, isVoicePrint: Boolean, voiceDurationSeconds: Int) -> Unit = { _, _, _, _, _, _, _, _ -> },
     onDetectLocationClick: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
@@ -79,6 +93,123 @@ fun CreateScreen(
     var selectedSound by remember { mutableStateOf<String?>("Original Audio • Locality Vibes") }
     var showLocationSelector by remember { mutableStateOf(false) }
     var showSoundSelector by remember { mutableStateOf(false) }
+
+    // Audio recording & microphone states
+    var hasAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasAudioPermission = isGranted
+        if (isGranted) {
+            Toast.makeText(context, "Microphone access granted 🎙️", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "Microphone permission required for audio recording", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK && result.data != null) {
+            val matches = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = matches?.firstOrNull()
+            if (!spokenText.isNullOrBlank()) {
+                caption = if (caption.isBlank()) spokenText else "$caption $spokenText"
+                Toast.makeText(context, "Transcribed: \"$spokenText\"", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    var isRecordingAudioClip by remember { mutableStateOf(false) }
+    var recordedSeconds by remember { mutableIntStateOf(0) }
+    var hasAttachedAudioClip by remember { mutableStateOf(false) }
+    var attachedAudioDuration by remember { mutableIntStateOf(15) }
+    var isAudioPreviewPlaying by remember { mutableStateOf(false) }
+    var audioPlaybackProgress by remember { mutableFloatStateOf(0f) }
+
+    var licensingConfig by remember {
+        mutableStateOf(
+            ContentLicensingConfig(
+                permitReuse = true,
+                allowAudioReuse = true,
+                allowVideoRemapping = true,
+                allowMarketplaceShowcase = true,
+                licenseBadge = "Localiiiy Creative Commons (LCC)"
+            )
+        )
+    }
+    var interceptionDialogReason by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(isRecordingAudioClip) {
+        if (isRecordingAudioClip) {
+            recordedSeconds = 0
+            while (isRecordingAudioClip && recordedSeconds < 60) {
+                kotlinx.coroutines.delay(1000)
+                recordedSeconds++
+            }
+            if (recordedSeconds >= 60) {
+                isRecordingAudioClip = false
+                hasAttachedAudioClip = true
+                attachedAudioDuration = 60
+                Toast.makeText(context, "Voice note max duration reached (60s) • Attached 🎙️", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(isAudioPreviewPlaying) {
+        if (isAudioPreviewPlaying) {
+            audioPlaybackProgress = 0f
+            val totalSteps = (attachedAudioDuration * 10).coerceAtLeast(10)
+            for (i in 0..totalSteps) {
+                if (!isAudioPreviewPlaying) break
+                kotlinx.coroutines.delay(100)
+                audioPlaybackProgress = i.toFloat() / totalSteps
+            }
+            isAudioPreviewPlaying = false
+            audioPlaybackProgress = 0f
+        }
+    }
+
+    fun startVoiceToText() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            return
+        }
+        try {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak your neighborhood update...")
+            }
+            speechRecognizerLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(context, "Speech recognizer not available on this device", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun toggleAudioClipRecording() {
+        if (!isRecordingAudioClip) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                return
+            }
+            isRecordingAudioClip = true
+            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SELECTION)
+        } else {
+            isRecordingAudioClip = false
+            hasAttachedAudioClip = true
+            attachedAudioDuration = recordedSeconds.coerceAtLeast(3)
+            HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SUCCESS)
+            Toast.makeText(context, "Voice dispatch (${attachedAudioDuration}s) attached to update! 🎙️", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     LaunchedEffect(editingDraft) {
         if (editingDraft != null) {
@@ -241,6 +372,28 @@ fun CreateScreen(
                 Button(
                     onClick = {
                         if (!isUploading) {
+                            // 1. Check if user is suspended due to 3 active copyright strikes
+                            if (CopyrightManager.isUserSuspended("current_user")) {
+                                Toast.makeText(context, "Upload Suspended: Account has 3 active copyright strikes.", Toast.LENGTH_LONG).show()
+                                return@Button
+                            }
+
+                            // 2. Compute media fingerprint & check for unauthorized duplicates
+                            val fingerprint = MediaFingerprintEngine.generateFingerprint(
+                                contentUri = selectedMediaUri ?: "https://localiiiy.app/pulse/${System.currentTimeMillis()}",
+                                caption = caption,
+                                audioTitle = if (hasAttachedAudioClip) "Voice Dispatch (${attachedAudioDuration}s)" else selectedSound,
+                                uploaderHandle = "current_user",
+                                licensingConfig = licensingConfig
+                            )
+
+                            val eligibility = MediaFingerprintEngine.checkUploadEligibility(fingerprint)
+                            if (eligibility is MediaFingerprintEngine.DuplicateDetectionResult.InterceptedDenied) {
+                                interceptionDialogReason = eligibility.reason
+                                HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                return@Button
+                            }
+
                             isUploading = true
                             HapticHelper.triggerHaptic(context, haptic, HapticHelper.HapticType.SUCCESS)
                             onPublish(
@@ -249,7 +402,9 @@ fun CreateScreen(
                                 selectedLandmark,
                                 detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT,
                                 detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG,
-                                selectedSound
+                                selectedSound,
+                                hasAttachedAudioClip,
+                                attachedAudioDuration
                             )
                         }
                     },
@@ -666,6 +821,277 @@ fun CreateScreen(
                 maxLines = 4
             )
 
+            // Section: Microphone & Voice Audio Tools (Voice-to-Text & Audio Clip Recorder)
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("create_microphone_voice_tools_card")
+            ) {
+                Column(modifier = Modifier.padding(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (hasAudioPermission) Icons.Default.Mic else Icons.Default.MicOff,
+                                contentDescription = "Microphone",
+                                tint = if (isRecordingAudioClip) Color(0xFFDC2626) else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "Voice & Audio Notes",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        if (!hasAudioPermission) {
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
+                            ) {
+                                Text(
+                                    text = "Grant Mic Access",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Action buttons: Voice-to-Text & Record Voice Note
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Voice-to-Text Button
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { startVoiceToText() }
+                                .testTag("btn_voice_to_text")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.GraphicEq,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    text = "Voice-to-Text",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+
+                        // Record Audio Clip Button
+                        val isRecording = isRecordingAudioClip
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isRecording) Color(0xFFDC2626) else if (hasAttachedAudioClip) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            border = BorderStroke(
+                                1.dp,
+                                if (isRecording) Color(0xFFDC2626) else if (hasAttachedAudioClip) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable { toggleAudioClipRecording() }
+                                .testTag("btn_record_audio_clip")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
+                                    contentDescription = null,
+                                    tint = if (isRecording) Color.White else if (hasAttachedAudioClip) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(5.dp))
+                                Text(
+                                    text = if (isRecording) "Stop (${recordedSeconds}s)" else if (hasAttachedAudioClip) "Audio (${attachedAudioDuration}s)" else "Record Clip",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isRecording) Color.White else if (hasAttachedAudioClip) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+
+                    // Recording In-Progress Banner
+                    if (isRecordingAudioClip) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFDC2626).copy(alpha = 0.12f),
+                            border = BorderStroke(1.dp, Color(0xFFDC2626).copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(10.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.Red)
+                                    )
+                                    Column {
+                                        Text(
+                                            text = "Recording Voice Note...",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFFDC2626)
+                                        )
+                                        Text(
+                                            text = "00:${if (recordedSeconds < 10) "0$recordedSeconds" else "$recordedSeconds"} / 01:00 (Speak clearly)",
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Button(
+                                    onClick = { toggleAudioClipRecording() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626)),
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("Done", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+
+                    // Attached Audio Clip Preview Bar
+                    if (hasAttachedAudioClip && !isRecordingAudioClip) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    IconButton(
+                                        onClick = { isAudioPreviewPlaying = !isAudioPreviewPlaying },
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isAudioPreviewPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                            contentDescription = "Play/Pause Voice Clip",
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Text(
+                                                text = "🎙️ Voice Dispatch Attached",
+                                                fontSize = 11.5.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                            Text(
+                                                text = "• ${attachedAudioDuration}s",
+                                                fontSize = 10.sp,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+
+                                        // Animated progress waveform
+                                        LinearProgressIndicator(
+                                            progress = { if (isAudioPreviewPlaying) audioPlaybackProgress else 0.4f },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(4.dp)
+                                                .clip(RoundedCornerShape(100.dp)),
+                                            color = MaterialTheme.colorScheme.primary,
+                                            trackColor = MaterialTheme.colorScheme.outlineVariant
+                                        )
+                                    }
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        hasAttachedAudioClip = false
+                                        isAudioPreviewPlaying = false
+                                        Toast.makeText(context, "Voice note detached", Toast.LENGTH_SHORT).show()
+                                    },
+                                    modifier = Modifier.size(26.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = "Detach Voice Note",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Mandatory Licensing & Reuse Rights Configuration Section
+            LicensingAndReuseRightsUploadSection(
+                config = licensingConfig,
+                onConfigChange = { licensingConfig = it }
+            )
+
             // Location Selector Pill
             Surface(
                 shape = RoundedCornerShape(10.dp),
@@ -1045,7 +1471,9 @@ fun CreateScreen(
                                 if (showLocationOnClip) selectedLandmark else null,
                                 if (showLocationOnClip) (detectedLocation?.latitude ?: LocationHelper.DEFAULT_LAT) else null,
                                 if (showLocationOnClip) (detectedLocation?.longitude ?: LocationHelper.DEFAULT_LNG) else null,
-                                selectedSound
+                                selectedSound,
+                                hasAttachedAudioClip,
+                                attachedAudioDuration
                             )
                         }
                     },
@@ -1129,6 +1557,56 @@ fun CreateScreen(
                 showDraftsSheet = false
             },
             onDismiss = { showDraftsSheet = false }
+        )
+    }
+
+    // Media Fingerprint Anti-Theft Duplicate Interception Dialog
+    interceptionDialogReason?.let { reason ->
+        AlertDialog(
+            onDismissRequest = { interceptionDialogReason = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(Icons.Default.Security, contentDescription = null, tint = Color(0xFFEF4444))
+                    Text("Upload Intercepted: Media Match", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Anti-Theft Media Rights Enforcement intercepted this upload:",
+                        fontSize = 12.sp,
+                        color = Color.LightGray
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF261010),
+                        border = BorderStroke(0.8.dp, Color(0xFFEF4444).copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = reason,
+                            fontSize = 11.sp,
+                            color = Color(0xFFFCA5A5),
+                            modifier = Modifier.padding(10.dp),
+                            lineHeight = 15.sp
+                        )
+                    }
+                    Text(
+                        text = "The original rights holder has designated this asset as All Rights Reserved (ARR). To protect creators, duplicate re-uploads without explicit license are blocked.",
+                        fontSize = 10.5.sp,
+                        color = Color.Gray,
+                        lineHeight = 13.sp
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { interceptionDialogReason = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                ) {
+                    Text("I Understand", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            }
         )
     }
     }

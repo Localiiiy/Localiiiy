@@ -44,13 +44,13 @@ data class LegalConsentRecord(
 
 object LegalPolicyRepository {
 
-    val CURRENT_POLICY_VERSION = "v2026.9.13-GLOBAL-PLAY-APPSTORE"
-    val LAST_UPDATED_DATE = "September 13, 2026"
+    val CURRENT_POLICY_VERSION = "v2026.9.25-GLOBAL-PLAY-APPSTORE"
+    val LAST_UPDATED_DATE = "September 25, 2026"
 
     val defaultConsentRecord = LegalConsentRecord(
         username = "alex_creative",
         version = CURRENT_POLICY_VERSION,
-        timestamp = 1789380000000L, // September 13, 2026
+        timestamp = 1790380800000L, // September 25, 2026
         isConsentActive = true
     )
 
@@ -313,6 +313,36 @@ To ensure international anti-money laundering (AML) compliance, minimize cross-b
 (a) Strict $1,000 USD Baseline: The minimum withdrawal threshold across all creator accounts is strictly 1,000.00 USD (One Thousand United States Dollars);
 (b) Worldwide Currency Equivalency: In non-USD jurisdictions, the minimum withdrawal amount is calculated as the live exchange rate equivalent of $1,000 USD in that country's currency (e.g. €920 EUR, £780 GBP, ₹84,200 INR, ¥152,000 JPY, C$1,360 CAD, A$1,520 AUD, 3,670 AED, etc.);
 (c) Payout Rails & Verification: Payouts are disbursed via verified international payment networks including Stripe Connect, PayPal Worldwide, SWIFT Bank Wire, SEPA, UPI, and PIX. Creators must complete standard identity and tax compliance verification (W-8BEN / W-9 / GST) prior to initial disbursement.
+            """.trimIndent(),
+            isHighlighted = true
+        ),
+
+        LegalClause(
+            id = "clause_14_google_play_data_safety_privacy",
+            clauseNumber = "Section 14.0",
+            title = "Google Play Data Safety, Permission Disclosures & Real User Account Deletion Protocol",
+            category = LegalCategory.PRIVACY,
+            plainSummary = "Google Play Store Data Safety alignment: We clearly disclose what data we collect (Name, Username, Email, Media, optional GPS for radar) and what we NEVER collect (Contacts, Audio wiretaps, Banking numbers). 1-tap Account Deletion is provided in Settings with permanent cloud and local data wipe.",
+            legalText = """
+14.1 Google Play Data Safety Declaration:
+In full compliance with Google Play Developer Program Policies for public production release:
+(a) Data Collected:
+    • Personal Info: Display Name, Username, and Email (processed securely via Firebase Authentication for account authentication, login security, and user identification);
+    • Approximate & Precise Location: Processed locally on-device and ephemerally in Firestore only when the user voluntarily turns ON the Proximity Radar or filters items nearby. Never collected or tracked in background when app is closed;
+    • Photos and Videos: Media selected by the user via the zero-permission Android Photo Picker for profile avatars, posts, clips, and marketplace listings;
+    • User Interactions: In-app likes, comments, connections, and report tickets for moderation and community safety;
+(b) Data NOT Collected:
+    • We do NOT access, scrape, or read device address books, SMS logs, microphone audio, call histories, or physical device files;
+    • We do NOT collect or store credit card numbers, bank PINs, or sensitive financial instruments on our servers;
+(c) Security & Encryption:
+    • All data in transit is encrypted using modern TLS 1.3 cryptographic protocols;
+    • Cloud data stored in Google Cloud Firebase is protected by strict server-side Firestore Security Rules;
+(d) Account Deletion & Right to Permanent Erasure:
+    • Any real user can permanently delete their account at any time directly inside the app: Navigate to Profile -> Settings -> Delete Account;
+    • Triggering account deletion immediately and permanently erases: (1) Firebase Authentication user credentials, (2) User Firestore profile record, posts, clips, and messages, and (3) all local device SQLite Room database caches;
+    • Users can also submit an automated deletion request via official privacy portal (https://localiiiy.web.app/privacy) or support email (support@localiiiy.web.app) without needing to re-install the application.
+    • Official Live Firebase Web App: https://localiiiy.web.app
+    • Official Store Compliance SLA: Verified for Google Play Developer Program Production Release.
             """.trimIndent(),
             isHighlighted = true
         )

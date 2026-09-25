@@ -57,6 +57,7 @@ fun LiveRadarComponent(
     hidePreciseLocationOnRadar: Boolean = false,
     radarObfuscatedRange: String = "3k",
     radarCountryName: String = "United States",
+    isPremiumSubscribed: Boolean = false,
     onToggleHidePreciseLocation: ((Boolean) -> Unit)? = null,
     onSelectObfuscatedRange: ((String) -> Unit)? = null,
     onRadiusChange: (Double) -> Unit = {},
@@ -69,7 +70,7 @@ fun LiveRadarComponent(
     activeRadarPerk: com.example.data.RadarVisibilityPerk? = null,
     modifier: Modifier = Modifier
 ) {
-    val isPremium = userProfile.isVerified
+    val isPremium = isPremiumSubscribed || userProfile.isVerified
     var selectedTheme by remember { mutableStateOf(if (isPremium) RadarHudTheme.NEON_GOLD else RadarHudTheme.PHOSPHOR_GREEN) }
     var signalAuraEnabled by remember { mutableStateOf(isPremium) }
     val currentHudTheme = if (isPremium) selectedTheme else RadarHudTheme.PHOSPHOR_GREEN

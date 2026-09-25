@@ -147,6 +147,7 @@ fun PrivacySettingsScreen(
     } else if (showPremiumScreen) {
         PremiumSubscriptionScreen(
             isSubscribed = currentSettings.isPremiumSubscribed,
+            currentCurrency = currentCurrency,
             onNavigateBack = { showPremiumScreen = false },
             onSubscribe = { isAnnual ->
                 onSubscribeToPremium?.invoke(isAnnual)
@@ -322,14 +323,14 @@ fun PrivacySettingsScreen(
                 // Growth & Daily Engagement Header
                 item { SettingsSectionHeader("Community & Growth Perks") }
 
-                // Localiiiy Premium Pro (₹499/mo) Action Item
+                // Localiiiy Premium Pro (₹299/mo / $2.99) Action Item
                 item {
                     SettingsActionItem(
-                        title = "Localiiiy Premium Pro (₹499/mo) 👑",
+                        title = "Localiiiy Premium Pro (₹299/mo / $2.99) 👑",
                         subtitle = if (currentSettings.isPremiumSubscribed)
-                            "Active Member ✓ • 5x Boost, 0% Market Escrow, Gold Pro Badge & 4K Studio"
+                            "Active Titan Member ✓ • 5x Boost, 0% Market Escrow, Gold Halo & 4K Studio"
                         else
-                            "Unlock 5x Feed Boost, 0% Safe-Haven Market Escrow, Gold Badge & Advanced Radar Filters",
+                            "Unlock 5x Feed Boost, 0% Safe-Haven Market Escrow, Gold Badge & Radar Sonar",
                         icon = Icons.Default.WorkspacePremium,
                         onClick = { showPremiumScreen = true }
                     )

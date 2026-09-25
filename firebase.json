@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": ".",
+    "public": "public",
     "cleanUrls": true,
     "trailingSlash": false,
     "ignore": [
@@ -64,6 +64,26 @@
       {
         "source": "/downloads/Localiiiy.apk",
         "destination": "/Localiiiy.apk"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/privacy.html",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/terms",
+        "destination": "/terms.html"
+      },
+      {
+        "source": "/terms.html",
+        "destination": "/terms.html"
+      },
+      {
+        "source": "/guidelines",
+        "destination": "/privacy.html"
       },
       {
         "source": "/app",

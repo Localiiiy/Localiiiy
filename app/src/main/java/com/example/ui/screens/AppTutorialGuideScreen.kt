@@ -33,6 +33,9 @@ import com.example.ui.components.HashLinkAnchorNavBar
 import com.example.ui.components.EnergeticPulseBadge
 import com.example.util.CurrencyHelper
 import com.example.util.LocaliiiyCurrency
+import com.example.util.LocaliiiyLanguage
+import com.example.util.LocalizationHelper
+import com.example.util.LocalAppLanguage
 import kotlinx.coroutines.launch
 
 enum class TutorialTab(val title: String, val emoji: String) {
@@ -63,6 +66,7 @@ data class CommunityBadgeInfo(
 @Composable
 fun AppTutorialGuideScreen(
     currentCurrency: LocaliiiyCurrency = LocaliiiyCurrency.USD,
+    currentLanguage: LocaliiiyLanguage = LocalAppLanguage.current,
     onNavigateBack: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(TutorialTab.RUNNING_GUIDE) }
@@ -78,7 +82,13 @@ fun AppTutorialGuideScreen(
             HashAnchorItem(id = "#step-2", label = "3. Dual-Reach", targetIndex = 3),
             HashAnchorItem(id = "#step-3", label = "4. Escrow", targetIndex = 4),
             HashAnchorItem(id = "#step-4", label = "5. Studio", targetIndex = 5),
-            HashAnchorItem(id = "#step-5", label = "6. Privacy", targetIndex = 6)
+            HashAnchorItem(id = "#step-5", label = "6. Privacy", targetIndex = 6),
+            HashAnchorItem(id = "#step-6", label = "7. Wallet", targetIndex = 7),
+            HashAnchorItem(id = "#step-7", label = "8. Shop Clip", targetIndex = 8),
+            HashAnchorItem(id = "#step-8", label = "9. Global", targetIndex = 9),
+            HashAnchorItem(id = "#step-9", label = "10. Web App", targetIndex = 10),
+            HashAnchorItem(id = "#step-10", label = "11. Stealth", targetIndex = 11),
+            HashAnchorItem(id = "#step-11", label = "12. Play Safety", targetIndex = 12)
         )
     }
 
@@ -174,6 +184,71 @@ fun AppTutorialGuideScreen(
                     "Seamless cross-border payouts with strict $1,000 minimum threshold"
                 ),
                 tag = "Growth & Wallet"
+            ),
+            TutorialGuideStep(
+                title = "8. Video Clip to Marketplace Shop Conversion",
+                subtitle = "Turn engaging short video clips directly into shoppable listings",
+                imageUrl = "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=1080&auto=format&fit=crop&q=80",
+                description = "Never separate content from commerce. In Localiiiy, any video clip can be converted into an active marketplace listing in a single tap.",
+                bulletPoints = listOf(
+                    "1-tap conversion: Click 'Sell' on any clip to attach price, condition, and pickup spot",
+                    "Shoppable video player: Viewers can tap the buy button directly from the video overlay",
+                    "Supports both physical goods and bookable hourly neighborhood services",
+                    "Zero platform commission on peer-to-peer neighborhood transactions"
+                ),
+                tag = "Clip to Shop"
+            ),
+            TutorialGuideStep(
+                title = "9. Worldwide 75+ Languages & 50+ Currencies",
+                subtitle = "Global connectivity with localized language and fiat/crypto currencies",
+                imageUrl = "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1080&auto=format&fit=crop&q=80",
+                description = "Localiiiy is built for every neighborhood on Earth. Switch between 75+ global languages and 50+ local currencies instantly across the entire application.",
+                bulletPoints = listOf(
+                    "Full international coverage across Europe, Americas, Asia, Middle East, and Africa",
+                    "Native Right-to-Left (RTL) typography for Arabic, Hebrew, Urdu, Persian, and Pashto",
+                    "Automatic live conversion for 50+ fiat currencies (USD, EUR, GBP, INR, JPY, CAD, AUD, etc.)",
+                    "Settings persist locally and adapt the entire interface seamlessly"
+                ),
+                tag = "Global Language"
+            ),
+            TutorialGuideStep(
+                title = "10. Firebase Hosting & Web App Deep Linking",
+                subtitle = "Official web access at https://localiiiy.web.app for instant cross-platform sharing",
+                imageUrl = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1080&auto=format&fit=crop&q=80",
+                description = "Every post, clip, and profile has a verified Firebase Hosting deep link (https://localiiiy.web.app). Users without the app can instantly view content in their mobile browser.",
+                bulletPoints = listOf(
+                    "Official live Firebase web app hosted at https://localiiiy.web.app",
+                    "Deep link auto-routing opens posts, clips, and creator spaces directly in app or web",
+                    "Full PWA offline capabilities with zero-latency cached media playback",
+                    "Verified fallback domain at https://localiiiy.firebaseapp.com"
+                ),
+                tag = "Web & Links"
+            ),
+            TutorialGuideStep(
+                title = "11. Radar Range Obfuscation & Stealth Ghost Cloak",
+                subtitle = "Spatial coordinate blur and complete invisible observation mode",
+                imageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=80",
+                description = "Control your geographical footprint on the proximity radar. Blur your street location with 3km, 5km, or 10km obfuscation rings, or activate Ghost Cloak mode.",
+                bulletPoints = listOf(
+                    "Ghost Cloak (Stealth Observer): Browse the radar without broadcasting your location",
+                    "Dynamic Spatial Obfuscation: Masks exact coordinates into a blurred neighborhood sector",
+                    "Automatic minor protection: Users under 18 receive mandatory coordinate masking",
+                    "Dedicated Radar Power switch: turn radar transmission OFF anytime with 1 tap"
+                ),
+                tag = "Radar Cloak"
+            ),
+            TutorialGuideStep(
+                title = "12. Google Play Data Safety & 1-Tap Account Oblivion",
+                subtitle = "Complete privacy compliance and instant irreversible data erasure",
+                imageUrl = "https://images.unsplash.com/photo-1555421689-491a97ff2040?w=1080&auto=format&fit=crop&q=80",
+                description = "Localiiiy is built to meet Google Play Store Developer Program standards. We declare our data practices transparently and provide complete user autonomy over personal data.",
+                bulletPoints = listOf(
+                    "Google Play Data Safety compliance: No contacts scraping, no background wiretaps, no audio recording",
+                    "Zero-permission Photo Picker: Protects device storage by selecting media via system dialogs",
+                    "1-Tap Account Oblivion: Permanently delete account, Firebase credentials, and local Room cache",
+                    "Official live Privacy Policy & Terms hosted at https://localiiiy.web.app/privacy"
+                ),
+                tag = "Store Safety"
             )
         )
     }
@@ -787,8 +862,8 @@ fun AppTutorialGuideScreen(
                                 "🚀 Boost Ads"
                             ),
                             Triple(
-                                "9. Localiiiy Premium Subscriptions (₹499/mo)",
-                                "Users can upgrade to Premium (₹499/mo) for 5x Hyperlocal Feed Boosts, 0% Safe-Haven Market Escrow fees, Gold Pro badge, advanced skill radar filters, and 4K Studio. (Master Ghost Mode remains 100% free for all users).",
+                                "9. Localiiiy Premium Subscriptions (₹299/mo / $2.99)",
+                                "Users can upgrade to Premium (₹299/mo / $2.99) for 5x Hyperlocal Feed Boosts, 0% Safe-Haven Market Escrow fees, Gold Pro badge, advanced skill radar filters, and 4K Studio. (Master Ghost Mode remains 100% free for all users).",
                                 "🌟 Premium"
                             )
                         )

@@ -41,6 +41,7 @@ import com.example.ui.components.StudioVideoPlayerComponent
 import com.example.ui.components.StudioInlinePreviewPlayer
 import com.example.ui.components.StudioDockedMiniPlayer
 import com.example.util.CurrencyHelper
+import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyCurrency
 import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
@@ -397,7 +398,7 @@ fun StudioScreen(
                                             fontSize = 10.sp
                                         )
                                         Text(
-                                            text = sOpt,
+                                            text = LocalizationHelper.translate(sOpt, currentLanguage),
                                             fontSize = 10.5.sp,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                             color = if (isSelected) MaterialTheme.colorScheme.onTertiaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
@@ -1263,7 +1264,7 @@ fun StudioCategoryNavigationBar(
                             modifier = Modifier.size(15.dp)
                         )
                         Text(
-                            text = cat,
+                            text = LocalizationHelper.getCategoryName(cat, LocalAppLanguage.current),
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                             color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface

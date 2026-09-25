@@ -5,9 +5,11 @@
     <string name="google_app_id" translatable="false">1:109876543210:android:abcdef0123456789</string>
     <string name="gcm_defaultSenderId" translatable="false">109876543210</string>
     <string name="default_web_client_id" translatable="false">109876543210-mockclientid.apps.googleusercontent.com</string>
-    <string name="firebase_database_url" translatable="false">https://localiiiy-app.firebaseio.com</string>
-    <string name="google_api_key" translatable="false">AIzaSyLocaliiiyFirebaseApiKeyMock</string>
-    <string name="google_storage_bucket" translatable="false">localiiiy-app.appspot.com</string>
-    <string name="project_id" translatable="false">localiiiy-app</string>
+    <string name="firebase_database_url" translatable="false">https://localiiiy-default-rtdb.firebaseio.com</string>
+    <string name="google_api_key" translatable="false">AIzaSyB_ElgPsmAMHytEKmwPnbVgt8fzq5sFX-Y</string>
+    <string name="google_storage_bucket" translatable="false">localiiiy.firebasestorage.app</string>
+    <string name="project_id" translatable="false">localiiiy</string>
+    <string name="firebase_web_app_url" translatable="false">https://localiiiy.web.app</string>
+    <string name="privacy_policy_url" translatable="false">https://localiiiy.web.app/privacy</string>
 </resources>
 

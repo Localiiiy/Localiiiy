@@ -1,0 +1,86 @@
+name: Continuous APK-to-Web Parity & Mirror Sync
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'public/**'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-sync-apk:
+    name: Compile Signed APK & Sync Web Distribution
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: 📱 Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: 🔐 Prepare Environment
+        run: |
+          if [ ! -f ".env" ]; then
+            cp .env.example .env || touch .env
+          fi
+          echo "MAPS_API_KEY=AIzaSyLocaliiiyMapsRadarApiKeyForDev" >> .env
+          chmod +x gradlew clean_build.sh
+
+      - name: 🔨 1. Compile Signed Android APK
+        run: |
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: 📦 2. Copy Fresh APK into Web Distribution Paths
+        run: |
+          mkdir -p public/downloads downloads
+          cp app/build/outputs/apk/release/app-release.apk public/downloads/Localiiiy.apk
+          cp app/build/outputs/apk/release/app-release.apk public/Localiiiy.apk
+          cp app/build/outputs/apk/release/app-release.apk downloads/Localiiiy.apk
+          cp app/build/outputs/apk/release/app-release.apk Localiiiy.apk
+
+      - name: 🏷️ 3. Update Release Metadata in Web App and metadata.json
+        run: |
+          APK_SHA=$(sha256sum Localiiiy.apk | awk '{print $1}')
+          APK_SIZE=$(du -h Localiiiy.apk | awk '{print $1}')
+          VERSION="v1.2.0"
+          echo "$APK_SHA  Localiiiy.apk" > public/downloads/checksums.txt
+          
+          # Update index.html
+          sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" public/index.html || true
+          sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" index.html || true
+          
+          # Update metadata.json using jq
+          if command -v jq > /dev/null; then
+            jq --arg v "$VERSION" --arg s "$APK_SHA" '. + {version: $v, apkSha256: $s}' metadata.json > metadata.json.tmp && mv metadata.json.tmp metadata.json
+          else
+            # Fallback if jq is not present
+            sed -i "s/\"name\"/\"version\": \"$VERSION\", \"apkSha256\": \"$APK_SHA\", \"name\"/" metadata.json
+          fi
+          
+          echo "Syncing metadata: Version $VERSION | Size $APK_SIZE | SHA256 $APK_SHA"
+
+      - name: 🚀 4. Deploy to Firebase Hosting via GitHub Actions
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: live
+          projectId: localiiiy

@@ -529,6 +529,9 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     private val _creatorEarnings = MutableStateFlow(CreatorEarningsSummary())
     val creatorEarnings: StateFlow<CreatorEarningsSummary> = _creatorEarnings.asStateFlow()
 
+    private val _creatorSupportSettings = MutableStateFlow(com.example.data.CreatorSupportSettings())
+    val creatorSupportSettings: StateFlow<com.example.data.CreatorSupportSettings> = _creatorSupportSettings.asStateFlow()
+
     private val _payoutAccount = MutableStateFlow(CreatorPayoutAccount())
     val payoutAccount: StateFlow<CreatorPayoutAccount> = _payoutAccount.asStateFlow()
 
@@ -565,6 +568,25 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     val referralState: StateFlow<NeighborReferralState> = _referralState.asStateFlow()
 
     init {
+        // Load saved language and currency
+        try {
+            val savedLangCode = authPrefs.getString("saved_language_code", null)
+            if (savedLangCode != null) {
+                val loadedLang = LocaliiiyLanguage.values().firstOrNull { it.code.equals(savedLangCode, ignoreCase = true) }
+                if (loadedLang != null) {
+                    _currentLanguage.value = loadedLang
+                    LocalizationHelper.updateConfigurationLocale(getApplication(), loadedLang)
+                }
+            }
+            val savedCurrencyCode = authPrefs.getString("saved_currency_code", null)
+            if (savedCurrencyCode != null) {
+                val loadedCurr = LocaliiiyCurrency.values().firstOrNull { it.code.equals(savedCurrencyCode, ignoreCase = true) }
+                if (loadedCurr != null) {
+                    _currentCurrency.value = loadedCurr
+                }
+            }
+        } catch (_: Exception) {}
+
         // Initial DB population & location detection
         viewModelScope.launch(Dispatchers.IO) {
             val dao = database.localiiiyDao()
@@ -666,15 +688,50 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun setNearbyRadiusFilter(radiusKm: Double?) {
-        _nearbyRadiusKm.value = radiusKm
-        if (radiusKm != null) {
-            _radarRadiusKm.value = radiusKm.toFloat()
+        val isPremium = privacySettings.value.isPremiumSubscribed
+        val adjustedRadius = if (radiusKm != null && radiusKm <= 10.0 && !isPremium) 50.0 else radiusKm
+        _nearbyRadiusKm.value = adjustedRadius
+        if (adjustedRadius != null) {
+            _radarRadiusKm.value = adjustedRadius.toFloat()
         }
     }
 
     fun setRadarRadiusKm(radiusKm: Float) {
-        _radarRadiusKm.value = radiusKm
-        _nearbyRadiusKm.value = radiusKm.toDouble()
+        val isPremium = privacySettings.value.isPremiumSubscribed
+        val adjustedRadius = if (radiusKm <= 10f && !isPremium) 50f else radiusKm
+        _radarRadiusKm.value = adjustedRadius
+        _nearbyRadiusKm.value = adjustedRadius.toDouble()
+    }
+
+    fun updateCreatorSupportSettings(settings: com.example.data.CreatorSupportSettings) {
+        _creatorSupportSettings.value = settings
+    }
+
+    fun sendCreatorTip(creatorUsername: String, amount: Double, message: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = _creatorSupportSettings.value
+            _creatorSupportSettings.value = current.copy(
+                totalTipsReceivedCount = current.totalTipsReceivedCount + 1,
+                totalTipsEarnedINR = current.totalTipsEarnedINR + amount.toInt()
+            )
+            val currentEarn = _creatorEarnings.value
+            val usdVal = amount / 84.0
+            _creatorEarnings.value = currentEarn.copy(
+                superThanksTipsUSD = currentEarn.superThanksTipsUSD + usdVal,
+                totalGrossEarnedUSD = currentEarn.totalGrossEarnedUSD + usdVal,
+                availableBalanceUSD = currentEarn.availableBalanceUSD + usdVal
+            )
+        }
+    }
+
+    fun joinNeighborhoodPatron(creatorUsername: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val current = _creatorSupportSettings.value
+            _creatorSupportSettings.value = current.copy(
+                activePatronCount = current.activePatronCount + 1,
+                monthlyPatronRevenueINR = current.monthlyPatronRevenueINR + current.patronTierPriceINR
+            )
+        }
     }
 
     fun setIsAppInForeground(inForeground: Boolean) {
@@ -828,13 +885,14 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         .map { it.isPremiumSubscribed }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun subscribeToPremium(isAnnual: Boolean = false) {
+    fun subscribeToPremium(isAnnual: Boolean = false, customPlanName: String? = null) {
         viewModelScope.launch(Dispatchers.IO) {
             val current = privacySettings.value
             val durationDays = if (isAnnual) 365L else 30L
+            val defaultPlanName = if (isAnnual) "Premium Annual (₹2,799/yr / $27.99)" else "Premium Monthly (₹299/mo / $2.99)"
             val updated = current.copy(
                 isPremiumSubscribed = true,
-                premiumPlanName = if (isAnnual) "Premium Annual (₹4,790/yr)" else "Premium Monthly (₹499/mo)",
+                premiumPlanName = customPlanName ?: defaultPlanName,
                 premiumExpiryTimestamp = System.currentTimeMillis() + (durationDays * 24 * 60 * 60 * 1000),
                 isHyperlocalBoostActive = true
             )
@@ -1270,7 +1328,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             caption = post.caption,
             contentType = "Post",
             mediaUrl = post.mediaUrl,
-            deepLinkUrl = "https://localiiiy.app/post/${post.id}"
+            deepLinkUrl = "https://localiiiy.web.app/post/${post.id}"
         )
     }
 
@@ -1323,7 +1381,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         landmark: String?,
         latitude: Double?,
         longitude: Double?,
-        soundTitle: String?
+        soundTitle: String?,
+        isVoicePrint: Boolean = false,
+        voiceDurationSeconds: Int = 15,
+        voiceWaveformData: String = "20,40,65,90,75,85,60,95,70,80,55,90,65,40,25"
     ) {
         val profile = userProfile.value
         val mediaUri = _selectedMediaUri.value
@@ -1367,7 +1428,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                         distanceKm = distanceKm,
                         isNeighbor = (distanceKm ?: 0.0) < 3.0,
                         soundTitle = soundTitle?.ifBlank { null },
-                        filterName = filter.name
+                        filterName = filter.name,
+                        isVoicePrint = isVoicePrint,
+                        voiceDurationSeconds = voiceDurationSeconds,
+                        voiceWaveformData = voiceWaveformData
                     )
                     repository.createPost(newPost)
                     repository.updateProfile(profile.copy(postsCount = profile.postsCount + 1))
@@ -1429,7 +1493,15 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         website: String,
         avatarUrl: String,
         studioUsername: String = userProfile.value.studioUsername,
-        studioChannelName: String = userProfile.value.studioChannelName
+        studioChannelName: String = userProfile.value.studioChannelName,
+        instagramHandle: String = userProfile.value.instagramHandle,
+        twitterHandle: String = userProfile.value.twitterHandle,
+        youtubeHandle: String = userProfile.value.youtubeHandle,
+        tiktokHandle: String = userProfile.value.tiktokHandle,
+        githubHandle: String = userProfile.value.githubHandle,
+        linkedinHandle: String = userProfile.value.linkedinHandle,
+        telegramHandle: String = userProfile.value.telegramHandle,
+        discordHandle: String = userProfile.value.discordHandle
     ) {
         val current = userProfile.value
         val cleanStudio = studioUsername.trim().removePrefix("@").lowercase().replace(" ", "_")
@@ -1441,7 +1513,41 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             website = website.trim(),
             avatarUrl = avatarUrl.trim(),
             studioUsername = cleanStudio,
-            studioChannelName = cleanChannel
+            studioChannelName = cleanChannel,
+            instagramHandle = instagramHandle.trim().removePrefix("@"),
+            twitterHandle = twitterHandle.trim().removePrefix("@"),
+            youtubeHandle = youtubeHandle.trim().removePrefix("@"),
+            tiktokHandle = tiktokHandle.trim().removePrefix("@"),
+            githubHandle = githubHandle.trim().removePrefix("@"),
+            linkedinHandle = linkedinHandle.trim().removePrefix("@"),
+            telegramHandle = telegramHandle.trim().removePrefix("@"),
+            discordHandle = discordHandle.trim()
+        )
+        viewModelScope.launch {
+            repository.updateProfile(updated)
+        }
+    }
+
+    fun updateSpaceIdSocialHandles(
+        instagram: String,
+        twitter: String,
+        youtube: String,
+        tiktok: String,
+        github: String,
+        linkedin: String,
+        telegram: String,
+        discord: String
+    ) {
+        val current = userProfile.value
+        val updated = current.copy(
+            instagramHandle = instagram.trim().removePrefix("@"),
+            twitterHandle = twitter.trim().removePrefix("@"),
+            youtubeHandle = youtube.trim().removePrefix("@"),
+            tiktokHandle = tiktok.trim().removePrefix("@"),
+            githubHandle = github.trim().removePrefix("@"),
+            linkedinHandle = linkedin.trim().removePrefix("@"),
+            telegramHandle = telegram.trim().removePrefix("@"),
+            discordHandle = discord.trim()
         )
         viewModelScope.launch {
             repository.updateProfile(updated)
@@ -2329,10 +2435,17 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     // --- Worldwide Currency & Multi-Language Functions ---
     fun setCurrency(currency: LocaliiiyCurrency) {
         _currentCurrency.value = currency
+        try {
+            authPrefs.edit().putString("saved_currency_code", currency.code).apply()
+        } catch (_: Exception) {}
     }
 
     fun setLanguage(language: LocaliiiyLanguage) {
         _currentLanguage.value = language
+        try {
+            authPrefs.edit().putString("saved_language_code", language.code).apply()
+            LocalizationHelper.updateConfigurationLocale(getApplication(), language)
+        } catch (_: Exception) {}
     }
 
     fun openLanguageCurrencyDialog() {

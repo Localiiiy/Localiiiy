@@ -66,18 +66,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Native Deep Link Intent Filter for Creator Clips -->
+            <!-- Native Deep Link Intent Filter for Firebase Hosting & App Links -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="localiiiy.app"
-                    android:pathPrefix="/clip" />
+                    android:host="localiiiy.web.app" />
                 <data
-                    android:scheme="localiiiy"
-                    android:host="clip" />
+                    android:scheme="https"
+                    android:host="localiiiy.firebaseapp.com" />
+                <data
+                    android:scheme="https"
+                    android:host="localiiiy.app" />
+                <data
+                    android:scheme="localiiiy" />
             </intent-filter>
         </activity>
         <!-- Favorite Proximity Background Service (Monitors 5KM proximity for favorite creators/sellers) -->

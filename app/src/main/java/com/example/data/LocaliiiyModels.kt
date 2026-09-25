@@ -113,24 +113,32 @@ data class CommentEntity(
 @Entity(tableName = "user_profile")
 data class UserProfileEntity(
     @PrimaryKey val id: Int = 1,
-    val username: String = "alex_creative",
-    val fullName: String = "Alex Rivera",
-    val avatarUrl: String = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80",
-    val bio: String = "Visual storyteller & digital creator 📸✨\nCapturing moments across the neighborhood & globe 🌍\nSeattle • Pike Place • Pioneer Sq",
-    val website: String = "Localiiiy.com/alex",
-    val category: String = "Local Creator / Photographer",
-    val locationName: String = "Pike Place Market, Seattle",
-    val neighborhood: String = "Pike Place Market, Seattle",
-    val neighborsCount: Int = 142,
-    val latitude: Double = 47.608013,
-    val longitude: Double = -122.335167,
-    val postsCount: Int = 42,
-    val followersCount: Int = 14200,
-    val followingCount: Int = 486,
-    val isVerified: Boolean = true,
-    val studioUsername: String = "alex_studio",
-    val studioChannelName: String = "Alex Rivera Studio",
-    val studioSubscribersCount: Int = 14200
+    val username: String = "",
+    val fullName: String = "",
+    val avatarUrl: String = "",
+    val bio: String = "",
+    val website: String = "",
+    val category: String = "",
+    val locationName: String = "",
+    val neighborhood: String = "",
+    val neighborsCount: Int = 0,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val postsCount: Int = 0,
+    val followersCount: Int = 0,
+    val followingCount: Int = 0,
+    val isVerified: Boolean = false,
+    val studioUsername: String = "",
+    val studioChannelName: String = "",
+    val studioSubscribersCount: Int = 0,
+    val instagramHandle: String = "",
+    val twitterHandle: String = "",
+    val youtubeHandle: String = "",
+    val tiktokHandle: String = "",
+    val githubHandle: String = "",
+    val linkedinHandle: String = "",
+    val telegramHandle: String = "",
+    val discordHandle: String = ""
 ) {
     val connectionsCount: Int get() = followersCount
     val connectedCount: Int get() = followingCount
@@ -160,7 +168,15 @@ data class OtherUserEntity(
     val studioUsername: String = "",
     val studioSubscribersCount: Int = 0,
     val isBlocked: Boolean = false,
-    val isCyberstalkingBanned: Boolean = false
+    val isCyberstalkingBanned: Boolean = false,
+    val instagramHandle: String = "",
+    val twitterHandle: String = "",
+    val youtubeHandle: String = "",
+    val tiktokHandle: String = "",
+    val githubHandle: String = "",
+    val linkedinHandle: String = "",
+    val telegramHandle: String = "",
+    val discordHandle: String = ""
 ) {
     val isConnected: Boolean get() = isFollowing
     val isMutuallyConnected: Boolean get() = (isFollowing || isFriend) && isFriend
@@ -262,7 +278,7 @@ data class PrivacySettingsEntity(
     val acousticVoicePrintReactive: Boolean = true,
     // Dual-Consent Communication Gate (Mutual Connection + Explicit Permission)
     val allowDirectCommunication: Boolean = true,
-    // Localiiiy Premium Pro Membership (₹499/mo)
+    // Localiiiy Premium Pro Membership (₹299/mo / $2.99)
     val isPremiumSubscribed: Boolean = false,
     val premiumPlanName: String = "Premium Pro",
     val premiumExpiryTimestamp: Long = 0L,

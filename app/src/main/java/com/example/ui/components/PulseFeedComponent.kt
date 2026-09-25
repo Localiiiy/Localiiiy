@@ -38,6 +38,7 @@ import com.example.data.UserProfileEntity
 import androidx.compose.foundation.clickable
 import com.example.util.LocaliiiyCurrency
 import com.example.util.LocaliiiyLanguage
+import com.example.util.LocalizationHelper
 
 import com.example.ui.components.feed.TactileTriDialFeedLens
 import com.example.ui.components.feed.ConcentricSonarRefreshIndicator
@@ -46,6 +47,7 @@ import com.example.ui.components.feed.PulsePollCard
 import com.example.ui.components.feed.EphemeralPulseCard
 import com.example.ui.components.feed.AudioVoicePulseCard
 import com.example.ui.components.feed.GhostModeFeedWatermark
+import com.example.ui.components.community.LocaliiiyCommunityHub
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.SwipeToDismissBoxValue
@@ -105,6 +107,9 @@ fun PulseFeedComponent(
     
     // Section 2.20: Smart Data Saver Mode Toggle
     var isDataSaverMode by remember { mutableStateOf(false) }
+
+    // Tab switcher between Pulse Feed and Localiiiy Community Hub
+    var currentPulseTab by remember { mutableStateOf("FEED") } // "FEED" or "COMMUNITY"
 
     // Section 2.9: Ghost Mode Feed Watermark state
     var showGhostWatermark by remember { mutableStateOf(true) }
@@ -185,17 +190,94 @@ fun PulseFeedComponent(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
-            state = refreshState,
-            modifier = Modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
+    Column(modifier = modifier.fillMaxSize().background(Color(0xFF070A12))) {
+        // --- TOP TAB SWITCHER: PULSE FEED VS LOCALIIIY COMMUNITY ---
+        Surface(
+            color = Color(0xFF0F172A),
+            border = BorderStroke(1.dp, Color(0xFF1E293B)),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 80.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Pulse Feed Tab
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (currentPulseTab == "FEED") Color(0xFF10B981) else Color(0xFF1E293B),
+                    onClick = { currentPulseTab = "FEED" },
+                    modifier = Modifier.weight(1f).height(36.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            Icons.Default.RssFeed,
+                            contentDescription = "Pulse Feed",
+                            tint = if (currentPulseTab == "FEED") Color.Black else Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Pulse Feed",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (currentPulseTab == "FEED") Color.Black else Color.White
+                        )
+                    }
+                }
+
+                // Localiiiy Community Hub Tab
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (currentPulseTab == "COMMUNITY") Color(0xFF10B981) else Color(0xFF1E293B),
+                    onClick = { currentPulseTab = "COMMUNITY" },
+                    modifier = Modifier.weight(1f).height(36.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text("🏘️", fontSize = 14.sp)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Local Community",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (currentPulseTab == "COMMUNITY") Color.Black else Color.White
+                        )
+                    }
+                }
+            }
+        }
+
+        if (currentPulseTab == "COMMUNITY") {
+            LocaliiiyCommunityHub(
+                userProfile = userProfile,
+                otherUsers = otherUsers,
+                marketplaceItems = marketplaceItems,
+                clips = clips,
+                onUserProfileClick = onUserProfileClick,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh,
+                    state = refreshState,
+                    modifier = Modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
                 // Section 2.13: Pull-to-Sonar Concentric Refresh Indicator
                 if (isRefreshing) {
                     item {
@@ -331,6 +413,9 @@ fun PulseFeedComponent(
                         ) {
                             items(PulseFeedFilter.values()) { filter ->
                                 val isSelected = selectedFilter == filter && !isStrictChronological
+                                val localizedFilterLabel = remember(filter.label, currentLanguage) {
+                                    LocalizationHelper.getFilterLabel(filter.label, currentLanguage)
+                                }
                                 FilterChip(
                                     selected = isSelected,
                                     onClick = {
@@ -339,14 +424,14 @@ fun PulseFeedComponent(
                                     },
                                     label = {
                                         Text(
-                                            text = filter.label,
+                                            text = localizedFilterLabel,
                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                                         )
                                     },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = filter.icon,
-                                            contentDescription = filter.label,
+                                            contentDescription = localizedFilterLabel,
                                             modifier = Modifier.size(16.dp)
                                         )
                                     },
@@ -465,6 +550,20 @@ fun PulseFeedComponent(
                             }
                         }
                     }
+                }
+
+                // Google Search Grounded Hyperlocal News Updates at the top of the stream
+                item {
+                    val activeLoc = remember(userProfile.locationName, countryName) {
+                        when {
+                            userProfile.locationName.isNotBlank() -> userProfile.locationName
+                            countryName != null -> "Local Neighborhood, $countryName"
+                            else -> "Capitol Hill, Seattle"
+                        }
+                    }
+                    com.example.ui.components.feed.HyperlocalGroundedNewsCard(
+                        neighborhood = activeLoc
+                    )
                 }
 
                 // Section 2.4: Decaying Flash Pulse Card
@@ -620,19 +719,19 @@ fun PulseFeedComponent(
                 }
             }
         }
+    }
 
         // Section 2.9: Ghost Mode Floating Watermark Pill
         GhostModeFeedWatermark(
-            isVisible = showGhostWatermark,
-            onDismiss = { showGhostWatermark = false },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            isVisible = showGhostWatermark && currentPulseTab == "FEED",
+            onDismiss = { showGhostWatermark = false }
         )
 
         // Go Live Setup Modal
         if (showGoLiveDialog) {
             GoLiveSetupModal(
                 onDismiss = { showGoLiveDialog = false },
-                onStartBroadcast = { title, reach ->
+                onStartBroadcast = { title: String, reach: String ->
                     liveBroadcastTitle = title
                     liveBroadcastReach = reach
                     isCurrentlyLive = true
@@ -643,6 +742,7 @@ fun PulseFeedComponent(
             )
         }
     }
+}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

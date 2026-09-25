@@ -80,10 +80,26 @@ val defaultLocalCircles = listOf(
 )
 
 val defaultCoreInterests = listOf(
-    "Local Food & Coffee", "Indie Film & Clips", "Live Music & Gigs",
-    "Tech & Open Source", "Urban Photography", "Maker Crafts",
-    "Community News", "Cycling & Trails", "Visual Art & Murals", "Night Markets",
-    "Funny Clips", "Education", "Fitness", "Fashion", "Gaming", "DIY & Home"
+    "☕ Local Food & Coffee",
+    "🎬 Indie Film & Clips",
+    "🎵 Live Music & Gigs",
+    "💻 Tech & Open Source",
+    "📸 Urban Photography",
+    "🎨 Maker Crafts & Art",
+    "🚲 Cycling & Trails",
+    "🛍️ Thrift & Vintage Market",
+    "🐕 Pets & Animal Rescue",
+    "⚡ Startups & Hustle",
+    "🎧 Podcasting & Audio Production",
+    "🌿 Urban Gardening & Plants",
+    "🏎️ Cars & Motor Tuning",
+    "🛹 Streetwear & Sneakerheads",
+    "🎮 Esports & Gaming",
+    "🧗 Outdoor Adventures & Hiking",
+    "🧘 Mental Wellness & Yoga",
+    "🍔 Street Food & Night Markets",
+    "🛠️ DIY, Woodwork & Tools",
+    "📚 Book Clubs & Philosophy"
 )
 
 val defaultLocalWelcomeCreators = listOf(
@@ -184,7 +200,7 @@ fun EphemeralSpectatorBanner(
     }
 }
 
-// Feature 2: Zero-Knowledge Coarse Location Anchor Selection
+// Feature 2: Simplified Home Community Anchor Selection
 @Composable
 fun ZeroKnowledgeAnchorPicker(
     selectedAnchor: CoarseAnchorOption,
@@ -199,17 +215,28 @@ fun ZeroKnowledgeAnchorPicker(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = "Zero-Knowledge Location Anchor",
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationCity,
+                    contentDescription = null,
+                    tint = LocaliiiyPrimaryTeal,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "Your Home Community Anchor",
+                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
             Surface(
                 shape = RoundedCornerShape(4.dp),
                 color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f)
             ) {
                 Text(
-                    text = "Precision 5 Geohash",
+                    text = "Coarse Privacy",
                     fontSize = 10.sp,
                     color = LocaliiiyPrimaryTeal,
                     fontWeight = FontWeight.Bold,
@@ -219,17 +246,17 @@ fun ZeroKnowledgeAnchorPicker(
         }
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = "Your exact GPS coordinates are NEVER saved. Your content is seeded within a coarse ~4.9 km bounding box.",
+            text = "This sets your local neighborhood center (e.g., Downtown, Metro District) so you receive nearby market items, clips, and alerts without ever tracking your exact building or GPS path.",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Selected Anchor Pill
+        // Single tap Set My Neighborhood Anchor / Dropdown Button
         Surface(
             shape = RoundedCornerShape(12.dp),
             color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.4f)),
+            border = BorderStroke(1.2.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.45f)),
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded }
@@ -242,31 +269,47 @@ fun ZeroKnowledgeAnchorPicker(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.FmdGood,
-                        contentDescription = null,
-                        tint = LocaliiiyPrimaryTeal,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(34.dp)
+                            .background(LocaliiiyPrimaryTeal.copy(alpha = 0.15f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FmdGood,
+                            contentDescription = null,
+                            tint = LocaliiiyPrimaryTeal,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                     Column {
                         Text(
                             text = "${selectedAnchor.name} (${selectedAnchor.city})",
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
                         )
                         Text(
-                            text = "Geohash: ${selectedAnchor.geohash} • Bounding: ${selectedAnchor.boundingBoxArea}",
+                            text = "📍 Neighborhood Center: ${selectedAnchor.boundingBoxArea}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FilledTonalButton(
+                        onClick = { expanded = !expanded },
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(32.dp)
+                    ) {
+                        Text(
+                            text = if (expanded) "Close" else "📍 Set Anchor",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
 
@@ -595,17 +638,69 @@ fun NoTrackingPrivacyGuaranteeBadge(
             }
 
             AnimatedVisibility(visible = expanded) {
-                Column(modifier = Modifier.padding(top = 10.dp)) {
-                    Text(
-                        text = "1. Exact Lat/Lng coordinates are strictly resolved client-side in volatile memory and never persisted in database tables.\n" +
-                                "2. Radar pings are obfuscated with a dynamic 150m-300m spatial jitter to prevent triangulation.\n" +
-                                "3. In Ghost Mode, your device beacon is 100% disconnected from the proximity radar sweep.",
-                        fontSize = 11.5.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 16.sp
+                Column(
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    PrivacyPillarItem(
+                        number = "1",
+                        title = "Client-Side Volatile Resolution",
+                        description = "Your live GPS is never written to permanent disk storage or database tables."
+                    )
+                    PrivacyPillarItem(
+                        number = "2",
+                        title = "Spatial Jitter Protection",
+                        description = "Real-time radar pings are obfuscated with randomized 200m–500m fuzzing to completely prevent physical tracking or triangulation."
+                    )
+                    PrivacyPillarItem(
+                        number = "3",
+                        title = "Encrypted Media Expiry",
+                        description = "Video clips and market posts purge ephemeral geolocation metadata automatically after 30 days."
+                    )
+                    PrivacyPillarItem(
+                        number = "4",
+                        title = "Sovereign Kill-Switch",
+                        description = "Toggling Ghost Mode instantly disconnects your hardware beacon from all discovery feeds."
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PrivacyPillarItem(number: String, title: String, description: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(20.dp)
+                .background(LocaliiiyAccentMint.copy(alpha = 0.2f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = number,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = LocaliiiyAccentMint
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                fontSize = 11.5.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 16.sp
+            )
         }
     }
 }
@@ -946,7 +1041,7 @@ fun InterestConstellationMapping(
                 color = if (selectedInterests.size >= 3) LocaliiiyAccentMint.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Text(
-                    text = "${selectedInterests.size} of 8 selected",
+                    text = if (selectedInterests.size >= 3) "${selectedInterests.size} selected ✓" else "Select at least 3 (${selectedInterests.size}/3)",
                     fontSize = 11.sp,
                     color = if (selectedInterests.size >= 3) LocaliiiyAccentMint else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Bold,

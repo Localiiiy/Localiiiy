@@ -275,6 +275,7 @@ fun ExploreScreen(
                             hidePreciseLocationOnRadar = (privacySettings?.hidePreciseLocationOnRadar ?: false) || ghostMode,
                             radarObfuscatedRange = privacySettings?.radarObfuscatedRange ?: "3k",
                             radarCountryName = privacySettings?.radarCountryName ?: "United States",
+                            isPremiumSubscribed = privacySettings?.isPremiumSubscribed ?: false,
                             onToggleHidePreciseLocation = onToggleHidePreciseLocation,
                             onSelectObfuscatedRange = onSelectObfuscatedRange,
                             isRefreshing = isRefreshing,

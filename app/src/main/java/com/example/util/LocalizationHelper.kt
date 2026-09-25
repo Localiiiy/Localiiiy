@@ -1,5 +1,18 @@
 package com.example.util
 
+import android.content.Context
+import android.content.res.Configuration
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.ReadOnlyComposable
+import java.util.Locale
+
+/**
+ * Universal CompositionLocal holding the currently active language.
+ * Propagates automatically across all Composable trees.
+ */
+val LocalAppLanguage = compositionLocalOf { LocaliiiyLanguage.EN }
+
 /**
  * Universal Multi-Language Localization Engine for Localiiiy.
  * Provides 100% full international support for 75+ global languages across
@@ -484,12 +497,140 @@ object LocalizationHelper {
     }
 
     /**
-     * Translates common dynamic phrases or labels dynamically based on current language.
+     * Translates navigation deck slot titles (Pulse, Radar, Market, Clips, Studio, Profile).
      */
-    fun getDynamicString(phrase: String, lang: LocaliiiyLanguage): String {
-        val lower = phrase.lowercase().trim()
+    fun getSlotTitle(slotName: String, lang: LocaliiiyLanguage): String {
+        val lower = slotName.lowercase().trim()
         return when {
-            lower.contains("all") -> when (lang) {
+            lower.contains("pulse") || lower.contains("feed") -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Pulso"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Pouls"
+                LocaliiiyLanguage.DE -> "Puls"
+                LocaliiiyLanguage.HI -> "पल्स"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "动态"
+                LocaliiiyLanguage.JA -> "パルス"
+                LocaliiiyLanguage.AR -> "النبض"
+                LocaliiiyLanguage.RU -> "Пульс"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Pulso"
+                LocaliiiyLanguage.IT -> "Impulso"
+                LocaliiiyLanguage.KO -> "펄스"
+                LocaliiiyLanguage.ID -> "Denyut"
+                LocaliiiyLanguage.TR -> "Nabız"
+                LocaliiiyLanguage.VI -> "Nhịp đập"
+                LocaliiiyLanguage.TE -> "పల్స్"
+                LocaliiiyLanguage.BN -> "পালস"
+                LocaliiiyLanguage.TA -> "துடிப்பு"
+                LocaliiiyLanguage.UR -> "پلس"
+                else -> "Pulse"
+            }
+            lower.contains("radar") -> when (lang) {
+                LocaliiiyLanguage.HI -> "रडार"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "雷达"
+                LocaliiiyLanguage.JA -> "レーダー"
+                LocaliiiyLanguage.AR -> "رادار"
+                LocaliiiyLanguage.RU -> "Радар"
+                LocaliiiyLanguage.KO -> "레이더"
+                LocaliiiyLanguage.TE -> "రాడార్"
+                LocaliiiyLanguage.BN -> "রাডার"
+                LocaliiiyLanguage.TA -> "ரேடார்"
+                LocaliiiyLanguage.UR -> "ریڈار"
+                else -> "Radar"
+            }
+            lower.contains("market") -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Mercado"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Marché"
+                LocaliiiyLanguage.DE -> "Markt"
+                LocaliiiyLanguage.HI -> "बाज़ार"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "集市"
+                LocaliiiyLanguage.JA -> "マーケット"
+                LocaliiiyLanguage.AR -> "السوق"
+                LocaliiiyLanguage.RU -> "Рынок"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Mercado"
+                LocaliiiyLanguage.IT -> "Mercato"
+                LocaliiiyLanguage.KO -> "마켓"
+                LocaliiiyLanguage.ID -> "Pasar"
+                LocaliiiyLanguage.TR -> "Pazar"
+                LocaliiiyLanguage.VI -> "Chợ"
+                LocaliiiyLanguage.TE -> "మార్కెట్"
+                LocaliiiyLanguage.BN -> "মার্কেট"
+                LocaliiiyLanguage.TA -> "சந்தை"
+                LocaliiiyLanguage.UR -> "مارکیٹ"
+                else -> "Market"
+            }
+            lower.contains("clip") -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Clips"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Clips"
+                LocaliiiyLanguage.DE -> "Clips"
+                LocaliiiyLanguage.HI -> "क्लिप्स"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "短视频"
+                LocaliiiyLanguage.JA -> "クリップ"
+                LocaliiiyLanguage.AR -> "مقاطع"
+                LocaliiiyLanguage.RU -> "Клипы"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Clipes"
+                LocaliiiyLanguage.IT -> "Clip"
+                LocaliiiyLanguage.KO -> "클립"
+                LocaliiiyLanguage.ID -> "Klip"
+                LocaliiiyLanguage.TR -> "Klipler"
+                LocaliiiyLanguage.VI -> "Thước phim"
+                LocaliiiyLanguage.TE -> "క్లిప్స్"
+                LocaliiiyLanguage.BN -> "ক্লিপস"
+                LocaliiiyLanguage.TA -> "கிளிப்புகள்"
+                LocaliiiyLanguage.UR -> "کلپس"
+                else -> "Clips"
+            }
+            lower.contains("studio") -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Estudio"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Studio"
+                LocaliiiyLanguage.DE -> "Studio"
+                LocaliiiyLanguage.HI -> "स्टूडियो"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "工作室"
+                LocaliiiyLanguage.JA -> "スタジオ"
+                LocaliiiyLanguage.AR -> "استوديو"
+                LocaliiiyLanguage.RU -> "Студия"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Estúdio"
+                LocaliiiyLanguage.IT -> "Studio"
+                LocaliiiyLanguage.KO -> "스튜디오"
+                LocaliiiyLanguage.ID -> "Studio"
+                LocaliiiyLanguage.TR -> "Stüdyo"
+                LocaliiiyLanguage.VI -> "Studio"
+                LocaliiiyLanguage.TE -> "స్టూడియో"
+                LocaliiiyLanguage.BN -> "স্টুডিও"
+                LocaliiiyLanguage.TA -> "ஸ்டுடியோ"
+                LocaliiiyLanguage.UR -> "اسٹوڈیو"
+                else -> "Studio"
+            }
+            lower.contains("profile") || lower.contains("space") -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Espacio"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Espace"
+                LocaliiiyLanguage.DE -> "Profil"
+                LocaliiiyLanguage.HI -> "प्रोफ़ाइल"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "个人中心"
+                LocaliiiyLanguage.JA -> "プロフィール"
+                LocaliiiyLanguage.AR -> "الملف الشخصي"
+                LocaliiiyLanguage.RU -> "Профиль"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Espaço"
+                LocaliiiyLanguage.IT -> "Profilo"
+                LocaliiiyLanguage.KO -> "프로필"
+                LocaliiiyLanguage.ID -> "Profil"
+                LocaliiiyLanguage.TR -> "Profil"
+                LocaliiiyLanguage.VI -> "Hồ sơ"
+                LocaliiiyLanguage.TE -> "ప్రొఫైల్"
+                LocaliiiyLanguage.BN -> "প্রোফাইল"
+                LocaliiiyLanguage.TA -> "சுயவிவரம்"
+                LocaliiiyLanguage.UR -> "پروفائل"
+                else -> "Space"
+            }
+            else -> slotName
+        }
+    }
+
+    /**
+     * Translates filter labels (All, Trending, Nearby, Connected).
+     */
+    fun getFilterLabel(filterLabel: String, lang: LocaliiiyLanguage): String {
+        val lower = filterLabel.lowercase().trim()
+        return when {
+            lower == "all" -> when (lang) {
                 LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Todos"
                 LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Tous"
                 LocaliiiyLanguage.DE -> "Alle"
@@ -499,9 +640,39 @@ object LocalizationHelper {
                 LocaliiiyLanguage.AR -> "الكل"
                 LocaliiiyLanguage.RU -> "Все"
                 LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Todos"
+                LocaliiiyLanguage.IT -> "Tutti"
+                LocaliiiyLanguage.KO -> "전체"
+                LocaliiiyLanguage.ID -> "Semua"
+                LocaliiiyLanguage.TR -> "Tümü"
+                LocaliiiyLanguage.VI -> "Tất cả"
+                LocaliiiyLanguage.TE -> "అన్నీ"
+                LocaliiiyLanguage.BN -> "সব"
+                LocaliiiyLanguage.TA -> "அனைத்தும்"
+                LocaliiiyLanguage.UR -> "تمام"
                 else -> "All"
             }
-            lower.contains("nearby") -> when (lang) {
+            lower == "trending" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Tendencias"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Tendances"
+                LocaliiiyLanguage.DE -> "Trends"
+                LocaliiiyLanguage.HI -> "ट्रेंडिंग"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "热门"
+                LocaliiiyLanguage.JA -> "急上昇"
+                LocaliiiyLanguage.AR -> "الشائع"
+                LocaliiiyLanguage.RU -> "В тренде"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Em Alta"
+                LocaliiiyLanguage.IT -> "Di tendenza"
+                LocaliiiyLanguage.KO -> "트렌딩"
+                LocaliiiyLanguage.ID -> "Tren"
+                LocaliiiyLanguage.TR -> "Trend"
+                LocaliiiyLanguage.VI -> "Xu hướng"
+                LocaliiiyLanguage.TE -> "ట్రెండింగ్"
+                LocaliiiyLanguage.BN -> "ট্রেন্ডিং"
+                LocaliiiyLanguage.TA -> "பிரபலமானவை"
+                LocaliiiyLanguage.UR -> "ٹرینڈنگ"
+                else -> "Trending"
+            }
+            lower == "nearby" -> when (lang) {
                 LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Cercanos"
                 LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "À proximité"
                 LocaliiiyLanguage.DE -> "In der Nähe"
@@ -511,11 +682,392 @@ object LocalizationHelper {
                 LocaliiiyLanguage.AR -> "بالقرب مني"
                 LocaliiiyLanguage.RU -> "Рядом"
                 LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Por Perto"
+                LocaliiiyLanguage.IT -> "Nelle vicinanze"
+                LocaliiiyLanguage.KO -> "주변"
+                LocaliiiyLanguage.ID -> "Terdekat"
+                LocaliiiyLanguage.TR -> "Yakınlarda"
+                LocaliiiyLanguage.VI -> "Gần đây"
+                LocaliiiyLanguage.TE -> "సమీపంలో"
+                LocaliiiyLanguage.BN -> "কাছাকাছি"
+                LocaliiiyLanguage.TA -> "அருகில்"
+                LocaliiiyLanguage.UR -> "قریب ترین"
                 else -> "Nearby"
             }
-            lower.contains("connected") -> getString(LocaliiiyStringKey.CONNECTED, lang)
-            lower.contains("connect") -> getString(LocaliiiyStringKey.CONNECT, lang)
+            lower == "connected" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Conectados"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Connectés"
+                LocaliiiyLanguage.DE -> "Verbunden"
+                LocaliiiyLanguage.HI -> "जुड़े हुए"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW, LocaliiiyLanguage.ZH_HK -> "已连接"
+                LocaliiiyLanguage.JA -> "接続中"
+                LocaliiiyLanguage.AR -> "المتصلون"
+                LocaliiiyLanguage.RU -> "На связи"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Conectados"
+                LocaliiiyLanguage.IT -> "Connessi"
+                LocaliiiyLanguage.KO -> "연결됨"
+                LocaliiiyLanguage.ID -> "Terhubung"
+                LocaliiiyLanguage.TR -> "Bağlı"
+                LocaliiiyLanguage.VI -> "Đã kết nối"
+                LocaliiiyLanguage.TE -> "కనెక్ట్ అయినవి"
+                LocaliiiyLanguage.BN -> "সংযুক্ত"
+                LocaliiiyLanguage.TA -> "இணைக்கப்பட்டவை"
+                LocaliiiyLanguage.UR -> "منسلک"
+                else -> "Connected"
+            }
+            else -> filterLabel
+        }
+    }
+
+    /**
+     * Translates category names across Market and Studio.
+     */
+    fun getCategoryName(category: String, lang: LocaliiiyLanguage): String {
+        val lower = category.lowercase().trim()
+        return when {
+            lower == "all" -> getFilterLabel("all", lang)
+            lower == "electronics" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Electrónica"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Électronique"
+                LocaliiiyLanguage.DE -> "Elektronik"
+                LocaliiiyLanguage.HI -> "इलेक्ट्रॉनिक्स"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "数码电子"
+                LocaliiiyLanguage.JA -> "家電・電子"
+                LocaliiiyLanguage.AR -> "إلكترونيات"
+                LocaliiiyLanguage.RU -> "Электроника"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Eletrônicos"
+                else -> "Electronics"
+            }
+            lower == "fashion" || lower == "clothing" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Moda"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Mode"
+                LocaliiiyLanguage.DE -> "Mode"
+                LocaliiiyLanguage.HI -> "फैशन"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "服饰时尚"
+                LocaliiiyLanguage.JA -> "ファッション"
+                LocaliiiyLanguage.AR -> "أزياء"
+                LocaliiiyLanguage.RU -> "Мода"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Moda"
+                else -> "Fashion"
+            }
+            lower == "vehicles" || lower == "motors" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Vehículos"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Véhicules"
+                LocaliiiyLanguage.DE -> "Fahrzeuge"
+                LocaliiiyLanguage.HI -> "वाहन"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "车辆交通"
+                LocaliiiyLanguage.JA -> "乗り物"
+                LocaliiiyLanguage.AR -> "مركبات"
+                LocaliiiyLanguage.RU -> "Транспорт"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Veículos"
+                else -> "Vehicles"
+            }
+            lower == "home" || lower == "furniture" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Hogar"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Maison"
+                LocaliiiyLanguage.DE -> "Zuhause"
+                LocaliiiyLanguage.HI -> "घर और फर्नीचर"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "家居日用"
+                LocaliiiyLanguage.JA -> "住まい・インテリア"
+                LocaliiiyLanguage.AR -> "المنزل"
+                LocaliiiyLanguage.RU -> "Дом и сад"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Casa"
+                else -> "Home"
+            }
+            lower == "services" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Servicios"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Services"
+                LocaliiiyLanguage.DE -> "Dienstleistungen"
+                LocaliiiyLanguage.HI -> "सेवाएं"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "同城服务"
+                LocaliiiyLanguage.JA -> "サービス"
+                LocaliiiyLanguage.AR -> "خدمات"
+                LocaliiiyLanguage.RU -> "Услуги"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Serviços"
+                else -> "Services"
+            }
+            lower == "cinema" || lower == "films" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Cine"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Cinéma"
+                LocaliiiyLanguage.DE -> "Kino"
+                LocaliiiyLanguage.HI -> "सिनेमा"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "影视长片"
+                LocaliiiyLanguage.JA -> "映画・シネマ"
+                LocaliiiyLanguage.AR -> "سينما"
+                LocaliiiyLanguage.RU -> "Кино"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Cinema"
+                else -> "Cinema"
+            }
+            lower == "documentaries" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Documentales"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Documentaires"
+                LocaliiiyLanguage.DE -> "Dokumentationen"
+                LocaliiiyLanguage.HI -> "वृत्तचित्र"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "纪录片"
+                LocaliiiyLanguage.JA -> "ドキュメンタリー"
+                LocaliiiyLanguage.AR -> "وثائقيات"
+                LocaliiiyLanguage.RU -> "Документальное"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Documentários"
+                else -> "Documentaries"
+            }
+            lower == "podcasts" -> when (lang) {
+                LocaliiiyLanguage.HI -> "पॉडकास्ट"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "播客访谈"
+                LocaliiiyLanguage.JA -> "ポッドキャスト"
+                LocaliiiyLanguage.AR -> "بودكاست"
+                LocaliiiyLanguage.RU -> "Подкасты"
+                else -> "Podcasts"
+            }
+            lower == "music" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Música"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Musique"
+                LocaliiiyLanguage.DE -> "Musik"
+                LocaliiiyLanguage.HI -> "संगीत"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "音乐现场"
+                LocaliiiyLanguage.JA -> "音楽"
+                LocaliiiyLanguage.AR -> "موسيقى"
+                LocaliiiyLanguage.RU -> "Музыка"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Música"
+                else -> "Music"
+            }
+            else -> category
+        }
+    }
+
+    /**
+     * Universal dictionary translator for any text string in the app.
+     */
+    fun translate(phrase: String, lang: LocaliiiyLanguage): String {
+        if (phrase.isBlank() || lang == LocaliiiyLanguage.EN || lang == LocaliiiyLanguage.EN_GB) return phrase
+
+        val lower = phrase.lowercase().trim()
+        return when {
+            lower == "all" || lower == "trending" || lower == "nearby" || lower == "connected" -> getFilterLabel(phrase, lang)
+            lower == "pulse" || lower == "radar" || lower == "market" || lower == "clips" || lower == "studio" || lower == "space" || lower == "profile" -> getSlotTitle(phrase, lang)
+            lower == "go live" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Transmitir en Vivo"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "En Direct"
+                LocaliiiyLanguage.DE -> "Live Gehen"
+                LocaliiiyLanguage.HI -> "लाइव जाएं"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "发起直播"
+                LocaliiiyLanguage.JA -> "ライブ開始"
+                LocaliiiyLanguage.AR -> "بث مباشر"
+                LocaliiiyLanguage.RU -> "В эфир"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Entrar ao Vivo"
+                else -> "Go Live"
+            }
+            lower == "edit profile" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Editar Perfil"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Modifier le Profil"
+                LocaliiiyLanguage.DE -> "Profil Bearbeiten"
+                LocaliiiyLanguage.HI -> "प्रोफ़ाइल संपादित करें"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "编辑资料"
+                LocaliiiyLanguage.JA -> "プロフィール編集"
+                LocaliiiyLanguage.AR -> "تعديل الملف"
+                LocaliiiyLanguage.RU -> "Редактировать профиль"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Editar Perfil"
+                else -> "Edit Profile"
+            }
+            lower == "monetization hub" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Centro de Monetización"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Centre de Monétisation"
+                LocaliiiyLanguage.DE -> "Monetarisierungs-Hub"
+                LocaliiiyLanguage.HI -> "मुद्रीकरण हब"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "收益变现中心"
+                LocaliiiyLanguage.JA -> "収益化ハブ"
+                LocaliiiyLanguage.AR -> "مركز الأرباح"
+                LocaliiiyLanguage.RU -> "Центр монетизации"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Central de Monetização"
+                else -> "Monetization Hub"
+            }
+            lower == "app guide & tutorials" || lower == "app guide" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Guía de la App y Tutoriales"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Guide de l'App & Tutoriels"
+                LocaliiiyLanguage.DE -> "App-Anleitung & Tutorials"
+                LocaliiiyLanguage.HI -> "ऐप गाइड और ट्यूटोरियल"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "应用指南与教程"
+                LocaliiiyLanguage.JA -> "アプリガイド＆チュートリアル"
+                LocaliiiyLanguage.AR -> "دليل التطبيق والدروس"
+                LocaliiiyLanguage.RU -> "Руководство и уроки"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Guia do App e Tutoriais"
+                else -> "App Guide & Tutorials"
+            }
+            lower == "stealth observer" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "OBSERVADOR INCOGNITO"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "OBSERVATEUR FURTIF"
+                LocaliiiyLanguage.DE -> "GHOST BEOBACHTER"
+                LocaliiiyLanguage.HI -> "अदृश्य प्रेक्षक"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "隐身观察者"
+                LocaliiiyLanguage.JA -> "ステルス観測者"
+                LocaliiiyLanguage.AR -> "مراقب خفي"
+                LocaliiiyLanguage.RU -> "РЕЖИМ-НЕВИДИМКА"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "OBSERVADOR FANTASMA"
+                else -> "STEALTH OBSERVER"
+            }
+            lower == "live rf beacon" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "BALIZA RF ACTIVA"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "BALISE RF EN DIRECT"
+                LocaliiiyLanguage.DE -> "LIVE RF SIGNAL"
+                LocaliiiyLanguage.HI -> "लाइव आरएफ बीकन"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "实时无线电信标"
+                LocaliiiyLanguage.JA -> "リアルタイム発信中"
+                LocaliiiyLanguage.AR -> "إشارة لاسلكية حية"
+                LocaliiiyLanguage.RU -> "РАДИОМАЯК АКТИВЕН"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "SINAL RF AO VIVO"
+                else -> "LIVE RF BEACON"
+            }
+            lower == "radar view" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Vista Radar"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Vue Radar"
+                LocaliiiyLanguage.DE -> "Radar-Ansicht"
+                LocaliiiyLanguage.HI -> "रडार दृश्य"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "雷达视图"
+                LocaliiiyLanguage.JA -> "レーダー表示"
+                LocaliiiyLanguage.AR -> "عرض الرادار"
+                LocaliiiyLanguage.RU -> "Вид радара"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Vista Radar"
+                else -> "Radar View"
+            }
+            lower == "grid view" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Vista Cuadrícula"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Vue Grille"
+                LocaliiiyLanguage.DE -> "Raster-Ansicht"
+                LocaliiiyLanguage.HI -> "ग्रिड दृश्य"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "网格视图"
+                LocaliiiyLanguage.JA -> "グリッド表示"
+                LocaliiiyLanguage.AR -> "عرض الشبكة"
+                LocaliiiyLanguage.RU -> "Вид сетки"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Vista Grade"
+                else -> "Grid View"
+            }
+            lower == "privacy & security" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Privacidad y Seguridad"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Confidentialité & Sécurité"
+                LocaliiiyLanguage.DE -> "Privatsphäre & Sicherheit"
+                LocaliiiyLanguage.HI -> "गोपनीयता और सुरक्षा"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "隐私与安全设置"
+                LocaliiiyLanguage.JA -> "プライバシーとセキュリティ"
+                LocaliiiyLanguage.AR -> "الخصوصية والأمان"
+                LocaliiiyLanguage.RU -> "Конфиденциальность и защита"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Privacidade e Segurança"
+                else -> "Privacy & Security"
+            }
+            lower == "notifications" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Notificaciones"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Notifications"
+                LocaliiiyLanguage.DE -> "Benachrichtigungen"
+                LocaliiiyLanguage.HI -> "सूचनाएं"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "通知消息"
+                LocaliiiyLanguage.JA -> "通知"
+                LocaliiiyLanguage.AR -> "الإشعارات"
+                LocaliiiyLanguage.RU -> "Уведомления"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Notificações"
+                else -> "Notifications"
+            }
+            lower == "direct messages" || lower == "messages" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Mensajes Directos"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Messages Directs"
+                LocaliiiyLanguage.DE -> "Direktnachrichten"
+                LocaliiiyLanguage.HI -> "सीधे संदेश"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "私信聊天"
+                LocaliiiyLanguage.JA -> "ダイレクトメッセージ"
+                LocaliiiyLanguage.AR -> "الرسائل المباشرة"
+                LocaliiiyLanguage.RU -> "Личные сообщения"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Mensagens Diretas"
+                else -> "Direct Messages"
+            }
+            lower == "log out" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Cerrar Sesión"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Déconnexion"
+                LocaliiiyLanguage.DE -> "Abmelden"
+                LocaliiiyLanguage.HI -> "लॉग आउट"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "退出登录"
+                LocaliiiyLanguage.JA -> "ログアウト"
+                LocaliiiyLanguage.AR -> "تسجيل الخروج"
+                LocaliiiyLanguage.RU -> "Выйти из аккаунта"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Sair"
+                else -> "Log Out"
+            }
+            lower == "delete account" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Eliminar Cuenta"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Supprimer le Compte"
+                LocaliiiyLanguage.DE -> "Konto Löschen"
+                LocaliiiyLanguage.HI -> "खाता हटाएं"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "注销并删除账号"
+                LocaliiiyLanguage.JA -> "アカウント削除"
+                LocaliiiyLanguage.AR -> "حذف الحساب نهائياً"
+                LocaliiiyLanguage.RU -> "Удалить аккаунт"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Excluir Conta"
+                else -> "Delete Account"
+            }
+            lower == "clear cache" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Limpiar Caché"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Vider le Cache"
+                LocaliiiyLanguage.DE -> "Cache Leeren"
+                LocaliiiyLanguage.HI -> "कैश साफ़ करें"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "清理本地缓存"
+                LocaliiiyLanguage.JA -> "キャッシュ消去"
+                LocaliiiyLanguage.AR -> "مسح التخزين المؤقت"
+                LocaliiiyLanguage.RU -> "Очистить кэш"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Limpar Cache"
+                else -> "Clear Cache"
+            }
             else -> phrase
         }
     }
+
+    /**
+     * Translates common dynamic phrases or labels dynamically based on current language.
+     */
+    fun getDynamicString(phrase: String, lang: LocaliiiyLanguage): String {
+        val lower = phrase.lowercase().trim()
+        return when {
+            lower.contains("all") -> getFilterLabel("all", lang)
+            lower.contains("nearby") -> getFilterLabel("nearby", lang)
+            lower.contains("connected") -> getString(LocaliiiyStringKey.CONNECTED, lang)
+            lower.contains("connect") -> getString(LocaliiiyStringKey.CONNECT, lang)
+            else -> translate(phrase, lang)
+        }
+    }
+
+    /**
+     * Updates the Android runtime configuration locale so that system formatters,
+     * dates, and resources reflect the selected language.
+     */
+    fun updateConfigurationLocale(context: Context, language: LocaliiiyLanguage) {
+        try {
+            val locale = when (language.code) {
+                "es-mx" -> Locale("es", "MX")
+                "fr-ca" -> Locale("fr", "CA")
+                "pt-pt" -> Locale("pt", "PT")
+                "zh-tw" -> Locale("zh", "TW")
+                "zh-hk" -> Locale("zh", "HK")
+                "en-gb" -> Locale("en", "GB")
+                else -> Locale(language.code.substringBefore("-"))
+            }
+            Locale.setDefault(locale)
+            val resources = context.resources
+            val config = Configuration(resources.configuration)
+            config.setLocale(locale)
+            context.createConfigurationContext(config)
+            @Suppress("DEPRECATION")
+            resources.updateConfiguration(config, resources.displayMetrics)
+        } catch (_: Exception) {}
+    }
 }
+
+/**
+ * Convenient Composable extension to translate strings using the ambient language.
+ */
+@Composable
+@ReadOnlyComposable
+fun tr(phrase: String): String {
+    return LocalizationHelper.translate(phrase, LocalAppLanguage.current)
+}
+
+/**
+ * Convenient String extension to translate using a specific language.
+ */
+fun String.tr(lang: LocaliiiyLanguage): String {
+    return LocalizationHelper.translate(this, lang)
+}
+

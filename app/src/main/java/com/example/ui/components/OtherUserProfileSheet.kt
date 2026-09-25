@@ -613,6 +613,7 @@ fun OtherUserProfileSheet(
 
                         // Action Buttons: Connect | Message | Wave 👋
                         var showIdDialog by remember { mutableStateOf(false) }
+                        var showSupportCreatorModal by remember { mutableStateOf(false) }
 
                         if (showIdDialog) {
                             AlertDialog(
@@ -751,6 +752,68 @@ fun OtherUserProfileSheet(
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Local Creator Support & Patron Card
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFF1E1A0C),
+                            border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.6f)),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showSupportCreatorModal = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("☕", fontSize = 18.sp)
+                                    Column {
+                                        Text(
+                                            text = "Support @${user.username}",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.5.sp,
+                                            color = Color(0xFFFFD700)
+                                        )
+                                        Text(
+                                            text = "Send a quick tip or become a ₹99/mo Neighborhood Patron",
+                                            fontSize = 10.5.sp,
+                                            color = Color(0xFFE2D6B0)
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFFFD700)
+                                ) {
+                                    Text(
+                                        text = "SUPPORT",
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 10.sp,
+                                        color = Color.Black,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        if (showSupportCreatorModal) {
+                            CreatorSupportModal(
+                                creatorName = user.fullName,
+                                creatorUsername = user.username,
+                                creatorAvatar = user.avatarUrl,
+                                onDismissRequest = { showSupportCreatorModal = false },
+                                onSendTip = { _, _ -> },
+                                onJoinPatron = { }
+                            )
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))

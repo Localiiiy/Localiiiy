@@ -68,6 +68,7 @@ import com.example.ui.theme.LocaliiiyDeepNavy
 import com.example.ui.theme.LocaliiiyPrimaryTeal
 import com.example.ui.theme.LocaliiiyStoryGradient
 import com.example.util.CurrencyHelper
+import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyCurrency
 import com.example.util.LocaliiiyLanguage
 import com.example.util.LocalizationHelper
@@ -93,6 +94,7 @@ fun ProfileScreen(
     onPrivateToggle: (Boolean) -> Unit = {},
     onOpenPrivacySettings: () -> Unit = {},
     onEditProfile: (String, String, String, String) -> Unit = { _, _, _, _ -> },
+    onEditProfileWithSocials: ((String, String, String, String, String, String, String, String, String, String, String, String) -> Unit)? = null,
     onPostClick: (PostEntity) -> Unit = {},
     onClipClick: (ClipEntity) -> Unit = {},
     onDeletePost: (Long) -> Unit = {},
@@ -396,7 +398,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    // LOCALIIIY PREMIUM PRO CARD (₹499/mo)
+                    // LOCALIIIY PREMIUM PRO CARD (₹299/mo / $2.99)
                     if (isPremiumSubscribed) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
@@ -483,13 +485,13 @@ fun ProfileScreen(
                                     Text("🌟", fontSize = 16.sp)
                                     Column {
                                         Text(
-                                            "Upgrade to Premium (₹499/mo)",
+                                            "Upgrade to Premium (₹299/mo / $2.99)",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFFFFD700)
                                         )
                                         Text(
-                                            "Get 5x Hyperlocal Reach, 0% Market Escrow & Gold Badge",
+                                            "⚡ 5x Reach, 0% Safe Escrow, Gold Halo & Radar Sonar",
                                             fontSize = 10.5.sp,
                                             color = Color.LightGray
                                         )
@@ -775,7 +777,7 @@ fun ProfileScreen(
                     ) {
                         ProfileTabItem(
                             icon = Icons.Outlined.GridOn,
-                            label = "Posts",
+                            label = LocalizationHelper.translate("Posts", currentLanguage),
                             badgeCount = posts.size,
                             isSelected = activeTab == ProfileTab.POSTS,
                             onClick = { onTabChange(ProfileTab.POSTS) },
@@ -783,7 +785,7 @@ fun ProfileScreen(
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.PlayCircle,
-                            label = "Clips",
+                            label = LocalizationHelper.translate("Clips", currentLanguage),
                             badgeCount = userClips.size,
                             isSelected = activeTab == ProfileTab.CLIPS,
                             onClick = { onTabChange(ProfileTab.CLIPS) },
@@ -791,14 +793,14 @@ fun ProfileScreen(
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.Radar,
-                            label = "Radar",
+                            label = LocalizationHelper.getSlotTitle("Radar", currentLanguage),
                             isSelected = activeTab == ProfileTab.PROXIMITY,
                             onClick = { onTabChange(ProfileTab.PROXIMITY) },
                             testTag = "profile_tab_proximity"
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.BookmarkBorder,
-                            label = "Saved",
+                            label = LocalizationHelper.translate("Saved", currentLanguage),
                             badgeCount = savedPosts.size,
                             isSelected = activeTab == ProfileTab.SAVED,
                             onClick = { onTabChange(ProfileTab.SAVED) },
@@ -806,14 +808,14 @@ fun ProfileScreen(
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.PermIdentity,
-                            label = "Tagged",
+                            label = LocalizationHelper.translate("Tagged", currentLanguage),
                             isSelected = activeTab == ProfileTab.TAGGED,
                             onClick = { onTabChange(ProfileTab.TAGGED) },
                             testTag = "profile_tab_tagged"
                         )
                         ProfileTabItem(
                             icon = Icons.Outlined.Analytics,
-                            label = "Analytics",
+                            label = LocalizationHelper.translate("Analytics", currentLanguage),
                             isSelected = activeTab == ProfileTab.ANALYTICS,
                             onClick = { onTabChange(ProfileTab.ANALYTICS) },
                             testTag = "profile_tab_analytics"
@@ -1183,7 +1185,8 @@ fun ProfileScreen(
             onLocationToggle = onLocationToggle,
             onPrivateToggle = onPrivateToggle,
             onDismiss = { showEditProfileDialog = false },
-            onSaveProfile = onEditProfile
+            onSaveProfile = onEditProfile,
+            onSaveProfileWithSocials = onEditProfileWithSocials
         )
     }
 
@@ -2260,6 +2263,7 @@ private fun SettingsRowItem(
     title: String,
     subtitle: String,
     isDestructive: Boolean = false,
+    currentLanguage: LocaliiiyLanguage = LocalAppLanguage.current,
     onClick: () -> Unit
 ) {
     Row(
@@ -2292,15 +2296,21 @@ private fun SettingsRowItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column(modifier = Modifier.weight(1f)) {
+            val localizedTitle = remember(title, currentLanguage) {
+                LocalizationHelper.translate(title, currentLanguage)
+            }
+            val localizedSubtitle = remember(subtitle, currentLanguage) {
+                LocalizationHelper.translate(subtitle, currentLanguage)
+            }
             Text(
-                text = title,
+                text = localizedTitle,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                 )
             )
             Text(
-                text = subtitle,
+                text = localizedSubtitle,
                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Justify

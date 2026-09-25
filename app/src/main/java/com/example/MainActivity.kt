@@ -53,6 +53,7 @@ import com.example.util.HotspotAlert
 import com.example.util.LocaliiiyLanguage
 import com.example.util.LocaliiiyCurrency
 import com.example.util.LocalizationHelper
+import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyStringKey
 import com.example.ui.CreationMode
 import com.example.ui.LocaliiiyViewModel
@@ -367,6 +368,10 @@ fun LocaliiiyApp(
         com.example.service.FavoriteProximityManager.init(context)
     }
 
+    LaunchedEffect(currentLanguage) {
+        LocalizationHelper.updateConfigurationLocale(context, currentLanguage)
+    }
+
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
@@ -406,36 +411,39 @@ fun LocaliiiyApp(
         }
     }
 
-    if (isLoggedOut) {
-        AuthScreen(
-            initialMode = authInitialMode,
-            securityReason = authReason,
-            onDismiss = {
-                // Mandatory Gate: app requires login/registration before accessing dashboard
-            },
-            onGhostSpectatorSuccess = {
-                viewModel.enterAsGhostSpectator()
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+    CompositionLocalProvider(
+        LocalAppLanguage provides currentLanguage
+    ) {
+        if (isLoggedOut) {
+            AuthScreen(
+                initialMode = authInitialMode,
+                securityReason = authReason,
+                onDismiss = {
+                    // Mandatory Gate: app requires login/registration before accessing dashboard
+                },
+                onGhostSpectatorSuccess = {
+                    viewModel.enterAsGhostSpectator()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+                    }
+                },
+                onScrubIdentity = {
+                    viewModel.resetSessionAndPurge()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
+                    }
+                },
+                onAuthSuccess = { user, username, fullName, neighborhood ->
+                    viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
+                    }
                 }
-            },
-            onScrubIdentity = {
-                viewModel.resetSessionAndPurge()
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
-                }
-            },
-            onAuthSuccess = { user, username, fullName, neighborhood ->
-                viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
-                }
-            }
-        )
-        return
-    }
+            )
+            return@CompositionLocalProvider
+        }
 
-    Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
+        Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
         if (privacySettings.appThemeBackground == "CUSTOM" && privacySettings.customBackgroundImageUri.isNotBlank()) {
             AsyncImage(
                 model = privacySettings.customBackgroundImageUri,
@@ -501,6 +509,7 @@ fun LocaliiiyApp(
                 DeckSwitcherBar(
                     currentTab = currentTab,
                     userAvatarUrl = userProfile.avatarUrl,
+                    currentLanguage = currentLanguage,
                     onTabSelected = { tab ->
                         if (tab == MainNavigationTab.CREATE) {
                             viewModel.setCreationMode(CreationMode.POST)
@@ -602,6 +611,8 @@ fun LocaliiiyApp(
                         isLocationEnabled = isLocationEnabled,
                         isPrivateAccount = isPrivateAccount,
                         privacySettings = privacySettings,
+                        currentCurrency = currentCurrency,
+                        currentLanguage = currentLanguage,
                         onRadiusFilterChange = { radius ->
                             if (radius != null) {
                                 viewModel.setRadarRadiusKm(radius.toFloat())
@@ -855,10 +866,20 @@ fun LocaliiiyApp(
                             onModeChange = { mode -> viewModel.setCreationMode(mode) },
                             onSelectMedia = { uri -> viewModel.setSelectedMediaUri(uri) },
                             onSelectFilter = { filter -> viewModel.selectFilter(filter) },
-                            onPublish = { caption, loc, landmark, lat, lng, soundTitle ->
-                                viewModel.publishContent(caption, loc, landmark, lat, lng, soundTitle)
+                            onPublish = { caption, loc, landmark, lat, lng, soundTitle, isVoice, durationSec ->
+                                viewModel.publishContent(
+                                    caption = caption,
+                                    location = loc,
+                                    landmark = landmark,
+                                    latitude = lat,
+                                    longitude = lng,
+                                    soundTitle = soundTitle,
+                                    isVoicePrint = isVoice,
+                                    voiceDurationSeconds = durationSec
+                                )
                                 coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Broadcasting to locality... Uploaded successfully! 🎉")
+                                    val msg = if (isVoice) "Voice Dispatch broadcast to locality! 🎙️🎉" else "Broadcasting to locality... Uploaded successfully! 🎉"
+                                    snackbarHostState.showSnackbar(msg)
                                 }
                             },
                             onDetectLocationClick = {
@@ -876,6 +897,7 @@ fun LocaliiiyApp(
                     ClipsScreen(
                         clips = clips,
                         isSoundMuted = isSoundMuted,
+                        currentLanguage = currentLanguage,
                         onToggleSound = { viewModel.toggleSoundMute() },
                         onLikeClip = { clip -> viewModel.toggleClipLike(clip) },
                         onCommentClip = { clip -> viewModel.openComments("CLIP", clip.id) },
@@ -969,6 +991,25 @@ fun LocaliiiyApp(
                             viewModel.updateProfile(name, bio, site, avatar)
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar("Profile updated!")
+                            }
+                        },
+                        onEditProfileWithSocials = { name, bio, site, avatar, ig, tw, yt, tt, gh, li, tg, dc ->
+                            viewModel.updateProfile(
+                                fullName = name,
+                                bio = bio,
+                                website = site,
+                                avatarUrl = avatar,
+                                instagramHandle = ig,
+                                twitterHandle = tw,
+                                youtubeHandle = yt,
+                                tiktokHandle = tt,
+                                githubHandle = gh,
+                                linkedinHandle = li,
+                                telegramHandle = tg,
+                                discordHandle = dc
+                            )
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Space ID & Social Handles Linked! ✨")
                             }
                         },
                         onPostClick = { post -> viewModel.openComments("POST", post.id) },
@@ -1378,6 +1419,7 @@ fun LocaliiiyApp(
             currentCurrency = currentCurrency,
             onLanguageSelected = { lang ->
                 viewModel.setLanguage(lang)
+                LocalizationHelper.updateConfigurationLocale(context, lang)
                 coroutineScope.launch {
                     snackbarHostState.showSnackbar("Language switched to ${lang.nativeName} (${lang.name}) 🌐")
                 }
@@ -1475,6 +1517,7 @@ fun LocaliiiyApp(
         LocaliiiyOpeningAnimation(
             onAnimationFinished = { showOpeningAnimation = false }
         )
+    }
     }
     }
 }

@@ -10,8 +10,12 @@ import android.content.Intent
 object ShareHelper {
 
     const val WEBAPP_BASE_URL = "https://localiiiy.web.app"
+    const val FIREBASE_HOSTING_URL = "https://localiiiy.web.app"
+    const val FIREBASE_APP_URL = "https://localiiiy.firebaseapp.com"
+    const val PRIVACY_POLICY_URL = "https://localiiiy.web.app/privacy"
+    const val TERMS_URL = "https://localiiiy.web.app/terms"
     const val GOOGLE_DRIVE_APK_URL = "https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk"
-    const val PREVIEW_WEBAPP_URL = "https://ais-pre-4dr4uba5q4ohbxd3nqa7pf-906260591053.asia-southeast1.run.app"
+    const val PREVIEW_WEBAPP_URL = "https://localiiiy.web.app"
 
     fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN): String {
         val message = when (language) {
@@ -131,6 +135,50 @@ object ShareHelper {
             }
         }
 
+        builder.append("\n━━━━━━━━━━━━━━━━━━━━\n")
+        builder.append(getAppDownloadNote(language))
+
+        return builder.toString()
+    }
+
+    /**
+     * Builds share text for real-time radar coordinates or neighborhood radar blip.
+     */
+    fun buildRadarLocationShareText(
+        username: String?,
+        locationName: String?,
+        latitude: Double?,
+        longitude: Double?,
+        distanceKm: Double? = null,
+        isSelf: Boolean = false,
+        language: LocaliiiyLanguage = LocaliiiyLanguage.EN
+    ): String {
+        val builder = StringBuilder()
+        val displayName = username?.let { if (it.startsWith("@")) it else "@$it" } ?: "Neighbor"
+
+        if (isSelf) {
+            builder.append("🛰️ My Live Radar Coordinates on Localiiiy:\n")
+        } else {
+            builder.append("🛰️ Neighborhood Radar Blip for $displayName on Localiiiy:\n")
+        }
+
+        if (!locationName.isNullOrBlank()) {
+            builder.append("📍 Locality: $locationName\n")
+        }
+        if (latitude != null && longitude != null) {
+            builder.append("🌐 Coordinates: ${String.format("%.6f", latitude)}, ${String.format("%.6f", longitude)}\n")
+            builder.append("🗺️ Google Maps: https://maps.google.com/?q=${latitude},${longitude}\n")
+        }
+        if (distanceKm != null) {
+            builder.append("📏 Distance: ${String.format("%.1f", distanceKm)} km away\n")
+        }
+
+        val radarDeepLink = if (latitude != null && longitude != null) {
+            "$WEBAPP_BASE_URL/radar?lat=${latitude}&lng=${longitude}&user=${username ?: "blip"}"
+        } else {
+            "$WEBAPP_BASE_URL/radar"
+        }
+        builder.append("\n🔗 Live Radar Beacon: $radarDeepLink\n")
         builder.append("\n━━━━━━━━━━━━━━━━━━━━\n")
         builder.append(getAppDownloadNote(language))
 

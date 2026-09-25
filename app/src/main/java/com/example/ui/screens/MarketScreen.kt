@@ -394,7 +394,7 @@ fun MarketScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "+ List / Post",
+                            text = "+ " + LocalizationHelper.translate("List / Post", currentLanguage),
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.5.sp
                         )
@@ -430,7 +430,7 @@ fun MarketScreen(
                             onValueChange = onSearchQueryChange,
                             placeholder = {
                                 Text(
-                                    text = "Search items, services, or sellers...",
+                                    text = LocalizationHelper.getString(LocaliiiyStringKey.SEARCH_HINT, currentLanguage),
                                     fontSize = 12.sp,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1
@@ -540,6 +540,18 @@ fun MarketScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     filterStripTabs.forEach { (tab, label) ->
                         val isSelected = activeSubTab == tab
+                        val localizedTabLabel = remember(label, currentLanguage) {
+                            when (tab) {
+                                MarketSubTab.ALL -> LocalizationHelper.getFilterLabel("All", currentLanguage)
+                                MarketSubTab.GOODS -> "🛍️ " + LocalizationHelper.translate("Goods", currentLanguage)
+                                MarketSubTab.SERVICES -> "🛠️ " + LocalizationHelper.translate("Services", currentLanguage)
+                                MarketSubTab.CLIPS -> "🎬 " + LocalizationHelper.translate("Clips", currentLanguage)
+                                MarketSubTab.CATALOGS -> "📚 " + LocalizationHelper.translate("Catalogs", currentLanguage)
+                                MarketSubTab.FLASH_DEALS -> "⚡ " + LocalizationHelper.translate("Flash Deals", currentLanguage)
+                                MarketSubTab.POSTS -> "📸 " + LocalizationHelper.translate("Posts", currentLanguage)
+                                MarketSubTab.WATCHLIST -> "🔖 " + LocalizationHelper.translate("Saved", currentLanguage)
+                            }
+                        }
                         Surface(
                             shape = RoundedCornerShape(100.dp),
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
@@ -549,7 +561,7 @@ fun MarketScreen(
                                 .testTag("market_filter_${tab.name.lowercase()}")
                         ) {
                             Text(
-                                text = label,
+                                text = localizedTabLabel,
                                 fontSize = 11.5.sp,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                 color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -575,6 +587,9 @@ fun MarketScreen(
                     ) {
                         items(marketCategories) { cat ->
                             val isSelected = selectedCategory == cat.name
+                            val localizedCatName = remember(cat.name, currentLanguage) {
+                                LocalizationHelper.getCategoryName(cat.name, currentLanguage)
+                            }
                             Surface(
                                 shape = RoundedCornerShape(100.dp),
                                 color = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
@@ -599,7 +614,7 @@ fun MarketScreen(
                                         modifier = Modifier.size(12.dp)
                                     )
                                     Text(
-                                        text = cat.name,
+                                        text = localizedCatName,
                                         fontSize = 10.sp,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                         color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
@@ -1102,6 +1117,13 @@ private fun GoodsCatalogView(
                     distanceMeters = 350,
                     hasCctv = true,
                     isOpen24h = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Vico Trends Chart: Price fluctuations for common neighborhood items over the last 30 days
+                NeighborhoodMarketPriceTrendsComponent(
+                    currentCurrency = currentCurrency
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))

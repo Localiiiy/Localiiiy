@@ -146,3 +146,39 @@ object StarterMonetizationData {
         )
     )
 }
+
+/**
+ * Local Creator Support & Neighborhood Patron Sub-Tier Models.
+ * Allows creators to configure a local tipping jar and offer a ₹99/mo ($0.99) neighborhood patron subscription.
+ */
+data class CreatorSupportSettings(
+    val isTippingJarEnabled: Boolean = true,
+    val tippingPrompt: String = "Support local indie clips & neighborhood reporting ☕",
+    val presetTipAmountsINR: List<Int> = listOf(50, 100, 250, 500),
+    val presetTipAmountsUSD: List<Double> = listOf(1.0, 3.0, 5.0, 10.0),
+    val isPatronTierEnabled: Boolean = true,
+    val patronTierName: String = "Neighborhood Patron",
+    val patronTierPriceINR: Int = 99, // ₹99/mo hyper-affordable patron tier
+    val patronTierPriceUSD: Double = 0.99, // $0.99/mo international patron tier
+    val patronPerks: List<String> = listOf(
+        "Exclusive behind-the-scenes clips & local outtakes",
+        "Gold Patron badge beside your name on radar and comments",
+        "Direct priority creator message access",
+        "Early flash access to local marketplace listings"
+    ),
+    val activePatronCount: Int = 18,
+    val monthlyPatronRevenueINR: Int = 1782, // 18 * 99
+    val totalTipsReceivedCount: Int = 64,
+    val totalTipsEarnedINR: Int = 3850
+)
+
+data class CreatorTipTransaction(
+    val id: String,
+    val creatorUsername: String,
+    val senderUsername: String,
+    val amount: Double,
+    val currencyCode: String,
+    val message: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
+

@@ -50,7 +50,8 @@ fun LiveRadarScreen(
     posts: List<PostEntity>,
     userProfile: UserProfileEntity,
     nearbyUsers: List<OtherUserEntity> = emptyList(),
-    selectedRadiusKm: Double? = 3.0,
+    selectedRadiusKm: Double? = 50.0,
+    isPremiumSubscribed: Boolean = false,
     onRadiusFilterChange: (Double) -> Unit = {},
     onPostClick: (PostEntity) -> Unit = {},
     onLikePost: (PostEntity) -> Unit = {},
@@ -65,8 +66,10 @@ fun LiveRadarScreen(
         )
     )
 
+    val isUserPremium = isPremiumSubscribed || userProfile.isVerified
+    val defaultRadius = if (!isUserPremium) (selectedRadiusKm ?: 50.0).coerceAtLeast(50.0) else (selectedRadiusKm ?: 3.0)
     var exploreBypassAllowed by remember { mutableStateOf(false) }
-    var currentRadius by remember { mutableStateOf(selectedRadiusKm ?: 3.0) }
+    var currentRadius by remember(isUserPremium) { mutableStateOf(defaultRadius) }
     var isGhostModeActive by remember { mutableStateOf(false) }
     var isAppInForeground by remember { mutableStateOf(true) }
 
@@ -107,6 +110,7 @@ fun LiveRadarScreen(
                         nearbyPosts = posts,
                         selectedRadiusKm = currentRadius,
                         isLocationEnabled = true,
+                        isPremiumSubscribed = isPremiumSubscribed,
                         isPrivateAccount = isGhostModeActive,
                         hidePreciseLocationOnRadar = isGhostModeActive,
                         onToggleHidePreciseLocation = { isGhostModeActive = it },

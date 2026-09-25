@@ -1,5 +1,8 @@
 package com.example.ui.components
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -367,6 +370,60 @@ fun ProfileIdentityCard(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+
+        // Space ID: Linked Social Media Handles Row
+        val clipboardMgr = LocalClipboardManager.current
+        val cardContext = LocalContext.current
+        val activeSocialHandles = remember(userProfile) {
+            listOfNotNull(
+                if (userProfile.instagramHandle.isNotBlank()) ("📸" to "@${userProfile.instagramHandle}") else null,
+                if (userProfile.twitterHandle.isNotBlank()) ("🐦" to "@${userProfile.twitterHandle}") else null,
+                if (userProfile.youtubeHandle.isNotBlank()) ("▶️" to "@${userProfile.youtubeHandle}") else null,
+                if (userProfile.tiktokHandle.isNotBlank()) ("🎵" to "@${userProfile.tiktokHandle}") else null,
+                if (userProfile.githubHandle.isNotBlank()) ("🐙" to userProfile.githubHandle) else null,
+                if (userProfile.linkedinHandle.isNotBlank()) ("💼" to userProfile.linkedinHandle) else null,
+                if (userProfile.telegramHandle.isNotBlank()) ("✈️" to "@${userProfile.telegramHandle}") else null,
+                if (userProfile.discordHandle.isNotBlank()) ("💬" to userProfile.discordHandle) else null
+            )
+        }
+
+        if (activeSocialHandles.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                activeSocialHandles.forEach { (icon, handle) ->
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        border = BorderStroke(0.6.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
+                        modifier = Modifier
+                            .clickable {
+                                clipboardMgr.setText(AnnotatedString(handle))
+                                Toast.makeText(cardContext, "Copied Space ID handle: $handle", Toast.LENGTH_SHORT).show()
+                            }
+                            .testTag("space_id_social_badge_${handle.replace("@", "")}")
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                        ) {
+                            Text(text = icon, fontSize = 11.sp)
+                            Text(
+                                text = handle,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         // Mutual Connections Section for Other User

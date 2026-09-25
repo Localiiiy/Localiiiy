@@ -1,12 +1,16 @@
 package com.example.auth
 
 import android.util.Log
+import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthOptions
+import com.google.firebase.auth.PhoneAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -117,7 +121,13 @@ object FirebaseAuthService {
             return@withContext AuthResult.Error("Incorrect password or invalid email format.")
         } catch (e: Exception) {
             Log.e(TAG, "Firebase sign-in error", e)
-            return@withContext AuthResult.Error(e.message ?: "Authentication failed.")
+            val rawMsg = e.message ?: "Authentication failed."
+            val friendlyMsg = if (rawMsg.contains("App Check", ignoreCase = true)) {
+                "Firebase App Check token error. In Firebase Console > App Check > APIs, set Authentication to 'Unenforce' or register your device SHA-256."
+            } else {
+                rawMsg
+            }
+            return@withContext AuthResult.Error(friendlyMsg)
         }
     }
 
@@ -180,7 +190,13 @@ object FirebaseAuthService {
             return@withContext AuthResult.Error("Password is too weak.")
         } catch (e: Exception) {
             Log.e(TAG, "Firebase sign-up error", e)
-            return@withContext AuthResult.Error(e.message ?: "Registration failed.")
+            val rawMsg = e.message ?: "Registration failed."
+            val friendlyMsg = if (rawMsg.contains("App Check", ignoreCase = true)) {
+                "Firebase App Check token error. In Firebase Console > App Check > APIs, set Authentication to 'Unenforce' or register your device SHA-256."
+            } else {
+                rawMsg
+            }
+            return@withContext AuthResult.Error(friendlyMsg)
         }
     }
 
@@ -207,6 +223,99 @@ object FirebaseAuthService {
                 Result.failure(e)
             }
         }
+    }
+
+    /**
+     * Authenticate or Register via Phone Number SMS OTP.
+     * Enforces Carrier-Grade SMS via Play Integrity.
+     */
+    suspend fun verifyPhoneNumber(
+        activity: android.app.Activity,
+        phoneNumber: String,
+        onCodeSent: (String, PhoneAuthProvider.ForceResendingToken) -> Unit,
+        onVerificationCompleted: (AuthUserState) -> Unit,
+        onVerificationFailed: (Exception) -> Unit
+    ) {
+        val options = PhoneAuthOptions.newBuilder(authInstance ?: return)
+            .setPhoneNumber(phoneNumber)
+            .setTimeout(60L, java.util.concurrent.TimeUnit.SECONDS)
+            .setActivity(activity)
+            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
+                    Log.d(TAG, "onVerificationCompleted: $credential")
+                    // Auto-retrieval or instant verification
+                    signInWithCredential(credential, onVerificationCompleted, onVerificationFailed)
+                }
+
+                override fun onVerificationFailed(e: FirebaseException) {
+                    Log.e(TAG, "onVerificationFailed", e)
+                    onVerificationFailed(e)
+                }
+
+                override fun onCodeSent(
+                    verificationId: String,
+                    token: PhoneAuthProvider.ForceResendingToken
+                ) {
+                    Log.d(TAG, "onCodeSent: $verificationId")
+                    onCodeSent(verificationId, token)
+                }
+            })
+            .build()
+        PhoneAuthProvider.verifyPhoneNumber(options)
+    }
+
+    private fun signInWithCredential(
+        credential: PhoneAuthCredential,
+        onSuccess: (AuthUserState) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val auth = authInstance ?: return
+        auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = task.result?.user
+                    if (user != null) {
+                        val state = AuthUserState(
+                            uid = user.uid,
+                            email = user.email,
+                            displayName = user.displayName ?: user.phoneNumber
+                        )
+                        _currentUserState.value = state
+                        onSuccess(state)
+                    }
+                } else {
+                    onFailure(task.exception ?: Exception("Phone sign-in failed"))
+                }
+            }
+    }
+
+    suspend fun signInWithSmsCode(
+        verificationId: String,
+        smsCode: String,
+        onSuccess: (AuthUserState) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        val credential = PhoneAuthProvider.getCredential(verificationId, smsCode)
+        signInWithCredential(credential, onSuccess, onFailure)
+    }
+
+    /**
+     * Checks if the current user is email verified.
+     * Returns true if verified or if the user signed in via Phone (no email).
+     */
+    fun isEmailVerified(): Boolean {
+        val user = authInstance?.currentUser
+        return user?.let {
+            if (it.email != null) it.isEmailVerified else true
+        } ?: false
+    }
+
+    /**
+     * Reloads the user to refresh emailVerified status.
+     */
+    suspend fun reloadUser() {
+        authInstance?.currentUser?.reload()?.await()
+        updateUserState(authInstance?.currentUser)
     }
 
     /**

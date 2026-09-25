@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
         CyberstalkingIncidentEntity::class,
         MerchantBountyEntity::class
     ],
-    version = 19,
+    version = 20,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

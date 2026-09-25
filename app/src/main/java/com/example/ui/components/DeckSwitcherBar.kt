@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ui.MainNavigationTab
+import com.example.util.LocalAppLanguage
+import com.example.util.LocalizationHelper
+import com.example.util.LocaliiiyLanguage
 
 /**
  * PROMPT 1: UNIFIED SINGLE-ID DECK SWITCHER
@@ -61,6 +64,7 @@ fun DeckSwitcherBar(
     currentTab: MainNavigationTab,
     userAvatarUrl: String,
     onTabSelected: (MainNavigationTab) -> Unit,
+    currentLanguage: LocaliiiyLanguage = LocalAppLanguage.current,
     modifier: Modifier = Modifier
 ) {
     val deckSlots = remember { DeckSlot.values() }
@@ -124,6 +128,7 @@ fun DeckSwitcherBar(
                     DeckPill(
                         slot = slot,
                         isSelected = isSelected,
+                        currentLanguage = currentLanguage,
                         onClick = { onTabSelected(slot.tab) },
                         modifier = Modifier.weight(1f)
                     )
@@ -182,6 +187,7 @@ fun DeckSwitcherBar(
 private fun DeckPill(
     slot: DeckSlot,
     isSelected: Boolean,
+    currentLanguage: LocaliiiyLanguage = LocalAppLanguage.current,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -200,6 +206,10 @@ private fun DeckPill(
         targetValue = if (isSelected) 3.dp else 0.dp,
         label = "pill_elevation"
     )
+
+    val localizedTitle = remember(slot.title, currentLanguage) {
+        LocalizationHelper.getSlotTitle(slot.title, currentLanguage)
+    }
 
     Box(
         modifier = modifier
@@ -223,13 +233,13 @@ private fun DeckPill(
         ) {
             Icon(
                 imageVector = if (isSelected) slot.activeIcon else slot.inactiveIcon,
-                contentDescription = slot.title,
+                contentDescription = localizedTitle,
                 tint = contentColor,
                 modifier = Modifier.size(19.dp)
             )
             Spacer(modifier = Modifier.height(1.dp))
             Text(
-                text = slot.title,
+                text = localizedTitle,
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = 9.5.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

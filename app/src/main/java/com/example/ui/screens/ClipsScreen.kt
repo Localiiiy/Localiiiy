@@ -7,6 +7,7 @@ import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.ui.graphics.graphicsLayer
+import com.example.data.copyright.CopyrightManager
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
@@ -76,6 +77,8 @@ import com.example.ui.components.SystematicDistanceScale
 import com.example.ui.components.formatCount
 import com.example.ui.theme.EditorialVerified
 import com.example.util.LocationHelper
+import com.example.util.LocalizationHelper
+import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyLanguage
 import com.example.util.ShareHelper
 import kotlinx.coroutines.delay
@@ -398,15 +401,18 @@ fun ClipsScreen(
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
                             ) {
+                                val localizedLabel = remember(filter.label, currentLanguage) {
+                                    LocalizationHelper.getFilterLabel(filter.label, currentLanguage)
+                                }
                                 Icon(
                                     imageVector = filter.icon,
-                                    contentDescription = filter.label,
+                                    contentDescription = localizedLabel,
                                     tint = if (isSelected) Color.Black else Color.White,
                                     modifier = Modifier.size(11.dp)
                                 )
                                 Spacer(modifier = Modifier.width(3.dp))
                                 Text(
-                                    text = filter.label,
+                                    text = localizedLabel,
                                     style = MaterialTheme.typography.labelSmall.copy(
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp
@@ -1532,12 +1538,22 @@ private fun ClipItem(
                 Button(
                     onClick = {
                         showReportDialog = false
+                        if (selectedReason == "Copyright or Intellectual Property Violation") {
+                            CopyrightManager.fileCopyrightClaim(
+                                targetContentId = "clip_${clip.id}",
+                                targetContentType = "CLIP",
+                                contentTitle = clip.caption.take(40),
+                                claimantHandle = "current_user",
+                                uploaderHandle = clip.username,
+                                reason = "Intellectual property infringement reported by creator."
+                            )
+                        }
                         onReportClip?.invoke(selectedReason)
                         showReportSuccessSnackbar = true
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Text("Submit Report", color = Color.White)
+                    Text(if (selectedReason == "Copyright or Intellectual Property Violation") "File Copyright Claim" else "Submit Report", color = Color.White)
                 }
             },
             dismissButton = {

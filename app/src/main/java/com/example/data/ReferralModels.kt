@@ -21,7 +21,7 @@ data class ReferralMilestone(
 
 data class NeighborReferralState(
     val userReferralCode: String = "LOCAL-ALEX-7821",
-    val referralLink: String = "https://localiiiy.app/join/LOCAL-ALEX-7821",
+    val referralLink: String = "https://localiiiy.web.app/join/LOCAL-ALEX-7821",
     val totalNeighborsInvited: Int = 4,
     val bonusPointsEarned: Int = 450,
     val activeBoostTitle: String = "2x Radar Reach Booster (36h left)",

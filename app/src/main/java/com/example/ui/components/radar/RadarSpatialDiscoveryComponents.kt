@@ -43,6 +43,9 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import android.widget.Toast
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import com.example.util.ShareHelper
 import com.example.data.OtherUserEntity
 import com.example.data.PostEntity
 import com.example.ui.theme.*
@@ -474,11 +477,13 @@ fun UnifiedRadarRangeSlider(
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     
-    // Non-premium restricted to 50 KM
-    val maxKm = if (isPremium) 20000.0 else 50.0
-    val roundedKm = currentRadiusKm.coerceIn(1.0, maxKm)
+    // Km up to 3 and 10 K are authorized to Premium users only; 50 KM and above are free for all users
+    val minKm = if (isPremium) 1.0 else 50.0
+    val maxKm = 20000.0
+    val roundedKm = currentRadiusKm.coerceIn(minKm, maxKm)
     
     // Scale mapping for a smoother slider experience (logarithmic-like visually)
+    val minLog = kotlin.math.log10(minKm)
     val maxLog = kotlin.math.log10(maxKm)
     val currentLog = kotlin.math.log10(roundedKm).toFloat()
 
@@ -520,12 +525,12 @@ fun UnifiedRadarRangeSlider(
                 )
                 
                 androidx.compose.material3.Slider(
-                    value = currentLog,
+                    value = currentLog.coerceIn(minLog.toFloat(), maxLog.toFloat()),
                     onValueChange = { logVal ->
-                        val nextKm = Math.pow(10.0, logVal.toDouble()).coerceIn(1.0, maxKm)
+                        val nextKm = Math.pow(10.0, logVal.toDouble()).coerceIn(minKm, maxKm)
                         onRadiusChange(nextKm)
                     },
-                    valueRange = 0f..maxLog.toFloat(),
+                    valueRange = minLog.toFloat()..maxLog.toFloat(),
                     modifier = Modifier.weight(1f),
                     colors = androidx.compose.material3.SliderDefaults.colors(
                         thumbColor = RadarNeonGreen,
@@ -554,7 +559,8 @@ fun UnifiedRadarRangeSlider(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 presets.forEach { (label, value) ->
-                    val isLocked = value > 50.0 && !isPremium
+                    // Km up to 3 and 10 K are authorized to Premium user; rest from 50 to above for all users
+                    val isLocked = value <= 10.0 && !isPremium
                     val isSelected = (value <= 50.0 && kotlin.math.abs(roundedKm - value) < 0.5) ||
                                      (value > 50.0 && roundedKm > 50.0 && kotlin.math.abs(roundedKm - value) < 1000.0)
 
@@ -569,7 +575,7 @@ fun UnifiedRadarRangeSlider(
                             .clickable {
                                 HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                 if (isLocked) {
-                                    Toast.makeText(context, "Premium Feature: Unlocks State, Country & Global Radar Range 🔒", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "🔒 Premium Feature: 1k, 3k & 10k Hyperlocal Range requires Premium (₹299/mo). 50k & above are free for all!", Toast.LENGTH_LONG).show()
                                 } else {
                                     onRadiusChange(value)
                                 }
@@ -920,6 +926,8 @@ fun DirectRadarChatDispatchSheet(
         val hash = kotlin.math.abs(targetUser.username.hashCode()).toString(16).padStart(4, '0').take(4)
         "user_$hash"
     }
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     var quickMessage by remember { mutableStateOf("Hey neighbor! Saw you on Live Radar 👋") }
 
     Card(
@@ -969,6 +977,78 @@ fun DirectRadarChatDispatchSheet(
                 }
                 IconButton(onClick = onClose, modifier = Modifier.size(24.dp)) {
                     Icon(Icons.Default.Close, contentDescription = "Close", tint = RadarPhosphor, modifier = Modifier.size(16.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Real-Time Radar Coordinates & Locality Banner
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF041E0B),
+                border = BorderStroke(0.8.dp, RadarPhosphor.copy(alpha = 0.5f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = RadarNeonGreen, modifier = Modifier.size(12.dp))
+                            Text(
+                                text = targetUser.locationName.ifBlank { "Neighborhood Radar Blip" },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Text(
+                            text = "GPS: ${String.format("%.5f", targetUser.latitude)}, ${String.format("%.5f", targetUser.longitude)}",
+                            fontSize = 8.5.sp,
+                            color = RadarCyanGlow,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+
+                    // Share Location & Copy Coords Action Buttons
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        IconButton(
+                            onClick = {
+                                val coords = "${String.format("%.6f", targetUser.latitude)}, ${String.format("%.6f", targetUser.longitude)}"
+                                clipboardManager.setText(AnnotatedString(coords))
+                                Toast.makeText(context, "Radar coordinates copied: $coords", Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Copy Coordinates", tint = RadarCyanGlow, modifier = Modifier.size(14.dp))
+                        }
+
+                        IconButton(
+                            onClick = {
+                                val shareText = ShareHelper.buildRadarLocationShareText(
+                                    username = targetUser.username,
+                                    locationName = targetUser.locationName,
+                                    latitude = targetUser.latitude,
+                                    longitude = targetUser.longitude,
+                                    distanceKm = targetUser.distanceKm,
+                                    isSelf = false
+                                )
+                                ShareHelper.launchNativeShare(
+                                    context = context,
+                                    shareText = shareText,
+                                    subject = "Radar Blip: @${targetUser.username} on Localiiiy",
+                                    chooserTitle = "Share Radar Coordinates via Social Media / DM"
+                                )
+                            },
+                            modifier = Modifier.size(28.dp).testTag("radar_blip_share_icon_button")
+                        ) {
+                            Icon(Icons.Default.Share, contentDescription = "Share Location", tint = RadarNeonGreen, modifier = Modifier.size(14.dp))
+                        }
+                    }
                 }
             }
 
@@ -1022,8 +1102,41 @@ fun DirectRadarChatDispatchSheet(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
+                // Share action button on the blip detail popup
+                OutlinedButton(
+                    onClick = {
+                        val shareText = ShareHelper.buildRadarLocationShareText(
+                            username = targetUser.username,
+                            locationName = targetUser.locationName,
+                            latitude = targetUser.latitude,
+                            longitude = targetUser.longitude,
+                            distanceKm = targetUser.distanceKm,
+                            isSelf = false
+                        )
+                        ShareHelper.launchNativeShare(
+                            context = context,
+                            shareText = shareText,
+                            subject = "Radar Location for @${targetUser.username}",
+                            chooserTitle = "Share Coordinates via Social Media / DM"
+                        )
+                    },
+                    border = BorderStroke(1.dp, RadarCyanGlow),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = RadarCyanGlow),
+                    modifier = Modifier.weight(1f).height(40.dp).testTag("radar_blip_share_button")
+                ) {
+                    Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(13.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "SHARE 📍",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.5.sp,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+
                 OutlinedButton(
                     onClick = {
                         onSendQuickGreeting("🤝 Proposed a Connection via Radar: $quickMessage")
@@ -1031,12 +1144,12 @@ fun DirectRadarChatDispatchSheet(
                     },
                     border = BorderStroke(1.dp, RadarNeonGreen),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f).height(40.dp)
+                    modifier = Modifier.weight(1.2f).height(40.dp)
                 ) {
                     Text(
                         text = "CONNECT 🤝",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 10.5.sp,
                         color = RadarNeonGreen,
                         fontFamily = FontFamily.Monospace
                     )
@@ -1049,12 +1162,12 @@ fun DirectRadarChatDispatchSheet(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = RadarNeonGreen),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f).height(40.dp)
+                    modifier = Modifier.weight(1.2f).height(40.dp)
                 ) {
                     Text(
                         text = "DISPATCH ⚡",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                        fontSize = 10.5.sp,
                         color = Color.Black,
                         fontFamily = FontFamily.Monospace
                     )
