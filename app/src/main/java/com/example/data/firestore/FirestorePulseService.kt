@@ -171,3 +171,40 @@ data class HyperlocalPulseDocument(
         )
     }
 }
+
+/**
+ * Appends community discussion remark to Firestore path: posts/{postId}/remarks/{remarkId}
+ */
+fun appendPostRemarkToFirestore(
+    postId: String,
+    remarkId: String,
+    authorName: String,
+    authorHandle: String,
+    authorAvatar: String,
+    content: String
+): Boolean {
+    return try {
+        val firestore = FirebaseFirestore.getInstance()
+        firestore.collection("posts")
+            .document(postId)
+            .collection("remarks")
+            .document(remarkId)
+            .set(
+                mapOf(
+                    "id" to remarkId,
+                    "postId" to postId,
+                    "authorName" to authorName,
+                    "authorHandle" to authorHandle,
+                    "authorAvatar" to authorAvatar,
+                    "content" to content,
+                    "timestamp" to System.currentTimeMillis(),
+                    "likesCount" to 0
+                )
+            )
+        true
+    } catch (e: Exception) {
+        Log.w("FirestorePulse", "Offline/Mock fallback for remark $remarkId on post $postId: ${e.message}")
+        false
+    }
+}
+

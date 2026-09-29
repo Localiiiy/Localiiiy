@@ -88,7 +88,9 @@ fun LocaliiiySearchBar(
                             lineHeight = 20.sp
                         ),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
@@ -96,6 +98,7 @@ fun LocaliiiySearchBar(
                     value = query,
                     onValueChange = onQueryChange,
                     singleLine = true,
+                    maxLines = 1,
                     textStyle = TextStyle(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,

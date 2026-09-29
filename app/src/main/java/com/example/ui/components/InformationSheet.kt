@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
@@ -40,9 +42,11 @@ fun InformationSheet(onDismiss: () -> Unit) {
         val pagerState = rememberPagerState(pageCount = { 5 })
         val coroutineScope = rememberCoroutineScope()
 
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -69,7 +73,7 @@ fun InformationSheet(onDismiss: () -> Unit) {
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(320.dp)
+                    .heightIn(min = 320.dp, max = 390.dp)
             ) { page ->
                 when (page) {
                     0 -> OnboardingPage(
@@ -95,7 +99,8 @@ fun InformationSheet(onDismiss: () -> Unit) {
                     4 -> Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 24.dp),
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 24.dp, vertical = 8.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {

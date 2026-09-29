@@ -121,7 +121,7 @@ fun ProfileScreen(
     draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
     onSelectDraftForEdit: (com.example.data.DraftClipEntity) -> Unit = {},
     onDeleteDraftClip: (Long) -> Unit = {},
-    appDisplayScale: String = "SYSTEM",
+    appDisplayScale: String = "SCALE_95",
     onSelectDisplayScale: (String) -> Unit = {},
     onOpenDataAnalysis: () -> Unit = {},
     onOpenHelp: () -> Unit = {},
@@ -1587,12 +1587,12 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "2. Android APK (Google Drive)",
+                                    text = "2. Android Release APK (Latest Build)",
                                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Download & install APK directly",
+                                    text = "Direct download & instant install",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF10B981)
                                 )
@@ -1964,7 +1964,7 @@ private fun ProfileSettingsSheetContent(
     onOpenLegalPolicy: () -> Unit,
     onOpenCyberstalkingSafety: () -> Unit = {},
     draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
-    appDisplayScale: String = "SYSTEM",
+    appDisplayScale: String = "SCALE_95",
     onOpenDisplayScale: () -> Unit = {},
     onOpenDraftClips: () -> Unit = {},
     onSwitchUser: (OtherUserEntity) -> Unit,
@@ -2136,16 +2136,9 @@ private fun ProfileSettingsSheetContent(
         Spacer(modifier = Modifier.height(6.dp))
 
         SettingsRowItem(
-            icon = Icons.Default.HelpOutline,
-            title = "Help & Support",
-            subtitle = "5W & 1H FAQ, advance search, app tasks",
-            onClick = onOpenHelp
-        )
-
-        SettingsRowItem(
-            icon = Icons.Default.Info,
-            title = "Information & Badges",
-            subtitle = "Creator tiers, terminology, app pages",
+            icon = Icons.Default.School,
+            title = "Tutorials & Badges",
+            subtitle = "Interactive guides, Ghost Mode, Safe spots, 9:16 clips & badges",
             onClick = onOpenInformation
         )
 
@@ -2155,70 +2148,6 @@ private fun ProfileSettingsSheetContent(
             subtitle = "Open official Web App or download Android APK via Google Drive",
             onClick = onOpenDownloadApp
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "SWITCH LOCAL CREATOR ACCOUNT",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Community Switcher
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(otherUsers.take(4)) { user ->
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)),
-                    modifier = Modifier
-                        .width(130.dp)
-                        .clickable { onSwitchUser(user) }
-                ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(user.avatarUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = user.username,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = user.fullName,
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = "@${user.username}",
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Switch",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -2482,54 +2411,7 @@ private fun LoggedOutProfileView(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "or Switch to Local Creator",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            otherUsers.take(3).forEach { user ->
-                OutlinedButton(
-                    onClick = {
-                        onSwitchUser(user)
-                        onLogin()
-                    },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(user.avatarUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = user.username,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "${user.fullName} (@${user.username})",
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = "Localiiiy v1.0.0 • Production Ready for Real Users",

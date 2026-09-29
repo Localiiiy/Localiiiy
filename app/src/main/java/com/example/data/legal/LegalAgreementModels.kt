@@ -254,7 +254,7 @@ This Non-Disclosure Agreement (NDA) and Confidentiality Covenant is an enforceab
             legalText = """
 11.1 Creator Control & Dual-Reach Distribution Engine:
 Localiiiy introduces a dual-reach distribution architecture where creators maintain sovereignty over who discovers their work:
-(a) Immediate Hyperlocal Distribution (Neighbor): Every post, clip, or service gig first anchors in your immediate locality, enabling genuine neighborhood discovery and local engagement without requiring massive follower counts;
+(a) Immediate Hyperlocal Distribution (Neighbor): Every post, clip, or service gig first anchors in your immediate locality, enabling genuine neighborhood discovery and local engagement without requiring massive connection counts;
 (b) Organic Algorithmic Scaling (Neighbor to World): Based on local relevance and verified community resonance, content scales seamlessly from Neighbor -> Neighborhood -> City -> State -> Earth (Worldwide). High-quality stories and creative video clips naturally reach audiences globally;
 (c) Distribution Reach Controls: Creators can select their distribution boundary before publishing (e.g. restrict to local neighborhood or enable universal Earth broadcast).
 
@@ -340,7 +340,7 @@ In full compliance with Google Play Developer Program Policies for public produc
 (d) Account Deletion & Right to Permanent Erasure:
     • Any real user can permanently delete their account at any time directly inside the app: Navigate to Profile -> Settings -> Delete Account;
     • Triggering account deletion immediately and permanently erases: (1) Firebase Authentication user credentials, (2) User Firestore profile record, posts, clips, and messages, and (3) all local device SQLite Room database caches;
-    • Users can also submit an automated deletion request via official privacy portal (https://localiiiy.web.app/privacy) or support email (support@localiiiy.web.app) without needing to re-install the application.
+    • Users can also submit an automated deletion request via official privacy portal (https://localiiiy.web.app/privacy.html) or support email (support@localiiiy.web.app) without needing to re-install the application.
     • Official Live Firebase Web App: https://localiiiy.web.app
     • Official Store Compliance SLA: Verified for Google Play Developer Program Production Release.
             """.trimIndent(),

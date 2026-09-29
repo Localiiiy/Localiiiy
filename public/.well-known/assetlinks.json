@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.aistudio.localiiiy.live",
+      "sha256_cert_fingerprints": [
+        "AF:5F:FC:0A:B3:18:6D:10:90:85:9A:9A:5B:BE:DD:BD:99:BE:1E:0D:E2:E0:3E:F4:C5:B9:61:AF:4E:09:5F:31"
+      ]
+    }
+  }
+]

@@ -801,7 +801,7 @@ fun PremiumSubscriptionScreen(
                                 )
                             }
                             Text(
-                                text = "Exclusive Titan privilege: Activate your neighborhood tipping jar and offer a ₹99/month ($0.99) patron tier to your local followers with 0% platform fee.",
+                                text = "Exclusive Titan privilege: Activate your neighborhood tipping jar and offer a ₹99/month ($0.99) patron tier to your local connections with 0% platform fee.",
                                 fontSize = 12.sp,
                                 color = Color(0xFFD4C8A5),
                                 lineHeight = 17.sp

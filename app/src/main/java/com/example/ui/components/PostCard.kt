@@ -87,6 +87,7 @@ fun PostCard(
     onAmplifyToCity: (() -> Unit)? = null,
     onSaveToShelf: ((String) -> Unit)? = null,
     onExploreNeighborhood: ((String) -> Unit)? = null,
+    onHashtagClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -676,7 +677,7 @@ fun PostCard(
                 )
             }
 
-            // --- Caption with Expandable Toggle ---
+            // --- Caption with Expandable Toggle & Hashtag Support ---
             if (post.caption.isNotBlank()) {
                 val captionToDisplay = translatedCaption ?: post.caption
                 val captionText = buildAnnotatedString {
@@ -688,12 +689,27 @@ fun PostCard(
                     ) {
                         append("${post.username} ")
                     }
-                    withStyle(
-                        SpanStyle(
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    ) {
-                        append(captionToDisplay)
+                    val words = captionToDisplay.split(" ")
+                    words.forEachIndexed { idx, word ->
+                        if (word.startsWith("#") && word.length > 1) {
+                            withStyle(
+                                SpanStyle(
+                                    color = LocaliiiyPrimaryTeal,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append(word)
+                            }
+                        } else {
+                            withStyle(
+                                SpanStyle(
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            ) {
+                                append(word)
+                            }
+                        }
+                        if (idx < words.size - 1) append(" ")
                     }
                 }
 
@@ -708,6 +724,35 @@ fun PostCard(
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                         .clickable { isCaptionExpanded = !isCaptionExpanded }
                 )
+
+                // Interactive Hashtag Pills row
+                if (post.hashtags.isNotEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        post.hashtags.take(4).forEach { tag ->
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = LocaliiiyPrimaryTeal.copy(alpha = 0.12f),
+                                border = BorderStroke(0.8.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.4f)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { onHashtagClick?.invoke(tag) }
+                            ) {
+                                Text(
+                                    text = tag,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LocaliiiyPrimaryTeal,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
 
                 // Section 2.12: Global Trend Translation Bridge
                 Row(

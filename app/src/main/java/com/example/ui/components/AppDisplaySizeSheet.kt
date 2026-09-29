@@ -38,46 +38,46 @@ data class DisplayScaleOption(
 
 val DISPLAY_SCALE_OPTIONS = listOf(
     DisplayScaleOption(
-        key = "SYSTEM",
-        title = "Mobile System Default",
-        factorLabel = "Auto",
-        description = "Follows your smartphone's system display size and font scale settings.",
-        scaleMultiplier = 1.0f
-    ),
-    DisplayScaleOption(
-        key = "COMPACT",
-        title = "Compact Scaling",
-        factorLabel = "85%",
-        description = "Recommended if buttons, sheets, or menu options are hiding or cut off on your smartphone.",
-        scaleMultiplier = 0.85f
+        key = "SCALE_95",
+        title = "95% (Default Recommended)",
+        factorLabel = "95%",
+        description = "Optimized layout scale preventing text wrapping and preserving clean UI geometry across all devices.",
+        scaleMultiplier = 0.95f
     ),
     DisplayScaleOption(
         key = "STANDARD",
-        title = "Standard Scaling",
+        title = "100% (Standard)",
         factorLabel = "100%",
-        description = "Balanced default layout with standard Material Design 3 spacing and touch targets.",
+        description = "Native baseline Material Design 3 geometry and spacing.",
         scaleMultiplier = 1.0f
     ),
     DisplayScaleOption(
-        key = "COMFORTABLE",
-        title = "Comfortable Scaling",
-        factorLabel = "115%",
-        description = "Slightly enlarged text and buttons for improved readability and easier tapping.",
-        scaleMultiplier = 1.15f
+        key = "SCALE_90",
+        title = "90%",
+        factorLabel = "90%",
+        description = "Streamlined proportion to fit dense feeds and bottom sheets comfortably.",
+        scaleMultiplier = 0.90f
     ),
     DisplayScaleOption(
-        key = "LARGE",
-        title = "Large Accessibility",
-        factorLabel = "130%",
-        description = "Maximum size for enhanced visibility on high-resolution smartphone screens.",
-        scaleMultiplier = 1.30f
+        key = "COMPACT",
+        title = "85% (Compact)",
+        factorLabel = "85%",
+        description = "Compact scaling to eliminate UI clipping and ensure full button visibility on small displays.",
+        scaleMultiplier = 0.85f
+    ),
+    DisplayScaleOption(
+        key = "SYSTEM",
+        title = "System Default",
+        factorLabel = "Auto",
+        description = "Auto-detects your smartphone's system display density and font scale.",
+        scaleMultiplier = 1.0f
     )
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDisplaySizeSheet(
-    currentScaleKey: String = "SYSTEM",
+    currentScaleKey: String = "SCALE_95",
     onSelectScale: (String) -> Unit,
     onDismiss: () -> Unit
 ) {

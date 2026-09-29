@@ -81,7 +81,8 @@ fun StudioInlinePreviewPlayer(
             repeatMode = Player.REPEAT_MODE_ONE
             volume = if (isMuted) 0f else 1f
             try {
-                val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
+                val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
+                val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
                 setMediaItem(mediaItem)
                 prepare()
                 playWhenReady = true

@@ -43,8 +43,6 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -190,17 +188,10 @@ fun ClipsScreen(
             .background(Color.Black)
             .testTag("clips_screen_container")
     ) {
-        @OptIn(ExperimentalMaterial3Api::class)
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
-            state = rememberPullToRefreshState(),
+        VerticalPager(
+            state = pagerState,
+            flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
             modifier = Modifier.fillMaxSize()
-        ) {
-            VerticalPager(
-                state = pagerState,
-                flingBehavior = PagerDefaults.flingBehavior(state = pagerState),
-                modifier = Modifier.fillMaxSize()
             ) { page ->
                 val clip = displayedClips[page]
                 val isCurrentPage = pagerState.currentPage == page
@@ -244,7 +235,6 @@ fun ClipsScreen(
                     }
                 }
             }
-        }
 
         // =========================================================================
         // 1. TOP APP BAR & HEADER (COMPACT & UNIFIED 3-ROW ERGONOMIC STACK)
@@ -263,7 +253,8 @@ fun ClipsScreen(
                     )
                 )
                 .statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .offset(y = (-14).dp)
+                .padding(horizontal = 12.dp, vertical = 2.dp)
                 .zIndex(15f)
         ) {
             Column(
@@ -772,7 +763,7 @@ private fun ClipItem(
                 .align(Alignment.CenterEnd)
                 .zIndex(5f)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
-                .padding(end = 12.dp, top = 60.dp, bottom = 36.dp)
+                .padding(end = 12.dp, top = 118.dp, bottom = 36.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)

@@ -31,10 +31,23 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.*
 import com.example.data.community.*
+import com.example.data.firestore.appendPostRemarkToFirestore
 import com.example.ui.components.AnimatedLikeButton
 import com.example.ui.components.CommentActionButton
 import java.text.SimpleDateFormat
 import java.util.*
+
+data class CommunityRemarkItem(
+    val id: String,
+    val postId: String,
+    val authorName: String,
+    val authorHandle: String,
+    val authorAvatar: String,
+    val content: String,
+    val timestamp: Long,
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false
+)
 
 private val MintAccent = Color(0xFF10B981)
 private val DarkBg = Color(0xFF070A12)
@@ -184,6 +197,63 @@ fun LocaliiiyCommunityHub(
                     attachmentBadge = "OFFICIAL BROADCAST 📢",
                     likesCount = 42,
                     commentsCount = 12
+                )
+            )
+        )
+    }
+
+    // Active post for interactive remarks discussion bottom sheet
+    var activeRemarksPost by remember { mutableStateOf<CommunityPostEntity?>(null) }
+    var remarksMap by remember {
+        mutableStateOf(
+            mapOf(
+                "cp_1" to listOf(
+                    CommunityRemarkItem(
+                        id = "rem_1",
+                        postId = "cp_1",
+                        authorName = "Liam O'Connor",
+                        authorHandle = "@liam_barber",
+                        authorAvatar = "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop&q=80",
+                        content = "Grabbed two of these stoneware mugs! The glaze on them is incredible in person. 👌",
+                        timestamp = System.currentTimeMillis() - 1000 * 60 * 30,
+                        likesCount = 4,
+                        isLiked = true
+                    ),
+                    CommunityRemarkItem(
+                        id = "rem_2",
+                        postId = "cp_1",
+                        authorName = "Chloe Chen",
+                        authorHandle = "@chloe_lens",
+                        authorAvatar = "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80",
+                        content = "Can we pick up at the safe exchange hub tomorrow afternoon?",
+                        timestamp = System.currentTimeMillis() - 1000 * 60 * 15,
+                        likesCount = 2,
+                        isLiked = false
+                    ),
+                    CommunityRemarkItem(
+                        id = "rem_3",
+                        postId = "cp_1",
+                        authorName = "Elena Rivera",
+                        authorHandle = "@elena_crafts",
+                        authorAvatar = "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+                        content = "Yes @chloe_lens! I'll be by the Central Commons safe spot between 2-4 PM. See you there!",
+                        timestamp = System.currentTimeMillis() - 1000 * 60 * 5,
+                        likesCount = 3,
+                        isLiked = false
+                    )
+                ),
+                "cp_2" to listOf(
+                    CommunityRemarkItem(
+                        id = "rem_4",
+                        postId = "cp_2",
+                        authorName = "Alex Rivera",
+                        authorHandle = "@alex_rivera",
+                        authorAvatar = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80",
+                        content = "The lighting in the 4K sequence at 02:15 is breathtaking Marcus! 🎬",
+                        timestamp = System.currentTimeMillis() - 1000 * 60 * 80,
+                        likesCount = 5,
+                        isLiked = true
+                    )
                 )
             )
         )
@@ -539,6 +609,7 @@ fun LocaliiiyCommunityHub(
                             ) else it
                         }
                     },
+                    onRemarksClick = { post -> activeRemarksPost = post },
                     onOpenAiDigest = { showAiDigestDialog = true },
                     onNavigateToMarketItem = onNavigateToMarketItem,
                     onNavigateToClip = onNavigateToClip,
@@ -1042,6 +1113,54 @@ fun LocaliiiyCommunityHub(
             containerColor = Color(0xFF0F172A)
         )
     }
+
+    // Interactive Modal Bottom Sheet for Community Remarks & Discussions
+    if (activeRemarksPost != null) {
+        val targetPost = activeRemarksPost!!
+        val postRemarks = remarksMap[targetPost.id] ?: emptyList()
+        CommunityRemarksBottomSheet(
+            post = targetPost,
+            remarks = postRemarks,
+            userProfile = userProfile,
+            onDismiss = { activeRemarksPost = null },
+            onAddRemark = { remarkText ->
+                val newRemarkId = "rem_${System.currentTimeMillis()}"
+                val newRemark = CommunityRemarkItem(
+                    id = newRemarkId,
+                    postId = targetPost.id,
+                    authorName = userProfile.fullName.ifBlank { userProfile.username },
+                    authorHandle = "@${userProfile.username}",
+                    authorAvatar = userProfile.avatarUrl,
+                    content = remarkText,
+                    timestamp = System.currentTimeMillis()
+                )
+                // Real-time stream updates showing existing community responses
+                remarksMap = remarksMap + (targetPost.id to (postRemarks + newRemark))
+                // Append remarks to Firestore path: posts/{postId}/remarks/{remarkId}
+                appendPostRemarkToFirestore(
+                    postId = targetPost.id,
+                    remarkId = newRemarkId,
+                    authorName = newRemark.authorName,
+                    authorHandle = newRemark.authorHandle,
+                    authorAvatar = newRemark.authorAvatar,
+                    content = newRemark.content
+                )
+                // Increment comments counter
+                communityPosts = communityPosts.map {
+                    if (it.id == targetPost.id) it.copy(commentsCount = it.commentsCount + 1) else it
+                }
+                Toast.makeText(context, "Remark posted to discussion thread ✍️", Toast.LENGTH_SHORT).show()
+            },
+            onToggleLikeRemark = { remarkId ->
+                remarksMap = remarksMap + (targetPost.id to postRemarks.map {
+                    if (it.id == remarkId) it.copy(
+                        isLiked = !it.isLiked,
+                        likesCount = if (it.isLiked) it.likesCount - 1 else it.likesCount + 1
+                    ) else it
+                })
+            }
+        )
+    }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -1066,6 +1185,7 @@ private fun CommunityFeedTabContent(
     onSelectAttachment: (CommunityAttachmentType, MarketplaceItemEntity?, ClipEntity?) -> Unit,
     onPublishPost: (CommunityPostEntity) -> Unit,
     onLikePost: (CommunityPostEntity) -> Unit,
+    onRemarksClick: (CommunityPostEntity) -> Unit,
     onOpenAiDigest: () -> Unit,
     onNavigateToMarketItem: (Long) -> Unit,
     onNavigateToClip: (ClipEntity) -> Unit,
@@ -1360,6 +1480,7 @@ private fun CommunityFeedTabContent(
             CommunityPostCard(
                 post = post,
                 onLikeClick = { onLikePost(post) },
+                onRemarksClick = { onRemarksClick(post) },
                 onNavigateToMarketItem = onNavigateToMarketItem,
                 onNavigateToClip = onNavigateToClip,
                 onNavigateToStudio = onNavigateToStudio,
@@ -1843,6 +1964,7 @@ private fun CommunityPremiumIntelTabContent(
 private fun CommunityPostCard(
     post: CommunityPostEntity,
     onLikeClick: () -> Unit,
+    onRemarksClick: () -> Unit,
     onNavigateToMarketItem: (Long) -> Unit,
     onNavigateToClip: (ClipEntity) -> Unit,
     onNavigateToStudio: (String) -> Unit,
@@ -2079,9 +2201,7 @@ private fun CommunityPostCard(
 
                     // Original signature Remarks/Comment button ('✍️')
                     CommentActionButton(
-                        onClick = {
-                            Toast.makeText(context, "Community discussions & remarks open ✍️", Toast.LENGTH_SHORT).show()
-                        },
+                        onClick = onRemarksClick,
                         commentsCount = post.commentsCount,
                         showCount = true,
                         symbolSize = 16.sp,
@@ -2104,6 +2224,345 @@ private fun CommunityPostCard(
                         modifier = Modifier.size(15.dp)
                     )
                 }
+            }
+        }
+    }
+}
+
+// -------------------------------------------------------------------------------------------------
+// COMMUNITY REMARKS BOTTOM SHEET (REAL-TIME DISCUSSION THREAD)
+// -------------------------------------------------------------------------------------------------
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CommunityRemarksBottomSheet(
+    post: CommunityPostEntity,
+    remarks: List<CommunityRemarkItem>,
+    userProfile: UserProfileEntity,
+    onDismiss: () -> Unit,
+    onAddRemark: (String) -> Unit,
+    onToggleLikeRemark: (String) -> Unit
+) {
+    var remarkInputText by remember { mutableStateOf("") }
+    val quickEmojis = listOf("👌", "🙌", "🔥", "👏", "✨", "💯")
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = Color(0xFF0F172A),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF475569)) },
+        modifier = Modifier.testTag("community_remarks_sheet")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.80f)
+                .navigationBarsPadding()
+        ) {
+            // Header
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("✍️", fontSize = 18.sp)
+                        Column {
+                            Text(
+                                text = "Community Remarks & Discussions",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "posts/${post.id}/remarks • Real-time Stream",
+                                color = MintAccent,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Post Snippet Card
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFF1E293B),
+                    border = BorderStroke(0.5.dp, Color(0xFF334155)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        AsyncImage(
+                            model = post.authorAvatar,
+                            contentDescription = post.authorName,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${post.authorName} (${post.authorHandle})",
+                                color = Color(0xFF94A3B8),
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = post.content,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            HorizontalDivider(color = Color(0xFF1E293B), thickness = 1.dp, modifier = Modifier.padding(vertical = 6.dp))
+
+            // Remarks Stream List
+            if (remarks.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("💬", fontSize = 28.sp)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text("No remarks yet in this discussion thread.", color = Color(0xFF94A3B8), fontSize = 13.sp)
+                        Text("Be the first neighbor to reply!", color = MintAccent, fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    items(remarks, key = { it.id }) { remark ->
+                        RemarkItemRow(
+                            remark = remark,
+                            onToggleLike = { onToggleLikeRemark(remark.id) }
+                        )
+                    }
+                }
+            }
+
+            // Quick Emoji Reaction Row
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(quickEmojis) { emoji ->
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = Color(0xFF1E293B),
+                        border = BorderStroke(0.5.dp, Color(0xFF334155)),
+                        modifier = Modifier
+                            .clickable { remarkInputText += emoji }
+                    ) {
+                        Text(
+                            text = emoji,
+                            fontSize = 18.sp,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            // Bottom Input Bar
+            Surface(
+                color = Color(0xFF1E293B),
+                border = BorderStroke(1.dp, Color(0xFF334155)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    AsyncImage(
+                        model = userProfile.avatarUrl.ifBlank { "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80" },
+                        contentDescription = userProfile.username,
+                        modifier = Modifier
+                            .size(34.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    OutlinedTextField(
+                        value = remarkInputText,
+                        onValueChange = { remarkInputText = it },
+                        placeholder = {
+                            Text(
+                                "Add a remark to discussion thread...",
+                                fontSize = 12.sp,
+                                color = Color(0xFF64748B)
+                            )
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MintAccent,
+                            unfocusedBorderColor = Color(0xFF334155),
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedContainerColor = Color(0xFF0F172A),
+                            unfocusedContainerColor = Color(0xFF0F172A)
+                        ),
+                        shape = RoundedCornerShape(100.dp),
+                        singleLine = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .testTag("community_remark_input_field")
+                    )
+
+                    IconButton(
+                        onClick = {
+                            if (remarkInputText.isNotBlank()) {
+                                onAddRemark(remarkInputText.trim())
+                                remarkInputText = ""
+                            }
+                        },
+                        enabled = remarkInputText.isNotBlank(),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = if (remarkInputText.isNotBlank()) MintAccent else Color(0xFF334155),
+                            contentColor = Color.Black
+                        ),
+                        modifier = Modifier
+                            .size(36.dp)
+                            .testTag("send_community_remark_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Send,
+                            contentDescription = "Send Remark",
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemarkItemRow(
+    remark: CommunityRemarkItem,
+    onToggleLike: () -> Unit
+) {
+    val timeAgo = remember(remark.timestamp) {
+        val diff = (System.currentTimeMillis() - remark.timestamp) / (1000 * 60)
+        when {
+            diff < 1 -> "Just now"
+            diff < 60 -> "${diff}m ago"
+            else -> "${diff / 60}h ago"
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        AsyncImage(
+            model = remark.authorAvatar,
+            contentDescription = remark.authorName,
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+
+        Column(modifier = Modifier.weight(1f)) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color(0xFF1E293B),
+                border = BorderStroke(0.5.dp, Color(0xFF334155))
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = remark.authorName,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = remark.authorHandle,
+                                color = Color(0xFF94A3B8),
+                                fontSize = 10.sp
+                            )
+                        }
+                        Text(text = timeAgo, color = Color(0xFF64748B), fontSize = 10.sp)
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = remark.content,
+                        color = Color(0xFFF1F5F9),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            // Like action row below remark
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .clickable { onToggleLike() }
+            ) {
+                Text(
+                    text = if (remark.isLiked) "❤️" else "🤍",
+                    fontSize = 11.sp
+                )
+                if (remark.likesCount > 0) {
+                    Text(
+                        text = "${remark.likesCount}",
+                        fontSize = 10.sp,
+                        color = if (remark.isLiked) Color(0xFFFF3366) else Color(0xFF94A3B8)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Reply",
+                    fontSize = 10.sp,
+                    color = Color(0xFF64748B),
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

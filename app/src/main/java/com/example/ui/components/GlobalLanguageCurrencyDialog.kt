@@ -138,7 +138,9 @@ fun GlobalLanguageCurrencyDialog(
                             Text(
                                 text = "${currentCurrency.flag} ${currentCurrency.code} (${currentCurrency.symbol}) • 1 USD = ${currentCurrency.rateToUSD} ${currentCurrency.code}",
                                 fontSize = 11.5.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
 
@@ -295,7 +297,7 @@ fun GlobalLanguageCurrencyDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
+                        .heightIn(min = 180.dp, max = 340.dp)
                         .testTag("languages_list"),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -375,7 +377,7 @@ fun GlobalLanguageCurrencyDialog(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
+                        .heightIn(min = 180.dp, max = 340.dp)
                         .testTag("currencies_list"),
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {

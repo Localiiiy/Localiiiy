@@ -9,7 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ripple
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -236,7 +236,7 @@ fun AnimatedLikeButton(
                 .defaultMinSize(minWidth = touchTargetSize, minHeight = touchTargetSize)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = touchTargetSize / 2),
+                    indication = LocalIndication.current,
                     onClick = handleClick
                 )
                 .testTag(testTag)
@@ -260,7 +260,7 @@ fun AnimatedLikeButton(
                 .defaultMinSize(minWidth = touchTargetSize, minHeight = touchTargetSize)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(bounded = false, radius = touchTargetSize / 2),
+                    indication = LocalIndication.current,
                     onClick = handleClick
                 )
                 .testTag(testTag)
@@ -300,7 +300,7 @@ fun CommentActionButton(
             .defaultMinSize(minWidth = touchTargetSize, minHeight = touchTargetSize)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = ripple(bounded = false, radius = touchTargetSize / 2),
+                indication = LocalIndication.current,
                 onClick = onClick
             )
             .testTag(testTag)

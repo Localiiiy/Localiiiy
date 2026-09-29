@@ -148,6 +148,15 @@ interface LocaliiiyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOtherUsers(users: List<OtherUserEntity>)
 
+    @Query("DELETE FROM other_users WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    suspend fun clearDemoUsers()
+
+    @Query("DELETE FROM posts WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    suspend fun clearDemoPosts()
+
+    @Query("DELETE FROM clips WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    suspend fun clearDemoClips()
+
     @Query("UPDATE other_users SET isFollowing = :isFollowing, followersCount = followersCount + :delta WHERE username = :username")
     suspend fun updateOtherUserFollowing(username: String, isFollowing: Boolean, delta: Int)
 

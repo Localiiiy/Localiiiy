@@ -8,6 +8,7 @@ import coil.compose.AsyncImage
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -19,8 +20,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,7 +102,6 @@ fun PulseFeedComponent(
     onOpenMonetizationHub: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val refreshState = rememberPullToRefreshState()
     var isInitialLoad by remember { mutableStateOf(true) }
     var selectedFilter by remember { mutableStateOf(PulseFeedFilter.ALL) }
     var scaleDial by remember { mutableStateOf("NEIGHBOR") }
@@ -161,10 +159,20 @@ fun PulseFeedComponent(
         isInitialLoad = false
     }
 
-    // Filter Posts by All, Trending, Nearby, Following, Latest + Blast Radius Dial + Strict Chronological
-    val displayedPosts = remember(posts, selectedFilter, selectedRadiusKm, scaleDial, isStrictChronological, dismissedPostIds) {
+    var selectedHashtag by remember { mutableStateOf<String?>(null) }
+
+    // Dynamic hashtag extraction from posts + default local update tags
+    val availableHashtags = remember(posts) {
+        val extracted = posts.flatMap { it.hashtags }.distinct()
+        val defaults = listOf("#LocalUpdate", "#Hyperlocal", "#Events", "#Marketplace", "#Foodie", "#Alerts", "#Community", "#LostAndFound")
+        (defaults + extracted).distinct()
+    }
+
+    // Filter Posts by All, Trending, Nearby, Following, Latest + Blast Radius Dial + Strict Chronological + Hashtags
+    val displayedPosts = remember(posts, selectedFilter, selectedRadiusKm, scaleDial, isStrictChronological, dismissedPostIds, selectedHashtag) {
         val baseFiltered = posts.filter { post ->
             if (dismissedPostIds.contains(post.id)) return@filter false
+            if (selectedHashtag != null && !post.caption.contains(selectedHashtag!!, ignoreCase = true)) return@filter false
             when (scaleDial) {
                 "NEIGHBOR" -> (post.distanceKm ?: 999.0) <= 5.0
                 "CITY" -> (post.distanceKm ?: 999.0) <= 50.0
@@ -274,17 +282,15 @@ fun PulseFeedComponent(
                 modifier = Modifier.fillMaxSize()
             )
         } else {
-            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = onRefresh,
-                    state = refreshState,
-                    modifier = Modifier.fillMaxSize().testTag("pulse_feed_pull_to_refresh")
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+            ) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 80.dp)
-                    ) {
                 // Section 2.13: Pull-to-Sonar Concentric Refresh Indicator
                 if (isRefreshing) {
                     item {
@@ -588,6 +594,159 @@ fun PulseFeedComponent(
                                 }
                             }
                         }
+
+                        // Trending Local Hashtag Filtering Chips
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.Tag,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(13.dp)
+                                )
+                                Text(
+                                    text = "HASHTAG CATEGORIES:",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            if (selectedHashtag != null) {
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.8f),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(100.dp))
+                                        .clickable { selectedHashtag = null }
+                                ) {
+                                    Text(
+                                        text = "Clear filter ✕",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onErrorContainer,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("pulse_feed_hashtag_row"),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            item {
+                                val isAll = selectedHashtag == null
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isAll) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isAll) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { selectedHashtag = null }
+                                        .testTag("feed_hashtag_chip_all")
+                                ) {
+                                    Text(
+                                        text = "All Tags",
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isAll) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isAll) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                            items(availableHashtags) { tag ->
+                                val isSelected = selectedHashtag?.equals(tag, ignoreCase = true) == true
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                    ),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable {
+                                            selectedHashtag = if (isSelected) null else tag
+                                        }
+                                        .testTag("feed_hashtag_chip_$tag")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            text = tag,
+                                            fontSize = 11.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Fluid Animated Transition Feedback Banner for active filter & hashtags
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AnimatedContent(
+                            targetState = Triple(selectedFilter, selectedHashtag, isStrictChronological),
+                            transitionSpec = {
+                                (fadeIn(animationSpec = tween(280)) + slideInVertically(animationSpec = tween(280)) { it / 3 })
+                                    .togetherWith(fadeOut(animationSpec = tween(180)) + slideOutVertically(animationSpec = tween(180)) { -it / 3 })
+                            },
+                            label = "FeedFilterTransitionHeader"
+                        ) { (filter, hashtag, strictChrono) ->
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = if (strictChrono) Icons.Outlined.Timer else filter.icon,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Text(
+                                            text = buildString {
+                                                if (strictChrono) append("Strict Chronological Feed")
+                                                else append("Browsing: ${filter.label}")
+                                                if (hashtag != null) append(" • $hashtag")
+                                            },
+                                            fontSize = 11.5.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                    Text(
+                                        text = "${displayedPosts.size} pulses",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -737,6 +896,7 @@ fun PulseFeedComponent(
 
                         SwipeToDismissBox(
                             state = dismissState,
+                            modifier = Modifier,
                             backgroundContent = {
                                 val isDismissing = dismissState.targetValue != SwipeToDismissBoxValue.Settled
                                 if (isDismissing) {
@@ -773,14 +933,12 @@ fun PulseFeedComponent(
                                     post = item,
                                     totalDurationHours = 4,
                                     remainingMinutesInitial = 195,
-                                    onDismiss = { dismissedPostIds = dismissedPostIds + item.id },
-                                    modifier = Modifier.animateItem()
+                                    onDismiss = { dismissedPostIds = dismissedPostIds + item.id }
                                 )
                             } else if (item.isVoicePrint) {
                                 AudioVoicePulseCard(
                                     post = item,
-                                    durationSeconds = item.voiceDurationSeconds.coerceAtLeast(15),
-                                    modifier = Modifier.animateItem()
+                                    durationSeconds = item.voiceDurationSeconds.coerceAtLeast(15)
                                 )
                             } else {
                                 PostCard(
@@ -791,7 +949,7 @@ fun PulseFeedComponent(
                                     onSaveClick = { onSavePost(item) },
                                     onUserClick = { onUserProfileClick(item.username) },
                                     onReportClick = { reason -> onReportPost(item, reason) },
-                                    modifier = Modifier.animateItem()
+                                    onHashtagClick = { tag -> selectedHashtag = tag }
                                 )
                             }
                         }
@@ -805,7 +963,7 @@ fun PulseFeedComponent(
                                 currentLanguage = currentLanguage,
                                 onAdImpression = { onAdImpression(ad.id) },
                                 onAdClick = { onAdClick(ad.id) },
-                                modifier = Modifier.animateItem()
+                                modifier = Modifier
                             )
                         }
                     }
@@ -835,7 +993,6 @@ fun PulseFeedComponent(
             )
         }
     }
-}
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

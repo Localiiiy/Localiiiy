@@ -195,21 +195,34 @@ object LocaliiiyTheme {
 fun LocaliiiyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     themeKey: String = "DEFAULT",
-    displayScale: String = "SYSTEM",
+    displayScale: String = "SCALE_95",
     content: @Composable () -> Unit
 ) {
     val currentDensity = androidx.compose.ui.platform.LocalDensity.current
     val effectiveDensity = remember(currentDensity, displayScale) {
-        val factor = when (displayScale.uppercase()) {
-            "COMPACT" -> 0.85f
-            "STANDARD" -> 1.0f
-            "COMFORTABLE" -> 1.15f
-            "LARGE" -> 1.30f
+        val layoutFactor = when (displayScale.uppercase()) {
+            "COMPACT", "85", "85%" -> 0.85f
+            "SCALE_90", "90", "90%" -> 0.90f
+            "SCALE_95", "95", "95%" -> 0.95f
+            "STANDARD", "100", "100%" -> 1.0f
+            "SCALE_105", "105", "105%" -> 1.05f
+            "SCALE_110", "110", "110%" -> 1.10f
+            "LARGE", "115", "115%" -> 1.15f
             else -> 1.0f // SYSTEM follows mobile phone setting
         }
+        val fontFactor = when (displayScale.uppercase()) {
+            "COMPACT", "85", "85%" -> 0.85f
+            "SCALE_90", "90", "90%" -> 0.90f
+            "SCALE_95", "95", "95%" -> 0.95f
+            "STANDARD", "100", "100%" -> 1.0f
+            "SCALE_105", "105", "105%" -> 1.05f
+            "SCALE_110", "110", "110%" -> 1.10f
+            "LARGE", "115", "115%" -> 1.15f
+            else -> 1.0f
+        }
         androidx.compose.ui.unit.Density(
-            density = currentDensity.density * factor,
-            fontScale = currentDensity.fontScale * factor
+            density = currentDensity.density * layoutFactor,
+            fontScale = currentDensity.fontScale * fontFactor
         )
     }
 

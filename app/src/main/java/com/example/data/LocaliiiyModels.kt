@@ -38,6 +38,12 @@ data class PostEntity(
     val isLive: Boolean = false
 ) {
     val isConnected: Boolean get() = isFollowing
+    val hashtags: List<String>
+        get() {
+            if (caption.isBlank()) return emptyList()
+            val regex = Regex("#[\\w_]+")
+            return regex.findAll(caption).map { it.value }.distinct().toList()
+        }
     val mediaUrlsList: List<String>
         get() {
             if (mediaUrl.isBlank()) return emptyList()
@@ -279,7 +285,7 @@ data class PrivacySettingsEntity(
     val appThemeBackground: String = "DEFAULT", // "DEFAULT", "BLACK_HOLE", "MOON", "GALAXY", "CUSTOM"
     val customBackgroundImageUri: String = "",
     // App Display Size & Mobile Screen Scaling
-    val appDisplayScale: String = "SYSTEM", // "SYSTEM", "COMPACT", "STANDARD", "COMFORTABLE", "LARGE"
+    val appDisplayScale: String = "SCALE_95", // "SCALE_95" default (95% mobile scaling), "SYSTEM", "COMPACT", "SCALE_90", "STANDARD"
     val appFontScaleMultiplier: Float = 1.0f,
     // Zero-Tolerance Anti-Stalking GPS Obfuscation (500m Proximity Blurring)
     val gpsObfuscationEnabled: Boolean = true,

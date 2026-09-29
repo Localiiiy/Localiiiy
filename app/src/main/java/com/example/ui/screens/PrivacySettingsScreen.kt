@@ -590,8 +590,8 @@ fun PrivacySettingsScreen(
             }
             item {
                 SettingsActionItem(
-                    "App Tutorial, Badges & Monetization",
-                    "Visual guide with images, badge tiers & $1000 minimum payout rules",
+                    "Tutorials & Badges",
+                    "Interactive step-by-step guides, Ghost Mode, Safe spots, 9:16 clips & badges",
                     Icons.Default.School,
                     onClick = { showTutorialScreen = true }
                 )

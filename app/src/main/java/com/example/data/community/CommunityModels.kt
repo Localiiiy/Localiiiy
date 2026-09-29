@@ -129,3 +129,13 @@ data class CommunitySafetyAlert(
     val safeHavenSpot: String = "Civic Plaza Community Hall"
 ) : Serializable
 
+data class CommunityRemarkItem(
+    val id: String = "rem_${System.currentTimeMillis()}_${(100..999).random()}",
+    val postId: String,
+    val authorName: String,
+    val authorHandle: String,
+    val authorAvatar: String,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis()
+) : Serializable
+

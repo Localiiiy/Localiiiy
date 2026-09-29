@@ -143,28 +143,40 @@ fun EphemeralSpectatorBanner(
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
-                            text = "Ephemeral Spectator Entrance",
+                            text = "Ghost Spectator",
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
                         Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = LocaliiiyAccentMint.copy(alpha = 0.2f)
+                            shape = RoundedCornerShape(6.dp),
+                            color = LocaliiiyAccentMint.copy(alpha = 0.2f),
+                            border = BorderStroke(0.8.dp, LocaliiiyAccentMint.copy(alpha = 0.4f))
                         ) {
-                            Text(
-                                text = "Zero Credentials",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LocaliiiyAccentMint,
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Icon(Icons.Default.VpnKeyOff, contentDescription = null, tint = LocaliiiyAccentMint, modifier = Modifier.size(10.dp))
+                                Text(
+                                    text = "No Login",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LocaliiiyAccentMint,
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Explore neighborhood clips, radar density, and market without creating a permanent account or sharing email.",
+                        text = "Instant anonymous preview of radar & clips.",
                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

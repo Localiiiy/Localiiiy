@@ -1,5 +1,7 @@
 package com.example
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -229,6 +231,16 @@ fun LocaliiiyApp(
     onClearDeepLink: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val connectivityObserver = remember(context) { com.example.util.NetworkConnectivityObserver(context) }
+    val isNetworkConnected by connectivityObserver.isConnectedFlow.collectAsStateWithLifecycle(
+        initialValue = connectivityObserver.isCurrentlyConnected()
+    )
+    var manualConnectedOverride by remember { mutableStateOf<Boolean?>(null) }
+    val effectiveConnected = manualConnectedOverride ?: isNetworkConnected
+
+    LaunchedEffect(isNetworkConnected) {
+        manualConnectedOverride = null
+    }
     val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
     val posts by viewModel.allPosts.collectAsStateWithLifecycle()
     val feedPosts by viewModel.feedPosts.collectAsStateWithLifecycle()
@@ -777,7 +789,10 @@ fun LocaliiiyApp(
                         onCategorySelected = { cat -> viewModel.setStudioCategory(cat) },
                         onSearchQueryChange = { q -> viewModel.setStudioSearchQuery(q) },
                         onVideoClick = { video -> viewModel.openStudioVideo(video) },
-                        onCloseVideo = { viewModel.closeStudioVideo() },
+                        onCloseVideo = {
+                            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            viewModel.closeStudioVideo()
+                        },
                         onTogglePlayPause = { viewModel.toggleStudioPlayPause() },
                         onSeek = { progress -> viewModel.setStudioPlaybackProgress(progress) },
                         onLikeVideo = { video -> viewModel.toggleStudioVideoLike(video) },
@@ -807,36 +822,7 @@ fun LocaliiiyApp(
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         isRefreshing = isRefreshingStudio,
-                        onRefresh = { viewModel.refreshStudio() },
-                        bounties = merchantBounties,
-                        onClaimBounty = { bounty ->
-                            viewModel.claimMerchantBounty(bounty)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Claimed $${bounty.bountyRewardUSD.toInt()} sponsorship bounty! Deposited to Wallet.")
-                            }
-                        },
-                        drafts = allDraftClips,
-                        onRouteDraftToClips = { draft ->
-                            viewModel.routeDraftToDestination(draft, "CLIPS")
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Draft routed to Clips Engine! ⚡")
-                            }
-                        },
-                        onRouteDraftToMarket = { draft ->
-                            viewModel.routeDraftToDestination(draft, "MARKET")
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Draft routed to Market Listing! 🛍️")
-                            }
-                        },
-                        onRouteDraftToPulse = { draft ->
-                            viewModel.routeDraftToDestination(draft, "PULSE")
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Draft routed to Pulse Feed! 📡")
-                            }
-                        },
-                        onDeleteDraft = { draft ->
-                            viewModel.deleteDraftClip(draft.id)
-                        }
+                        onRefresh = { viewModel.refreshStudio() }
                     )
                 }
 
@@ -1343,6 +1329,21 @@ fun LocaliiiyApp(
         }
     }
 
+    // Internet Connectivity Gating Dialog
+    if (!effectiveConnected) {
+        NoInternetDialog(
+            onRetry = {
+                val connected = connectivityObserver.isCurrentlyConnected()
+                manualConnectedOverride = connected
+                if (connected) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Connected to the internet! 🌐")
+                    }
+                }
+            }
+        )
+    }
+
     // Legal Agreement & Privacy Policy Screen Overlay
     if (showLegalAgreement) {
         LegalAgreementScreen(
@@ -1466,14 +1467,21 @@ fun LocaliiiyApp(
             )
         }
         if (showMonetizationHub) {
-        CreatorMonetizationHubSheet(
-            earnings = creatorEarnings,
-            payoutAccount = payoutAccount,
-            payoutHistory = payoutHistory,
-            platformMetrics = platformMetrics,
-            currentCurrency = currentCurrency,
-            currentLanguage = currentLanguage,
-            onOpenCurrencyLanguageSelector = { viewModel.openLanguageCurrencyDialog() },
+            CreatorMonetizationHubSheet(
+                earnings = creatorEarnings,
+                payoutAccount = payoutAccount,
+                payoutHistory = payoutHistory,
+                platformMetrics = platformMetrics,
+                currentCurrency = currentCurrency,
+                currentLanguage = currentLanguage,
+                bounties = merchantBounties,
+                drafts = allDraftClips,
+                onClaimBounty = { viewModel.claimMerchantBounty(it) },
+                onRouteDraftToClips = { viewModel.routeDraftToDestination(it, "CLIPS") },
+                onRouteDraftToMarket = { viewModel.routeDraftToDestination(it, "MARKETPLACE") },
+                onRouteDraftToPulse = { viewModel.routeDraftToDestination(it, "PULSE") },
+                onDeleteDraft = { viewModel.deleteDraftClip(it.id) },
+                onOpenCurrencyLanguageSelector = { viewModel.openLanguageCurrencyDialog() },
             onRequestPayout = { amountUSD ->
                 val ok = viewModel.requestPayout(amountUSD)
                 if (ok) {

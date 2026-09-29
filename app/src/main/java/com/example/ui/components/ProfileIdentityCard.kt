@@ -167,49 +167,59 @@ fun ProfileIdentityCard(
                 modifier = Modifier.padding(20.dp)
             ) {
                 
-        // Header: Localiiiy ID
+        // Space Header: Space QR Code Badge + Full Name (Rendered ONCE, top left adjacent with 2-line auto-wrap)
         Row(
-            modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
         ) {
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(Brush.linearGradient(colors = listOf(Color(0xFF6366F1), Color(0xFF14B8A6), Color(0xFFF59E0B))))
                     .clickable { showFullQrDialog = true }
-                    .padding(4.dp),
+                    .padding(5.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.QrCode2,
-                    contentDescription = null,
+                    contentDescription = "Space QR Pass",
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            val actualUserName = userProfile.fullName.ifBlank { userProfile.username.ifBlank { "User" } }
-            Text(
-                text = actualUserName.uppercase(),
-                color = Color.Transparent,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = androidx.compose.ui.text.TextStyle(
-                    brush = Brush.linearGradient(
-                        colors = listOf(Color(0xFF6366F1), Color(0xFF14B8A6), Color(0xFFF59E0B))
+            Spacer(modifier = Modifier.width(10.dp))
+            val displayName = userProfile.fullName.ifBlank { userProfile.username.ifBlank { "Localiiiy Creator" } }
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 19.sp,
+                        letterSpacing = (-0.2).sp
                     ),
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.5.sp,
-                    fontSize = 22.sp,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
-            )
+                if (userProfile.isVerified) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Verified",
+                        tint = EditorialVerified,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Main Details Row: Info (Left) - Photo (Right)
         Row(
@@ -217,49 +227,24 @@ fun ProfileIdentityCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Info (Left)
+            // Info (Left) - Handle and Neighborhood without redundant Full Name
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 14.dp),
                 horizontalAlignment = Alignment.Start
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = userProfile.fullName,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp
-                        ),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (userProfile.isVerified) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Verified",
-                            tint = EditorialVerified,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
                 Text(
                     text = "@${userProfile.username}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 13.5.sp
+                        fontSize = 14.sp
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Surface(
                     shape = RoundedCornerShape(100.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)

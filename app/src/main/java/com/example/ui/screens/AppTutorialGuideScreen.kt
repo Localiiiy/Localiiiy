@@ -77,87 +77,85 @@ fun AppTutorialGuideScreen(
 
     val guideAnchors = remember {
         listOf(
-            HashAnchorItem(id = "#step-0", label = "1. Pulse", targetIndex = 1),
-            HashAnchorItem(id = "#step-1", label = "2. Radar", targetIndex = 2),
-            HashAnchorItem(id = "#step-2", label = "3. Dual-Reach", targetIndex = 3),
-            HashAnchorItem(id = "#step-3", label = "4. Escrow", targetIndex = 4),
-            HashAnchorItem(id = "#step-4", label = "5. Studio", targetIndex = 5),
-            HashAnchorItem(id = "#step-5", label = "6. Privacy", targetIndex = 6),
-            HashAnchorItem(id = "#step-6", label = "7. Wallet", targetIndex = 7),
-            HashAnchorItem(id = "#step-7", label = "8. Shop Clip", targetIndex = 8),
-            HashAnchorItem(id = "#step-8", label = "9. Global", targetIndex = 9),
-            HashAnchorItem(id = "#step-9", label = "10. Web App", targetIndex = 10),
-            HashAnchorItem(id = "#step-10", label = "11. Stealth", targetIndex = 11),
-            HashAnchorItem(id = "#step-11", label = "12. Play Safety", targetIndex = 12)
+            HashAnchorItem(id = "#step-0", label = "1. Ghost vs Area", targetIndex = 1),
+            HashAnchorItem(id = "#step-1", label = "2. Safe Exchange", targetIndex = 2),
+            HashAnchorItem(id = "#step-2", label = "3. 9:16 Clips", targetIndex = 3),
+            HashAnchorItem(id = "#step-3", label = "4. Copyright & Revenue", targetIndex = 4),
+            HashAnchorItem(id = "#step-4", label = "5. Verified Badges", targetIndex = 5),
+            HashAnchorItem(id = "#step-5", label = "6. Pulse & Feed", targetIndex = 6),
+            HashAnchorItem(id = "#step-6", label = "7. Proximity Radar", targetIndex = 7),
+            HashAnchorItem(id = "#step-7", label = "8. Long Studio", targetIndex = 8),
+            HashAnchorItem(id = "#step-8", label = "9. Safety Shield", targetIndex = 9),
+            HashAnchorItem(id = "#step-9", label = "10. Creator Wallet", targetIndex = 10)
         )
     }
 
     val guideSteps = remember {
         listOf(
             TutorialGuideStep(
-                title = "1. Pulse Feed & Local Signals",
-                subtitle = "Ephemeral neighborhood moments, 24h stories & waves",
-                imageUrl = "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1080&auto=format&fit=crop&q=80",
-                description = "The Pulse feed is your neighborhood's real-time heartbeat. Discover authentic local stories and discussions anchored to your geographical proximity.",
+                title = "1. How to Broadcast Presence: Ghost Mode vs. Show in Area",
+                subtitle = "Sovereign privacy controls between stealth observation and local broadcast",
+                imageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1080&auto=format&fit=crop&q=80",
+                description = "Choose how visible you want to be across the neighborhood. Toggle between full visibility on the circular radar or 100% anonymous Ghost Cloak mode.",
                 bulletPoints = listOf(
-                    "Discover ephemeral neighbor updates and 24-hour video stories",
-                    "Send subtle reaction waves to connect with locals nearby",
-                    "Filter streams by 'Connected' to view only mutual relationships",
-                    "Radar power toggle is kept cleanly on the Radar page for pure feed immersion"
+                    "Ghost Mode (Stealth Observer): Browse radar, clips, and feeds with complete zero-broadcast anonymity without leaving coordinate traces",
+                    "Show in Area (Local Presence): Broadcast your verified profile within your chosen radius (100m to 500km) to meet neighbors",
+                    "Dynamic Spatial Obfuscation: Blur your precise GPS coordinates into a gentle 3km-5km neighborhood sector",
+                    "Dedicated Radar Power Switch: Turn the radar hardware receiver and transmitter on or off with 1 tap"
                 ),
-                tag = "Pulse Feed"
+                tag = "Ghost Mode"
             ),
             TutorialGuideStep(
-                title = "2. Live Circular Proximity Radar",
-                subtitle = "Dynamic sonar sweep, Kalman filter & 500km scaling",
-                imageUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1080&auto=format&fit=crop&q=80",
-                description = "Our signature circular radar visualizes nearby neighbors and active signals within your selected distance range (100m to 500km).",
-                bulletPoints = listOf(
-                    "Dedicated Radar Power Switch: turn Radar ON or OFF exclusively on the Radar page",
-                    "Pinch-to-zoom radar scale dynamically from 100 meters to 500 kilometers",
-                    "Kalman filtering and hardware gyroscope smoothing for stable heading telemetry",
-                    "1-tap Ghost Cloak mode to browse completely off-grid without exposing your pin"
-                ),
-                tag = "Live Radar"
-            ),
-            TutorialGuideStep(
-                title = "3. Clips & Dual-Reach Algorithm",
-                subtitle = "Neighbor to World organic scaling with creator sovereignty",
-                imageUrl = "https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=1080&auto=format&fit=crop&q=80",
-                description = "Publish high-energy 9:16 vertical short clips. The dual-reach algorithm distributes your clip to nearby neighbors first, then expands algorithmically to the entire world.",
-                bulletPoints = listOf(
-                    "Hyperlocal grounding: Content resonates in your immediate neighborhood first",
-                    "Algorithmic progression: Neighbor -> Neighborhood -> City -> State -> Earth (Worldwide)",
-                    "Creator control: You choose whether to constrain reach locally or broadcast globally",
-                    "Top bar remains dedicated to filters ('All', 'Trending', 'Nearby', 'Connected')"
-                ),
-                tag = "Clips & Reach"
-            ),
-            TutorialGuideStep(
-                title = "4. Hyperlocal Market & Services",
-                subtitle = "Hourly rates displayed on the image side with direct booking",
+                title = "2. How to List Items & Use Safe Exchange Spots in Market",
+                subtitle = "Peer-to-peer commerce, verified safe haven spots & zero-commission sales",
                 imageUrl = "https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=1080&auto=format&fit=crop&q=80",
-                description = "Trade physical goods, handcrafted items, and professional services with nearby neighbors in complete safety.",
+                description = "Safely buy, sell, and trade physical products or book local services directly with nearby community members.",
                 bulletPoints = listOf(
-                    "Transparent service rates ($/hr) are shown directly below the image on the left side",
-                    "Direct 1-tap inquiries with local service providers and instructors",
-                    "Peer-to-peer goods marketplace with cash-on-meetup and cashless escrow",
-                    "Safe exchange zones and emergency clinic landmarks on the radar"
+                    "List with ease: Upload photos, set hourly rates or fixed prices, and select your neighborhood landmark",
+                    "Safe Exchange Spots: Meet at designated, well-lit civic spots (police stations, libraries, coffee commons) marked on the map",
+                    "Smart Escrow & Cashless Handshake: Funds are held securely and released only when both parties scan the exchange QR pass",
+                    "Transparent Service Taxonomy: Emergency Plumbing, Electrical Repairs, Mobile Wash, Handyman, and 15+ verified trades"
                 ),
-                tag = "Services & Market"
+                tag = "Safe Market"
             ),
             TutorialGuideStep(
-                title = "5. Long-Form Creator Studio",
-                subtitle = "Unlimited 4K video playback, custom aspect ratios & sound",
-                imageUrl = "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=1080&auto=format&fit=crop&q=80",
-                description = "Create and broadcast long-form cinematic documentaries, neighborhood podcasts, and studio productions.",
+                title = "3. How to Record & Publish 9:16 Market Clips",
+                subtitle = "Turn engaging vertical video reels into instant shoppable storefronts",
+                imageUrl = "https://images.unsplash.com/photo-1533750516457-a7f992034fec?w=1080&auto=format&fit=crop&q=80",
+                description = "Publish high-energy 9:16 vertical short clips. Convert any creative clip into a shoppable marketplace product with one tap.",
                 bulletPoints = listOf(
-                    "Supports 9:16 Reels, 1:1 Square, and 16:9 Cinema widescreen formats",
-                    "Integrated audio equalizer and 639Hz ambient frequency synth",
-                    "Direct in-stream ad revenue sharing and real-time community micro-tipping",
-                    "Instant video deep links for sharing across external messaging apps"
+                    "Ultra-responsive 9:16 camera: Record short videos, apply real-time LUT filters, and select local soundtracks",
+                    "1-tap Clip to Shop: Tag your clip with an item title, price, and pickup location to create an interactive buy button",
+                    "Dual-Reach Distribution: Clips start organically with your nearest neighbors before expanding worldwide to Earth",
+                    "Cinema Mode: Tap the video viewport for an unobstructed full-screen viewing experience"
                 ),
-                tag = "Creator Studio"
+                tag = "9:16 Clips"
+            ),
+            TutorialGuideStep(
+                title = "4. Understanding Creator Copyright & Revenue Re-Routing",
+                subtitle = "Licensing controls, remix permissions & transparent micro-tipping",
+                imageUrl = "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1080&auto=format&fit=crop&q=80",
+                description = "Localiiiy gives creators complete ownership of their intellectual property, sound samples, and commercial revenue streams.",
+                bulletPoints = listOf(
+                    "Permit Reuse Toggle: Grant or restrict other creators from reusing your original audio and visual cuts",
+                    "Commercial Reuse Consent: License content for verified local sponsor promotions and neighborhood businesses",
+                    "Revenue Re-Routing: Royalties from remixes and viral spread automatically route back to original creators' Creator Wallets",
+                    "Cryptographic attribution watermark embedded in every exported video asset"
+                ),
+                tag = "Copyright & Revenue"
+            ),
+            TutorialGuideStep(
+                title = "5. How to Earn & Display Verified Neighborhood Badges",
+                subtitle = "Climb civic recognition tiers from Local Explorer to Neighborhood Icon",
+                imageUrl = "https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=1080&auto=format&fit=crop&q=80",
+                description = "Earn verified civic badges based on genuine neighborhood participation, safe market transactions, and community leadership.",
+                bulletPoints = listOf(
+                    "Local Explorer (Tier 1): Automatically earned after completing zero-knowledge onboarding and profile setup",
+                    "Trusted Neighbor (Tier 2): Awarded after 5 verified safe-exchange transactions with 5-star peer reviews",
+                    "Civic Creator (Tier 3): Unlocked by publishing original clips and hosting community discussion threads",
+                    "Badges display prominently on your Space profile card, next to your handle in comments, and on the radar"
+                ),
+                tag = "Verified Badges"
             ),
             TutorialGuideStep(
                 title = "6. Universal Safety & Privacy Shield",
@@ -246,7 +244,7 @@ fun AppTutorialGuideScreen(
                     "Google Play Data Safety compliance: No contacts scraping, no background wiretaps, no audio recording",
                     "Zero-permission Photo Picker: Protects device storage by selecting media via system dialogs",
                     "1-Tap Account Oblivion: Permanently delete account, Firebase credentials, and local Room cache",
-                    "Official live Privacy Policy & Terms hosted at https://localiiiy.web.app/privacy"
+                    "Official live Privacy Policy & Terms hosted at https://localiiiy.web.app/privacy.html"
                 ),
                 tag = "Store Safety"
             )

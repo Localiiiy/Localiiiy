@@ -377,24 +377,24 @@ fun MarketScreen(
                         )
                     }
 
-                    // + List / Post button aligned on the same horizontal row
+                    // + List button aligned on the same horizontal row
                     Button(
                         onClick = onOpenSellDialog,
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         shape = RoundedCornerShape(100.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         modifier = Modifier
                             .height(36.dp)
                             .testTag("market_sell_button")
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "List or Post",
+                            contentDescription = "List Item or Service",
                             modifier = Modifier.size(15.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "+ " + LocalizationHelper.translate("List / Post", currentLanguage),
+                            text = LocalizationHelper.translate("List", currentLanguage),
                             fontWeight = FontWeight.Bold,
                             fontSize = 12.5.sp
                         )

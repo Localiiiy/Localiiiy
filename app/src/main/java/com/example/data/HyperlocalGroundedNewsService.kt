@@ -40,83 +40,31 @@ object HyperlocalGroundedNewsService {
         .build()
 
     suspend fun fetchGroundedHyperlocalNews(neighborhood: String): GroundedNewsResult = withContext(Dispatchers.IO) {
-        val apiKey = try {
-            BuildConfig.GEMINI_API_KEY
-        } catch (e: Throwable) {
-            ""
-        }
+        val prompt = """
+            Find 3 concise, real-time hyperlocal news and community updates happening right now in or around the user's neighborhood: $neighborhood.
+            Format your response strictly as valid JSON array containing objects with keys:
+            "id" (string), "title" (string), "summary" (string), "category" (string like Transit, Safety, Community, or Local Events), "sourceName" (string), "sourceUrl" (string or null), "timeAgo" (string).
+        """.trimIndent()
 
-        val hasValidKey = apiKey.isNotBlank() && apiKey != "MY_GEMINI_API_KEY"
+        val resilienceResult = GeminiResilienceManager.executeGeminiCallWithFallback(
+            prompt = prompt,
+            enableGrounding = true
+        )
 
-        if (hasValidKey) {
-            try {
-                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$apiKey"
-
-                val prompt = """
-                    Find 3 concise, real-time hyperlocal news and community updates happening right now in or around the user's neighborhood: $neighborhood.
-                    Format your response strictly as valid JSON array containing objects with keys:
-                    "id" (string), "title" (string), "summary" (string), "category" (string like Transit, Safety, Community, or Local Events), "sourceName" (string), "sourceUrl" (string or null), "timeAgo" (string).
-                """.trimIndent()
-
-                val requestJson = JSONObject().apply {
-                    val contents = JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("parts", JSONArray().apply {
-                                put(JSONObject().apply {
-                                    put("text", prompt)
-                                })
-                            })
-                        })
-                    }
-                    put("contents", contents)
-                    
-                    // Enable Google Search Grounding Tool
-                    val tools = JSONArray().apply {
-                        put(JSONObject().apply {
-                            put("googleSearch", JSONObject())
-                        })
-                    }
-                    put("tools", tools)
+        if (resilienceResult.text.isNotBlank()) {
+            val items = parseNewsFromJsonOrText(resilienceResult.text, neighborhood)
+            if (items.isNotEmpty()) {
+                val queries = if (resilienceResult.searchQueries.isNotEmpty()) {
+                    resilienceResult.searchQueries
+                } else {
+                    listOf("$neighborhood news today", "$neighborhood alerts", "transit $neighborhood")
                 }
-
-                val request = Request.Builder()
-                    .url(url)
-                    .post(requestJson.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-
-                val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
-
-                if (response.isSuccessful && responseBody != null) {
-                    val jsonResp = JSONObject(responseBody)
-                    val candidates = jsonResp.optJSONArray("candidates")
-                    val firstCandidate = candidates?.optJSONObject(0)
-                    val contentObj = firstCandidate?.optJSONObject("content")
-                    val parts = contentObj?.optJSONArray("parts")
-                    val rawText = parts?.optJSONObject(0)?.optString("text") ?: ""
-
-                    // Extract grounding metadata search queries
-                    val searchQueries = mutableListOf<String>()
-                    val groundingMetadata = firstCandidate?.optJSONObject("groundingMetadata")
-                    val webSearchQueries = groundingMetadata?.optJSONArray("webSearchQueries")
-                    if (webSearchQueries != null) {
-                        for (i in 0 until webSearchQueries.length()) {
-                            searchQueries.add(webSearchQueries.optString(i))
-                        }
-                    }
-
-                    val items = parseNewsFromJsonOrText(rawText, neighborhood)
-                    if (items.isNotEmpty()) {
-                        return@withContext GroundedNewsResult(
-                            items = items,
-                            searchQueries = if (searchQueries.isNotEmpty()) searchQueries else listOf("$neighborhood news today", "$neighborhood alerts", "transit $neighborhood"),
-                            isLiveGrounding = true,
-                            neighborhood = neighborhood
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "Error fetching live Google Search grounding: ${e.message}")
+                return@withContext GroundedNewsResult(
+                    items = items,
+                    searchQueries = queries,
+                    isLiveGrounding = !resilienceResult.isFallback,
+                    neighborhood = neighborhood
+                )
             }
         }
 

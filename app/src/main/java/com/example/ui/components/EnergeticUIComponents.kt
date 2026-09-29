@@ -227,7 +227,7 @@ fun AudienceMatrixTooltip(
         bullets = listOf(
             "Neighbor (0–5 km): Guaranteed 100 organic impressions to physical neighbors in your geohash.",
             "City Pulse (50 km): Regional metropolitan reach across connected district hubs.",
-            "Earth Wave (Worldwide): Unlocks algorithmic velocity to 195+ countries without follower gatekeepers."
+            "Earth Wave (Worldwide): Unlocks algorithmic velocity to 195+ countries without connection gatekeepers."
         ),
         icon = Icons.Default.Public,
         accentColor = Color(0xFFFFD700),

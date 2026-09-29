@@ -25,8 +25,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.CreatorEarningsSummary
 import com.example.data.CreatorPayoutAccount
+import com.example.data.DraftClipEntity
+import com.example.data.MerchantBountyEntity
 import com.example.data.PayoutTransaction
 import com.example.data.PlatformAdRevenueMetrics
+import com.example.ui.components.studio.MerchantBountyBoardDialog
+import com.example.ui.components.studio.UnifiedDraftVaultDialog
 import com.example.ui.screens.WalletScreen
 import com.example.util.CurrencyHelper
 import com.example.util.LocaliiiyCurrency
@@ -41,6 +45,13 @@ fun CreatorMonetizationHubSheet(
     platformMetrics: PlatformAdRevenueMetrics,
     currentCurrency: LocaliiiyCurrency,
     currentLanguage: LocaliiiyLanguage,
+    bounties: List<MerchantBountyEntity> = emptyList(),
+    drafts: List<DraftClipEntity> = emptyList(),
+    onClaimBounty: ((MerchantBountyEntity) -> Unit)? = null,
+    onRouteDraftToClips: ((DraftClipEntity) -> Unit)? = null,
+    onRouteDraftToMarket: ((DraftClipEntity) -> Unit)? = null,
+    onRouteDraftToPulse: ((DraftClipEntity) -> Unit)? = null,
+    onDeleteDraft: ((DraftClipEntity) -> Unit)? = null,
     onOpenCurrencyLanguageSelector: () -> Unit,
     onRequestPayout: (Double) -> Boolean,
     onUpdatePayoutAccount: (CreatorPayoutAccount) -> Unit,
@@ -49,6 +60,39 @@ fun CreatorMonetizationHubSheet(
 ) {
     var showFullWalletScreen by remember { mutableStateOf(false) }
     var showEditPayoutDialog by remember { mutableStateOf(false) }
+    var showBountyBoardInMonetization by remember { mutableStateOf(false) }
+    var showDraftVaultInMonetization by remember { mutableStateOf(false) }
+
+    if (showBountyBoardInMonetization) {
+        MerchantBountyBoardDialog(
+            bounties = bounties,
+            onClaimBounty = { bounty ->
+                onClaimBounty?.invoke(bounty)
+                showBountyBoardInMonetization = false
+            },
+            onDismiss = { showBountyBoardInMonetization = false }
+        )
+    }
+
+    if (showDraftVaultInMonetization) {
+        UnifiedDraftVaultDialog(
+            drafts = drafts,
+            onRouteDraftToClips = { draft ->
+                onRouteDraftToClips?.invoke(draft)
+                showDraftVaultInMonetization = false
+            },
+            onRouteDraftToMarket = { draft ->
+                onRouteDraftToMarket?.invoke(draft)
+                showDraftVaultInMonetization = false
+            },
+            onRouteDraftToPulse = { draft ->
+                onRouteDraftToPulse?.invoke(draft)
+                showDraftVaultInMonetization = false
+            },
+            onDeleteDraft = { draft -> onDeleteDraft?.invoke(draft) },
+            onDismiss = { showDraftVaultInMonetization = false }
+        )
+    }
 
     if (showFullWalletScreen) {
         Dialog(
@@ -312,6 +356,84 @@ fun CreatorMonetizationHubSheet(
                         amount = CurrencyHelper.format(earnings.marketplaceSalesUSD, currentCurrency),
                         modifier = Modifier.weight(1f)
                     )
+                }
+            }
+            
+            // Section: Bounties & Creator Draft Vault
+            item {
+                Text(
+                    text = "Bounties & Creator Vault",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { showBountyBoardInMonetization = true }
+                            .testTag("monetization_bounties_card"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF10B981).copy(alpha = 0.12f)),
+                        border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.4f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("🎯", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Bounties Board",
+                                    fontSize = 12.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF10B981),
+                                    maxLines = 1
+                                )
+                            }
+                            Text(
+                                text = "${bounties.count { !it.isClaimed }} active dispatches",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { showDraftVaultInMonetization = true }
+                            .testTag("monetization_vault_card"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("📁", fontSize = 16.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "Draft Vault",
+                                    fontSize = 12.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1
+                                )
+                            }
+                            Text(
+                                text = "${drafts.size} saved drafts",
+                                fontSize = 11.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
             

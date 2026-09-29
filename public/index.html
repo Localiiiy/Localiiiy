@@ -1811,17 +1811,17 @@
   <!-- TOP STICKY APK DOWNLOAD BAR WITH SMART 10-MIRROR ENGINE -->
   <div class="apk-alert-banner">
     <div class="left-info">
-      <span>📱</span>
-      <span><strong>Localiiiy Android APK (v1.2.0)</strong> • 40 MB • Zero Dead-Links</span>
+      <span>🎉</span>
+      <span><strong>Localiiiy is Live on Google Play Store!</strong> • v1.2.0 Stable Build</span>
     </div>
     <div class="apk-btn-group">
-      <!-- Smart Auto-Failover Primary Download Button -->
-      <button class="btn-download-apk" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 700;" onclick="triggerSmartApkDownload()">
-        ⬇️ Download Android APK (Auto-Failover)
+      <!-- Smart Google Play Install Button -->
+      <button class="btn-download-apk" style="border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 800; background: #10B981; color: #FFFFFF;" onclick="window.open('https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live', '_blank')">
+        🤖 Install from Google Play
       </button>
-      <!-- 10 Alternate Mirrors Hub Button -->
-      <button class="btn-mirror-apk" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(59, 130, 246, 0.25); border: 1px solid #60A5FA; color: #93C5FD; font-weight: 600; padding: 6px 12px; border-radius: 8px;" onclick="openTenMirrorsModal()">
-        🌐 10 Alternate Mirrors
+      <!-- Direct APK Download Option -->
+      <button class="btn-mirror-apk" style="cursor: pointer; display: inline-flex; align-items: center; gap: 4px; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: #FFFFFF; font-weight: 600; padding: 6px 12px; border-radius: 8px;" onclick="triggerSmartApkDownload()">
+        ⬇️ Direct APK fallback
       </button>
     </div>
   </div>
@@ -1883,35 +1883,36 @@
       <div class="apk-hero-card">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
           <div>
-            <div class="apk-badge-tag">OFFICIAL PRODUCTION APK</div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 4px 0 2px;">Localiiiy Android v1.1 Stable</h3>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Size: 40 MB • Build Verified Clean • Android 8.0+</p>
+            <div class="apk-badge-tag">OFFICIAL PLAY STORE RELEASE</div>
+            <h3 style="font-size: 16px; font-weight: 800; color: #FFFFFF; margin: 4px 0 2px;">Localiiiy on Google Play Store</h3>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Instant Auto-Installation • Zero Configuration Required • Android 8.0+</p>
           </div>
           <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: var(--accent-mint); white-space: nowrap;">
-            Verified Clean
+            Live Release
           </div>
         </div>
 
         <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-          <!-- Smart Auto-Failover Primary Download -->
-          <button class="btn-hero-download" onclick="triggerSmartApkDownload()">
-            ⬇️ Download Localiiiy.apk (Auto-Failover)
+          <!-- Primary Google Play Action -->
+          <button class="btn-hero-download" onclick="window.open('https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live', '_blank')">
+            🤖 Install from Google Play
+          </button>
+          <!-- Smart Auto-Failover Direct APK -->
+          <button class="btn-hero-secondary" style="background: rgba(16, 185, 129, 0.12); border-color: var(--accent-mint); color: #FFFFFF;" onclick="triggerSmartApkDownload()">
+            ⬇️ Direct APK Download
           </button>
           <!-- 10 Alternate Mirrors Hub Button -->
-          <button class="btn-hero-secondary" style="background: rgba(59, 130, 246, 0.2); border-color: #60A5FA; color: #93C5FD;" onclick="openTenMirrorsModal()">
-            🌐 10 Alternate Mirrors
-          </button>
-          <button class="btn-hero-secondary" onclick="openDownloadModal()">
-            📖 Install Guide
+          <button class="btn-hero-secondary" style="background: rgba(59, 130, 246, 0.15); border-color: #60A5FA; color: #93C5FD;" onclick="openTenMirrorsModal()">
+            🌐 10 Alternative Mirrors
           </button>
         </div>
 
         <!-- Official Store Badges & "Coming Soon" Notice -->
         <div class="store-badges-row">
-          <div class="store-badge-card" onclick="promptStoreNotification('Google Play')">
+          <div class="store-badge-card" onclick="window.open('https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live', '_blank')">
             <svg viewBox="0 0 512 512" class="store-badge-icon"><path fill="#4285F4" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z"/><path fill="#34A853" d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0z"/><path fill="#FBBC04" d="M410.7 282.8L104.6 459l220.7-224.7 85.4 48.5z"/><path fill="#EA4335" d="M410.7 229.2L325.3 174.2l60.1 60.1 25.3-5.1z"/></svg>
             <div class="store-badge-text">
-              <span class="store-sub">Coming Soon to</span>
+              <span class="store-sub">GET IT ON</span>
               <span class="store-title">Google Play</span>
             </div>
           </div>
@@ -2526,10 +2527,18 @@
           <span>➔</span>
         </div>
 
-        <div class="neighbor-card" style="cursor: pointer;" onclick="openLegalTerms()">
+        <div class="neighbor-card" style="cursor: pointer;" onclick="window.open('/privacy', '_blank')">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Community Covenant & Safety</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Safe-Haven Escrow guidelines</div>
+            <div style="font-weight: 700; font-size: 14px;">Privacy Policy & Safety</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Data safety, permissions &amp; no-sell policy</div>
+          </div>
+          <span>➔</span>
+        </div>
+
+        <div class="neighbor-card" style="cursor: pointer;" onclick="window.open('/terms', '_blank')">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Terms of Service &amp; EULA</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Community guidelines &amp; Safe-Haven rules</div>
           </div>
           <span>➔</span>
         </div>
@@ -3590,32 +3599,11 @@
         return;
       }
 
-      showToast('Testing Mirror 1 (Primary Firebase) with 2000ms health check... 🔍');
-      const primary = APK_MIRRORS[0];
-      const primaryResult = await checkMirrorHealth(primary, 2000);
-
-      if (primaryResult.ok) {
-        showToast(`Mirror 1 online (${primaryResult.latency}ms)! Triggering download ⚡`);
-        initiateBrowserDownload(primaryResult.useFallback ? primary.fallbackUrl : primary.url);
-        return;
-      }
-
-      // Mirror 1 failed or timed out! Auto-failover across Mirrors 2..10 in milliseconds
-      showToast('Mirror 1 timed out (>2000ms). Initiating auto-failover across 10 mirrors... 🔄');
-
-      for (let i = 1; i < APK_MIRRORS.length; i++) {
-        const candidate = APK_MIRRORS[i];
-        const res = await checkMirrorHealth(candidate, 1200);
-        if (res.ok || candidate.type === 'cloud' || i === 1) { // Github Releases or Google Drive always accessible
-          showToast(`Failover successful! Connected to ${candidate.name} 🚀`);
-          initiateBrowserDownload(candidate.url);
-          return;
-        }
-      }
-
-      // Safety fallback to Google Drive
-      showToast('Failing over to Google Drive high-availability fallback... 📁');
-      initiateBrowserDownload(APK_MIRRORS[2].url);
+      // Automatically redirect standard download clicks directly to Google Play Store!
+      showToast('Redirecting to official Google Play Store... 🚀');
+      setTimeout(() => {
+        window.open('https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live', '_blank');
+      }, 400);
     }
 
     function initiateBrowserDownload(url) {

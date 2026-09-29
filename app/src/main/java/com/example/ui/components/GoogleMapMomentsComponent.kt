@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import coil.compose.AsyncImage
@@ -156,6 +157,9 @@ fun GoogleMapMomentsComponent(
         }
     }
 
+    var isRangeDropdownExpanded by remember { mutableStateOf(false) }
+    var showRadarInfoDialog by remember { mutableStateOf(false) }
+
     Box(modifier = modifier.fillMaxSize().testTag("google_map_moments_screen")) {
         // 1. Google Maps SDK MapView
         AndroidView(
@@ -170,86 +174,78 @@ fun GoogleMapMomentsComponent(
             modifier = Modifier.fillMaxSize().testTag("google_map_canvas")
         )
 
-        // 2. Top Radar Header Overlay: Active Count & Radius Selector
-        Column(
+        // 2. Slim Top Radar Floating Pill (Max 48dp height to expose maximum map viewport)
+        Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(16.dp)
+                .padding(top = 14.dp, start = 12.dp, end = 12.dp)
+                .zIndex(10f)
         ) {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
                 shadowElevation = 6.dp,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .height(44.dp)
+                    .wrapContentWidth()
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(10.dp)
-                                    .clip(CircleShape)
-                                    .background(Color(0xFFF59E0B))
-                            )
-                            Text(
-                                text = "Marketplace Radar Map 🛍️",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.5.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = Color(0xFFF59E0B).copy(alpha = 0.15f)
-                        ) {
-                            Text(
-                                text = "${marketplaceItems.size} Market Listings",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = Color(0xFFD97706),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = "Visualizing local market posts, deals & pickup locations across your radar radius.",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "🛍️ Market Listings: ${marketplaceItems.size} items",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.5.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    VerticalDivider(modifier = Modifier.height(18.dp), color = MaterialTheme.colorScheme.outlineVariant)
 
-                    // Proximity Range Filter Chips
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        val radiusOptions = listOf(1.0, 3.0, 5.0, 10.0)
-                        radiusOptions.forEach { r ->
-                            val isSelected = selectedRadiusKm == r
-                            Surface(
-                                shape = RoundedCornerShape(100.dp),
-                                color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                                border = if (isSelected) null else BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(100.dp))
-                                    .clickable {
+                    // Range Dropdown Selector
+                    Box {
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = LocaliiiyPrimaryTeal.copy(alpha = 0.15f),
+                            border = BorderStroke(0.8.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.4f)),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable { isRangeDropdownExpanded = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    text = "Range: ${selectedRadiusKm.toInt()}km",
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = LocaliiiyPrimaryTeal
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select Range",
+                                    tint = LocaliiiyPrimaryTeal,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = isRangeDropdownExpanded,
+                            onDismissRequest = { isRangeDropdownExpanded = false }
+                        ) {
+                            listOf(1.0, 3.0, 5.0, 10.0).forEach { r ->
+                                DropdownMenuItem(
+                                    text = { Text("${r.toInt()} km", fontWeight = if (selectedRadiusKm == r) FontWeight.Bold else FontWeight.Normal) },
+                                    onClick = {
                                         onRadiusChange(r)
+                                        isRangeDropdownExpanded = false
                                         googleMapInstance?.let { map ->
                                             val zoom = when (r) {
                                                 1.0 -> 15.2f
@@ -260,21 +256,45 @@ fun GoogleMapMomentsComponent(
                                             map.animateCamera(CameraUpdateFactory.newLatLngZoom(userLatLng, zoom))
                                         }
                                     }
-                                    .testTag("radar_radius_chip_${r.toInt()}km")
-                            ) {
-                                Text(
-                                    text = "${r.toInt()} km",
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(vertical = 5.dp),
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                                 )
                             }
                         }
                     }
+
+                    // Expandable Info Button (ℹ️)
+                    IconButton(
+                        onClick = { showRadarInfoDialog = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "Radar Map Info",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
                 }
             }
+        }
+
+        if (showRadarInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { showRadarInfoDialog = false },
+                icon = { Icon(Icons.Default.Info, contentDescription = null, tint = LocaliiiyPrimaryTeal) },
+                title = { Text("Marketplace Radar Map 🛍️", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)) },
+                text = {
+                    Text(
+                        text = "Visualizing local market posts, deals & pickup locations across your radar radius. Pan and pinch the map to explore items directly within your neighborhood.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showRadarInfoDialog = false }) {
+                        Text("Got it", fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
         }
 
         // 3. Floating Map Controls (Right Side)

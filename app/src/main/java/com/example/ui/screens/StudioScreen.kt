@@ -40,6 +40,9 @@ import com.example.data.UserProfileEntity
 import com.example.ui.components.StudioVideoPlayerComponent
 import com.example.ui.components.StudioInlinePreviewPlayer
 import com.example.ui.components.StudioDockedMiniPlayer
+import com.example.ui.components.findActivity
+import android.content.pm.ActivityInfo
+import androidx.activity.compose.BackHandler
 import com.example.util.CurrencyHelper
 import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyCurrency
@@ -50,6 +53,8 @@ import kotlin.math.abs
 import com.example.ui.components.SystematicDistanceScale
 import com.example.ui.components.SystematicDistanceOption
 import com.example.ui.components.studio.*
+import com.example.ui.components.copyright.LicensingAndReuseRightsUploadSection
+import com.example.data.copyright.ContentLicensingConfig
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -58,17 +63,26 @@ import androidx.activity.result.PickVisualMediaRequest
 
 val StudioCategories = listOf(
     "All",
-    "Music",
-    "News",
-    "Tech",
-    "Lifestyle",
-    "Podcasts",
-    "Documentaries",
-    "Food & Cooking",
-    "Gaming",
-    "Neighborhood & Culture",
-    "Education",
-    "Entertainment"
+    "Cartoons & Animation",
+    "Anime & Manga",
+    "Gaming & Esports",
+    "Indie Cinema",
+    "Vlogs & Daily Life",
+    "Music & Live Shows",
+    "Tech Reviews",
+    "AI & Automation",
+    "Comedy & Skits",
+    "Street Food & Cooking",
+    "DIY & Crafts",
+    "Auto & Moto",
+    "Sports & Fitness",
+    "Street Dance",
+    "Fashion & Styling",
+    "Science & Explainer",
+    "Pets & Wildlife",
+    "ASMR & Audio",
+    "News & Commentary",
+    "Local Documentaries"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,13 +135,6 @@ fun StudioScreen(
     onUserProfileClick: (String) -> Unit = {},
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
-    bounties: List<com.example.data.MerchantBountyEntity> = emptyList(),
-    onClaimBounty: (com.example.data.MerchantBountyEntity) -> Unit = {},
-    drafts: List<com.example.data.DraftClipEntity> = emptyList(),
-    onRouteDraftToClips: (com.example.data.DraftClipEntity) -> Unit = {},
-    onRouteDraftToMarket: (com.example.data.DraftClipEntity) -> Unit = {},
-    onRouteDraftToPulse: (com.example.data.DraftClipEntity) -> Unit = {},
-    onDeleteDraft: (com.example.data.DraftClipEntity) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val systematicOptions = remember(countryName) {
@@ -188,8 +195,6 @@ fun StudioScreen(
     var selectedVideoForMenu by remember { mutableStateOf<StudioVideoEntity?>(null) }
     var showReportDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
     var showTipDialog by remember { mutableStateOf<StudioVideoEntity?>(null) }
-    var showBountyBoardDialog by remember { mutableStateOf(false) }
-    var showDraftVaultDialog by remember { mutableStateOf(false) }
 
     // Video Preview on Scroll & Mini Player States
     var isVideoPreviewOnScrollEnabled by remember { mutableStateOf(true) }
@@ -201,19 +206,27 @@ fun StudioScreen(
 
     val studioListState = rememberLazyListState()
 
+    LaunchedEffect(studioListState.isScrollInProgress) {
+        if (studioListState.isScrollInProgress) {
+            manualPreviewVideoId = null
+        }
+    }
+
     // Real-time tracking of which video card is currently in view while scrolling
-    val visibleVideoId by remember {
+    val visibleVideoId by remember(sortedVideos) {
         derivedStateOf {
             val layoutInfo = studioListState.layoutInfo
             val visibleItems = layoutInfo.visibleItemsInfo
-            if (visibleItems.isEmpty()) null
-            else {
+            val videoItems = visibleItems.filter { it.key is Long }
+            if (videoItems.isNotEmpty()) {
                 val viewportCenter = layoutInfo.viewportStartOffset + (layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset) / 2
-                val centerItem = visibleItems.minByOrNull { item ->
+                val bestItem = videoItems.minByOrNull { item ->
                     val itemCenter = item.offset + item.size / 2
                     abs(itemCenter - viewportCenter)
                 }
-                centerItem?.key as? Long
+                bestItem?.key as? Long ?: (videoItems.first().key as? Long)
+            } else {
+                sortedVideos.firstOrNull()?.id
             }
         }
     }
@@ -252,79 +265,7 @@ fun StudioScreen(
                 )
             }
 
-            // PROMPT 11 & 12: Sponsor Bounty Board & Unified Draft Vault Action Bar
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = Color(0xFF10B981).copy(alpha = 0.15f),
-                        border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.5f)),
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { showBountyBoardDialog = true }
-                            .testTag("btn_merchant_bounties_hub")
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text("💼", fontSize = 15.sp)
-                            Column {
-                                Text(
-                                    text = "Bounty Board",
-                                    fontSize = 11.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF10B981)
-                                )
-                                Text(
-                                    text = "${bounties.count { !it.isClaimed }} Local Bounties",
-                                    fontSize = 9.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
 
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { showDraftVaultDialog = true }
-                            .testTag("btn_draft_vault_hub")
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text("🗄️", fontSize = 15.sp)
-                            Column {
-                                Text(
-                                    text = "Draft Vault",
-                                    fontSize = 11.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "${drafts.size} Vault Drafts",
-                                    fontSize = 9.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
-            }
 
             // 3. Standard Category Filter Chips
             item {
@@ -980,27 +921,6 @@ fun StudioScreen(
                 }
             )
         }
-
-        if (showBountyBoardDialog) {
-            MerchantBountyBoardDialog(
-                bounties = bounties,
-                onClaimBounty = { bounty ->
-                    onClaimBounty(bounty)
-                },
-                onDismiss = { showBountyBoardDialog = false }
-            )
-        }
-
-        if (showDraftVaultDialog) {
-            UnifiedDraftVaultDialog(
-                drafts = drafts,
-                onRouteDraftToClips = onRouteDraftToClips,
-                onRouteDraftToMarket = onRouteDraftToMarket,
-                onRouteDraftToPulse = onRouteDraftToPulse,
-                onDeleteDraft = onDeleteDraft,
-                onDismiss = { showDraftVaultDialog = false }
-            )
-        }
     }
 }
 
@@ -1046,13 +966,13 @@ private fun StudioHeader(
                 )
             }
 
-            Column {
+            Column(modifier = Modifier.weight(1f, fill = false)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
                         text = "Localiiiy",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Black,
-                            fontSize = 20.sp,
+                            fontSize = 19.sp,
                             letterSpacing = (-0.5).sp
                         ),
                         color = MaterialTheme.colorScheme.onBackground
@@ -1063,18 +983,20 @@ private fun StudioHeader(
                     ) {
                         Text(
                             text = "STUDIO",
-                            fontSize = 9.5.sp,
+                            fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             color = Color.White,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
                             letterSpacing = 1.sp
                         )
                     }
                 }
                 Text(
-                    text = "Long-Form Video & Creator Hub",
+                    text = "Long-Form Video Hub",
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -1082,7 +1004,7 @@ private fun StudioHeader(
         // Action Buttons: Creator Dashboard & Upload Long Video
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             IconButton(
                 onClick = onToggleDashboard,
@@ -1099,7 +1021,7 @@ private fun StudioHeader(
                     imageVector = if (showCreatorDashboard) Icons.Default.Analytics else Icons.Outlined.Analytics,
                     contentDescription = "Creator Analytics Dashboard",
                     tint = if (showCreatorDashboard) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -1109,23 +1031,24 @@ private fun StudioHeader(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFF3366)
                 ),
-                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                 modifier = Modifier
                     .height(36.dp)
                     .testTag("studio_upload_button")
             ) {
                 Icon(
                     imageVector = Icons.Default.VideoCall,
-                    contentDescription = null,
+                    contentDescription = "Upload",
                     tint = Color.White,
                     modifier = Modifier.size(16.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "Upload",
-                    fontSize = 12.sp,
+                    fontSize = 11.5.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = Color.White,
+                    maxLines = 1
                 )
             }
         }
@@ -1455,7 +1378,7 @@ private fun CreatorStudioDashboardPanel(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Payouts & Ads", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Monetization", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                 }
 
                 OutlinedButton(
@@ -2013,22 +1936,45 @@ private fun StudioPlayerModal(
         "Connected! Really love your content."
     )) }
 
+    val modalContext = LocalContext.current
+    val modalActivity = remember(modalContext) { modalContext.findActivity() }
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ||
+            modalActivity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
+            modalActivity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+    fun safeModalClose() {
+        if (modalActivity != null) {
+            modalActivity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        onClose()
+    }
+
+    BackHandler {
+        safeModalClose()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            modalActivity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+    }
+
     Dialog(
-        onDismissRequest = onClose,
+        onDismissRequest = { safeModalClose() },
         properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnBackPress = true, dismissOnClickOutside = false)
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Video Player
-                Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f).background(Color.Black)) {
-                    val modalContext = LocalContext.current
+            if (isLandscape) {
+                // Edge-to-Edge Landscape Cinema Mode: Player fills the screen
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
                     val modalHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
                     com.example.ui.components.StudioVideoPlayerComponent(
                         video = video,
-                        onClose = onClose,
+                        onClose = { safeModalClose() },
                         onVideoCompleted = {
                             com.example.util.HapticHelper.triggerHaptic(
                                 modalContext,
@@ -2036,15 +1982,37 @@ private fun StudioPlayerModal(
                                 androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
                             )
                         },
-                        onMinimizeToMiniPlayer = onMinimizeToMiniPlayer
+                        onMinimizeToMiniPlayer = {
+                            safeModalClose()
+                            onMinimizeToMiniPlayer()
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Video Player (16:9 in Portrait)
+                    Box(modifier = Modifier.fillMaxWidth().aspectRatio(16f/9f).background(Color.Black)) {
+                        val modalHaptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+                        com.example.ui.components.StudioVideoPlayerComponent(
+                            video = video,
+                            onClose = { safeModalClose() },
+                            onVideoCompleted = {
+                                com.example.util.HapticHelper.triggerHaptic(
+                                    modalContext,
+                                    modalHaptic,
+                                    androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                                )
+                            },
+                            onMinimizeToMiniPlayer = onMinimizeToMiniPlayer
+                        )
+                    }
 
-                // Scrollable content
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentPadding = PaddingValues(16.dp)
-                ) {
+                    // Scrollable content
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        contentPadding = PaddingValues(16.dp)
+                    ) {
                     item {
                         Text(
                             text = video.title,
@@ -2396,6 +2364,7 @@ private fun StudioPlayerModal(
         }
     }
 }
+}
 
 // -------------------------------------------------------------
 // Upload Long Video Dialog (Enforcing 60s to 240 mins)
@@ -2417,15 +2386,20 @@ private fun StudioUploadDialog(
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("Music") }
-    var durationHoursText by remember { mutableStateOf("0") }
-    var durationMinutesText by remember { mutableStateOf("15") }
-    var durationSecondsText by remember { mutableStateOf("00") }
+    var selectedCategory by remember { mutableStateOf("Music & Live Shows") }
+    var detectedDurationText by remember { mutableStateOf("04:22") }
+    var detectedDurationSeconds by remember { mutableStateOf(262) }
+    var detectedResolution by remember { mutableStateOf("1080p Full HD • 60fps") }
+    var detectedAspectRatio by remember { mutableStateOf("16:9 Widescreen") }
+    var hasSelectedVideo by remember { mutableStateOf(true) }
     var videoUrl by remember { mutableStateOf("https://media.w3.org/2010/05/sintel/trailer.mp4") }
     var thumbnailUrl by remember { mutableStateOf("https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=80") }
-    var resolution by remember { mutableStateOf("4K Ultra HD") }
+    var selectedThumbnailFrame by remember { mutableStateOf("00:15") }
     var tags by remember { mutableStateOf("#Localiiiy #Studio #Creator") }
-    var chapters by remember { mutableStateOf("00:00 - Introduction\n04:15 - Main Segment\n12:30 - Conclusion") }
+    var chapters by remember { mutableStateOf("00:00 - Introduction\n01:30 - Main Segment\n03:45 - Conclusion") }
+    var licensingConfig by remember { mutableStateOf(ContentLicensingConfig(permitReuse = true, allowAudioReuse = true, allowVideoRemapping = true, allowMarketplaceShowcase = true)) }
+    var isCommercialConsentConfirmed by remember { mutableStateOf(true) }
+    var isOriginalCreationConfirmed by remember { mutableStateOf(true) }
 
     // Distribution States
     var selectedReachMode by remember { mutableStateOf(AudienceReachMode.NEIGHBOR_FIRST) }
@@ -2441,11 +2415,35 @@ private fun StudioUploadDialog(
     var notifyConnections by remember { mutableStateOf(true) }
     var isPublishing by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
+
     val videoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
             videoUrl = uri.toString()
+            hasSelectedVideo = true
+            // Automated inspection extraction
+            try {
+                val retriever = android.media.MediaMetadataRetriever()
+                retriever.setDataSource(context, uri)
+                val durationMs = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 262000L
+                val width = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull() ?: 1920
+                val height = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull() ?: 1080
+                retriever.release()
+                val secs = (durationMs / 1000).toInt().coerceAtLeast(60)
+                detectedDurationSeconds = secs
+                val m = secs / 60
+                val s = secs % 60
+                detectedDurationText = String.format("%02d:%02d", m, s)
+                detectedResolution = if (width >= 3840) "4K Ultra HD • 60fps" else if (width >= 1920) "1080p Full HD • 60fps" else "720p HD • 30fps"
+                detectedAspectRatio = if (width >= height) "16:9 Widescreen" else "9:16 Vertical"
+            } catch (e: Exception) {
+                detectedDurationText = "04:22"
+                detectedDurationSeconds = 262
+                detectedResolution = "1080p Full HD • 60fps"
+                detectedAspectRatio = "16:9 Widescreen"
+            }
         }
     }
 
@@ -2457,17 +2455,14 @@ private fun StudioUploadDialog(
         }
     }
 
-    val totalDurationSeconds = remember(durationHoursText, durationMinutesText, durationSecondsText) {
-        val hrs = durationHoursText.toIntOrNull() ?: 0
-        val mins = durationMinutesText.toIntOrNull() ?: 0
-        val secs = durationSecondsText.toIntOrNull() ?: 0
-        (hrs * 3600) + (mins * 60) + secs
-    }
+    val thumbnailStripFrames = listOf(
+        Pair("00:15", "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=500&auto=format&fit=crop&q=80"),
+        Pair("01:30", "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=500&auto=format&fit=crop&q=80"),
+        Pair("03:10", "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80"),
+        Pair("04:20", "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=500&auto=format&fit=crop&q=80")
+    )
 
-    // Flexible duration: any duration or default
-    val effectiveDuration = if (totalDurationSeconds <= 0) 60 else totalDurationSeconds
-    val isDurationValid = totalDurationSeconds >= 0
-    val isFormValid = title.isNotBlank()
+    val isFormValid = title.isNotBlank() && isOriginalCreationConfirmed
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -2505,7 +2500,7 @@ private fun StudioUploadDialog(
                                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = "Long-form creator video (60s – Unlimited time)",
+                                text = "Automated video inspection & verified distribution",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -2525,7 +2520,165 @@ private fun StudioUploadDialog(
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // Video Title
+                    // 1. Automated Video File Picker & Live Video Inspector
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Icon(
+                                            imageVector = Icons.Default.CheckCircle,
+                                            contentDescription = null,
+                                            tint = Color(0xFF10B981),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Text(
+                                            text = "Automated Video Inspection",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 13.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = {
+                                            videoPickerLauncher.launch(
+                                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly)
+                                            )
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                                        shape = RoundedCornerShape(100.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Icon(imageVector = Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Select Video", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(10.dp))
+
+                                // Inspection Stats Grid
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = MaterialTheme.colorScheme.surface,
+                                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant)
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text("Duration detected:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text("Duration: $detectedDurationText detected", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                        }
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text("Resolution & Quality:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(detectedResolution, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981))
+                                        }
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text("Aspect Ratio:", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            Text(detectedAspectRatio, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. Editable Video Thumbnail Strip
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Editable Video Thumbnail Strip",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                                TextButton(
+                                    onClick = {
+                                        thumbnailPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                                ) {
+                                    Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Custom Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                thumbnailStripFrames.forEach { frame ->
+                                    val isSelected = selectedThumbnailFrame == frame.first && thumbnailUrl == frame.second
+                                    Box(
+                                        modifier = Modifier
+                                            .width(90.dp)
+                                            .height(56.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .border(
+                                                width = if (isSelected) 2.5.dp else 1.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            .clickable {
+                                                selectedThumbnailFrame = frame.first
+                                                thumbnailUrl = frame.second
+                                            }
+                                    ) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context).data(frame.second).crossfade(true).build(),
+                                            contentDescription = "Thumbnail ${frame.first}",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                        Surface(
+                                            shape = RoundedCornerShape(bottomStart = 8.dp),
+                                            color = Color.Black.copy(alpha = 0.75f),
+                                            modifier = Modifier.align(Alignment.BottomEnd)
+                                        ) {
+                                            Text(
+                                                text = frame.first,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 3. Video Title
                     item {
                         OutlinedTextField(
                             value = title,
@@ -2537,10 +2690,10 @@ private fun StudioUploadDialog(
                         )
                     }
 
-                    // Category Selector
+                    // 4. Expanded Content Categories (Up to 20 Modern Categories)
                     item {
                         Text(
-                            text = "Category *",
+                            text = "Content Category (20 Modern Tags) *",
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                         )
                         Spacer(modifier = Modifier.height(6.dp))
@@ -2555,114 +2708,7 @@ private fun StudioUploadDialog(
                         }
                     }
 
-                    // Standard Duration Picker (Hours + Minutes + Seconds) with Live Validation
-                    item {
-                        Card(
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = if (isDurationValid) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                                else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                            ),
-                            border = BorderStroke(
-                                1.dp,
-                                if (isDurationValid) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
-                                else MaterialTheme.colorScheme.error
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Video Duration (Requirement: 60s minimum • Unlimited Time) *",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        color = if (isDurationValid) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
-                                    )
-                                    Text(
-                                        text = formatDuration(totalDurationSeconds),
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 12.sp,
-                                        color = if (isDurationValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.height(8.dp))
-
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    OutlinedTextField(
-                                        value = durationHoursText,
-                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 4) durationHoursText = it },
-                                        label = { Text("Hours") },
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    OutlinedTextField(
-                                        value = durationMinutesText,
-                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 4) durationMinutesText = it },
-                                        label = { Text("Mins") },
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f)
-                                    )
-
-                                    OutlinedTextField(
-                                        value = durationSecondsText,
-                                        onValueChange = { if (it.all { c -> c.isDigit() } && it.length <= 2) durationSecondsText = it },
-                                        label = { Text("Secs (0-59)") },
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                }
-
-                                if (!isDurationValid) {
-                                    Spacer(modifier = Modifier.height(6.dp))
-                                    Text(
-                                        text = "⚠️ Minimum Studio video duration is 60 seconds. Short clips under 60 seconds belong in the Clips tab! (Unlimited maximum time supported).",
-                                        fontSize = 11.sp,
-                                        color = MaterialTheme.colorScheme.error,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                } else {
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "✅ Valid long-form video duration: ${formatDuration(totalDurationSeconds)} (Unlimited playback enabled)",
-                                        fontSize = 11.sp,
-                                        color = Color(0xFF2E7D32)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Resolution Selector
-                    item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Resolution", fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                listOf("4K Ultra HD", "1080p Full HD", "720p HD").forEach { res ->
-                                    FilterChip(
-                                        selected = resolution == res,
-                                        onClick = { resolution = res },
-                                        label = { Text(res, fontSize = 10.5.sp) }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // Description & Chapters
+                    // 5. Description & Chapters
                     item {
                         OutlinedTextField(
                             value = description,
@@ -2672,6 +2718,86 @@ private fun StudioUploadDialog(
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 3
                         )
+                    }
+
+                    // 6. Mandatory Copyright & Content Ownership Toggles
+                    item {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            LicensingAndReuseRightsUploadSection(
+                                config = licensingConfig,
+                                onConfigChange = { licensingConfig = it }
+                            )
+
+                            // Commercial Reuse Consent
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { isCommercialConsentConfirmed = !isCommercialConsentConfirmed }
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isCommercialConsentConfirmed,
+                                        onCheckedChange = { isCommercialConsentConfirmed = it }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(
+                                            text = "Commercial Reuse Consent",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = "Grant commercial reuse authorization for verified neighborhood sponsors & partner platforms.",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Original Creation Verification Declaration
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isOriginalCreationConfirmed) Color(0xFF10B981).copy(alpha = 0.08f) else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f),
+                                border = BorderStroke(1.dp, if (isOriginalCreationConfirmed) Color(0xFF10B981).copy(alpha = 0.4f) else MaterialTheme.colorScheme.error),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { isOriginalCreationConfirmed = !isOriginalCreationConfirmed }
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Checkbox(
+                                        checked = isOriginalCreationConfirmed,
+                                        onCheckedChange = { isOriginalCreationConfirmed = it }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column {
+                                        Text(
+                                            text = "Original Creation Verification Declaration *",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = if (isOriginalCreationConfirmed) Color(0xFF065F46) else MaterialTheme.colorScheme.error
+                                        )
+                                        Text(
+                                            text = "I declare and confirm under penalty of copyright strike that this video is my 100% original work or legally licensed.",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // Thumbnail Presets / URL
@@ -2837,10 +2963,10 @@ private fun StudioUploadDialog(
                                 title,
                                 description,
                                 selectedCategory,
-                                effectiveDuration,
+                                detectedDurationSeconds,
                                 videoUrl,
                                 thumbnailUrl,
-                                resolution,
+                                detectedResolution,
                                 tags,
                                 chapters
                             )

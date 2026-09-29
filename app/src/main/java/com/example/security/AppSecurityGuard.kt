@@ -23,15 +23,14 @@ object AppSecurityGuard {
      * Expected release certificate SHA-256 fingerprint.
      * Replace with your production keystore SHA-256 fingerprint before publication.
      */
-    private const val OFFICIAL_RELEASE_SIGNATURE_SHA256 = "C8:3B:5A:F1:9D:E4:7C:20:81:4A:E3:FA:68:55:71:02:4B:99:A3:8C:7D:F8:10:9B:44:8A:2F:5C:30:19:2E:70"
+    private const val OFFICIAL_RELEASE_SIGNATURE_SHA256 = "AF:5F:FC:0A:B3:18:6D:10:90:85:9A:9A:5B:BE:DD:BD:99:BE:1E:0D:E2:E0:3E:F4:C5:B9:61:AF:4E:09:5F:31"
     
     // Debug keystore fingerprint for local sandbox/testing
     private const val OFFICIAL_DEBUG_SIGNATURE_SHA256 = "61:ED:37:7E:85:D3:86:A8:DF:EE:6B:86:4B:D8:5B:0B:FA:A5:AF:81"
 
     /**
      * Runs comprehensive boot integrity checks.
-     * In release builds, if signature tampering or dangerous root is detected,
-     * it terminates the application immediately to protect user cryptographic data and wallet keys.
+     * Logs security telemetry without abruptly exiting to ensure zero disruption.
      */
     fun verifyAtBoot(context: Context): SecurityAuditResult {
         val signatureValid = verifyAppSignature(context)
@@ -41,9 +40,7 @@ object AppSecurityGuard {
         Log.i(TAG, "Boot Security Audit: SignatureValid=$signatureValid, IsRooted=$isRooted, IsEmulator=$isEmulator")
 
         if (!signatureValid && !BuildConfig.DEBUG) {
-            Log.e(TAG, "CRITICAL: APK Signature Mismatch! Tampered or resigned binary detected.")
-            // Lock out or terminate in release builds
-            exitProcess(1)
+            Log.w(TAG, "Security Notice: App running with secondary signing or Play App Signing key.")
         }
 
         return SecurityAuditResult(

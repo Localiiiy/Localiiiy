@@ -149,18 +149,20 @@ fun HyperlocalGroundedNewsCard(
                         )
                     }
 
-                    Column {
+                    Column(modifier = Modifier.weight(1f)) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Text(
-                                text = "Hyperlocal Pulse News",
+                                text = "Local Pulse News",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
+                                    fontSize = 13.5.sp
                                 ),
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
@@ -170,27 +172,30 @@ fun HyperlocalGroundedNewsCard(
                                 Row(
                                     modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp),
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Search,
+                                        imageVector = Icons.Default.AutoAwesome,
                                         contentDescription = null,
                                         tint = Color(0xFF4285F4),
                                         modifier = Modifier.size(10.dp)
                                     )
                                     Text(
-                                        text = "Google Search Grounded",
+                                        text = "AI Live",
                                         fontSize = 8.5.sp,
-                                        fontWeight = FontWeight.Black,
-                                        color = Color(0xFF1E40AF)
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1E40AF),
+                                        maxLines = 1
                                     )
                                 }
                             }
                         }
                         Text(
-                            text = "Live updates for ${currentResult.neighborhood}",
+                            text = "Updates: ${currentResult.neighborhood}",
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

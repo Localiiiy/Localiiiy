@@ -2,6 +2,7 @@ package com.example.ui
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.data.*
@@ -89,6 +90,14 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     val globalSearchQuery: StateFlow<String> = _globalSearchQuery.asStateFlow()
 
     fun setGlobalSearchQuery(query: String) {
+        if (query.trim().equals("delete all dummy accounts", ignoreCase = true) ||
+            query.trim().equals("delete all demo accounts", ignoreCase = true)) {
+            deleteAllDummyAccounts()
+            _globalSearchQuery.value = ""
+            _marketplaceSearchQuery.value = ""
+            _studioSearchQuery.value = ""
+            return
+        }
         _globalSearchQuery.value = query
         _marketplaceSearchQuery.value = query
         _studioSearchQuery.value = query
@@ -601,6 +610,17 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 dao.insertConversations(InitialData.starterConversations)
                 dao.insertChatMessages(InitialData.starterChatMessages)
                 dao.insertOrUpdatePrivacySettings(InitialData.defaultPrivacySettings)
+            }
+            // Delete all demo accounts as requested for production release
+            dao.clearDemoUsers()
+            dao.clearDemoPosts()
+            dao.clearDemoClips()
+
+            // Ensure demo session is purged if previously stored
+            val savedUser = authPrefs.getString("auth_username", "")
+            if (savedUser?.startsWith("demo_") == true || savedUser == "new_neighbor" || savedUser?.startsWith("guest_") == true) {
+                authPrefs.edit().putBoolean("is_user_authenticated", false).remove("auth_username").apply()
+                _isLoggedOut.value = true
             }
         }
         viewModelScope.launch {
@@ -2806,6 +2826,20 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     fun purgeExpiredFlashPulses() {
         viewModelScope.launch {
             repository.purgeExpiredFlashPulses()
+        }
+    }
+
+    fun generate30DemoAccounts() {
+        deleteAllDummyAccounts()
+    }
+
+    fun deleteAllDummyAccounts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val dao = database.localiiiyDao()
+            dao.clearDemoUsers()
+            dao.clearDemoPosts()
+            dao.clearDemoClips()
+            Log.i("LocaliiiyViewModel", "Successfully deleted all dummy accounts, demo posts, and demo clips!")
         }
     }
 }

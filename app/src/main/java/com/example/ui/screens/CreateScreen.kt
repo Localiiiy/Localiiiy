@@ -53,6 +53,7 @@ import com.example.ui.FilterPreset
 import com.example.ui.PhotoFilters
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.StandardMediaSelectorBottomSheet
+import com.example.ui.components.AiCreativeStudioComponent
 import com.example.data.copyright.ContentLicensingConfig
 import com.example.data.copyright.MediaFingerprintEngine
 import com.example.data.copyright.CopyrightManager
@@ -86,6 +87,38 @@ fun CreateScreen(
     var showDraftsSheet by remember { mutableStateOf(false) }
 
     var caption by remember { mutableStateOf("") }
+    var customHashtagInput by remember { mutableStateOf("") }
+    val detectedHashtags = remember(caption) {
+        val regex = Regex("#[\\w_]+")
+        regex.findAll(caption).map { it.value }.distinct().toList()
+    }
+    val popularHashtagSuggestions = remember {
+        listOf(
+            "#LocalUpdate",
+            "#Hyperlocal",
+            "#Neighborhood",
+            "#Events",
+            "#Marketplace",
+            "#Foodie",
+            "#LostAndFound",
+            "#Alerts",
+            "#Community",
+            "#GoodVibes",
+            "#Seattle",
+            "#Localiiiy"
+        )
+    }
+
+    fun toggleHashtag(tag: String) {
+        val clean = tag.trim()
+        if (clean.isBlank()) return
+        val normalizedTag = if (clean.startsWith("#")) clean else "#$clean"
+        if (detectedHashtags.any { it.equals(normalizedTag, ignoreCase = true) }) {
+            caption = caption.replace(normalizedTag, "", ignoreCase = true).replace("  ", " ").trim()
+        } else {
+            caption = if (caption.isBlank()) normalizedTag else "$caption $normalizedTag"
+        }
+    }
     var isAiContent by remember { mutableStateOf(false) }
     var locationOptional by remember { mutableStateOf(true) }
     var showLocationOnClip by remember { mutableStateOf(true) }
@@ -576,9 +609,20 @@ fun CreateScreen(
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(if (creationMode == CreationMode.POST) 1.05f else 9f / 16f)
-                .padding(horizontal = 16.dp)
+                .align(Alignment.CenterHorizontally)
+                .then(
+                    if (creationMode == CreationMode.POST) {
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.05f)
+                            .padding(horizontal = 16.dp)
+                    } else {
+                        // Proportional compact vertical clip preview (fits within viewport without pushing page down)
+                        Modifier
+                            .height(260.dp)
+                            .aspectRatio(9f / 16f)
+                    }
+                )
                 .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
@@ -1045,6 +1089,186 @@ fun CreateScreen(
                 maxLines = 4
             )
 
+            // --- Hashtagging System: Categorize Local Updates ---
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("post_hashtag_system_card")
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Tag,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = "Categorize with Local Hashtags",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        if (detectedHashtags.isNotEmpty()) {
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                            ) {
+                                Text(
+                                    text = "${detectedHashtags.size} tags",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Suggested Quick Hashtags Carousel
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth().testTag("suggested_hashtags_row")
+                    ) {
+                        items(popularHashtagSuggestions) { tag ->
+                            val isSelected = detectedHashtags.any { it.equals(tag, ignoreCase = true) }
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        toggleHashtag(tag)
+                                    }
+                                    .testTag("hashtag_chip_$tag")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = tag,
+                                        fontSize = 11.sp,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Custom Hashtag Input Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = customHashtagInput,
+                            onValueChange = { customHashtagInput = it.replace(" ", "") },
+                            placeholder = { Text("Add custom tag (e.g. YardSale)...", fontSize = 11.sp) },
+                            singleLine = true,
+                            leadingIcon = {
+                                Text("#", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, fontSize = 14.sp)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .testTag("custom_hashtag_input"),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        Button(
+                            onClick = {
+                                if (customHashtagInput.isNotBlank()) {
+                                    toggleHashtag(customHashtagInput)
+                                    customHashtagInput = ""
+                                }
+                            },
+                            enabled = customHashtagInput.isNotBlank(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                            modifier = Modifier.height(48.dp).testTag("add_custom_hashtag_button")
+                        ) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add tag", modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(2.dp))
+                            Text("Tag", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    // Display active tags as removable chips
+                    if (detectedHashtags.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(detectedHashtags) { tag ->
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 3.dp, bottom = 3.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Text(
+                                            text = tag,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                        IconButton(
+                                            onClick = { toggleHashtag(tag) },
+                                            modifier = Modifier.size(18.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "Remove tag",
+                                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Section: Microphone & Voice Audio Tools (Voice-to-Text & Audio Clip Recorder)
             Surface(
                 shape = RoundedCornerShape(14.dp),
@@ -1446,6 +1670,14 @@ fun CreateScreen(
                     onCheckedChange = { isAiContent = it }
                 )
             }
+
+            // AI Studio Magic Creator and Editor
+            AiCreativeStudioComponent(
+                currentMediaUri = selectedMediaUri,
+                onMediaGenerated = { onSelectMedia(it) },
+                onMarkAsAiContent = { isAiContent = it },
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
             if (showSoundSelector) {
                 Column(
                     modifier = Modifier

@@ -12,9 +12,10 @@ object ShareHelper {
     const val WEBAPP_BASE_URL = "https://localiiiy.web.app"
     const val FIREBASE_HOSTING_URL = "https://localiiiy.web.app"
     const val FIREBASE_APP_URL = "https://localiiiy.firebaseapp.com"
-    const val PRIVACY_POLICY_URL = "https://localiiiy.web.app/privacy"
-    const val TERMS_URL = "https://localiiiy.web.app/terms"
-    const val GOOGLE_DRIVE_APK_URL = "https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk"
+    const val PRIVACY_POLICY_URL = "https://localiiiy.web.app/privacy.html"
+    const val TERMS_URL = "https://localiiiy.web.app/terms.html"
+    const val GOOGLE_DRIVE_APK_URL = "https://tmpfiles.org/wzw8pPSX4ZYT/app-release.apk"
+    const val DIRECT_APK_DOWNLOAD_URL = "https://tmpfiles.org/wzw8pPSX4ZYT/app-release.apk"
     const val PREVIEW_WEBAPP_URL = "https://localiiiy.web.app"
 
     fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN): String {
@@ -29,7 +30,7 @@ object ShareHelper {
             LocaliiiyLanguage.AR -> "📲 حمّل Localiiiy: استخدم تطبيق الويب أو حمّل ملف APK الرسمي مباشرة."
             else -> "📲 Localiiiy — Connect with your neighborhood Earth through live radar, creator clips, and local pulses, Market and Studio."
         }
-        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n📦 Android APK (Google Drive): $GOOGLE_DRIVE_APK_URL"
+        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n📦 Android Release APK: $DIRECT_APK_DOWNLOAD_URL"
     }
 
     fun buildDeepLink(itemType: String, id: Any): String {

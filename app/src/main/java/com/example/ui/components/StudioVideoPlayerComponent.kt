@@ -8,6 +8,7 @@ import android.net.Uri
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.OptIn
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -18,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -108,9 +110,31 @@ fun StudioVideoPlayerComponent(
     var showForwardIndicator by remember { mutableStateOf(false) }
 
     var playerResizeMode by remember { mutableIntStateOf(AspectRatioFrameLayout.RESIZE_MODE_FIT) }
+    var currentVolume by remember { mutableFloatStateOf(1.0f) }
+    var isVolumeDragging by remember { mutableStateOf(false) }
+    var showAspectRatioIndicator by remember { mutableStateOf<String?>(null) }
+
     val activity = remember(context) { context.findActivity() }
-    var isLandscape by remember {
-        mutableStateOf(activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE)
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
+            activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
+            activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+    fun safeClose() {
+        if (activity != null) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
+        onClose()
+    }
+
+    BackHandler {
+        safeClose()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
     }
 
     // Infinite cosmic animations
@@ -142,7 +166,8 @@ fun StudioVideoPlayerComponent(
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
             try {
-                val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
+                val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
+                val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
                 setMediaItem(mediaItem)
                 prepare()
                 playWhenReady = true
@@ -419,6 +444,39 @@ fun StudioVideoPlayerComponent(
             }
         }
 
+        // 3.1. Touch Gesture Area for Volume Control (Right Half of the Screen)
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(0.5f)
+                .align(Alignment.CenterEnd)
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures(
+                        onDragStart = {
+                            isVolumeDragging = true
+                        },
+                        onDragEnd = {
+                            coroutineScope.launch {
+                                delay(1200)
+                                isVolumeDragging = false
+                            }
+                        },
+                        onDragCancel = {
+                            isVolumeDragging = false
+                        },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                            // Drag up (dragAmount < 0) -> Volume UP
+                            val delta = -dragAmount / 350f
+                            currentVolume = (currentVolume + delta).coerceIn(0f, 1f)
+                            exoPlayer.volume = currentVolume
+                            isMuted = (currentVolume == 0f)
+                            isVolumeDragging = true
+                        }
+                    )
+                }
+        )
+
         // 4. Galaxy Starlight Buffering Spinner
         if (isBuffering && !hasPlaybackError) {
             Box(
@@ -487,7 +545,7 @@ fun StudioVideoPlayerComponent(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         IconButton(
-                            onClick = onClose,
+                            onClick = { safeClose() },
                             modifier = Modifier
                                 .size(34.dp)
                                 .clip(CircleShape)
@@ -862,50 +920,243 @@ fun StudioVideoPlayerComponent(
                             }
                         }
 
-                        // Right: Zoom & Fullscreen
+                        // Right: Aspect Ratio (Fit / Fill / Stretch) & Fullscreen
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            // Zoom / Fit Toggle
-                            IconButton(
-                                onClick = {
-                                    playerResizeMode = if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
-                                        AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                                    } else {
-                                        AspectRatioFrameLayout.RESIZE_MODE_FIT
-                                    }
-                                },
-                                modifier = Modifier.size(24.dp)
+                            // Touch Volume Quick Buttons (Volume Down, Mute, Volume Up)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(1.dp),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(GalaxyObsidian.copy(alpha = 0.75f))
+                                    .border(1.dp, GalaxyCelestialCyan.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 4.dp, vertical = 2.dp)
                             ) {
-                                Icon(
-                                    imageVector = if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) Icons.Default.ZoomIn else Icons.Default.ZoomOutMap,
-                                    contentDescription = "Zoom/Fit Aspect Ratio",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                IconButton(
+                                    onClick = {
+                                        currentVolume = (currentVolume - 0.15f).coerceIn(0f, 1f)
+                                        exoPlayer.volume = currentVolume
+                                        isMuted = (currentVolume == 0f)
+                                        isVolumeDragging = true
+                                        coroutineScope.launch {
+                                            delay(1400)
+                                            isVolumeDragging = false
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.VolumeDown,
+                                        contentDescription = "Volume Down",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        isMuted = !isMuted
+                                        currentVolume = if (isMuted) 0f else 1f
+                                        exoPlayer.volume = currentVolume
+                                        isVolumeDragging = true
+                                        coroutineScope.launch {
+                                            delay(1400)
+                                            isVolumeDragging = false
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (isMuted || currentVolume == 0f) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                                        contentDescription = "Mute",
+                                        tint = if (isMuted || currentVolume == 0f) GalaxyPulsarMagenta else GalaxyCelestialCyan,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        currentVolume = (currentVolume + 0.15f).coerceIn(0f, 1f)
+                                        exoPlayer.volume = currentVolume
+                                        isMuted = false
+                                        isVolumeDragging = true
+                                        coroutineScope.launch {
+                                            delay(1400)
+                                            isVolumeDragging = false
+                                        }
+                                    },
+                                    modifier = Modifier.size(24.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.VolumeUp,
+                                        contentDescription = "Volume Up",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
                             }
 
-                            // Fullscreen Toggle
+                            if (isLandscape) {
+                                // Dedicated Landscape Aspect Ratio Selectors: Fit Screen, Fill Screen, Stretch
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) GalaxyCelestialCyan.copy(alpha = 0.35f) else GalaxyObsidian.copy(alpha = 0.75f),
+                                        border = BorderStroke(1.dp, if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) GalaxyCelestialCyan else Color.White.copy(alpha = 0.35f)),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                playerResizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                                showAspectRatioIndicator = "Fit to Screen"
+                                                coroutineScope.launch {
+                                                    delay(1400)
+                                                    showAspectRatioIndicator = null
+                                                }
+                                            }
+                                            .testTag("btn_fit_to_screen")
+                                    ) {
+                                        Text(
+                                            text = "Fit",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                                        )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) GalaxyPulsarMagenta.copy(alpha = 0.35f) else GalaxyObsidian.copy(alpha = 0.75f),
+                                        border = BorderStroke(1.dp, if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_ZOOM) GalaxyPulsarMagenta else Color.White.copy(alpha = 0.35f)),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                playerResizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                                                showAspectRatioIndicator = "Fill Screen (Zoom)"
+                                                coroutineScope.launch {
+                                                    delay(1400)
+                                                    showAspectRatioIndicator = null
+                                                }
+                                            }
+                                            .testTag("btn_fill_screen")
+                                    ) {
+                                        Text(
+                                            text = "Fill",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                                        )
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FILL) GalaxyStarlightGold.copy(alpha = 0.35f) else GalaxyObsidian.copy(alpha = 0.75f),
+                                        border = BorderStroke(1.dp, if (playerResizeMode == AspectRatioFrameLayout.RESIZE_MODE_FILL) GalaxyStarlightGold else Color.White.copy(alpha = 0.35f)),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                playerResizeMode = AspectRatioFrameLayout.RESIZE_MODE_FILL
+                                                showAspectRatioIndicator = "Stretch to Fill"
+                                                coroutineScope.launch {
+                                                    delay(1400)
+                                                    showAspectRatioIndicator = null
+                                                }
+                                            }
+                                            .testTag("btn_stretch_screen")
+                                    ) {
+                                        Text(
+                                            text = "Stretch",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Portrait Aspect Ratio Mode Pill
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = GalaxyObsidian.copy(alpha = 0.75f),
+                                    border = BorderStroke(1.dp, GalaxyCelestialCyan.copy(alpha = 0.5f)),
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            playerResizeMode = when (playerResizeMode) {
+                                                AspectRatioFrameLayout.RESIZE_MODE_FIT -> {
+                                                    showAspectRatioIndicator = "Fill Screen (Zoom)"
+                                                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                                                }
+                                                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> {
+                                                    showAspectRatioIndicator = "Stretch to Fill"
+                                                    AspectRatioFrameLayout.RESIZE_MODE_FILL
+                                                }
+                                                else -> {
+                                                    showAspectRatioIndicator = "Fit to Screen"
+                                                    AspectRatioFrameLayout.RESIZE_MODE_FIT
+                                                }
+                                            }
+                                            coroutineScope.launch {
+                                                delay(1400)
+                                                showAspectRatioIndicator = null
+                                            }
+                                        }
+                                        .testTag("btn_aspect_ratio_mode")
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = when (playerResizeMode) {
+                                                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> Icons.Default.ZoomOutMap
+                                                AspectRatioFrameLayout.RESIZE_MODE_FILL -> Icons.Default.FitScreen
+                                                else -> Icons.Default.ZoomIn
+                                            },
+                                            contentDescription = "Aspect Ratio",
+                                            tint = GalaxyCelestialCyan,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Text(
+                                            text = when (playerResizeMode) {
+                                                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "Fill Screen"
+                                                AspectRatioFrameLayout.RESIZE_MODE_FILL -> "Stretch"
+                                                else -> "Fit to Screen"
+                                            },
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Fullscreen / Landscape Toggle
                             IconButton(
                                 onClick = {
                                     if (activity != null) {
                                         if (isLandscape) {
-                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-                                            isLandscape = false
+                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                                         } else {
                                             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                                            isLandscape = true
                                         }
                                     }
                                 },
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             ) {
                                 Icon(
                                     imageVector = if (isLandscape) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
                                     contentDescription = "Toggle Fullscreen",
                                     tint = GalaxyCelestialCyan,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
@@ -928,6 +1179,107 @@ fun StudioVideoPlayerComponent(
                             .fillMaxWidth()
                             .height(26.dp)
                             .testTag("player_scrubber_slider")
+                    )
+                }
+            }
+        }
+
+        // 6. Floating On-Screen Volume HUD (Always rendered on top of controls and video)
+        AnimatedVisibility(
+            visible = isVolumeDragging,
+            enter = fadeIn(tween(150)),
+            exit = fadeOut(tween(300)),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = GalaxyObsidian.copy(alpha = 0.92f),
+                border = BorderStroke(1.2.dp, GalaxyCelestialCyan.copy(alpha = 0.6f)),
+                tonalElevation = 10.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Icon(
+                        imageVector = when {
+                            currentVolume == 0f || isMuted -> Icons.Default.VolumeOff
+                            currentVolume < 0.35f -> Icons.Default.VolumeMute
+                            currentVolume < 0.70f -> Icons.Default.VolumeDown
+                            else -> Icons.Default.VolumeUp
+                        },
+                        contentDescription = null,
+                        tint = if (currentVolume == 0f || isMuted) GalaxyPulsarMagenta else GalaxyCelestialCyan,
+                        modifier = Modifier.size(36.dp)
+                    )
+
+                    Text(
+                        text = "Volume: ${(currentVolume * 100).toInt()}%",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+
+                    // Progress Level Bar
+                    Box(
+                        modifier = Modifier
+                            .width(130.dp)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(Color.White.copy(alpha = 0.2f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(currentVolume)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(GalaxyCelestialCyan, GalaxyCosmicPurple, GalaxyPulsarMagenta)
+                                    )
+                                )
+                        )
+                    }
+
+                    Text(
+                        text = "Swipe right screen up/down or tap +/- to adjust",
+                        fontSize = 10.sp,
+                        color = Color.LightGray
+                    )
+                }
+            }
+        }
+
+        // 7. Floating Aspect Ratio Mode HUD Indicator (Always rendered on top)
+        AnimatedVisibility(
+            visible = showAspectRatioIndicator != null,
+            enter = fadeIn(tween(150)),
+            exit = fadeOut(tween(300)),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 56.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = GalaxyObsidian.copy(alpha = 0.92f),
+                border = BorderStroke(1.2.dp, GalaxyStarlightGold.copy(alpha = 0.8f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AspectRatio,
+                        contentDescription = null,
+                        tint = GalaxyStarlightGold,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = showAspectRatioIndicator ?: "",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 }
             }
