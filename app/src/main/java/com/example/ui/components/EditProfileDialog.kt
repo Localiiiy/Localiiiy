@@ -110,7 +110,7 @@ fun EditProfileDialog(
                     }
 
                     Text(
-                        text = "Edit Profile & Privacy",
+                        text = "Edit Space & Privacy",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -170,7 +170,7 @@ fun EditProfileDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Choose Profile Picture",
+                        text = "Choose Space Picture",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary
@@ -317,7 +317,7 @@ fun EditProfileDialog(
                                         fontSize = 13.sp
                                     )
                                     Text(
-                                        text = if (isPrivateAccount) "Only approved connections see your profile" else "Public discovery across neighborhood radar",
+                                        text = if (isPrivateAccount) "Only approved connections see your Space" else "Public discovery across neighborhood radar",
                                         fontSize = 11.sp,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -471,7 +471,7 @@ fun EditProfileDialog(
                         OutlinedTextField(
                             value = githubHandle,
                             onValueChange = { githubHandle = it },
-                            label = { Text("GitHub Profile") },
+                            label = { Text("GitHub Space") },
                             placeholder = { Text("username") },
                             leadingIcon = { Text("🐙", fontSize = 16.sp) },
                             modifier = Modifier.fillMaxWidth().testTag("edit_social_github"),

@@ -126,7 +126,7 @@ fun AiCreativeStudioComponent(
                                     onMarkAsAiContent(true)
                                     Toast.makeText(context, "Image synthesized successfully! 🎨", Toast.LENGTH_LONG).show()
                                 },
-                                onFailure = { error ->
+                                onFailure = { _ ->
                                     statusText = "Synthesis failed. Running sandbox mock..."
                                     // Use beautiful mock image on error
                                     val fallbackUri = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80"
@@ -174,7 +174,7 @@ fun AiCreativeStudioComponent(
                                     onMarkAsAiContent(true)
                                     Toast.makeText(context, "Image morphed successfully! 🪄", Toast.LENGTH_LONG).show()
                                 },
-                                onFailure = { error ->
+                                onFailure = { _ ->
                                     statusText = "Morphing failed. Running sandbox mock..."
                                     val fallbackUri = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&auto=format&fit=crop&q=80"
                                     onMediaGenerated(fallbackUri)

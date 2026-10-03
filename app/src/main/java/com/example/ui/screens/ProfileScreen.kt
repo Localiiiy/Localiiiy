@@ -132,6 +132,7 @@ fun ProfileScreen(
     isPremiumSubscribed: Boolean = false,
     isGhostMode: Boolean = false,
     onOpenPremium: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
@@ -533,7 +534,7 @@ fun ProfileScreen(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Edit profile",
+                                text = "Edit Space",
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -837,7 +838,7 @@ fun ProfileScreen(
                             EmptyProfileSectionCard(
                                 icon = Icons.Outlined.AddPhotoAlternate,
                                 title = "Share your first local photo",
-                                description = "Post high-resolution neighborhood moments to your profile and feed.",
+                                description = "Post high-resolution neighborhood moments to your Space and feed.",
                                 actionText = "Create Post",
                                 onAction = onCreateContentClick,
                                 testTag = "empty_posts_card"
@@ -1229,7 +1230,7 @@ fun ProfileScreen(
             },
             title = { Text("Delete Neighborhood Clip?") },
             text = {
-                Text("Are you sure you want to permanently delete this clip from ${clip.landmark ?: "your profile"}? This action cannot be undone.")
+                Text("Are you sure you want to permanently delete this clip from ${clip.landmark ?: "your Space"}? This action cannot be undone.")
             },
             confirmButton = {
                 Button(
@@ -1265,7 +1266,7 @@ fun ProfileScreen(
                 )
             },
             title = { Text("Delete Post?") },
-            text = { Text("Remove this photo post from your profile grid?") },
+            text = { Text("Remove this photo post from your Space grid?") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -1344,6 +1345,10 @@ fun ProfileScreen(
                 onOpenCyberstalkingSafety = {
                     showMoreSettingsSheet = false
                     onOpenCyberstalkingSafety()
+                },
+                onOpenNotifications = {
+                    showMoreSettingsSheet = false
+                    onOpenNotifications()
                 },
                 draftClips = draftClips,
                 appDisplayScale = appDisplayScale,
@@ -1451,7 +1456,7 @@ fun ProfileScreen(
             },
             title = { Text("Delete Account & All Data?") },
             text = {
-                Text("This action is permanent and cannot be undone. In compliance with store privacy regulations, all your account records, profile credentials, posts, moments, clips, marketplace items, and chat history will be permanently erased.")
+                Text("This action is permanent and cannot be undone. In compliance with store privacy regulations, all your account records, Space credentials, posts, moments, clips, marketplace items, and chat history will be permanently erased.")
             },
             confirmButton = {
                 Button(
@@ -1807,7 +1812,7 @@ private fun ProfileProximitySettingsPanel(
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = "Control how local neighbors discover your profile & clips",
+                        text = "Control how local neighbors discover your Space & clips",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1963,6 +1968,7 @@ private fun ProfileSettingsSheetContent(
     onOpenPrivacySettings: () -> Unit,
     onOpenLegalPolicy: () -> Unit,
     onOpenCyberstalkingSafety: () -> Unit = {},
+    onOpenNotifications: () -> Unit = {},
     draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
     appDisplayScale: String = "SCALE_95",
     onOpenDisplayScale: () -> Unit = {},
@@ -2094,7 +2100,7 @@ private fun ProfileSettingsSheetContent(
         SettingsRowItem(
             icon = Icons.Default.Security,
             title = "Privacy & Security",
-            subtitle = "Ghost mode, radar visibility, remarks comments & DM permissions DM permissions",
+            subtitle = "Ghost mode, radar visibility, remarks & DM permissions",
             onClick = onOpenPrivacySettings
         )
 
@@ -2115,15 +2121,15 @@ private fun ProfileSettingsSheetContent(
         SettingsRowItem(
             icon = Icons.Default.NotificationsNone,
             title = "Neighborhood Notifications",
-            subtitle = "Nearby wave alerts, clip remarks clip comments & market offers market offers",
-            onClick = { /* Notification toggles */ }
+            subtitle = "Nearby wave alerts, clip remarks & market offers",
+            onClick = onOpenNotifications
         )
 
         SettingsRowItem(
             icon = Icons.Default.Storage,
             title = "Storage & Cache",
-            subtitle = "Clear cached clips & media (0.8 MB cached)",
-            onClick = { /* Cache clear */ }
+            subtitle = "Clear cached clips & media • Tap to clear temporary storage",
+            onClick = onClearCacheClick
         )
 
         Spacer(modifier = Modifier.height(16.dp))

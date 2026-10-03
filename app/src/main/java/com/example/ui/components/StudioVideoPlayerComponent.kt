@@ -9,6 +9,9 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.OptIn
 import androidx.activity.compose.BackHandler
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -83,6 +86,10 @@ fun StudioVideoPlayerComponent(
     onClose: () -> Unit,
     onVideoCompleted: () -> Unit = {},
     onMinimizeToMiniPlayer: (() -> Unit)? = null,
+    onShareVideo: (() -> Unit)? = null,
+    onReportVideo: (() -> Unit)? = null,
+    onNotInterested: (() -> Unit)? = null,
+    onBlockCreator: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -103,6 +110,11 @@ fun StudioVideoPlayerComponent(
     var selectedQuality by remember { mutableStateOf(video.resolution.ifBlank { "4K UHD 60fps" }) }
     var showQualityMenu by remember { mutableStateOf(false) }
     var showSpeedMenu by remember { mutableStateOf(false) }
+    var showMoreOptionsMenu by remember { mutableStateOf(false) }
+    var isPlayerLocked by remember { mutableStateOf(false) }
+    var showLockPrompt by remember { mutableStateOf(false) }
+    var sleepTimerMinutes by remember { mutableIntStateOf(0) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
     var hasPlaybackError by remember { mutableStateOf(false) }
 
     // Quick Double-Tap Seek Indicators
@@ -117,23 +129,53 @@ fun StudioVideoPlayerComponent(
     val activity = remember(context) { context.findActivity() }
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
-            activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE ||
             activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
+    fun setFullscreenImmersive(act: Activity?, isFullscreen: Boolean) {
+        act?.window?.let { window ->
+            val controller = WindowCompat.getInsetsController(window, window.decorView)
+            if (isFullscreen) {
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+    }
+
+    fun toggleFullscreen() {
+        if (activity != null) {
+            if (isLandscape) {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                setFullscreenImmersive(activity, false)
+            } else {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                setFullscreenImmersive(activity, true)
+            }
+        }
+    }
 
     fun safeClose() {
         if (activity != null) {
             activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            setFullscreenImmersive(activity, false)
         }
         onClose()
     }
 
     BackHandler {
-        safeClose()
+        if (isLandscape) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            setFullscreenImmersive(activity, false)
+        } else {
+            safeClose()
+        }
     }
 
     DisposableEffect(Unit) {
         onDispose {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            setFullscreenImmersive(activity, false)
         }
     }
 
@@ -197,6 +239,10 @@ fun StudioVideoPlayerComponent(
                             haptic,
                             androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
                         )
+                        if (isLandscape) {
+                            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            setFullscreenImmersive(activity, false)
+                        }
                         onVideoCompleted()
                     }
                     Player.STATE_IDLE -> {
@@ -285,30 +331,40 @@ fun StudioVideoPlayerComponent(
     Box(
         modifier = modifier
             .background(GalaxyObsidian)
-            .pointerInput(Unit) {
+            .pointerInput(isPlayerLocked) {
                 detectTapGestures(
                     onTap = {
-                        showControls = !showControls
-                    },
-                    onDoubleTap = { offset ->
-                        val isLeftHalf = offset.x < size.width / 2
-                        if (isLeftHalf) {
-                            val newPos = (exoPlayer.currentPosition - 10000L).coerceAtLeast(0L)
-                            exoPlayer.seekTo(newPos)
-                            currentPositionMs = newPos
-                            showRewindIndicator = true
+                        if (isPlayerLocked) {
+                            showLockPrompt = true
                             coroutineScope.launch {
-                                delay(600)
-                                showRewindIndicator = false
+                                delay(3000)
+                                showLockPrompt = false
                             }
                         } else {
-                            val newPos = (exoPlayer.currentPosition + 10000L).coerceAtMost(durationMs)
-                            exoPlayer.seekTo(newPos)
-                            currentPositionMs = newPos
-                            showForwardIndicator = true
-                            coroutineScope.launch {
-                                delay(600)
-                                showForwardIndicator = false
+                            showControls = !showControls
+                        }
+                    },
+                    onDoubleTap = { offset ->
+                        if (!isPlayerLocked) {
+                            val isLeftHalf = offset.x < size.width / 2
+                            if (isLeftHalf) {
+                                val newPos = (exoPlayer.currentPosition - 10000L).coerceAtLeast(0L)
+                                exoPlayer.seekTo(newPos)
+                                currentPositionMs = newPos
+                                showRewindIndicator = true
+                                coroutineScope.launch {
+                                    delay(600)
+                                    showRewindIndicator = false
+                                }
+                            } else {
+                                val newPos = (exoPlayer.currentPosition + 10000L).coerceAtMost(durationMs)
+                                exoPlayer.seekTo(newPos)
+                                currentPositionMs = newPos
+                                showForwardIndicator = true
+                                coroutineScope.launch {
+                                    delay(600)
+                                    showForwardIndicator = false
+                                }
                             }
                         }
                     }
@@ -450,30 +506,31 @@ fun StudioVideoPlayerComponent(
                 .fillMaxHeight()
                 .fillMaxWidth(0.5f)
                 .align(Alignment.CenterEnd)
-                .pointerInput(Unit) {
-                    detectVerticalDragGestures(
-                        onDragStart = {
-                            isVolumeDragging = true
-                        },
-                        onDragEnd = {
-                            coroutineScope.launch {
-                                delay(1200)
+                .pointerInput(isPlayerLocked) {
+                    if (!isPlayerLocked) {
+                        detectVerticalDragGestures(
+                            onDragStart = {
+                                isVolumeDragging = true
+                            },
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    delay(1200)
+                                    isVolumeDragging = false
+                                }
+                            },
+                            onDragCancel = {
                                 isVolumeDragging = false
+                            },
+                            onVerticalDrag = { change, dragAmount ->
+                                change.consume()
+                                val delta = -dragAmount / 350f
+                                currentVolume = (currentVolume + delta).coerceIn(0f, 1f)
+                                exoPlayer.volume = currentVolume
+                                isMuted = (currentVolume == 0f)
+                                isVolumeDragging = true
                             }
-                        },
-                        onDragCancel = {
-                            isVolumeDragging = false
-                        },
-                        onVerticalDrag = { change, dragAmount ->
-                            change.consume()
-                            // Drag up (dragAmount < 0) -> Volume UP
-                            val delta = -dragAmount / 350f
-                            currentVolume = (currentVolume + delta).coerceIn(0f, 1f)
-                            exoPlayer.volume = currentVolume
-                            isMuted = (currentVolume == 0f)
-                            isVolumeDragging = true
-                        }
-                    )
+                        )
+                    }
                 }
         )
 
@@ -535,19 +592,19 @@ fun StudioVideoPlayerComponent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Left: Back & Galaxy Engine Badge
+                    // Left: Back & Engine Badge (Symbol-only in portrait, full name with symbol in landscape)
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         IconButton(
                             onClick = { safeClose() },
                             modifier = Modifier
-                                .size(34.dp)
+                                .size(32.dp)
                                 .clip(CircleShape)
                                 .background(GalaxyObsidian.copy(alpha = 0.6f))
                                 .testTag("player_back_button")
@@ -560,52 +617,67 @@ fun StudioVideoPlayerComponent(
                             )
                         }
 
-                        // Galaxy Engine Badge
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = GalaxyCosmicPurple.copy(alpha = 0.35f),
-                            border = BorderStroke(1.dp, GalaxyCelestialCyan.copy(alpha = 0.6f))
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        if (isLandscape) {
+                            // Full Galaxy Engine Badge with Symbol + Name
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = GalaxyCosmicPurple.copy(alpha = 0.35f),
+                                border = BorderStroke(1.dp, GalaxyCelestialCyan.copy(alpha = 0.6f))
                             ) {
-                                Text(text = "🌌", fontSize = 10.sp)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                ) {
+                                    Text(text = "🌌", fontSize = 11.sp)
+                                    Text(
+                                        text = "MEDIA7 GALAXY",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = GalaxyCelestialCyan,
+                                        fontFamily = FontFamily.Monospace,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                }
+                            }
+
+                            // Unlimited Badge in Landscape
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = GalaxyPulsarMagenta.copy(alpha = 0.25f),
+                                border = BorderStroke(0.8.dp, GalaxyPulsarMagenta.copy(alpha = 0.5f))
+                            ) {
                                 Text(
-                                    text = "MEDIA7 GALAXY",
+                                    text = "∞ UNLIMITED",
                                     fontSize = 9.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = GalaxyCelestialCyan,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
                                     fontFamily = FontFamily.Monospace,
-                                    letterSpacing = 0.5.sp
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        } else {
+                            // Portrait: Ultra-compact Symbol Only
+                            Surface(
+                                shape = CircleShape,
+                                color = GalaxyCosmicPurple.copy(alpha = 0.45f),
+                                border = BorderStroke(1.dp, GalaxyCelestialCyan.copy(alpha = 0.6f))
+                            ) {
+                                Text(
+                                    text = "🌌",
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                                 )
                             }
                         }
-
-                        // Unlimited Time Tag
-                        Surface(
-                            shape = RoundedCornerShape(100.dp),
-                            color = GalaxyPulsarMagenta.copy(alpha = 0.25f),
-                            border = BorderStroke(0.8.dp, GalaxyPulsarMagenta.copy(alpha = 0.5f))
-                        ) {
-                            Text(
-                                text = "∞ UNLIMITED",
-                                fontSize = 9.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
                     }
 
-                    // Right: Spatial Audio, Quality, Speed, Aspect Ratio, PiP
+                    // Right: Audio, Quality, Speed, Lock, Mute, More
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
-                        // Spatial 360° Audio Toggle
+                        // Spatial Audio
                         Surface(
                             shape = RoundedCornerShape(6.dp),
                             color = if (spatialAudioEnabled) GalaxyCelestialCyan.copy(alpha = 0.25f) else Color.Black.copy(alpha = 0.5f),
@@ -614,23 +686,31 @@ fun StudioVideoPlayerComponent(
                                 .clip(RoundedCornerShape(6.dp))
                                 .clickable { spatialAudioEnabled = !spatialAudioEnabled }
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(3.dp),
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                            ) {
-                                Text(text = "🎧", fontSize = 10.sp)
+                            if (isLandscape) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                ) {
+                                    Text(text = "🎧", fontSize = 10.sp)
+                                    Text(
+                                        text = if (spatialAudioEnabled) "360° ON" else "STEREO",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (spatialAudioEnabled) GalaxyCelestialCyan else Color.LightGray,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            } else {
                                 Text(
-                                    text = if (spatialAudioEnabled) "360° ON" else "STEREO",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (spatialAudioEnabled) GalaxyCelestialCyan else Color.LightGray,
-                                    fontFamily = FontFamily.Monospace
+                                    text = "🎧",
+                                    fontSize = 11.sp,
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
                                 )
                             }
                         }
 
-                        // Quality Dropdown Chip
+                        // Quality Dropdown
                         Box {
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
@@ -641,11 +721,11 @@ fun StudioVideoPlayerComponent(
                                     .clickable { showQualityMenu = true }
                             ) {
                                 Text(
-                                    text = selectedQuality.split(" ").firstOrNull() ?: "4K",
-                                    fontSize = 10.sp,
+                                    text = if (isLandscape) selectedQuality.split(" ").take(2).joinToString(" ") else (selectedQuality.split(" ").firstOrNull() ?: "4K"),
+                                    fontSize = 9.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = GalaxyStarlightGold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
                                 )
                             }
 
@@ -684,10 +764,10 @@ fun StudioVideoPlayerComponent(
                             ) {
                                 Text(
                                     text = "${playbackSpeed}x",
-                                    fontSize = 10.sp,
+                                    fontSize = 9.5.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp)
                                 )
                             }
 
@@ -721,27 +801,133 @@ fun StudioVideoPlayerComponent(
                                 isMuted = !isMuted
                                 exoPlayer.volume = if (isMuted) 0f else 1f
                             },
-                            modifier = Modifier.size(30.dp)
+                            modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
                                 imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
                                 contentDescription = if (isMuted) "Unmute" else "Mute",
                                 tint = if (isMuted) GalaxyPulsarMagenta else Color.White,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
 
-                        // MiniPlayer
-                        if (onMinimizeToMiniPlayer != null) {
+                        // Player Lock Button in Landscape
+                        if (isLandscape) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = GalaxyObsidian.copy(alpha = 0.7f),
+                                border = BorderStroke(0.8.dp, GalaxyCelestialCyan.copy(alpha = 0.5f)),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .clickable {
+                                        isPlayerLocked = true
+                                        showControls = false
+                                        showLockPrompt = true
+                                        coroutineScope.launch {
+                                            delay(3000)
+                                            showLockPrompt = false
+                                        }
+                                    }
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Lock,
+                                        contentDescription = "Lock Player",
+                                        tint = GalaxyCelestialCyan,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = "LOCK",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+
+                        // More Menu (Share, Sleep Timer, Report, Not Interested, Block)
+                        Box {
                             IconButton(
-                                onClick = onMinimizeToMiniPlayer,
-                                modifier = Modifier.size(30.dp)
+                                onClick = { showMoreOptionsMenu = true },
+                                modifier = Modifier.size(28.dp).testTag("btn_player_more_options")
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PictureInPictureAlt,
-                                    contentDescription = "Mini Player",
-                                    tint = GalaxyCelestialCyan,
-                                    modifier = Modifier.size(18.dp)
+                                    imageVector = Icons.Default.MoreVert,
+                                    contentDescription = "More Options",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(17.dp)
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showMoreOptionsMenu,
+                                onDismissRequest = { showMoreOptionsMenu = false },
+                                modifier = Modifier.background(GalaxyObsidian)
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Icon(Icons.Default.Share, contentDescription = null, tint = GalaxyCelestialCyan, modifier = Modifier.size(16.dp))
+                                            Text("Share Video", color = Color.White, fontSize = 13.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMoreOptionsMenu = false
+                                        onShareVideo?.invoke()
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Icon(Icons.Default.Timer, contentDescription = null, tint = GalaxyStarlightGold, modifier = Modifier.size(16.dp))
+                                            Text("Sleep Timer ${if (sleepTimerMinutes > 0) "($sleepTimerMinutes m)" else ""}", color = Color.White, fontSize = 13.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMoreOptionsMenu = false
+                                        showSleepTimerDialog = true
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Icon(Icons.Default.ThumbDown, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(16.dp))
+                                            Text("Not Interested", color = Color.White, fontSize = 13.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMoreOptionsMenu = false
+                                        onNotInterested?.invoke()
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Icon(Icons.Default.Block, contentDescription = null, tint = GalaxyPulsarMagenta, modifier = Modifier.size(16.dp))
+                                            Text("Block Creator", color = GalaxyPulsarMagenta, fontSize = 13.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMoreOptionsMenu = false
+                                        onBlockCreator?.invoke()
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Icon(Icons.Default.Report, contentDescription = null, tint = Color(0xFFEF4444), modifier = Modifier.size(16.dp))
+                                            Text("Report Video", color = Color(0xFFEF4444), fontSize = 13.sp)
+                                        }
+                                    },
+                                    onClick = {
+                                        showMoreOptionsMenu = false
+                                        onReportVideo?.invoke()
+                                    }
                                 )
                             }
                         }
@@ -920,85 +1106,11 @@ fun StudioVideoPlayerComponent(
                             }
                         }
 
-                        // Right: Aspect Ratio (Fit / Fill / Stretch) & Fullscreen
+                        // Right: Aspect Ratio & Fullscreen
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            // Touch Volume Quick Buttons (Volume Down, Mute, Volume Up)
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(1.dp),
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(GalaxyObsidian.copy(alpha = 0.75f))
-                                    .border(1.dp, GalaxyCelestialCyan.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 4.dp, vertical = 2.dp)
-                            ) {
-                                IconButton(
-                                    onClick = {
-                                        currentVolume = (currentVolume - 0.15f).coerceIn(0f, 1f)
-                                        exoPlayer.volume = currentVolume
-                                        isMuted = (currentVolume == 0f)
-                                        isVolumeDragging = true
-                                        coroutineScope.launch {
-                                            delay(1400)
-                                            isVolumeDragging = false
-                                        }
-                                    },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.VolumeDown,
-                                        contentDescription = "Volume Down",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        isMuted = !isMuted
-                                        currentVolume = if (isMuted) 0f else 1f
-                                        exoPlayer.volume = currentVolume
-                                        isVolumeDragging = true
-                                        coroutineScope.launch {
-                                            delay(1400)
-                                            isVolumeDragging = false
-                                        }
-                                    },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = if (isMuted || currentVolume == 0f) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
-                                        contentDescription = "Mute",
-                                        tint = if (isMuted || currentVolume == 0f) GalaxyPulsarMagenta else GalaxyCelestialCyan,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        currentVolume = (currentVolume + 0.15f).coerceIn(0f, 1f)
-                                        exoPlayer.volume = currentVolume
-                                        isMuted = false
-                                        isVolumeDragging = true
-                                        coroutineScope.launch {
-                                            delay(1400)
-                                            isVolumeDragging = false
-                                        }
-                                    },
-                                    modifier = Modifier.size(24.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.VolumeUp,
-                                        contentDescription = "Volume Up",
-                                        tint = Color.White,
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                }
-                            }
-
                             if (isLandscape) {
                                 // Dedicated Landscape Aspect Ratio Selectors: Fit Screen, Fill Screen, Stretch
                                 Row(
@@ -1022,7 +1134,7 @@ fun StudioVideoPlayerComponent(
                                             .testTag("btn_fit_to_screen")
                                     ) {
                                         Text(
-                                            text = "Fit",
+                                            text = "📐 Fit",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
@@ -1047,7 +1159,7 @@ fun StudioVideoPlayerComponent(
                                             .testTag("btn_fill_screen")
                                     ) {
                                         Text(
-                                            text = "Fill",
+                                            text = "🔲 Fill",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
@@ -1072,7 +1184,7 @@ fun StudioVideoPlayerComponent(
                                             .testTag("btn_stretch_screen")
                                     ) {
                                         Text(
-                                            text = "Stretch",
+                                            text = "↔️ Stretch",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
@@ -1081,7 +1193,7 @@ fun StudioVideoPlayerComponent(
                                     }
                                 }
                             } else {
-                                // Portrait Aspect Ratio Mode Pill
+                                // Portrait: Ultra-compact Aspect Ratio Mode Pill (Never overflows)
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
                                     color = GalaxyObsidian.copy(alpha = 0.75f),
@@ -1111,9 +1223,9 @@ fun StudioVideoPlayerComponent(
                                         .testTag("btn_aspect_ratio_mode")
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
                                     ) {
                                         Icon(
                                             imageVector = when (playerResizeMode) {
@@ -1123,15 +1235,15 @@ fun StudioVideoPlayerComponent(
                                             },
                                             contentDescription = "Aspect Ratio",
                                             tint = GalaxyCelestialCyan,
-                                            modifier = Modifier.size(14.dp)
+                                            modifier = Modifier.size(13.dp)
                                         )
                                         Text(
                                             text = when (playerResizeMode) {
-                                                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "Fill Screen"
+                                                AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "Fill"
                                                 AspectRatioFrameLayout.RESIZE_MODE_FILL -> "Stretch"
-                                                else -> "Fit to Screen"
+                                                else -> "Fit"
                                             },
-                                            fontSize = 10.5.sp,
+                                            fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White
                                         )
@@ -1141,16 +1253,8 @@ fun StudioVideoPlayerComponent(
 
                             // Fullscreen / Landscape Toggle
                             IconButton(
-                                onClick = {
-                                    if (activity != null) {
-                                        if (isLandscape) {
-                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                                        } else {
-                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.size(28.dp)
+                                onClick = { toggleFullscreen() },
+                                modifier = Modifier.size(28.dp).testTag("btn_toggle_fullscreen")
                             ) {
                                 Icon(
                                     imageVector = if (isLandscape) Icons.Default.FullscreenExit else Icons.Default.Fullscreen,
@@ -1283,6 +1387,136 @@ fun StudioVideoPlayerComponent(
                     )
                 }
             }
+        }
+
+        // 8. Player Lock Overlay (When Screen is Locked in Fullscreen/Landscape)
+        AnimatedVisibility(
+            visible = isPlayerLocked && showLockPrompt,
+            enter = fadeIn(tween(200)),
+            exit = fadeOut(tween(300)),
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 28.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = GalaxyObsidian.copy(alpha = 0.95f),
+                border = BorderStroke(1.5.dp, GalaxyCelestialCyan),
+                tonalElevation = 12.dp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(100.dp))
+                    .clickable {
+                        isPlayerLocked = false
+                        showControls = true
+                        showLockPrompt = false
+                        com.example.util.HapticHelper.triggerHaptic(
+                            context,
+                            haptic,
+                            androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
+                        )
+                    }
+                    .testTag("btn_unlock_player")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LockOpen,
+                        contentDescription = "Unlock Player",
+                        tint = GalaxyCelestialCyan,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = "Screen Locked • Tap to Unlock",
+                        color = Color.White,
+                        fontSize = 12.5.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // 9. Sleep Timer Dialog
+        if (showSleepTimerDialog) {
+            AlertDialog(
+                onDismissRequest = { showSleepTimerDialog = false },
+                containerColor = GalaxyObsidian,
+                titleContentColor = Color.White,
+                textContentColor = Color.LightGray,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Icon(Icons.Default.Timer, contentDescription = null, tint = GalaxyStarlightGold)
+                        Text("Studio Sleep Timer", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "Playback will automatically pause after the selected duration:",
+                            fontSize = 12.sp,
+                            color = Color.LightGray
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        listOf(
+                            Pair("Off", 0),
+                            Pair("15 Minutes", 15),
+                            Pair("30 Minutes", 30),
+                            Pair("45 Minutes", 45),
+                            Pair("60 Minutes", 60),
+                            Pair("End of Video", -1)
+                        ).forEach { (label, minutes) ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (sleepTimerMinutes == minutes) GalaxyCosmicPurple.copy(alpha = 0.5f) else Color.Transparent,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        sleepTimerMinutes = minutes
+                                        showSleepTimerDialog = false
+                                        if (minutes > 0) {
+                                            coroutineScope.launch {
+                                                delay(minutes * 60 * 1000L)
+                                                if (exoPlayer.isPlaying) {
+                                                    exoPlayer.pause()
+                                                    isPlaying = false
+                                                }
+                                            }
+                                        }
+                                    }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 13.sp,
+                                        color = if (sleepTimerMinutes == minutes) GalaxyCelestialCyan else Color.White,
+                                        fontWeight = if (sleepTimerMinutes == minutes) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    if (sleepTimerMinutes == minutes) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = null,
+                                            tint = GalaxyCelestialCyan,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showSleepTimerDialog = false }) {
+                        Text("Done", color = GalaxyCelestialCyan, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
         }
     }
 }

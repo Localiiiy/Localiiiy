@@ -112,13 +112,13 @@ fun LocaliiiyAppLogoBadge(
                 .border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // App Vector Icon (ic_launcher_foreground)
+            // Authentic Localiiiy App Logo
             Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                painter = painterResource(id = R.drawable.app_logo_original),
                 contentDescription = "Localiiiy App Logo",
                 modifier = Modifier
                     .fillMaxSize()
-                    .scale(1.5f)
+                    .clip(CircleShape)
             )
         }
 

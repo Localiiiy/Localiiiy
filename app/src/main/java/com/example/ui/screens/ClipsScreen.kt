@@ -111,6 +111,8 @@ fun ClipsScreen(
     countryName: String? = null,
     onConvertClipToMarket: (clipId: Long, price: Double, category: String, condition: String, pickupSpot: String, isService: Boolean) -> Unit = { _, _, _, _, _, _ -> },
     currentLanguage: LocaliiiyLanguage = LocaliiiyLanguage.EN,
+    isGhostSpectator: Boolean = false,
+    onGhostActionPrompt: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -219,7 +221,9 @@ fun ClipsScreen(
                         isNearbyFilter = selectedFilter == ClipsFeedFilter.NEARBY,
                         systematicDistanceKm = selectedNearbyDistanceKm,
                         systematicOptions = systematicOptions,
-                        onSelectDistanceKm = { selectedNearbyDistanceKm = it }
+                        onSelectDistanceKm = { selectedNearbyDistanceKm = it },
+                        isGhostSpectator = isGhostSpectator,
+                        onGhostActionPrompt = onGhostActionPrompt
                     )
                     
                     // Show AdBanner on every 4th clip, placed near the bottom
@@ -562,7 +566,9 @@ private fun ClipItem(
     isNearbyFilter: Boolean = false,
     systematicDistanceKm: Double? = 3.0,
     systematicOptions: List<com.example.ui.components.SystematicDistanceOption> = emptyList(),
-    onSelectDistanceKm: (Double) -> Unit = {}
+    onSelectDistanceKm: (Double) -> Unit = {},
+    isGhostSpectator: Boolean = false,
+    onGhostActionPrompt: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -785,7 +791,13 @@ private fun ClipItem(
             ClipActionButton(
                 symbolText = "✍️",
                 label = formatCount(clip.commentsCount),
-                onClick = { showRemarksSheet = true },
+                onClick = {
+                    if (isGhostSpectator) {
+                        onGhostActionPrompt("to participate in Community Remarks")
+                    } else {
+                        showRemarksSheet = true
+                    }
+                },
                 testTag = "clip_comments_button_${clip.id}"
             )
 
@@ -802,7 +814,13 @@ private fun ClipItem(
                 contentAlignment = Alignment.BottomEnd,
                 modifier = Modifier
                     .size(44.dp)
-                    .clickable { showProfileModal = true }
+                    .clickable {
+                        if (isGhostSpectator) {
+                            onGhostActionPrompt("to view creator Spaces and Space IDs")
+                        } else {
+                            showProfileModal = true
+                        }
+                    }
                     .testTag("clip_avatar_${clip.id}")
             ) {
                 AsyncImage(
@@ -823,7 +841,14 @@ private fun ClipItem(
                             .size(16.dp)
                             .clip(CircleShape)
                             .background(Color(0xFF00E5FF))
-                            .border(1.dp, Color.Black, CircleShape),
+                            .border(1.dp, Color.Black, CircleShape)
+                            .clickable {
+                                if (isGhostSpectator) {
+                                    onGhostActionPrompt("to connect with creators")
+                                } else {
+                                    onFollowToggle()
+                                }
+                            },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -843,7 +868,13 @@ private fun ClipItem(
                 border = BorderStroke(0.8.dp, Color.White.copy(alpha = 0.2f)),
                 modifier = Modifier
                     .size(28.dp)
-                    .clickable { showQrModal = true }
+                    .clickable {
+                        if (isGhostSpectator) {
+                            onGhostActionPrompt("to view and share creator Space IDs")
+                        } else {
+                            showQrModal = true
+                        }
+                    }
                     .testTag("clip_qr_badge_${clip.id}")
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -862,8 +893,12 @@ private fun ClipItem(
                 label = "",
                 tint = if (clip.isSaved) Color(0xFFFFB703) else Color.White,
                 onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onSaveClip()
+                    if (isGhostSpectator) {
+                        onGhostActionPrompt("to bookmark and save clips")
+                    } else {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onSaveClip()
+                    }
                 },
                 testTag = "clip_save_button_${clip.id}"
             )
@@ -874,8 +909,12 @@ private fun ClipItem(
                 label = "React",
                 tint = if (showReactTray) Color(0xFF00E5FF) else Color.White,
                 onClick = {
-                    showLocationDrawer = false
-                    showReactTray = !showReactTray
+                    if (isGhostSpectator) {
+                        onGhostActionPrompt("to react to clips")
+                    } else {
+                        showLocationDrawer = false
+                        showReactTray = !showReactTray
+                    }
                 },
                 testTag = "clip_react_button_${clip.id}"
             )

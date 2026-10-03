@@ -90,27 +90,42 @@ fun BoostPostDialog(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
-                        text = { Text("Market Listing", fontSize = 12.sp, fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) }
+                        text = { Text("Market & Gig Boost", fontSize = 11.sp, fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal) }
                     )
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
-                        text = { Text("Radar Pin", fontSize = 12.sp, fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) }
+                        text = { Text("Radar Takeover", fontSize = 11.sp, fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal) }
+                    )
+                    Tab(
+                        selected = selectedTab == 2,
+                        onClick = { selectedTab = 2 },
+                        text = { Text("Ticketed Events", fontSize = 11.sp, fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Normal) }
                     )
                 }
 
-                if (selectedTab == 0) {
-                    Text(
-                        text = "Pay to promote your market listings to the top of the feed.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    Text(
-                        text = "Buy a glowing sponsored pin on the Live Radar for your local business.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                when (selectedTab) {
+                    0 -> {
+                        Text(
+                            text = "Market & Gig Boost (Urgent Gigs): Pay to promote your market listings or pin urgent neighborhood helper jobs (handyman, dog walking, tutoring) to the top of the feed for a boosted fee.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    1 -> {
+                        Text(
+                            text = "Radar Pin Takeover: Buy a glowing sponsored pin on the Live Radar map with your custom brand logo to drive real-time physical foot traffic from nearby neighbors.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = "Ticketed Event Promotion: Promote neighborhood meetups, art workshops, or outdoor fitness classes. Localiiiy processes tickets securely and retains a 5% platform commission.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 // Budget Slider
@@ -218,10 +233,18 @@ fun BoostPostDialog(
                 onClick = {
                     val req = BoostCampaignRequest(
                         postIdOrClipId = targetPostId,
-                        targetAudience = if (selectedTab == 0) "Market Listing" else "Radar Pin",
+                        targetAudience = when (selectedTab) {
+                            0 -> "Market & Gig Boost"
+                            1 -> "Radar Pin Takeover"
+                            else -> "Ticketed Events"
+                        },
                         dailyBudgetUSD = dailyBudgetUSD,
                         durationDays = durationDays,
-                        callToAction = if (selectedTab == 0) "Shop Now" else "Get Directions",
+                        callToAction = when (selectedTab) {
+                            0 -> "Boost Now"
+                            1 -> "Takeover Pin"
+                            else -> "Promote Event"
+                        },
                         estimatedReach = estimatedReach
                     )
                     onLaunchCampaign(req)
@@ -230,7 +253,14 @@ fun BoostPostDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal),
                 modifier = Modifier.testTag("launch_boost_campaign_button")
             ) {
-                Text(if (selectedTab == 0) "Boost Listing" else "Buy Radar Pin", color = Color.White)
+                Text(
+                    text = when (selectedTab) {
+                        0 -> "Boost Listing & Gig"
+                        1 -> "Launch Radar Takeover"
+                        else -> "Promote Ticketed Event"
+                    },
+                    color = Color.White
+                )
             }
         },
         dismissButton = {

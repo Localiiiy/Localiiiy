@@ -99,14 +99,17 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         parseDeepLink(intent)
         try {
             if (FirebaseApp.getApps(this).isEmpty()) {
+                val apiKey = BuildConfig.FIREBASE_API_KEY.ifBlank { "AIzaSyB_ElgPsmAMHytEKmwPnbVgt8fzq5sFX-Y" }
                 val options = FirebaseOptions.Builder()
-                    .setApplicationId("1:109876543210:android:abcdef0123456789")
-                    .setProjectId("Localiiiy-app")
-                    .setApiKey(BuildConfig.FIREBASE_API_KEY)
+                    .setApplicationId("1:1018994361953:android:c515f741e9454ed8ad4c20")
+                    .setProjectId("localiiiy")
+                    .setStorageBucket("localiiiy.firebasestorage.app")
+                    .setApiKey(apiKey)
+                    .setGcmSenderId("1018994361953")
                     .build()
                 FirebaseApp.initializeApp(this, options)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             android.util.Log.w("MainActivity", "FirebaseApp init fallback: ${e.message}")
         }
         enableEdgeToEdge()
@@ -342,6 +345,10 @@ fun LocaliiiyApp(
     val allDraftClips by viewModel.allDraftClips.collectAsStateWithLifecycle()
     val selectedDraftClipForEdit by viewModel.selectedDraftClipForEdit.collectAsStateWithLifecycle()
     val merchantBounties by viewModel.merchantBounties.collectAsStateWithLifecycle()
+    val isGhostSpectator by viewModel.isGhostSpectator.collectAsStateWithLifecycle()
+    val ghostRestrictionPrompt by viewModel.ghostRestrictionPrompt.collectAsStateWithLifecycle()
+    val creatorExclusiveTiers by viewModel.creatorExclusiveTiers.collectAsStateWithLifecycle()
+    val subscribedTierIds by viewModel.subscribedTierIds.collectAsStateWithLifecycle()
 
     var showOpeningAnimation by remember { mutableStateOf(true) }
 
@@ -360,24 +367,34 @@ fun LocaliiiyApp(
     }
 
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
         val fineGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         val coarseGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-        if (!fineGranted && !coarseGranted) {
-            locationPermissionLauncher.launch(
-                arrayOf(
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
-        } else {
+        if (fineGranted || coarseGranted) {
             viewModel.detectCurrentLocation(context)
         }
         com.example.service.FavoriteProximityManager.init(context)
+    }
+
+    LaunchedEffect(showOpeningAnimation) {
+        if (!showOpeningAnimation) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            val fineGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val coarseGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            if (!fineGranted && !coarseGranted) {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            } else {
+                viewModel.detectCurrentLocation(context)
+            }
+        }
     }
 
     LaunchedEffect(currentLanguage) {
@@ -423,39 +440,38 @@ fun LocaliiiyApp(
         }
     }
 
-    CompositionLocalProvider(
-        LocalAppLanguage provides currentLanguage
-    ) {
-        if (isLoggedOut) {
-            AuthScreen(
-                initialMode = authInitialMode,
-                securityReason = authReason,
-                onDismiss = {
-                    // Mandatory Gate: app requires login/registration before accessing dashboard
-                },
-                onGhostSpectatorSuccess = {
-                    viewModel.enterAsGhostSpectator()
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+    Box(modifier = Modifier.fillMaxSize()) {
+        CompositionLocalProvider(
+            LocalAppLanguage provides currentLanguage
+        ) {
+            if (isLoggedOut) {
+                AuthScreen(
+                    initialMode = authInitialMode,
+                    securityReason = authReason,
+                    onDismiss = {
+                        // Mandatory Gate: app requires login/registration before accessing dashboard
+                    },
+                    onGhostSpectatorSuccess = {
+                        viewModel.enterAsGhostSpectator()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+                        }
+                    },
+                    onScrubIdentity = {
+                        viewModel.resetSessionAndPurge()
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
+                        }
+                    },
+                    onAuthSuccess = { user, username, fullName, neighborhood ->
+                        viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
+                        }
                     }
-                },
-                onScrubIdentity = {
-                    viewModel.resetSessionAndPurge()
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
-                    }
-                },
-                onAuthSuccess = { user, username, fullName, neighborhood ->
-                    viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
-                    }
-                }
-            )
-            return@CompositionLocalProvider
-        }
-
-        Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
+                )
+            } else {
+                Box(modifier = Modifier.fillMaxSize().then(backgroundModifier)) {
         if (privacySettings.appThemeBackground == "CUSTOM" && privacySettings.customBackgroundImageUri.isNotBlank()) {
             AsyncImage(
                 model = privacySettings.customBackgroundImageUri,
@@ -485,12 +501,28 @@ fun LocaliiiyApp(
                             onSearchQueryChange = { q -> viewModel.setGlobalSearchQuery(q) },
                             onLogoClick = { showOpeningAnimation = true },
                             onLanguageCurrencyClick = { viewModel.openLanguageCurrencyDialog() },
-                            onNotificationsClick = { viewModel.openNotificationsSheet() },
-                            onDirectMessagesClick = { viewModel.openDirectMessagesSheet() },
+                            onNotificationsClick = {
+                                if (isGhostSpectator) {
+                                    viewModel.promptLoginForAction("to check activity notifications and updates")
+                                } else {
+                                    viewModel.openNotificationsSheet()
+                                }
+                            },
+                            onDirectMessagesClick = {
+                                if (isGhostSpectator) {
+                                    viewModel.promptLoginForAction("to send and receive direct messages")
+                                } else {
+                                    viewModel.openDirectMessagesSheet()
+                                }
+                            },
                             onThemeClick = { viewModel.openAtmosphericThemeBottomSheet() },
                             onCreateClick = {
-                                viewModel.setCreationMode(CreationMode.POST)
-                                viewModel.selectTab(MainNavigationTab.CREATE)
+                                if (isGhostSpectator) {
+                                    viewModel.promptLoginForAction("to create posts, clips, and stories")
+                                } else {
+                                    viewModel.setCreationMode(CreationMode.POST)
+                                    viewModel.selectTab(MainNavigationTab.CREATE)
+                                }
                             },
                             onLocationClick = {
                                 val fineGranted = ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -523,10 +555,17 @@ fun LocaliiiyApp(
                     userAvatarUrl = userProfile.avatarUrl,
                     currentLanguage = currentLanguage,
                     onTabSelected = { tab ->
-                        if (tab == MainNavigationTab.CREATE) {
-                            viewModel.setCreationMode(CreationMode.POST)
+                        if (isGhostSpectator && (tab == MainNavigationTab.CREATE || tab == MainNavigationTab.PROFILE)) {
+                            viewModel.promptLoginForAction(
+                                if (tab == MainNavigationTab.CREATE) "to create posts, clips, and stories"
+                                else "to access your personal Space and account settings"
+                            )
+                        } else {
+                            if (tab == MainNavigationTab.CREATE) {
+                                viewModel.setCreationMode(CreationMode.POST)
+                            }
+                            viewModel.selectTab(tab)
                         }
-                        viewModel.selectTab(tab)
                     }
                 )
             }
@@ -619,7 +658,9 @@ fun LocaliiiyApp(
                         onAdClick = { id -> viewModel.recordAdClick(id) },
                         onBoostPostClick = { viewModel.openBoostAdDialog() },
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
-                        countryName = privacySettings.radarCountryName
+                        countryName = privacySettings.radarCountryName,
+                        isGhostSpectator = isGhostSpectator,
+                        onGhostActionPrompt = { reason -> viewModel.promptLoginForAction(reason) }
                     )
                 }
 
@@ -817,6 +858,14 @@ fun LocaliiiyApp(
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
                         creatorEarnings = creatorEarnings,
+                        exclusiveTiers = creatorExclusiveTiers,
+                        subscribedTierIds = subscribedTierIds,
+                        onUpdateTier = { viewModel.updateCreatorTier(it) },
+                        onAddTier = { viewModel.addCustomCreatorTier(it) },
+                        onToggleTierEnabled = { id, enabled -> viewModel.toggleTierEnabled(id, enabled) },
+                        onSubscribeTier = { tier -> viewModel.subscribeToTier(tier) },
+                        isGhostSpectator = isGhostSpectator,
+                        onGhostActionPrompt = { reason -> viewModel.promptLoginForAction(reason) },
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
                         onOpenBoostAds = { viewModel.openBoostAdDialog() },
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
@@ -948,6 +997,8 @@ fun LocaliiiyApp(
                         deepLinkClipId = deepLinkClipId,
                         onClearDeepLink = onClearDeepLink,
                         countryName = privacySettings.radarCountryName,
+                        isGhostSpectator = isGhostSpectator,
+                        onGhostActionPrompt = { reason -> viewModel.promptLoginForAction(reason) },
                         onConvertClipToMarket = { clipId, price, category, condition, pickupSpot, isService ->
                             viewModel.convertClipToMarketplaceListing(
                                 clipId = clipId,
@@ -1129,6 +1180,7 @@ fun LocaliiiyApp(
                         onOpenMonetizationHub = { viewModel.openMonetizationHub() },
                         onOpenBoostAds = { viewModel.openBoostAdDialog() },
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
+                        onOpenNotifications = { viewModel.openNotificationsSheet() },
                         isPremiumSubscribed = privacySettings.isPremiumSubscribed,
                         isGhostMode = privacySettings.isGhostMode,
                         onOpenPremium = { viewModel.openPrivacySettings() },
@@ -1305,7 +1357,19 @@ fun LocaliiiyApp(
                     onNavigateBack = { viewModel.closePrivacySettings() },
                     onNavigateToBlockedUsers = { showBlockedUsers = true },
                     onNavigateToConnections = { showConnectionsManager = true },
-                    onDeleteAccount = { viewModel.deleteAccountAndPurgeData() }
+                    onDeleteAccount = { viewModel.deleteAccountAndPurgeData() },
+                    onOpenAtmosphericTheme = {
+                        viewModel.closePrivacySettings()
+                        viewModel.openAtmosphericThemeBottomSheet()
+                    },
+                    onOpenActivityLog = {
+                        viewModel.closePrivacySettings()
+                        viewModel.openUserActivityLog()
+                    },
+                    onOpenInformation = {
+                        viewModel.closePrivacySettings()
+                        viewModel.openInformation()
+                    }
                 )
             }
         }
@@ -1476,6 +1540,10 @@ fun LocaliiiyApp(
                 currentLanguage = currentLanguage,
                 bounties = merchantBounties,
                 drafts = allDraftClips,
+                exclusiveTiers = creatorExclusiveTiers,
+                onUpdateTier = { viewModel.updateCreatorTier(it) },
+                onAddTier = { viewModel.addCustomCreatorTier(it) },
+                onToggleTierEnabled = { id, enabled -> viewModel.toggleTierEnabled(id, enabled) },
                 onClaimBounty = { viewModel.claimMerchantBounty(it) },
                 onRouteDraftToClips = { viewModel.routeDraftToDestination(it, "CLIPS") },
                 onRouteDraftToMarket = { viewModel.routeDraftToDestination(it, "MARKETPLACE") },
@@ -1522,6 +1590,15 @@ fun LocaliiiyApp(
         )
     }
 
+    // Ghost Spectator Restricted Action Dialog
+    ghostRestrictionPrompt?.let { promptReason ->
+        GhostRestrictionDialog(
+            reason = promptReason,
+            onDismiss = { viewModel.dismissGhostRestrictionPrompt() },
+            onLoginRegister = { viewModel.openAuthFromSpectator() }
+        )
+    }
+
     // Boost Post & Worldwide Sponsored Campaign Dialog
     if (showBoostAdDialog) {
         BoostPostDialog(
@@ -1538,13 +1615,19 @@ fun LocaliiiyApp(
         )
     }
 
-    // Eyecatching Opening Animation Overlay
-    if (showOpeningAnimation) {
-        LocaliiiyOpeningAnimation(
-            onAnimationFinished = { showOpeningAnimation = false }
-        )
-    }
-    }
+                }
+            }
+        }
+
+        // Eyecatching Opening Animation Overlay: ALWAYS shown on opening app
+        if (showOpeningAnimation) {
+            LocaliiiyOpeningAnimation(
+                onAnimationFinished = { showOpeningAnimation = false },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(9999f)
+            )
+        }
     }
 }
 

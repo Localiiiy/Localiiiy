@@ -265,14 +265,14 @@ object LocalizationHelper {
             "nl" to "Clips", "el" to "Βίντεο", "he" to "קליפים", "fa" to "کلیپ‌ها"
         ),
         LocaliiiyStringKey.TAB_PROFILE to mapOf(
-            "en" to "Space", "en-gb" to "Space", "es" to "Perfil", "es-mx" to "Perfil",
-            "fr" to "Profil", "fr-ca" to "Profil", "de" to "Profil", "hi" to "प्रोफ़ाइल",
-            "zh" to "个人中心", "zh-tw" to "個人檔案", "zh-hk" to "個人檔案", "ja" to "プロフィール",
-            "pt" to "Perfil", "pt-pt" to "Perfil", "ar" to "الملف الشخصي", "ru" to "Профиль",
-            "bn" to "প্রোফাইল", "id" to "Profil", "ko" to "프로필", "it" to "Profilo",
-            "tr" to "Profil", "sw" to "Wasifu", "vi" to "Hồ sơ", "ur" to "پروفائل",
-            "ta" to "சுயவிவரம்", "te" to "ప్రొఫైల్", "th" to "โปรไฟล์", "pl" to "Profil",
-            "nl" to "Profiel", "el" to "Προφίλ", "he" to "פרופיל", "fa" to "پروفایل"
+            "en" to "Space", "en-gb" to "Space", "es" to "Espacio", "es-mx" to "Espacio",
+            "fr" to "Espace", "fr-ca" to "Espace", "de" to "Space", "hi" to "स्पेस",
+            "zh" to "空间", "zh-tw" to "空間", "zh-hk" to "空間", "ja" to "スペース",
+            "pt" to "Espaço", "pt-pt" to "Espaço", "ar" to "مساحة", "ru" to "Пространство",
+            "bn" to "স্পেস", "id" to "Space", "ko" to "스페이스", "it" to "Spazio",
+            "tr" to "Alan", "sw" to "Nafasi", "vi" to "Không gian", "ur" to "اسپیس",
+            "ta" to "ஸ்பேஸ்", "te" to "స్పేస్", "th" to "สเปซ", "pl" to "Przestrzeń",
+            "nl" to "Space", "el" to "Χώρος", "he" to "מרחב", "fa" to "فضا"
         ),
         LocaliiiyStringKey.CREATOR_STUDIO to mapOf(
             "en" to "Creator Studio & Monetization",
@@ -855,17 +855,17 @@ object LocalizationHelper {
                 LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Entrar ao Vivo"
                 else -> "Go Live"
             }
-            lower == "edit profile" -> when (lang) {
-                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Editar Perfil"
-                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Modifier le Profil"
-                LocaliiiyLanguage.DE -> "Profil Bearbeiten"
-                LocaliiiyLanguage.HI -> "प्रोफ़ाइल संपादित करें"
-                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "编辑资料"
-                LocaliiiyLanguage.JA -> "プロフィール編集"
-                LocaliiiyLanguage.AR -> "تعديل الملف"
-                LocaliiiyLanguage.RU -> "Редактировать профиль"
-                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Editar Perfil"
-                else -> "Edit Profile"
+            lower == "edit profile" || lower == "edit space" -> when (lang) {
+                LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Editar Espacio"
+                LocaliiiyLanguage.FR, LocaliiiyLanguage.FR_CA -> "Modifier l'Espace"
+                LocaliiiyLanguage.DE -> "Space Bearbeiten"
+                LocaliiiyLanguage.HI -> "स्पेस संपादित करें"
+                LocaliiiyLanguage.ZH, LocaliiiyLanguage.ZH_TW -> "编辑空间"
+                LocaliiiyLanguage.JA -> "スペース編集"
+                LocaliiiyLanguage.AR -> "تعديل المساحة"
+                LocaliiiyLanguage.RU -> "Редактировать пространство"
+                LocaliiiyLanguage.PT, LocaliiiyLanguage.PT_PT -> "Editar Espaço"
+                else -> "Edit Space"
             }
             lower == "monetization hub" -> when (lang) {
                 LocaliiiyLanguage.ES, LocaliiiyLanguage.ES_MX -> "Centro de Monetización"

@@ -3,6 +3,7 @@ package com.example.ui.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,11 +36,13 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlin.math.cos
@@ -361,23 +364,14 @@ fun LocaliiiyOpeningAnimation(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Emblem: Localiiiy Pin + Community Heart Icon
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Localiiiy Beacon",
-                            tint = LocaliiiyAccentMint,
-                            modifier = Modifier.size(38.dp)
-                        )
-                        Icon(
-                            imageVector = Icons.Default.Favorite,
-                            contentDescription = null,
-                            tint = Color(0xFF081528),
-                            modifier = Modifier
-                                .size(13.dp)
-                                .offset(y = (-4).dp)
-                        )
-                    }
+                    // Authentic Original Localiiiy App Logo
+                    Image(
+                        painter = painterResource(id = R.drawable.app_logo_original),
+                        contentDescription = "Localiiiy App Logo",
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                    )
                 }
 
                 // Tiny Pulse Badge on Beacon

@@ -100,6 +100,8 @@ fun PulseFeedComponent(
     onAdClick: (String) -> Unit = {},
     onBoostPostClick: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
+    isGhostSpectator: Boolean = false,
+    onGhostActionPrompt: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var isInitialLoad by remember { mutableStateOf(true) }
@@ -250,7 +252,13 @@ fun PulseFeedComponent(
                 Surface(
                     shape = RoundedCornerShape(20.dp),
                     color = if (currentPulseTab == "COMMUNITY") Color(0xFF10B981) else Color(0xFF1E293B),
-                    onClick = { currentPulseTab = "COMMUNITY" },
+                    onClick = {
+                        if (isGhostSpectator) {
+                            onGhostActionPrompt("access Local Community channels and member circles")
+                        } else {
+                            currentPulseTab = "COMMUNITY"
+                        }
+                    },
                     modifier = Modifier.weight(1f).height(36.dp)
                 ) {
                     Row(
@@ -295,6 +303,64 @@ fun PulseFeedComponent(
                 if (isRefreshing) {
                     item {
                         ConcentricSonarRefreshIndicator(isRefreshing = true)
+                    }
+                }
+
+                if (isGhostSpectator) {
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                                .clickable { onGhostActionPrompt("create an account or sign in to Localiiiy") }
+                                .testTag("ghost_spectator_feed_banner"),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = Color(0xFF00E5FF).copy(alpha = 0.12f)
+                            ),
+                            border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.45f))
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("👻", fontSize = 18.sp)
+                                    Column {
+                                        Text(
+                                            text = "Guest Spectator (Read-Only Mode)",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF00E5FF)
+                                        )
+                                        Text(
+                                            text = "Tap here to Log In or Register for full community access",
+                                            fontSize = 10.5.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = Color(0xFFFF3366)
+                                ) {
+                                    Text(
+                                        text = "Sign In",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

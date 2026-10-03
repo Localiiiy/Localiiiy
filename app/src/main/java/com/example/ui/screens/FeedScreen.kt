@@ -89,6 +89,8 @@ fun FeedScreen(
     onBoostPostClick: () -> Unit = {},
     onOpenMonetizationHub: () -> Unit = {},
     countryName: String? = null,
+    isGhostSpectator: Boolean = false,
+    onGhostActionPrompt: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     PulseFeedComponent(
@@ -104,6 +106,8 @@ fun FeedScreen(
         selectedRadiusKm = selectedRadiusKm,
         onRadiusFilterChange = onRadiusFilterChange,
         countryName = countryName,
+        isGhostSpectator = isGhostSpectator,
+        onGhostActionPrompt = onGhostActionPrompt,
         onStoryClick = onStoryClick,
         onAddStoryClick = onAddStoryClick,
         onLikePost = onLikePost,

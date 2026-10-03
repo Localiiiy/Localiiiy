@@ -381,16 +381,139 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 isVerified = true
             )
             repository.updateProfile(updated)
+            _isGhostSpectator.value = false
             _isLoggedOut.value = false
             _showAuthScreen.value = false
             _authReason.value = null
         }
     }
 
+    // --- Ghost Spectator (No Login Mode) State & Access Control ---
+    private val _isGhostSpectator = MutableStateFlow(false)
+    val isGhostSpectator: StateFlow<Boolean> = _isGhostSpectator.asStateFlow()
+
+    private val _ghostRestrictionPrompt = MutableStateFlow<String?>(null)
+    val ghostRestrictionPrompt: StateFlow<String?> = _ghostRestrictionPrompt.asStateFlow()
+
+    fun promptLoginForAction(actionDescription: String) {
+        _ghostRestrictionPrompt.value = actionDescription
+    }
+
+    fun dismissGhostRestrictionPrompt() {
+        _ghostRestrictionPrompt.value = null
+    }
+
+    fun openAuthFromSpectator() {
+        _ghostRestrictionPrompt.value = null
+        _showAuthScreen.value = true
+        _authReason.value = "Sign in or register with Localiiiy to unlock full community and creator features"
+    }
+
+    fun exitGhostSpectatorToAuth() {
+        _isGhostSpectator.value = false
+        _showAuthScreen.value = true
+        _authReason.value = "Create an account or sign in to Localiiiy"
+    }
+
+    // --- Creator Exclusive Content Tiers (Monthly Recurring Revenue - MRR) ---
+    private val _creatorExclusiveTiers = MutableStateFlow<List<CreatorExclusiveTier>>(
+        listOf(
+            CreatorExclusiveTier(
+                id = "tier_bronze",
+                name = "Bronze Backer",
+                monthlyPriceUSD = 2.99,
+                badgeSymbol = "🥉",
+                badgeColorHex = 0xFFCD7F32,
+                description = "Support my Space and get early access to 4K Studio premieres",
+                perks = listOf(
+                    "Exclusive Supporter Badge in Remarks",
+                    "24-Hour Early Studio Premieres",
+                    "Direct Space Wall Shoutout"
+                ),
+                activeSubscribersCount = 142,
+                isEnabled = true
+            ),
+            CreatorExclusiveTier(
+                id = "tier_silver",
+                name = "Silver Insider",
+                monthlyPriceUSD = 9.99,
+                badgeSymbol = "🥈",
+                badgeColorHex = 0xFFC0C0C0,
+                description = "Full access to subscriber-only Studio videos and director cuts",
+                perks = listOf(
+                    "All Bronze Backer perks",
+                    "Unlock All Exclusive Studio Videos",
+                    "Director's Cut & Behind-The-Scenes",
+                    "Monthly Live Q&A Stream in Space"
+                ),
+                activeSubscribersCount = 86,
+                isEnabled = true
+            ),
+            CreatorExclusiveTier(
+                id = "tier_gold",
+                name = "Gold VIP Producer",
+                monthlyPriceUSD = 24.99,
+                badgeSymbol = "🥇",
+                badgeColorHex = 0xFFFFD700,
+                description = "All-Access Pass + Direct 1-on-1 creator consultation and credit",
+                perks = listOf(
+                    "All Silver Insider perks",
+                    "4K Raw Uncut Masterclasses",
+                    "Your Name in Video End-Credits",
+                    "1-on-1 Studio Collaboration Chat",
+                    "Exclusive Space VIP Discord/Telegram Group"
+                ),
+                activeSubscribersCount = 38,
+                isEnabled = true
+            )
+        )
+    )
+    val creatorExclusiveTiers: StateFlow<List<CreatorExclusiveTier>> = _creatorExclusiveTiers.asStateFlow()
+
+    private val _subscribedTierIds = MutableStateFlow<Set<String>>(setOf("tier_bronze"))
+    val subscribedTierIds: StateFlow<Set<String>> = _subscribedTierIds.asStateFlow()
+
+    fun updateCreatorTier(updatedTier: CreatorExclusiveTier) {
+        _creatorExclusiveTiers.update { tiers ->
+            tiers.map { if (it.id == updatedTier.id) updatedTier else it }
+        }
+    }
+
+    fun addCustomCreatorTier(newTier: CreatorExclusiveTier) {
+        _creatorExclusiveTiers.update { it + newTier }
+    }
+
+    fun toggleTierEnabled(tierId: String, isEnabled: Boolean) {
+        _creatorExclusiveTiers.update { tiers ->
+            tiers.map { if (it.id == tierId) it.copy(isEnabled = isEnabled) else it }
+        }
+    }
+
+    fun subscribeToTier(tier: CreatorExclusiveTier): Boolean {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to join creator subscriber tiers and unlock exclusive videos")
+            return false
+        }
+        _subscribedTierIds.update { it + tier.id }
+        _creatorExclusiveTiers.update { tiers ->
+            tiers.map {
+                if (it.id == tier.id) it.copy(activeSubscribersCount = it.activeSubscribersCount + 1) else it
+            }
+        }
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                availableBalanceUSD = cur.availableBalanceUSD + (tier.monthlyPriceUSD * 0.90),
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + (tier.monthlyPriceUSD * 0.90)
+            )
+        }
+        return true
+    }
+
     fun enterAsGhostSpectator(
         spectatorAlias: String = "Spectator-${(100..999).random()}",
         anchorNeighborhood: String = "Capitol Hill (Coarse Anchor)"
     ) {
+        _isGhostSpectator.value = true
         viewModelScope.launch(Dispatchers.IO) {
             val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
             val updated = current.copy(
@@ -1031,6 +1154,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun addComment(text: String) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to participate in Community Remarks")
+            return
+        }
         val target = _activeCommentsTarget.value ?: return
         if (text.isBlank()) return
         val profile = userProfile.value
@@ -1046,6 +1173,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleCommentLike(commentId: Long, isLiked: Boolean) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to like community remarks")
+            return
+        }
         viewModelScope.launch {
             repository.toggleCommentLike(commentId, isLiked)
         }
@@ -1053,6 +1184,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
 
     // --- Like / Save / Follow Operations & Local Activity Caching ---
     fun togglePostLike(post: PostEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to like posts and react to pulses")
+            return
+        }
         viewModelScope.launch {
             val willBeLiked = !post.isLiked
             repository.togglePostLike(post.id, post.isLiked)
@@ -1069,6 +1204,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun togglePostSave(post: PostEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to bookmark and save posts")
+            return
+        }
         viewModelScope.launch {
             val willBeSaved = !post.isSaved
             repository.togglePostSave(post.id, post.isSaved)
@@ -1088,6 +1227,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleClipLike(clip: ClipEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to like clips")
+            return
+        }
         viewModelScope.launch {
             val willBeLiked = !clip.isLiked
             repository.toggleClipLike(clip.id, clip.isLiked)
@@ -1104,6 +1247,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleClipSave(clip: ClipEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to save clips")
+            return
+        }
         viewModelScope.launch {
             val willBeSaved = !clip.isSaved
             repository.toggleClipSave(clip.id, clip.isSaved)
@@ -1120,6 +1267,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleClipFollow(clip: ClipEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to connect with creators")
+            return
+        }
         viewModelScope.launch {
             repository.toggleClipFollow(clip.id, clip.isFollowing)
         }
@@ -1131,8 +1282,12 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         _isSoundMuted.value = !_isSoundMuted.value
     }
 
-    // --- User Profile Navigation ---
+    // --- User Space Navigation ---
     fun openUserProfile(username: String) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to view creator Spaces and Space IDs")
+            return
+        }
         if (username == userProfile.value.username) {
             _selectedOtherUser.value = null
             _currentTab.value = MainNavigationTab.PROFILE
@@ -1151,6 +1306,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleOtherUserFollow(user: OtherUserEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to connect with neighbors and creators")
+            return
+        }
         viewModelScope.launch {
             repository.toggleOtherUserFollow(user.username, user.isFollowing)
             _selectedOtherUser.value = _selectedOtherUser.value?.copy(
@@ -1163,6 +1322,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     fun toggleOtherUserConnect(user: OtherUserEntity) = toggleOtherUserFollow(user)
 
     fun waveAtNeighbor(user: OtherUserEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to wave at neighbors")
+            return
+        }
         viewModelScope.launch {
             repository.sendNeighborWaveNotification(user.username, user.distanceKm)
             repository.toggleOtherUserFriend(user.username, user.isFriend)

@@ -51,11 +51,11 @@ class FavoriteProximityService : Service() {
                 } else {
                     context.startService(intent)
                 }
-            } catch (e: Exception) {
-                // Fallback for background start restrictions
+            } catch (e: Throwable) {
+                // Fallback for background start restrictions on Android 14+
                 try {
                     context.startService(intent)
-                } catch (ignored: Exception) {}
+                } catch (_: Throwable) {}
             }
         }
 
@@ -122,7 +122,7 @@ class FavoriteProximityService : Service() {
             } else {
                 startForeground(FOREGROUND_NOTIFICATION_ID, notification)
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.w("FavoriteProximityService", "startForeground safely caught: ${e.message}")
         }
     }

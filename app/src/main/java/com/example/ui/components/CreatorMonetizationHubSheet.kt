@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.data.CreatorExclusiveTier
 import com.example.data.CreatorEarningsSummary
 import com.example.data.CreatorPayoutAccount
 import com.example.data.DraftClipEntity
@@ -47,6 +48,10 @@ fun CreatorMonetizationHubSheet(
     currentLanguage: LocaliiiyLanguage,
     bounties: List<MerchantBountyEntity> = emptyList(),
     drafts: List<DraftClipEntity> = emptyList(),
+    exclusiveTiers: List<CreatorExclusiveTier> = emptyList(),
+    onUpdateTier: (CreatorExclusiveTier) -> Unit = {},
+    onAddTier: (CreatorExclusiveTier) -> Unit = {},
+    onToggleTierEnabled: (String, Boolean) -> Unit = { _, _ -> },
     onClaimBounty: ((MerchantBountyEntity) -> Unit)? = null,
     onRouteDraftToClips: ((DraftClipEntity) -> Unit)? = null,
     onRouteDraftToMarket: ((DraftClipEntity) -> Unit)? = null,
@@ -62,6 +67,19 @@ fun CreatorMonetizationHubSheet(
     var showEditPayoutDialog by remember { mutableStateOf(false) }
     var showBountyBoardInMonetization by remember { mutableStateOf(false) }
     var showDraftVaultInMonetization by remember { mutableStateOf(false) }
+    var showTiersDialog by remember { mutableStateOf(false) }
+
+    if (showTiersDialog) {
+        CreatorExclusiveTiersDialog(
+            tiers = exclusiveTiers,
+            currentCurrency = currentCurrency,
+            isCreatorView = true,
+            onUpdateTier = onUpdateTier,
+            onAddTier = onAddTier,
+            onToggleTierEnabled = onToggleTierEnabled,
+            onDismiss = { showTiersDialog = false }
+        )
+    }
 
     if (showBountyBoardInMonetization) {
         MerchantBountyBoardDialog(
@@ -339,7 +357,84 @@ fun CreatorMonetizationHubSheet(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Highlighted Exclusive Subscriber Tiers MRR Card
+                val netMRR = exclusiveTiers.sumOf { it.monthlyPriceUSD * it.activeSubscribersCount } * 0.90
+                val totalSubs = exclusiveTiers.sumOf { it.activeSubscribersCount }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showTiersDialog = true }
+                        .testTag("monetization_subscriber_tiers_card"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFD700).copy(alpha = 0.10f)
+                    ),
+                    border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.45f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("👑", fontSize = 22.sp)
+                            Column {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "Subscriber Tiers (MRR)",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFD700)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Surface(
+                                        shape = RoundedCornerShape(100.dp),
+                                        color = Color(0xFF10B981).copy(alpha = 0.2f)
+                                    ) {
+                                        Text(
+                                            text = "90% RevShare",
+                                            fontSize = 9.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF10B981),
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = "$totalSubs active recurring subscribers • ${exclusiveTiers.count { it.isEnabled }} defined tiers",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "${CurrencyHelper.format(netMRR, currentCurrency)}/mo",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFFFFD700)
+                            )
+                            Text(
+                                text = "Manage Tiers ⚙️",
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     RevenueStreamCard(
                         title = "Ad Revenue",

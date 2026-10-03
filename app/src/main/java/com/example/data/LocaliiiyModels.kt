@@ -386,13 +386,28 @@ data class StudioVideoEntity(
     val resolution: String = "4K Ultra HD",
     val chapters: String = "00:00 - Introduction\n05:15 - Core Story\n18:30 - Deep Dive\n35:00 - Community Q&A",
     val isCreatorPick: Boolean = false,
-    val isTrending: Boolean = false
+    val isTrending: Boolean = false,
+    val isExclusiveTier: Boolean = false,
+    val requiredTierName: String = "Free"
 ) {
     val isConnected: Boolean get() = isSubscribed
     val creatorConnectedCount: String get() = creatorSubscribersCount
         .replace("subscribers", "Connected")
         .replace("subscriber", "Connected")
 }
+
+// --- Studio Creator Exclusive Content Tiers (Monthly Recurring Revenue - MRR) ---
+data class CreatorExclusiveTier(
+    val id: String,
+    val name: String,
+    val monthlyPriceUSD: Double,
+    val badgeSymbol: String,
+    val badgeColorHex: Long = 0xFFFFD700,
+    val description: String,
+    val perks: List<String>,
+    val activeSubscribersCount: Int = 0,
+    val isEnabled: Boolean = true
+)
 
 // --- Local Room Cache: User Activity ---
 @Entity(tableName = "user_activity_cache")

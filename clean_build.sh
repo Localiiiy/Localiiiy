@@ -46,26 +46,44 @@ else
     exit 1
 fi
 
-# 4. Synchronize APK with Static Distribution Targets
-echo "📦 [4/5] Synchronizing APK with Web static distribution targets..."
-mkdir -p downloads
+# 4. Synchronize APK and AAB with Static Distribution Targets
+echo "📦 [4/5] Synchronizing APK & AAB with Web static distribution targets..."
+mkdir -p downloads public/downloads .build-outputs
 APK_SRC="app/build/outputs/apk/debug/app-debug.apk"
+AAB_RELEASE_SRC="app/build/outputs/bundle/release/app-release.aab"
+AAB_DEBUG_SRC="app/build/outputs/bundle/debug/app-debug.aab"
+
+AAB_SRC=""
+if [ -f "$AAB_RELEASE_SRC" ]; then
+    AAB_SRC="$AAB_RELEASE_SRC"
+elif [ -f "$AAB_DEBUG_SRC" ]; then
+    AAB_SRC="$AAB_DEBUG_SRC"
+fi
 
 if [ -f "$APK_SRC" ]; then
     cp -v "$APK_SRC" "Localiiiy.apk"
     cp -v "$APK_SRC" "downloads/Localiiiy.apk"
-    
-    # Calculate SHA256
-    APK_SHA=$(sha256sum "Localiiiy.apk" | awk '{print $1}')
-    APK_SIZE=$(du -h "Localiiiy.apk" | awk '{print $1}')
-    
-    echo "✅ Localiiiy.apk successfully packaged!"
-    echo "   - Size: $APK_SIZE"
-    echo "   - SHA256: $APK_SHA"
-    echo "$APK_SHA  Localiiiy.apk" > downloads/checksums.txt
-else
-    echo "❌ Error: Compiled APK not found at $APK_SRC!"
-    exit 1
+    cp -v "$APK_SRC" "downloads/Localiiiy_release.apk"
+    cp -v "$APK_SRC" "public/downloads/Localiiiy.apk"
+    cp -v "$APK_SRC" "public/downloads/Localiiiy_release.apk"
+    cp -v "$APK_SRC" ".build-outputs/app-debug.apk"
+    echo "✅ Localiiiy.apk successfully synced across targets!"
+fi
+
+if [ -n "$AAB_SRC" ] && [ -f "$AAB_SRC" ]; then
+    cp -v "$AAB_SRC" "Localiiiy.aab"
+    cp -v "$AAB_SRC" "downloads/Localiiiy.aab"
+    cp -v "$AAB_SRC" "downloads/Localiiiy_release.aab"
+    cp -v "$AAB_SRC" "public/downloads/Localiiiy.aab"
+    cp -v "$AAB_SRC" "public/downloads/Localiiiy_release.aab"
+    cp -v "$AAB_SRC" "public/Localiiiy.aab"
+    echo "✅ Localiiiy.aab successfully synced across targets!"
+fi
+
+if [ -f "Localiiiy.apk" ] && [ -f "Localiiiy.aab" ]; then
+    sha256sum Localiiiy.apk Localiiiy.aab > downloads/checksums.txt
+    cp downloads/checksums.txt public/downloads/checksums.txt
+    zip -j -9 Localiiiy_v1.5.0.zip Localiiiy.aab Localiiiy.apk downloads/checksums.txt
 fi
 
 # 5. Parity & Distribution Check

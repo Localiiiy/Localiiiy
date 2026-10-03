@@ -55,7 +55,10 @@ fun PrivacySettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToBlockedUsers: () -> Unit = {},
     onNavigateToConnections: () -> Unit = {},
-    onDeleteAccount: () -> Unit = {}
+    onDeleteAccount: () -> Unit = {},
+    onOpenAtmosphericTheme: () -> Unit = {},
+    onOpenActivityLog: () -> Unit = {},
+    onOpenInformation: () -> Unit = {}
 ) {
     val currentSettings = privacySettings ?: com.example.data.InitialData.defaultPrivacySettings
     var isGhostMode by remember(privacySettings) { mutableStateOf(currentSettings.isGhostMode) }
@@ -540,7 +543,12 @@ fun PrivacySettingsScreen(
                 SettingsActionItem("Export Local Archive", "Export saved posts and drafts into an encrypted ZIP", Icons.Default.Archive) {}
             }
             item {
-                SettingsActionItem("Privacy Transparency Log", "View zero-tracking analytics audit log", Icons.Default.ListAlt) { showAuditLogDialog = true }
+                SettingsActionItem(
+                    title = "Privacy Transparency Log & Audit Trail",
+                    subtitle = "View zero-tracking local audit log, safety events & recent activity",
+                    icon = Icons.Default.ListAlt,
+                    onClick = onOpenActivityLog
+                )
             }
 
             // Appearance & Haptics
@@ -555,7 +563,12 @@ fun PrivacySettingsScreen(
                 }
             }
             item {
-                SettingsActionItem("Dynamic Material 3 Color Theme Engine", "Select Emerald, Amber, Cyan, Rose, or Noir", Icons.Default.Palette) {}
+                SettingsActionItem(
+                    title = "Dynamic Material 3 Color Theme Engine",
+                    subtitle = "Select Emerald, Amber, Cyan, Rose, or Noir atmosphere",
+                    icon = Icons.Default.Palette,
+                    onClick = onOpenAtmosphericTheme
+                )
             }
             item {
                 SettingsToggleItem("Decoy App Icon", "Swap launcher icon to stealth 'Calculator'", Icons.Default.Calculate, false) {}
@@ -584,7 +597,7 @@ fun PrivacySettingsScreen(
                         Text("Platform Patron", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onTertiaryContainer)
                         Text("Support our 100% tracker-free pledge with optional micro-patronage.", fontSize = 12.sp, color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f))
                         Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = {}) { Text("Become a Patron") }
+                        Button(onClick = { showPremiumScreen = true }) { Text("Become a Patron") }
                     }
                 }
             }
@@ -605,7 +618,12 @@ fun PrivacySettingsScreen(
                 )
             }
             item {
-                SettingsActionItem("About & Open Protocol", "Software licenses and Dual-Reach Manifesto", Icons.Default.Info) {}
+                SettingsActionItem(
+                    title = "About & Open Protocol",
+                    subtitle = "Software licenses and Dual-Reach Manifesto",
+                    icon = Icons.Default.Info,
+                    onClick = onOpenInformation
+                )
             }
             item {
                 SettingsActionItem("Complete Account & Data Oblivion", "Guaranteed complete erasure with zero database artifacts", Icons.Default.Warning, tint = MaterialTheme.colorScheme.error) {
