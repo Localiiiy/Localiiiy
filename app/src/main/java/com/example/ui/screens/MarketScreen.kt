@@ -192,7 +192,8 @@ enum class MarketSubTab {
     CATALOGS,
     FLASH_DEALS,
     POSTS,
-    WATCHLIST
+    WATCHLIST,
+    UPGRADES
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -526,7 +527,8 @@ fun MarketScreen(
                     Pair(MarketSubTab.CATALOGS, "📚 Catalogs"),
                     Pair(MarketSubTab.FLASH_DEALS, "⚡ Flash Deals"),
                     Pair(MarketSubTab.POSTS, "📸 Posts"),
-                    Pair(MarketSubTab.WATCHLIST, "🔖 Saved")
+                    Pair(MarketSubTab.WATCHLIST, "🔖 Saved"),
+                    Pair(MarketSubTab.UPGRADES, "⚙️ Exchange Tools")
                 )
 
                 Row(
@@ -550,6 +552,7 @@ fun MarketScreen(
                                 MarketSubTab.FLASH_DEALS -> "⚡ " + LocalizationHelper.translate("Flash Deals", currentLanguage)
                                 MarketSubTab.POSTS -> "📸 " + LocalizationHelper.translate("Posts", currentLanguage)
                                 MarketSubTab.WATCHLIST -> "🔖 " + LocalizationHelper.translate("Saved", currentLanguage)
+                                MarketSubTab.UPGRADES -> "⚙️ Exchange Tools"
                             }
                         }
                         Surface(
@@ -750,6 +753,13 @@ fun MarketScreen(
                             onOpenSellDialog = onOpenSellDialog,
                             onOpenComments = onOpenComments,
                             currentCurrency = currentCurrency
+                        )
+                    }
+
+                    MarketSubTab.UPGRADES -> {
+                        com.example.ui.components.MarketSandboxUpgradesScreen(
+                            currentCurrencySymbol = currentCurrency.symbol,
+                            onBackToGoods = { activeSubTab = MarketSubTab.GOODS }
                         )
                     }
                 }

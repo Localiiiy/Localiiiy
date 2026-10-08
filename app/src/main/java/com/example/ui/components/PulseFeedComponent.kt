@@ -216,8 +216,8 @@ fun PulseFeedComponent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Pulse Feed Tab
@@ -236,12 +236,12 @@ fun PulseFeedComponent(
                             Icons.Default.RssFeed,
                             contentDescription = "Pulse Feed",
                             tint = if (currentPulseTab == "FEED") Color.Black else Color.White,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Pulse Feed",
-                            fontSize = 13.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = if (currentPulseTab == "FEED") Color.Black else Color.White
                         )
@@ -259,6 +259,31 @@ fun PulseFeedComponent(
                             currentPulseTab = "COMMUNITY"
                         }
                     },
+                    modifier = Modifier.weight(1.1f).height(36.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Text("🏘️", fontSize = 12.sp)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Local Community",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (currentPulseTab == "COMMUNITY") Color.Black else Color.White
+                        )
+                    }
+                }
+
+                // Civic Tools Tab
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (currentPulseTab == "UPGRADES") Color(0xFF10B981) else Color(0xFF1E293B),
+                    onClick = {
+                        currentPulseTab = "UPGRADES"
+                    },
                     modifier = Modifier.weight(1f).height(36.dp)
                 ) {
                     Row(
@@ -266,13 +291,13 @@ fun PulseFeedComponent(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        Text("🏘️", fontSize = 14.sp)
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("🛡️", fontSize = 12.sp)
+                        Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Local Community",
-                            fontSize = 13.sp,
+                            text = "Civic Tools",
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = if (currentPulseTab == "COMMUNITY") Color.Black else Color.White
+                            color = if (currentPulseTab == "UPGRADES") Color.Black else Color.White
                         )
                     }
                 }
@@ -288,6 +313,11 @@ fun PulseFeedComponent(
                 onUserProfileClick = onUserProfileClick,
                 onSendInvite = onSendCommunityInvite,
                 modifier = Modifier.fillMaxSize()
+            )
+        } else if (currentPulseTab == "UPGRADES") {
+            PulseSandboxUpgradesScreen(
+                userProfile = userProfile,
+                onNavigateBack = { currentPulseTab = "FEED" }
             )
         } else {
             Box(

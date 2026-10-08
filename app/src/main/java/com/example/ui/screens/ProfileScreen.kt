@@ -133,6 +133,7 @@ fun ProfileScreen(
     isGhostMode: Boolean = false,
     onOpenPremium: () -> Unit = {},
     onOpenNotifications: () -> Unit = {},
+    onOpenAdvancedSandbox: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
@@ -1350,6 +1351,10 @@ fun ProfileScreen(
                     showMoreSettingsSheet = false
                     onOpenNotifications()
                 },
+                onOpenAdvancedSandbox = {
+                    showMoreSettingsSheet = false
+                    onOpenAdvancedSandbox()
+                },
                 draftClips = draftClips,
                 appDisplayScale = appDisplayScale,
                 onOpenDisplayScale = {
@@ -1969,6 +1974,7 @@ private fun ProfileSettingsSheetContent(
     onOpenLegalPolicy: () -> Unit,
     onOpenCyberstalkingSafety: () -> Unit = {},
     onOpenNotifications: () -> Unit = {},
+    onOpenAdvancedSandbox: () -> Unit = {},
     draftClips: List<com.example.data.DraftClipEntity> = emptyList(),
     appDisplayScale: String = "SCALE_95",
     onOpenDisplayScale: () -> Unit = {},
@@ -2146,6 +2152,13 @@ private fun ProfileSettingsSheetContent(
             title = "Tutorials & Badges",
             subtitle = "Interactive guides, Ghost Mode, Safe spots, 9:16 clips & badges",
             onClick = onOpenInformation
+        )
+
+        SettingsRowItem(
+            icon = Icons.Default.Science,
+            title = "Advanced Sandbox Upgrades",
+            subtitle = "Explore, simulate & configure 10 cutting-edge neighborhood features",
+            onClick = onOpenAdvancedSandbox
         )
 
         SettingsRowItem(

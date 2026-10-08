@@ -3005,4 +3005,37 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             Log.i("LocaliiiyViewModel", "Successfully deleted all dummy accounts, demo posts, and demo clips!")
         }
     }
+
+    fun triggerCustomRadarAlert(title: String, desc: String) {
+        _activeHotspotAlert.value = HotspotAlert(
+            hotspotName = title,
+            postCount = 1,
+            message = "$title: $desc"
+        )
+    }
+
+    fun addSparks(sparksCount: Int) {
+        val amountUSD = sparksCount / 10.0
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                superThanksTipsUSD = cur.superThanksTipsUSD + amountUSD,
+                totalGrossEarnedUSD = cur.totalGrossEarnedUSD + amountUSD,
+                availableBalanceUSD = cur.availableBalanceUSD + amountUSD
+            )
+        }
+    }
+
+    fun deductSparks(sparksCount: Int): Boolean {
+        val amountUSD = sparksCount / 10.0
+        val earnings = _creatorEarnings.value
+        if (earnings.availableBalanceUSD < amountUSD) {
+            return false
+        }
+        _creatorEarnings.update { cur ->
+            cur.copy(
+                availableBalanceUSD = cur.availableBalanceUSD - amountUSD
+            )
+        }
+        return true
+    }
 }

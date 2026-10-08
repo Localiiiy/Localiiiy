@@ -1612,6 +1612,135 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+
+    /* Floating Action Button (FAB) */
+    .fab-create-post {
+      position: fixed;
+      bottom: calc(var(--deck-height) + 24px);
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981 0%, #00B4D8 100%);
+      border: none;
+      color: #042417;
+      font-size: 28px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4), 0 0 25px rgba(16, 185, 129, 0.2);
+      z-index: 140;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .fab-create-post:active {
+      transform: scale(0.92);
+    }
+    
+    /* Fullscreen Story Viewer Modal */
+    .story-viewer-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #020617;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .story-viewer-modal.open {
+      display: flex;
+    }
+    .story-progress-container {
+      position: absolute;
+      top: 14px; left: 16px; right: 16px;
+      height: 3px;
+      display: flex;
+      gap: 6px;
+      z-index: 10001;
+    }
+    .story-progress-bar {
+      flex: 1;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .story-progress-fill {
+      width: 100%;
+      height: 100%;
+      background: #FFFFFF;
+      transform: translateX(-100%);
+    }
+    .story-progress-fill.active {
+      animation: storyProgressRun 5s linear forwards;
+    }
+    @keyframes storyProgressRun {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+    .story-viewer-header {
+      position: absolute;
+      top: 28px; left: 16px; right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10001;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .story-author-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .story-avatar-small {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1.5px solid var(--accent-mint);
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .story-media-view {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .story-caption-overlay {
+      position: absolute;
+      bottom: 40px; left: 20px; right: 20px;
+      z-index: 10001;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    }
+    
+    /* Notifications Modal styling */
+    .notif-list-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .notif-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      transition: background 0.15s;
+    }
+    .notif-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
   </style>
 </head>
 <body data-theme="default">
@@ -2191,6 +2320,11 @@
         </div>
       </div>
 
+      <!-- Beautiful Floating Action Button (FAB) for Post Creation -->
+      <button class="fab-create-post ripple-effect" onclick="openCreationModal('post')" title="Create Neighborhood Post">
+        +
+      </button>
+
       </div>
     </div>
 
@@ -2573,7 +2707,7 @@
   </main>
 
   <!-- ========================================================
-       UNIFIED SINGLE-ID DECK SWITCHER BAR & CREATE (+) BUTTON
+       UNIFIED SINGLE-ID DECK SWITCHER BAR (MATCHING ANDROID TABS)
        ======================================================== -->
   <nav id="deckSwitcher">
     <!-- Pulse -->
@@ -2595,13 +2729,16 @@
       <span>Radar</span>
     </button>
 
-    <!-- Floating Center Creation Button (+) -->
-    <button class="deck-create-btn" onclick="openCreationModal('post')" title="Create Content">+</button>
-
     <!-- Market -->
     <button class="deck-pill-btn" onclick="switchDeck('market')" id="tab-market">
       <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
       <span>Market</span>
+    </button>
+
+    <!-- Studio -->
+    <button class="deck-pill-btn" onclick="switchDeck('studio')" id="tab-studio">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H10V6h8v8z"/></svg>
+      <span>Studio</span>
     </button>
 
     <!-- Clips -->
@@ -2927,6 +3064,86 @@
         </div>
         <button type="submit" class="btn-submit-auth">Save Profile Changes</button>
       </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 8: STORY VIEWER (FULLSCREEN INTERACTIVE REEL)
+       ======================================================== -->
+  <div class="story-viewer-modal" id="storyViewerBackdrop">
+    <!-- Top Progress Bars -->
+    <div class="story-progress-container">
+      <div class="story-progress-bar">
+        <div class="story-progress-fill" id="storyProgressFill"></div>
+      </div>
+    </div>
+
+    <!-- Header Actions and Author Details -->
+    <div class="story-viewer-header">
+      <div class="story-author-info">
+        <div class="story-avatar-small" id="storyAuthorAvatar">👤</div>
+        <div>
+          <h4 id="storyAuthorName" style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin: 0;">Creator Name</h4>
+          <span id="storyAuthorRole" style="font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 500;">Role / Title</span>
+        </div>
+      </div>
+      <button class="modal-close-btn" style="position: static; background: rgba(0,0,0,0.5); width: 34px; height: 34px;" onclick="closeStoryViewer()">✕</button>
+    </div>
+
+    <!-- Fullscreen Media View -->
+    <img class="story-media-view" id="storyViewerImage" src="" alt="Story Media">
+
+    <!-- Caption Overlay -->
+    <div class="story-caption-overlay">
+      <div style="background: rgba(16, 185, 129, 0.9); color: #042417; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: var(--radius-full); align-self: flex-start; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+        ⚡ Proximity Verified Story
+      </div>
+      <h3 id="storyCaptionText" style="font-size: 16px; font-weight: 700; color: #FFFFFF; line-height: 1.4;">Morning fresh sourdough is ready to be loaded in the main shelf! 🥖</h3>
+      <p style="font-size: 11px; color: rgba(255,255,255,0.7);">Tap ✕ to return to the live pulse feed</p>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 9: NOTIFICATIONS MODAL
+       ======================================================== -->
+  <div class="modal-backdrop" id="notificationsModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeNotificationsModal()">✕</button>
+
+      <div style="text-align: center; margin-bottom: 16px;">
+        <span style="font-size: 32px;">🔔</span>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Hyperlocal Proximity Notifications</h3>
+        <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Real-time updates inside your 10km tactical grid</p>
+      </div>
+
+      <div class="notif-list-wrapper">
+        <div class="notif-item">
+          <span style="font-size: 20px;">🤝</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 12.5px; font-weight: 700; color: #FFFFFF;">Connection Established</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;"><strong>Alex Rivera</strong> accepted your Connection Request! You can now exchange direct secure chat lines.</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Just now • 0.3 km</div>
+          </div>
+        </div>
+
+        <div class="notif-item">
+          <span style="font-size: 20px;">🥖</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 12.5px; font-weight: 700; color: #FFFFFF;">New Market Item Added</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;"><strong>Maya Patel</strong> listed <strong>Fresh Garlic Herb Sourdough</strong> for Handshake Escrow.</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">12 mins ago • 0.3 km</div>
+          </div>
+        </div>
+
+        <div class="notif-item">
+          <span style="font-size: 20px;">🔒</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 12.5px; font-weight: 700; color: #FFFFFF;">Safe-Haven Handshake Ready</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Handshake Escrow established for <strong>Vintage 35mm Film Camera</strong>. OTP active.</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">1 hour ago • Civic Plaza Green Zone</div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -4026,6 +4243,105 @@
       } else {
         showToast('Link copied to clipboard! 📋');
       }
+    }
+
+    // Filter Marketplace / Studio items by category
+    function filterCategory(btn, category) {
+      const row = btn.parentElement;
+      row.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(`Category: ${btn.textContent.trim()} 🔍`);
+      
+      // DOM filtering for Market
+      const marketGrid = document.getElementById('marketGridContainer');
+      if (marketGrid) {
+        const marketCards = marketGrid.querySelectorAll('.market-card');
+        marketCards.forEach(card => {
+          if (category === 'all') {
+            card.style.display = 'flex';
+          } else {
+            const title = card.querySelector('h4').textContent.toLowerCase();
+            const matches = (category === 'tech' && (title.includes('camera') || title.includes('mobile') || title.includes('tech'))) ||
+                            (category === 'bikes' && title.includes('cycle')) ||
+                            (category === 'art' && title.includes('ceramic')) ||
+                            (category === 'food' && title.includes('sourdough')) ||
+                            (category === 'lifestyle' && (title.includes('ceramic') || title.includes('mug')));
+            card.style.display = matches ? 'flex' : 'none';
+          }
+        });
+      }
+    }
+
+    // Set Clips discovery tab active state
+    function setClipTab(btn) {
+      const row = btn.parentElement;
+      row.querySelectorAll('.clip-filter-tab').forEach(tab => tab.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(`Discovery Filter: ${btn.textContent.trim()} 🎬`);
+    }
+
+    // Notifications Modal state toggles
+    function openNotificationsModal() {
+      document.getElementById('notificationsModalBackdrop').classList.add('open');
+      if (window.navigator.vibrate) window.navigator.vibrate(8);
+    }
+    function closeNotificationsModal() {
+      document.getElementById('notificationsModalBackdrop').classList.remove('open');
+    }
+
+    // Fullscreen Story Viewer Modal state toggles & progress simulation
+    let storyTimeout = null;
+    function showStoryViewer(name, role) {
+      if (storyTimeout) clearTimeout(storyTimeout);
+      
+      const backdrop = document.getElementById('storyViewerBackdrop');
+      const authorName = document.getElementById('storyAuthorName');
+      const authorRole = document.getElementById('storyAuthorRole');
+      const authorAvatar = document.getElementById('storyAuthorAvatar');
+      const storyImage = document.getElementById('storyViewerImage');
+      const captionText = document.getElementById('storyCaptionText');
+      const progressFill = document.getElementById('storyProgressFill');
+
+      authorName.textContent = name;
+      authorRole.textContent = role;
+      authorAvatar.textContent = name.charAt(0);
+      
+      // Seed appropriate images and descriptions
+      if (name.includes('Elena')) {
+        storyImage.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=80';
+        captionText.textContent = 'Morning glaze run: Loading the brand new rustic turquoise cups in the kiln shelf! 🍯✨';
+      } else if (name.includes('Marcus')) {
+        storyImage.src = 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800&auto=format&fit=crop&q=80';
+        captionText.textContent = 'Anamorphic test shoot at 5:00 AM. Fog over Seattle harbor is absolutely stunning. 🎥🌫️';
+      } else if (name.includes('Maya')) {
+        storyImage.src = 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80';
+        captionText.textContent = 'Sourdough loaves fresh out of the oven! Scoring pattern turned out beautiful. 🥖🔥';
+      } else if (name.includes('Davis') || name.includes('Precinct')) {
+        storyImage.src = 'https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=800&auto=format&fit=crop&q=80';
+        captionText.textContent = 'Active Safe-Haven Exchange Spot monitoring. Your commerce is safe in our Green Zones. 👮‍♂️🛡️';
+      } else {
+        storyImage.src = 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&auto=format&fit=crop&q=80';
+        captionText.textContent = 'Hyperlocal Connection is live! Welcome to our cooperative community. 🤝';
+      }
+
+      // Reset & Trigger progress bar animation
+      progressFill.classList.remove('active');
+      void progressFill.offsetWidth; // Trigger reflow
+      progressFill.classList.add('active');
+
+      backdrop.classList.add('open');
+      if (window.navigator.vibrate) window.navigator.vibrate(10);
+
+      // Auto close after 5 seconds (matching the progress animation)
+      storyTimeout = setTimeout(closeStoryViewer, 5000);
+    }
+
+    function closeStoryViewer() {
+      if (storyTimeout) clearTimeout(storyTimeout);
+      const backdrop = document.getElementById('storyViewerBackdrop');
+      if (backdrop) backdrop.classList.remove('open');
+      const progressFill = document.getElementById('storyProgressFill');
+      if (progressFill) progressFill.classList.remove('active');
     }
 
     function showToast(msg) {

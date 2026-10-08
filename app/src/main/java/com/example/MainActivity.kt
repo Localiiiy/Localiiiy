@@ -351,6 +351,7 @@ fun LocaliiiyApp(
     val subscribedTierIds by viewModel.subscribedTierIds.collectAsStateWithLifecycle()
 
     var showOpeningAnimation by remember { mutableStateOf(true) }
+    var showAdvancedFeaturesScreen by remember { mutableStateOf(false) }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -1185,7 +1186,8 @@ fun LocaliiiyApp(
                         isGhostMode = privacySettings.isGhostMode,
                         onOpenPremium = { viewModel.openPrivacySettings() },
                         isRefreshing = isRefreshingProfile,
-                        onRefresh = { viewModel.refreshProfile() }
+                        onRefresh = { viewModel.refreshProfile() },
+                        onOpenAdvancedSandbox = { showAdvancedFeaturesScreen = true }
                     )
                 }
             }
@@ -1437,6 +1439,13 @@ fun LocaliiiyApp(
                 }
             },
             onNavigateBack = { viewModel.closeCyberstalkingSafety() }
+        )
+    }
+
+    // Advanced Sandbox Upgrades Screen Overlay (10 Cutting-Edge Features)
+    if (showAdvancedFeaturesScreen) {
+        AdvancedFeaturesScreen(
+            onNavigateBack = { showAdvancedFeaturesScreen = false }
         )
     }
 
