@@ -1741,6 +1741,63 @@
     .notif-item:hover {
       background: rgba(255, 255, 255, 0.06);
     }
+
+    /* Custom style overrides for subtabs panels */
+    .market-sub-panel {
+      display: none;
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+    .market-sub-panel.active {
+      display: block;
+    }
+    
+    /* Top Translucent Header Circular Toggles */
+    .clip-top-toggle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      border: 1.2px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .clip-top-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .clip-top-toggle-btn.active {
+      background: var(--accent-mint);
+      color: #042417;
+      border-color: var(--accent-mint);
+      box-shadow: 0 0 10px var(--accent-mint-glow);
+    }
+
+    /* Bottom Profile Drawer for Map Blips */
+    .blip-drawer-card {
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+      position: fixed;
+      bottom: -100%;
+      left: 0;
+      right: 0;
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--bg-surface);
+      border: 1.2px solid var(--border-subtle);
+      border-bottom: none;
+      transition: bottom 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 10002;
+      padding: 22px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
+    }
+    .blip-drawer-card.open {
+      bottom: 0;
+    }
   </style>
 </head>
 <body data-theme="default">
@@ -2431,90 +2488,206 @@
         <div class="market-subtabs-row">
           <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">Goods</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">Services</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'wanted')">Wanted</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'video')">Video Shops</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'upgrades')">Exchange Tools</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">Watchlist</div>
         </div>
 
-        <!-- Categories horizontal bar (Expanded Android List) -->
-        <div class="market-categories-row">
-          <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
-          <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
-          <div class="category-chip" onclick="filterCategory(this, 'bikes')">🚲 Bikes</div>
-          <div class="category-chip" onclick="filterCategory(this, 'lands')">🏞️ Lands</div>
-          <div class="category-chip" onclick="filterCategory(this, 'mobiles')">📱 Mobiles</div>
-          <div class="category-chip" onclick="filterCategory(this, 'tech')">💻 Tech</div>
-          <div class="category-chip" onclick="filterCategory(this, 'jobs')">💼 Jobs</div>
-          <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Furniture</div>
-          <div class="category-chip" onclick="filterCategory(this, 'fashion')">👕 Fashion</div>
-          <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Food</div>
-          <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
-          <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books</div>
-          <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets</div>
-          <div class="category-chip" onclick="filterCategory(this, 'crypto')">₿ Crypto</div>
-          <div class="category-chip" onclick="filterCategory(this, 'wellness')">🧘 Wellness</div>
+        <!-- Panel 1: Goods Catalog -->
+        <div id="market-panel-goods" class="market-sub-panel active">
+          <!-- Categories horizontal bar (Expanded Android List) -->
+          <div class="market-categories-row" style="margin-bottom: 8px;">
+            <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
+            <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
+            <div class="category-chip" onclick="filterCategory(this, 'bikes')">🚲 Bikes</div>
+            <div class="category-chip" onclick="filterCategory(this, 'lands')">🏞️ Lands</div>
+            <div class="category-chip" onclick="filterCategory(this, 'mobiles')">📱 Mobiles</div>
+            <div class="category-chip" onclick="filterCategory(this, 'tech')">💻 Tech</div>
+            <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Furniture</div>
+            <div class="category-chip" onclick="filterCategory(this, 'fashion')">👕 Fashion</div>
+            <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Food</div>
+            <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
+          </div>
+
+          <div class="market-banner">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">Safe-Haven Handshake Escrow 🛡️</h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV & OTP handshake codes.</p>
+            </div>
+            <button class="btn-download-apk" style="background: var(--accent-amber); color: #000; font-size: 12px; padding: 6px 12px;" onclick="checkGhostAction('list items for sale') ? null : openCreationModal('market')">
+              + Sell Item
+            </button>
+          </div>
+
+          <div class="market-grid" id="marketGridContainer">
+            <!-- Item 1 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80" alt="Item">
+              <div class="market-info">
+                <div class="market-price">$120</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Vintage 35mm Film Camera</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">0.8 km • Mint Condition</p>
+                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('120')">
+                  Request Handshake 🤝
+                </button>
+              </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80" alt="Item">
+              <div class="market-info">
+                <div class="market-price">$12 / loaf</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Artisan Sourdough Loaves</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Maya's Bakehouse</p>
+                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('12')">
+                  Request Handshake 🤝
+                </button>
+              </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
+              <div class="market-info">
+                <div class="market-price">$38</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Hand-thrown Ceramic Mug Set</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
+                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('38')">
+                  Request Handshake 🤝
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="market-banner">
-          <div>
-            <h3 style="font-size: 16px; font-weight: 800; color: #F59E0B;">Safe-Haven Handshake Escrow 🛡️</h3>
-            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV & OTP handshake codes.</p>
+        <!-- Panel 2: Services Catalog -->
+        <div id="market-panel-services" class="market-sub-panel" style="display: none;">
+          <div class="market-banner" style="background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.35);">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 800; color: #A78BFA;">Hyperlocal Gigs & Services 🛠️</h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Verified local expertise from professional craftsmen and skilled neighbors.</p>
+            </div>
+            <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFF; font-size: 12px; padding: 6px 12px;" onclick="checkGhostAction('list services') ? null : showToast('Offer your custom service inside your profile! 🛠️')">
+              + Offer Service
+            </button>
           </div>
-          <button class="btn-download-apk" style="background: var(--accent-amber); color: #000;" onclick="openCreationModal('market')">
-            + Sell Item
-          </button>
+
+          <div class="market-grid">
+            <!-- Service 1 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80" alt="Bicycle">
+              <div class="market-info">
+                <div class="market-price">$45 / hr</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Bicycle Tune-up & Safety Check</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">1.1 km • Devon's Mobile Shop</p>
+                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Devon Miller', 'Bicycle Tune-up & Safety Check', '$45 / hr', '🚲')">
+                  Inquire Service 🤝
+                </button>
+              </div>
+            </div>
+
+            <!-- Service 2 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=500&auto=format&fit=crop&q=80" alt="Film">
+              <div class="market-info">
+                <div class="market-price">$50 / hr</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Artisan Film & Video Editing</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">1.4 km • Marcus Vance Cinema</p>
+                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Marcus Vance', 'Artisan Film & Video Editing', '$50 / hr', '🎥')">
+                  Inquire Service 🤝
+                </button>
+              </div>
+            </div>
+
+            <!-- Service 3 -->
+            <div class="market-card ripple-effect">
+              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
+              <div class="market-info">
+                <div class="market-price">$60 / class</div>
+                <h4 style="font-size: 13px; font-weight: 700;">Custom Wheel Pottery Class</h4>
+                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
+                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Elena Rostova', 'Custom Wheel Pottery Class', '$60 / class', '🎨')">
+                  Inquire Service 🤝
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="market-grid" id="marketGridContainer">
-          <!-- Item 1 -->
-          <div class="market-card ripple-effect">
-            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80" alt="Item">
-            <div class="market-info">
-              <div class="market-price">$120</div>
-              <h4 style="font-size: 13px; font-weight: 700;">Vintage 35mm Film Camera</h4>
-              <p style="font-size: 11px; color: var(--text-muted);">0.8 km • Mint Condition</p>
-              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('120')">
-                Request Handshake 🤝
+        <!-- Panel 3: Community Upgrades & Engagement Tools -->
+        <div id="market-panel-upgrades" class="market-sub-panel" style="display: none;">
+          <!-- Custom requested header and category layout -->
+          <div style="padding: 12px 0 6px;">
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFFFFF; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Social, Safety & Civic Engagement Tools</h2>
+            <p style="font-size: 11.5px; color: var(--accent-mint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Category: Community Upgrades</p>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+            <!-- Bulk Buying Hubs Card -->
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(0, 229, 255, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🥦</span>
+                <div>
+                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Bulk Buying Hubs</h4>
+                  <p style="font-size: 11px; color: var(--text-secondary);">Pool essential grocery & supply orders with neighbors for wholesale savings</p>
+                </div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
+                <strong>Active Hub:</strong> Mrs. Kapoor's Fresh Organic Produce • 8 slots joined of 15. Targets 30% savings on local market rates.
+              </div>
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--primary-teal); color: #041B26;" onclick="checkGhostAction('join bulk hubs') ? null : openSimulatedEngagementChat('Maya Patel', 'Bulk Buying Hubs', 'Mrs. Kapoor\'s Organic Produce pool')">
+                Join Bulk Hub 🥦
+              </button>
+            </div>
+
+            <!-- Skill Matching Leagues Card -->
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(167, 139, 250, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🧑‍🏫</span>
+                <div>
+                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Skill Matching Leagues</h4>
+                  <p style="font-size: 11px; color: var(--text-secondary);">Trade skills, language exchange, repairs, or tutoring inside local circles</p>
+                </div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
+                <strong>Active Matching:</strong> Alex Rivera is offering creative video/editing leagues in exchange for Spanish classes.
+              </div>
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-purple); color: #FFFFFF;" onclick="checkGhostAction('join skill leagues') ? null : openSimulatedEngagementChat('Alex Rivera', 'Skill Matching Leagues', 'Creative Editing vs Spanish exchange')">
+                Open Matching League 🧑‍🏫
+              </button>
+            </div>
+
+            <!-- Barter Hubs Card -->
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 22px;">🔄</span>
+                <div>
+                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Barter & Swap Hubs</h4>
+                  <p style="font-size: 11px; color: var(--text-secondary);">Physical, completely cashless item exchanges for sustainable neighborhood circulation</p>
+                </div>
+              </div>
+              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
+                <strong>Local Proposals:</strong> Bosch Power Drill 🛠️ wanted for heavy-duty extension ladder, Sourdough score wanted for fresh rooftop tomatoes.
+              </div>
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('propose barter swap') ? null : openSimulatedEngagementChat('Jordan Sterling', 'Barter & Swap Hubs', 'Bosch Power Drill trade proposal')">
+                Propose Swap 🔄
               </button>
             </div>
           </div>
+        </div>
 
-          <!-- Item 2 -->
-          <div class="market-card ripple-effect">
-            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80" alt="Item">
-            <div class="market-info">
-              <div class="market-price">$12 / loaf</div>
-              <h4 style="font-size: 13px; font-weight: 700;">Artisan Sourdough Loaves</h4>
-              <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Maya's Bakehouse</p>
-              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('12')">
-                Request Handshake 🤝
-              </button>
+        <!-- Panel 4: Watchlist Catalog -->
+        <div id="market-panel-watchlist" class="market-sub-panel" style="display: none;">
+          <div class="market-banner" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35);">
+            <div>
+              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">My Watchlist 🔖</h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Items and services you have saved or bookmarked to monitor in real-time.</p>
             </div>
           </div>
 
-          <!-- Item 3 -->
-          <div class="market-card ripple-effect">
-            <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80" alt="Bicycle">
-            <div class="market-info">
-              <div class="market-price">$45 / hr</div>
-              <h4 style="font-size: 13px; font-weight: 700;">Bicycle Tune-up & Safety Check</h4>
-              <p style="font-size: 11px; color: var(--text-muted);">1.1 km • Devon's Mobile Shop</p>
-              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('45')">
-                Request Service 🤝
-              </button>
-            </div>
-          </div>
-
-          <!-- Item 4 -->
-          <div class="market-card ripple-effect">
-            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
-            <div class="market-info">
-              <div class="market-price">$38</div>
-              <h4 style="font-size: 13px; font-weight: 700;">Hand-thrown Ceramic Mug Set</h4>
-              <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
-              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('38')">
-                Request Handshake 🤝
-              </button>
+          <div class="market-grid" id="watchlistGridContainer">
+            <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted); font-size: 12px;">
+              Your watchlist is currently empty. Bookmark listings on the Goods tab to see them here! 🏪
             </div>
           </div>
         </div>
@@ -2532,7 +2705,12 @@
         <div class="clip-screen-item">
           <!-- Top Discovery Filter (AGENTS.md mandate: header solely for title & filters) -->
           <div class="clips-top-discovery">
-            <span style="font-size: 13px; font-weight: 800; color: #FFFFFF;">🎬 Clips</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 14px; font-weight: 800; color: #FFFFFF;">🎬 Clips</span>
+              <!-- Auto Scroll / Sound Toggles inside the top header area -->
+              <button class="clip-top-toggle-btn" id="btnClipAutoScroll" onclick="toggleClipAutoScroll(this)" title="Auto-Scroll Autoplay Toggle">🔄</button>
+              <button class="clip-top-toggle-btn" id="btnClipMute" onclick="toggleClipSound(this)" title="Mute/Unmute Toggle">🔊</button>
+            </div>
             <div class="clips-filter-pills">
               <div class="clip-filter-tab" onclick="setClipTab(this)">All</div>
               <div class="clip-filter-tab" onclick="setClipTab(this)">Trending</div>
@@ -2545,18 +2723,25 @@
 
           <!-- Bottom Left Overlay (AGENTS.md mandate: Proximity/locality anchored directly above creator) -->
           <div class="clip-bottom-info">
-            <div class="clip-proximity-badge">📍 Pike Place • 0.3 km away</div>
-            <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Morning baking routine in the alley 🥐✨</div>
+            <div class="clip-proximity-badge" style="background: rgba(0, 229, 255, 0.15); border: 1.2px solid #00E5FF; color: #00E5FF; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; margin-bottom: 2px;">0.3 km • Proximity Verified</div>
+            <div class="clip-landmark-name" style="font-weight: 800; font-size: 14px; color: #FFFFFF; margin-bottom: 4px;">Pike Place Market</div>
+            <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 2px;">Morning baking routine in the alley 🥐✨</div>
             <div style="font-size: 12px; color: #CBD5E1; font-weight: 600;">@maya_bakes • Connected Neighbor</div>
           </div>
 
           <!-- Side Actions -->
           <div class="clip-side-actions">
+            <!-- Creator Avatar with interactive Connect Badge -->
+            <div class="clip-action-node" style="position: relative;" onclick="toggleClipConnect(this, 'maya_bakes')">
+              <div class="clip-action-circle" style="background: #0E1322; border: 2px solid #00E5FF; font-size: 18px; width: 48px; height: 48px;">👤</div>
+              <div class="clip-connect-badge" style="position: absolute; bottom: -4px; background: #00E5FF; color: #041B26; font-size: 9px; font-weight: 900; padding: 2px 5px; border-radius: var(--radius-full); box-shadow: 0 2px 6px rgba(0,0,0,0.4); white-space: nowrap;">Connect +</div>
+            </div>
+
             <div class="clip-action-node" onclick="toggleClipLike(this)">
               <div class="clip-action-circle">❤️</div>
               <span>1.2k</span>
             </div>
-            <div class="clip-action-node" onclick="openCommentsModal('Morning Baking Clip', ['Looks so fresh!', 'Best baker in Seattle'])">
+            <div class="clip-action-node" onclick="checkGhostAction('comment on clips') ? null : openCommentsModal('Morning Baking Clip', ['Looks so fresh!', 'Best baker in Seattle'])">
               <div class="clip-action-circle">💬</div>
               <span>84</span>
             </div>
@@ -2564,7 +2749,7 @@
               <div class="clip-action-circle">🔄</div>
               <span>Share</span>
             </div>
-            <div class="clip-action-node" onclick="openEscrowModal('Sourdough Pre-order', '$12')">
+            <div class="clip-action-node" onclick="checkGhostAction('initiate secure handshake pre-order') ? null : openEscrowModal('Sourdough Pre-order', '$12')">
               <div class="clip-action-circle" style="background: var(--accent-amber);">🛍️</div>
               <span style="color: #FCD34D;">Buy</span>
             </div>
@@ -2578,35 +2763,189 @@
          VIEW 5: STUDIO SCREEN
          ======================================================== -->
     <div id="view-studio" class="screen-view">
-      <div class="studio-screen-content">
-        <!-- Studio Categories (Matched with Android StudioScreen.kt) -->
-        <div class="market-categories-row" style="padding: 12px 16px 6px;">
-          <div class="category-chip active" onclick="filterCategory(this, 'all')">All Content</div>
-          <div class="category-chip" onclick="filterCategory(this, 'music')">Music</div>
-          <div class="category-chip" onclick="filterCategory(this, 'news')">News</div>
-          <div class="category-chip" onclick="filterCategory(this, 'tech')">Tech</div>
-          <div class="category-chip" onclick="filterCategory(this, 'lifestyle')">Lifestyle</div>
-          <div class="category-chip" onclick="filterCategory(this, 'podcasts')">Podcasts</div>
-          <div class="category-chip" onclick="filterCategory(this, 'documentaries')">Docs</div>
-          <div class="category-chip" onclick="filterCategory(this, 'gaming')">Gaming</div>
-          <div class="category-chip" onclick="filterCategory(this, 'culture')">Culture</div>
-        </div>
-
-        <div class="studio-card-hero">
-          <span style="font-size: 11px; font-weight: 800; color: #C084FC; text-transform: uppercase;">Creator Monetization & Tips</span>
-          <div style="font-size: 32px; font-weight: 800; color: #FFFFFF;">$142.50</div>
-          <p style="font-size: 12px; color: #D1D5DB;">Earned from Super Thanks tips & local goods handshake commissions.</p>
-          <button class="btn-submit-auth ripple-effect" style="margin-top: 6px;" onclick="showToast('Instant cashout dispatched to safe wallet! 💸')">
-            Cash Out to Local Bank
+      <div class="studio-screen-content" style="padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; height: 100%;">
+        
+        <!-- Header & Switcher matching Android StudioScreen -->
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h2 style="font-size: 20px; font-weight: 800; color: #FFFFFF;">Creator Studio</h2>
+            <p style="font-size: 11px; color: var(--text-secondary);">Manage your hyperlocal audience and dual-reach broadcasts</p>
+          </div>
+          <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFFFFF; font-size: 11.5px; padding: 6px 12px; border-radius: var(--radius-full);" onclick="checkGhostAction('broadcast clips') ? null : openCreationModal('clip')">
+            + Broadcast Clip
           </button>
         </div>
 
+        <!-- Metric Cards Row -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Watch Hours</div>
+            <div style="font-size: 18px; font-weight: 800; color: #00E5FF; margin-top: 4px;">1,840h</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +12%</div>
+          </div>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Studio Views</div>
+            <div style="font-size: 18px; font-weight: 800; color: #10B981; margin-top: 4px;">192.4K</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +18%</div>
+          </div>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Connected</div>
+            <div style="font-size: 18px; font-weight: 800; color: #C084FC; margin-top: 4px;">1,480</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +24%</div>
+          </div>
+        </div>
+
+        <!-- Monetization & RevShare Card -->
+        <div class="studio-card-hero" style="background: linear-gradient(135deg, #130A2B 0%, #1E0D4F 100%); border: 1px solid rgba(192, 132, 252, 0.35); padding: 16px; border-radius: var(--radius-lg); position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -10px; right: -10px; font-size: 70px; opacity: 0.08; pointer-events: none;">💎</div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-size: 10px; font-weight: 800; color: #C084FC; text-transform: uppercase; letter-spacing: 1px;">Est. Creator Earnings</span>
+              <div style="font-size: 32px; font-weight: 800; color: #FFFFFF; margin-top: 4px;">$142.50</div>
+              <p style="font-size: 11px; color: #D1D5DB; margin-top: 4px;">Super Thanks tips & local goods escrow handshake commissions split.</p>
+            </div>
+            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: var(--radius-full); white-space: nowrap;">55% Creator RevShare</span>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 14px;">
+            <button class="btn-submit-auth ripple-effect" style="margin-top: 0; flex: 1; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('withdraw creator earnings') ? null : showToast('Instant cashout dispatched to safe wallet! 💸')">
+              Cash Out to Local Bank
+            </button>
+            <button class="btn-post-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 12px; padding: 10px 14px; border-radius: var(--radius-md);" onclick="showToast('Opened exclusive rewards panel 🌟')">
+              Tiers 🔒
+            </button>
+          </div>
+        </div>
+
+        <!-- Advanced Hyperlocal Revenue Projection Tool -->
+        <div style="background: var(--bg-card); border: 1.2px solid rgba(0, 229, 255, 0.25); border-radius: var(--radius-lg); padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 24px;">📊</span>
+            <div>
+              <h3 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">Hyperlocal Revenue Projection Tool</h3>
+              <p style="font-size: 11px; color: var(--accent-mint); margin: 2px 0 0 0;">Project potential monthly earnings based on your local social network</p>
+            </div>
+          </div>
+
+          <!-- Slider 1: Connection Count -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: var(--text-secondary);">
+              <span>Projected Connections:</span>
+              <span id="calcConnectionsVal" style="color: #00E5FF; font-weight: 800;">1,480</span>
+            </div>
+            <input type="range" id="calcConnectionsRange" min="50" max="15000" step="50" value="1480" style="width: 100%; accent-color: #00E5FF; cursor: pointer; background: rgba(255,255,255,0.1); height: 6px; border-radius: 4px; outline: none;" oninput="updateRevenueCalculation()">
+          </div>
+
+          <!-- Slider 2: Conversion Rate -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: var(--text-secondary);">
+              <span>Conversion Rate (e.g. Market Sales):</span>
+              <span id="calcConversionVal" style="color: #10B981; font-weight: 800;">2.5%</span>
+            </div>
+            <input type="range" id="calcConversionRange" min="1.0" max="5.0" step="0.5" value="2.5" style="width: 100%; accent-color: #10B981; cursor: pointer; background: rgba(255,255,255,0.1); height: 6px; border-radius: 4px; outline: none;" oninput="updateRevenueCalculation()">
+          </div>
+
+          <!-- Slider 3: Avg Transaction Size -->
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: bold; color: var(--text-secondary);">
+              <span>Avg Transaction Value ($):</span>
+              <span id="calcValueVal" style="color: #A78BFA; font-weight: 800;">$25</span>
+            </div>
+            <input type="range" id="calcValueRange" min="5" max="150" step="5" value="25" style="width: 100%; accent-color: #A78BFA; cursor: pointer; background: rgba(255,255,255,0.1); height: 6px; border-radius: 4px; outline: none;" oninput="updateRevenueCalculation()">
+          </div>
+
+          <!-- Live Breakdown Result Cards -->
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 4px;">
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-md); padding: 10px; text-align: center;">
+              <div style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Marketplace sales</div>
+              <div id="calcMarketEarnings" style="font-size: 16px; font-weight: 800; color: #10B981; margin-top: 4px;">$925.00</div>
+              <div id="calcMarketQty" style="font-size: 9px; color: var(--text-secondary); margin-top: 2px;">37 items sold</div>
+            </div>
+            <div style="background: rgba(192, 132, 252, 0.05); border: 1px solid rgba(192, 132, 252, 0.2); border-radius: var(--radius-md); padding: 10px; text-align: center;">
+              <div style="font-size: 9.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Creator Fund & Tips</div>
+              <div id="calcTipsEarnings" style="font-size: 16px; font-weight: 800; color: #C084FC; margin-top: 4px;">$185.00</div>
+              <div id="calcTipsQty" style="font-size: 9px; color: var(--text-secondary); margin-top: 2px;">18 tips received</div>
+            </div>
+          </div>
+
+          <!-- Net Projected Monthly Profit Hero -->
+          <div style="background: rgba(0, 229, 255, 0.08); border: 1px solid rgba(0, 229, 255, 0.3); border-radius: var(--radius-md); padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <div>
+              <div style="font-size: 10px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase;">Combined Projected Monthly Income</div>
+              <div id="calcTotalCombined" style="font-size: 24px; font-weight: 900; color: #FFFFFF; margin-top: 2px;">$1,110.00</div>
+            </div>
+            <span style="font-size: 28px;">🚀</span>
+          </div>
+
+          <p style="font-size: 10px; color: var(--text-muted); line-height: 1.4; margin: 0; text-align: center;">
+            Estimates are calculated using a baseline platform revshare fee of 90% retained by creators for fan tips & 100% directly for Escrow Marketplace Handshakes.
+          </p>
+        </div>
+
+        <!-- Dual-Velocity Analytics Chart -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 16px; border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 12px;">
+          <div>
+            <h3 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Dual-Velocity Propagation Analytics</h3>
+            <p style="font-size: 11px; color: var(--text-secondary);">Real-time comparison of seed neighborhood spread vs global algorithmic lift</p>
+          </div>
+          
+          <!-- SVG Responsive Chart -->
+          <div style="width: 100%; height: 180px; position: relative;">
+            <svg viewBox="0 0 100 50" style="width: 100%; height: 100%; overflow: visible;" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
+              <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
+              <line x1="0" y1="30" x2="100" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
+              <line x1="0" y1="40" x2="100" y2="40" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
+              
+              <!-- Local Seed Area/Line (Quick saturation, steady level) -->
+              <path d="M 0 45 Q 15 15, 30 25 T 60 22 T 100 24" fill="none" stroke="#00E5FF" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M 0 45 Q 15 15, 30 25 T 60 22 T 100 24 L 100 50 L 0 50 Z" fill="url(#localGrad)" opacity="0.12"/>
+              
+              <!-- Global Propagation Area/Line (Delayed, massive rise) -->
+              <path d="M 0 48 Q 20 45, 45 42 Q 65 10, 80 5 T 100 3" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M 0 48 Q 20 45, 45 42 Q 65 10, 80 5 T 100 3 L 100 50 L 0 50 Z" fill="url(#globalGrad)" opacity="0.12"/>
+              
+              <!-- Definitions for Gradients -->
+              <defs>
+                <linearGradient id="localGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#00E5FF"/>
+                  <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="globalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#10B981"/>
+                  <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            
+            <!-- Custom floating tooltip inside chart -->
+            <div style="position: absolute; top: 15px; left: 52%; background: rgba(7, 10, 18, 0.95); border: 1.2px solid #10B981; padding: 6px 10px; border-radius: var(--radius-sm); pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 9px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px;">Algorithmic Lift</span>
+              <span style="font-size: 11px; font-weight: 800; color: #10B981;">+14.2x Velocity</span>
+              <span style="font-size: 8px; color: var(--text-muted);">Global Earth reach triggered</span>
+            </div>
+          </div>
+          
+          <!-- Chart Legend -->
+          <div style="display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 4px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="width: 10px; height: 10px; background: #00E5FF; border-radius: 50%; display: inline-block;"></span>
+              <span style="color: #00E5FF;">Local Seed (Neighborhood)</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%; display: inline-block;"></span>
+              <span style="color: #10B981;">Global Propagation (Earth Feed)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clips Draft Vault -->
         <div class="neighbor-card" style="padding: 16px;">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Draft Clips Vault</div>
+            <div style="font-weight: 700; font-size: 14px; color: #FFFFFF;">Draft Clips Vault</div>
             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">3 clips ready for dual reach broadcast</div>
           </div>
-          <button class="btn-download-apk" style="padding: 6px 14px; background: var(--accent-purple); color: #FFFFFF;" onclick="openCreationModal('clip')">
+          <button class="btn-download-apk" style="padding: 6px 14px; background: var(--accent-purple); color: #FFFFFF; font-size: 12px;" onclick="checkGhostAction('upload video to Clips vault') ? null : openCreationModal('clip')">
             + Upload New
           </button>
         </div>
@@ -3012,12 +3351,16 @@
         </div>
       </div>
 
-      <form class="auth-form" onsubmit="handleSendChatMessage(event)">
+      <form class="auth-form" id="chatMessageForm" onsubmit="handleSendChatMessage(event)">
         <div style="display: flex; gap: 8px;">
           <input type="text" class="form-input" id="chatInput" placeholder="Message neighbor..." style="flex: 1;" required>
           <button type="submit" class="btn-submit-auth" style="margin-top: 0; padding: 0 16px;">Send</button>
         </div>
       </form>
+
+      <div id="chatGatePrompt" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1.2px dashed #EF4444; border-radius: var(--radius-md); padding: 12px; text-align: center; color: #F87171; font-size: 12px; font-weight: 700; margin-top: 10px;">
+        Only mutual Connections can establish direct lines of communication.
+      </div>
     </div>
   </div>
 
@@ -3147,6 +3490,59 @@
     </div>
   </div>
 
+  <!-- ========================================================
+       MODAL 10: INTERACTIVE MAP BLIP PROFILE PREVIEW BOTTOM DRAWER
+       ======================================================== -->
+  <div class="modal-backdrop" id="blipDrawerBackdrop" onclick="if(event.target===this) document.getElementById('blipDrawerBackdrop').classList.remove('open');">
+    <div class="blip-drawer-card" id="blipDrawerCard">
+      <div style="width: 44px; height: 5px; background: rgba(255,255,255,0.25); border-radius: var(--radius-full); margin: 0 auto 16px; cursor: pointer;" onclick="document.getElementById('blipDrawerBackdrop').classList.remove('open');"></div>
+      
+      <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px;">
+        <div class="profile-avatar-large" id="blipAvatar" style="width: 54px; height: 54px; font-size: 24px; background: rgba(0,229,255,0.1); border: 2px solid #00E5FF; border-radius: 50%; display: flex; align-items: center; justify-content: center;">👤</div>
+        <div>
+          <h3 id="blipName" style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Elena Rostova</h3>
+          <p id="blipDistance" style="font-size: 11.5px; color: var(--accent-mint); font-weight: 700;">0.3 km away</p>
+        </div>
+      </div>
+
+      <p id="blipBio" style="font-size: 12.5px; color: #CBD5E1; line-height: 1.5; margin-bottom: 16px;">Artisan Potter & Sourdough baker. Creating beautiful clay mugs and rustic turquoise bowls at Pike Alley.</p>
+
+      <div style="display: flex; gap: 10px; width: 100%;">
+        <button class="btn-submit-auth ripple-effect" id="blipConnectBtn" style="margin-top: 0; flex: 1; padding: 12px; font-size: 13px; font-weight: 800; background: var(--primary-teal); color: #041B26;">
+          + Connect
+        </button>
+        <button class="btn-post-action" style="flex: 1; background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 13px; border-radius: var(--radius-md);" onclick="document.getElementById('blipDrawerBackdrop').classList.remove('open'); showToast('Initiated wave alert! 👋');">
+          👋 Say Hi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 11: GHOST MODE INTERACTIVE WRITE/SOCIAL GATE
+       ======================================================== -->
+  <div class="modal-backdrop" id="ghostActionModalBackdrop">
+    <div class="modal-sheet-card" style="text-align: center; border: 1.2px solid rgba(0, 229, 255, 0.35); box-shadow: 0 0 25px var(--accent-mint-glow);">
+      <button class="modal-close-btn" onclick="closeGhostActionModal()">✕</button>
+      
+      <span style="font-size: 54px; filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.4));">👻</span>
+      <h3 style="font-size: 19px; font-weight: 800; margin-top: 14px; color: #FFFFFF; letter-spacing: -0.5px;">Ghost Mode Active</h3>
+      
+      <p style="font-size: 13px; color: #CBD5E1; line-height: 1.6; margin: 12px 0 20px;">
+        Please establish an active profile to <strong id="ghostActionDescription" style="color: var(--accent-mint);">[action]</strong> and participate in the community.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="btn-submit-auth ripple-effect" style="margin-top: 0; background: var(--accent-mint); color: #042417; font-weight: 800;" onclick="disableGhostModeFromModal()">
+          Disable Ghost Mode & Activate Profile 🌐
+        </button>
+        <button class="btn-post-action" style="justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: var(--text-muted);" onclick="closeGhostActionModal()">
+          Remain Cloaked ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- JAVASCRIPT APP STATE & FUNCTIONALITY -->
   <script>
     // Robust Multi-User & Content Simulation System
@@ -3201,7 +3597,43 @@
       }
 
       renderPostsFromDb();
+      updateRevenueCalculation();
     });
+
+    // Advanced Hyperlocal Revenue Calculator logic
+    function updateRevenueCalculation() {
+      const connectionsRange = document.getElementById('calcConnectionsRange');
+      const conversionRange = document.getElementById('calcConversionRange');
+      const valueRange = document.getElementById('calcValueRange');
+
+      if (!connectionsRange || !conversionRange || !valueRange) return;
+
+      const connections = parseInt(connectionsRange.value);
+      const conversionRate = parseFloat(conversionRange.value);
+      const avgOrderValue = parseFloat(valueRange.value);
+
+      document.getElementById('calcConnectionsVal').innerText = Number(connections).toLocaleString();
+      document.getElementById('calcConversionVal').innerText = conversionRate.toFixed(1) + '%';
+      document.getElementById('calcValueVal').innerText = '$' + avgOrderValue;
+
+      // Marketplace calculations
+      const marketQty = Math.round(connections * (conversionRate / 100));
+      const marketRev = marketQty * avgOrderValue;
+
+      // Creator Tips/Fund payouts (assuming 50% conversion compared to goods, avg tip size is 40% of standard ticket size)
+      const tipsQty = Math.round(connections * ((conversionRate * 0.5) / 100));
+      const tipsRev = tipsQty * (avgOrderValue * 0.4);
+
+      const totalRev = marketRev + tipsRev;
+
+      document.getElementById('calcMarketQty').innerText = marketQty + ' items sold';
+      document.getElementById('calcMarketEarnings').innerText = '$' + marketRev.toFixed(2);
+
+      document.getElementById('calcTipsQty').innerText = tipsQty + ' tips received';
+      document.getElementById('calcTipsEarnings').innerText = '$' + tipsRev.toFixed(2);
+
+      document.getElementById('calcTotalCombined').innerText = '$' + totalRev.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
     // Gate tab switcher
     function switchGateTab(tab) {
@@ -3491,6 +3923,7 @@
 
     // Likes
     function toggleLike(btn) {
+      if (checkGhostAction('like posts')) return;
       btn.classList.toggle('liked');
       const countEl = btn.querySelector('.count');
       if (countEl) {
@@ -3502,11 +3935,23 @@
     }
 
     function toggleClipLike(node) {
-      showToast('Liked clip! ❤️');
+      if (checkGhostAction('like clips')) return;
+      node.classList.toggle('liked');
+      const icon = node.querySelector('.clip-action-circle');
+      if (node.classList.contains('liked')) {
+        icon.style.background = 'rgba(244, 63, 94, 0.2)';
+        icon.style.borderColor = 'var(--accent-coral)';
+        showToast('Liked clip! ❤️');
+      } else {
+        icon.style.background = 'rgba(0, 0, 0, 0.55)';
+        icon.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+        showToast('Unliked clip');
+      }
     }
 
     // Connects (Adhering strictly to AGENTS.md)
     function toggleConnect(btn, username) {
+      if (checkGhostAction('connect with neighbors')) return;
       btn.classList.toggle('connected');
       if (btn.classList.contains('connected')) {
         btn.textContent = '✓ Connected';
@@ -3518,6 +3963,7 @@
     }
 
     function waveAtNeighbor(name) {
+      if (checkGhostAction('wave at neighbors')) return;
       showToast(`Waved at ${name}! 👋 Proximity pulse sent.`);
     }
 
@@ -3538,9 +3984,17 @@
       document.querySelectorAll('.market-subtabs-row .subtab-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       showToast(`Market Sub-tab: ${item.textContent.trim()} 🏪`);
+      
+      // Panel visibility switching
+      document.querySelectorAll('.market-sub-panel').forEach(p => p.classList.remove('active'));
+      const targetPanel = document.getElementById(`market-panel-${tab}`);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      }
     }
 
     function initiateHandshake(price) {
+      if (checkGhostAction('initiate secure handshake escrow')) return;
       if (!currentUser) {
         showToast('Please sign in to initiate a Safe-Haven Handshake! 👤');
         openAuthModal('login');
@@ -3554,6 +4008,7 @@
     }
 
     function votePoll(btn, text) {
+      if (checkGhostAction('vote on polls')) return;
       showToast(`Vote recorded: ${text} ✅`);
     }
 
@@ -3582,8 +4037,206 @@
       showToast(isGhostMode ? 'Ghost Mode Active 👻 (Cloaked on Radar)' : 'Radar Visibility Enabled 🌐');
     }
 
+    // Interactive Radar profiles bottom drawer
+    const BLIP_PROFILES = {
+      'Elena Rostova': {
+        avatar: '🎨',
+        distance: '0.3 km away',
+        bio: 'Artisan Potter & Sourdough baker. Creating beautiful clay mugs and rustic turquoise bowls at Pike Alley. Connected neighbor.',
+        connected: true
+      },
+      'Marcus Vance': {
+        avatar: '🎥',
+        distance: '1.4 km away',
+        bio: 'Independent filmmaker and videographer. Documenting Seattle’s street artists and hidden culinary spots. Let\'s collaborate!',
+        connected: false
+      },
+      'Maya Patel': {
+        avatar: '🥖',
+        distance: '0.4 km away',
+        bio: 'Civic baker, garlic sourdough enthusiast. Organizes neighborhood bulk buying hubs. Connect to share recipes!',
+        connected: true
+      },
+      'Devon Miller': {
+        avatar: '🚲',
+        distance: '1.1 km away',
+        bio: 'Avid cyclist and vintage bicycle restorer. Organizing neighborhood skills and parts swap circles.',
+        connected: false
+      },
+      'Officer Davis': {
+        avatar: '🛡️',
+        distance: '0.5 km away',
+        bio: 'Seattle Green Zone Safe-Haven coordinator. Ensuring safe-haven commercial swaps and neighborhood security.',
+        connected: true
+      }
+    };
+
     function showBlipDetails(name, distance, type, category) {
-      showToast(`Radar ping: ${name} (${distance}) • ${type}`);
+      if (isGhostMode) {
+        showToast("Cloaked on radar. Exit Ghost Mode to interact! 👻");
+        return;
+      }
+      
+      const profile = BLIP_PROFILES[name] || {
+        avatar: '👤',
+        distance: distance + ' away',
+        bio: `${type} • Active member in the community.`,
+        connected: false
+      };
+
+      document.getElementById('blipAvatar').textContent = profile.avatar;
+      document.getElementById('blipName').textContent = name;
+      document.getElementById('blipDistance').textContent = profile.distance;
+      document.getElementById('blipBio').textContent = profile.bio;
+      
+      const connectBtn = document.getElementById('blipConnectBtn');
+      if (profile.connected) {
+        connectBtn.textContent = '✓ Connected';
+        connectBtn.style.background = '#10B981';
+        connectBtn.style.color = '#FFFFFF';
+        connectBtn.classList.add('connected');
+      } else {
+        connectBtn.textContent = '+ Connect';
+        connectBtn.style.background = 'var(--primary-teal)';
+        connectBtn.style.color = '#041B26';
+        connectBtn.classList.remove('connected');
+      }
+      
+      // Store current name for the click handler
+      connectBtn.onclick = function() {
+        toggleConnectBlip(this, name);
+      };
+
+      document.getElementById('blipDrawerBackdrop').classList.add('open');
+    }
+
+    function toggleConnectBlip(btn, name) {
+      if (checkGhostAction('connect with neighbors')) return;
+      btn.classList.toggle('connected');
+      if (btn.classList.contains('connected')) {
+        btn.textContent = '✓ Connected';
+        btn.style.background = '#10B981';
+        btn.style.color = '#FFFFFF';
+        if (BLIP_PROFILES[name]) BLIP_PROFILES[name].connected = true;
+        showToast(`Connected with ${name}! 🤝`);
+      } else {
+        btn.textContent = '+ Connect';
+        btn.style.background = 'var(--primary-teal)';
+        btn.style.color = '#041B26';
+        if (BLIP_PROFILES[name]) BLIP_PROFILES[name].connected = false;
+        showToast(`Disconnected from ${name}`);
+      }
+    }
+
+    // Helper functions for vertical clips
+    let clipAutoScrollActive = false;
+    let clipSoundMuted = false;
+    
+    function toggleClipAutoScroll(btn) {
+      clipAutoScrollActive = !clipAutoScrollActive;
+      btn.classList.toggle('active', clipAutoScrollActive);
+      showToast(clipAutoScrollActive ? 'Auto-Scroll Enabled 🔁' : 'Manual Scroll Mode ☝️');
+    }
+    
+    function toggleClipSound(btn) {
+      clipSoundMuted = !clipSoundMuted;
+      btn.classList.toggle('active', !clipSoundMuted);
+      btn.textContent = clipSoundMuted ? '🔇' : '🔊';
+      showToast(clipSoundMuted ? 'Audio Muted 🔇' : 'Audio On 🔊');
+    }
+
+    function toggleClipConnect(node, username) {
+      if (checkGhostAction('connect with creators')) return;
+      const badge = node.querySelector('.clip-connect-badge');
+      if (badge.textContent.includes('+')) {
+        badge.textContent = 'Connected 🤝';
+        badge.style.background = '#10B981';
+        badge.style.color = '#FFFFFF';
+        showToast(`Connected with @${username}! 🤝`);
+      } else {
+        badge.textContent = 'Connect +';
+        badge.style.background = '#00E5FF';
+        badge.style.color = '#041B26';
+        showToast(`Disconnected from @${username}`);
+      }
+    }
+
+    // Ghost mode write action checkers & modal controllers
+    function checkGhostAction(actionDescription) {
+      if (isGhostMode) {
+        document.getElementById('ghostActionDescription').textContent = actionDescription;
+        document.getElementById('ghostActionModalBackdrop').classList.add('open');
+        if (window.navigator.vibrate) window.navigator.vibrate([40, 40]);
+        return true; // Intercepted
+      }
+      return false; // Safe to proceed
+    }
+
+    function closeGhostActionModal() {
+      document.getElementById('ghostActionModalBackdrop').classList.remove('open');
+    }
+    
+    function disableGhostModeFromModal() {
+      closeGhostActionModal();
+      toggleGhostMode();
+      showToast('Ghost Mode Cloaking disabled! Profile active. 🌐');
+    }
+
+    // Simulated chats for gigs and community upgrades
+    function openSimulatedInquiryChat(name, serviceTitle, price, avatar) {
+      if (checkGhostAction('inquire services')) return;
+      document.querySelector('#chatModalBackdrop .author-avatar').textContent = avatar;
+      document.querySelector('#chatModalBackdrop style + div div div:nth-child(1)').textContent = name;
+      
+      const container = document.getElementById('chatMessagesContainer');
+      container.innerHTML = '';
+      
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.style.cssText = 'align-self: flex-start; background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%;';
+      welcomeMsg.textContent = `Hey! Thanks for connecting. Sourdough loaf is ready whenever you want to swing by!`;
+      
+      let isConnected = true;
+      if (name.includes('Devon')) {
+        welcomeMsg.textContent = `Hey! I'm Devon. Happy to look at your bicycle tune-up. Feel free to bring it over!`;
+        isConnected = false;
+      } else if (name.includes('Marcus')) {
+        welcomeMsg.textContent = `Hi there! Marcus here. I can help edit your films or local documentaries. Let's discuss details!`;
+        isConnected = false;
+      } else if (name.includes('Elena')) {
+        welcomeMsg.textContent = `Hello! Elena here. Classes run every Saturday morning in Alki Pottery Alley. I'd love to have you!`;
+        isConnected = true;
+      }
+      container.appendChild(welcomeMsg);
+      
+      openChatDrawer(name, isConnected);
+      document.getElementById('chatInput').value = `Hi ${name}! I'm interested in your service: "${serviceTitle}" (${price}). Let's coordinate! 🤝`;
+    }
+
+    function openSimulatedEngagementChat(name, toolType, detail) {
+      if (checkGhostAction(`join ${toolType.toLowerCase()}`)) return;
+      
+      let avatar = '🥦';
+      if (toolType.includes('Skill')) avatar = '🧑‍🏫';
+      if (toolType.includes('Barter')) avatar = '🔄';
+      
+      document.querySelector('#chatModalBackdrop .author-avatar').textContent = avatar;
+      document.querySelector('#chatModalBackdrop style + div div div:nth-child(1)').textContent = name;
+      
+      const container = document.getElementById('chatMessagesContainer');
+      container.innerHTML = '';
+      
+      const welcomeMsg = document.createElement('div');
+      welcomeMsg.style.cssText = 'align-self: flex-start; background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%;';
+      welcomeMsg.textContent = `Welcome to the ${toolType}! Glad to connect and build a cooperative community hub. Let's arrange details!`;
+      container.appendChild(welcomeMsg);
+      
+      let isConnected = true;
+      if (name.includes('Jordan')) {
+        isConnected = false;
+      }
+      
+      openChatDrawer(name, isConnected);
+      document.getElementById('chatInput').value = `Hi ${name}! I would like to join the "${toolType}" for: "${detail}". Let's connect! 🤝`;
     }
 
     // GPS simulation
@@ -4157,6 +4810,7 @@
     }
     function handleAddComment(e) {
       e.preventDefault();
+      if (checkGhostAction('post comments')) return;
       const input = document.getElementById('newCommentInput');
       activeCommentsList.push(input.value);
       renderComments();
@@ -4165,7 +4819,19 @@
     }
 
     // Direct Messages Chat
-    function openChatDrawer() {
+    function openChatDrawer(recipientName = 'Maya Patel', isConnected = true) {
+      if (checkGhostAction('chat with neighbors')) return;
+      
+      const form = document.getElementById('chatMessageForm');
+      const gate = document.getElementById('chatGatePrompt');
+      if (isConnected) {
+        if (form) form.style.display = 'block';
+        if (gate) gate.style.display = 'none';
+      } else {
+        if (form) form.style.display = 'none';
+        if (gate) gate.style.display = 'block';
+      }
+
       document.getElementById('chatModalBackdrop').classList.add('open');
     }
     function closeChatDrawer() {
@@ -4173,6 +4839,7 @@
     }
     function handleSendChatMessage(e) {
       e.preventDefault();
+      if (checkGhostAction('send direct chat messages')) return;
       const input = document.getElementById('chatInput');
       const val = input.value;
       const box = document.getElementById('chatMessagesContainer');
@@ -4196,6 +4863,7 @@
 
     // Escrow Modal
     function openEscrowModal(title, price) {
+      if (checkGhostAction('initiate escrow deals')) return;
       document.getElementById('escrowTitle').textContent = title;
       document.getElementById('escrowPrice').textContent = price;
       document.getElementById('escrowModalBackdrop').classList.add('open');
@@ -4204,6 +4872,7 @@
       document.getElementById('escrowModalBackdrop').classList.remove('open');
     }
     function confirmEscrowHandshake() {
+      if (checkGhostAction('confirm escrow transactions')) return;
       closeEscrowModal();
       const otp = Math.floor(100000 + Math.random() * 900000);
       alert(`🤝 Handshake Escrow Initiated!\n\nYour Safe Exchange OTP Code is: [ ${otp} ]\n\nMeet at: Civic Plaza Police Precinct Safe-Haven Spot #4. Provide this code to the seller to release escrow.`);

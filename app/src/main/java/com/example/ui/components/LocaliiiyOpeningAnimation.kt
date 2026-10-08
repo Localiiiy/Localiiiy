@@ -60,6 +60,9 @@ import kotlin.math.sin
 @Composable
 fun LocaliiiyOpeningAnimation(
     onAnimationFinished: () -> Unit,
+    neighborsCount: Int,
+    bazaarDealsCount: Int,
+    currentLocationName: String,
     modifier: Modifier = Modifier
 ) {
     var isDismissing by remember { mutableStateOf(false) }
@@ -470,8 +473,8 @@ fun LocaliiiyOpeningAnimation(
                         Text(
                             text = when {
                                 phase < 2 -> "📡 Tuning into local radar..."
-                                phase < 3 -> "📍 Scanning Pike Place • 3.0 km..."
-                                else -> "✨ 48 Neighbors & 12 Bazaar Deals Live"
+                                phase < 3 -> "📍 Scanning $currentLocationName..."
+                                else -> "✨ $neighborsCount Connections & $bazaarDealsCount Bazaar Deals Live"
                             },
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontSize = 12.sp,

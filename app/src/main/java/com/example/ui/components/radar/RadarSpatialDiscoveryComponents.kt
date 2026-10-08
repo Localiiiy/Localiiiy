@@ -134,78 +134,166 @@ fun FuzzyGeohashAuraRing(
 }
 
 /**
- * Section 3.2: Passive Sonar Ghost Mode HUD Indicator
+ * Section 3.2: Passive Sonar Ghost Mode HUD Indicator with Advanced Privacy and Scaled Broadcasting Visibility Settings
  */
 @Composable
 fun PassiveSonarGhostBanner(
     isGhostActive: Boolean,
     onToggleGhost: () -> Unit,
+    broadcastingRadius: String = "3k",
+    onBroadcastingRadiusChange: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val distanceOptions = listOf("3k", "10k", "50k", "100k", "Country", "Earth")
+
     Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = if (isGhostActive) Color(0xFF03222B) else Color(0xFF031A08),
+        shape = RoundedCornerShape(14.dp),
+        color = if (isGhostActive) Color(0xFF03222B) else Color(0xFF021609),
         border = BorderStroke(
-            1.dp,
+            1.2.dp,
             if (isGhostActive) RadarCyanGlow.copy(alpha = 0.8f) else RadarPhosphor.copy(alpha = 0.5f)
         ),
         modifier = modifier
             .fillMaxWidth()
             .testTag("passive_sonar_ghost_banner")
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .clickable { onToggleGhost() },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Main Switch Row
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggleGhost() },
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = if (isGhostActive) RadarCyanGlow.copy(alpha = 0.2f) else RadarPhosphor.copy(alpha = 0.15f),
-                    modifier = Modifier.size(28.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (isGhostActive) Icons.Default.VisibilityOff else Icons.Default.Sensors,
-                            contentDescription = "Ghost Sonar",
-                            tint = if (isGhostActive) RadarCyanGlow else RadarNeonGreen,
-                            modifier = Modifier.size(16.dp)
+                    Surface(
+                        shape = CircleShape,
+                        color = if (isGhostActive) RadarCyanGlow.copy(alpha = 0.2f) else RadarPhosphor.copy(alpha = 0.15f),
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = if (isGhostActive) Icons.Default.VisibilityOff else Icons.Default.Sensors,
+                                contentDescription = "Ghost Sonar",
+                                tint = if (isGhostActive) RadarCyanGlow else RadarNeonGreen,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = if (isGhostActive) "PASSIVE SONAR: CLOAKED 👻" else "RADAR BEACON: BROADCASTING 📡",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isGhostActive) RadarCyanGlow else RadarPhosphor,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = if (isGhostActive) "Observing frequency • Coordinates zeroed out" else "Active presence broadcasting",
+                            fontSize = 9.5.sp,
+                            color = Color.LightGray
                         )
                     }
                 }
-                Column {
-                    Text(
-                        text = if (isGhostActive) "PASSIVE SONAR: CLOAKED 👻" else "RADAR BEACON: BROADCASTING 📡",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isGhostActive) RadarCyanGlow else RadarPhosphor,
-                        fontFamily = FontFamily.Monospace
-                    )
-                    Text(
-                        text = if (isGhostActive) "Observing frequency • Coordinates zeroed out" else "Active blip visible within range ring",
-                        fontSize = 9.5.sp,
-                        color = Color.LightGray
-                    )
-                }
+
+                Switch(
+                    checked = isGhostActive,
+                    onCheckedChange = { onToggleGhost() },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = RadarCyanGlow,
+                        checkedTrackColor = Color(0xFF08414D),
+                        uncheckedThumbColor = RadarPhosphor,
+                        uncheckedTrackColor = Color(0xFF062B10)
+                    ),
+                    modifier = Modifier.scale(0.8f)
+                )
             }
 
-            Switch(
-                checked = isGhostActive,
-                onCheckedChange = { onToggleGhost() },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = RadarCyanGlow,
-                    checkedTrackColor = Color(0xFF08414D),
-                    uncheckedThumbColor = RadarPhosphor,
-                    uncheckedTrackColor = Color(0xFF062B10)
-                ),
-                modifier = Modifier.scale(0.8f)
-            )
+            // Advanced Visibility Settings for Non-Ghost users
+            if (!isGhostActive) {
+                Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = RadarPhosphor.copy(alpha = 0.15f))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "BROADCAST RANGE / VISIBILITY RADIUS",
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = RadarPhosphor.copy(alpha = 0.8f),
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+
+                // Distance Selector Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    distanceOptions.forEach { option ->
+                        val isSelected = option.equals(broadcastingRadius, ignoreCase = true)
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = if (isSelected) RadarPhosphor.copy(alpha = 0.25f) else Color.Transparent,
+                            border = BorderStroke(
+                                1.dp,
+                                if (isSelected) RadarPhosphor else Color.DarkGray
+                            ),
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable { onBroadcastingRadiusChange(option) }
+                                .testTag("broadcast_option_$option")
+                        ) {
+                            Text(
+                                text = option,
+                                textAlign = TextAlign.Center,
+                                fontSize = 8.5.sp,
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                                color = if (isSelected) RadarNeonGreen else Color.LightGray,
+                                fontFamily = FontFamily.Monospace,
+                                modifier = Modifier.padding(vertical = 5.dp)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Region Masking Information explaining safety status based on radius
+                val isFuzzy = broadcastingRadius in listOf("50k", "100k", "Country", "Earth")
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isFuzzy) Color(0xFF0F2026) else Color(0xFF071B0B),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (isFuzzy) Icons.Default.EnhancedEncryption else Icons.Default.GpsFixed,
+                            contentDescription = "Shielding status",
+                            tint = if (isFuzzy) RadarCyanGlow else RadarNeonGreen,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = if (isFuzzy) {
+                                "🔒 Secure Regional Mode: Your position is fuzzily broadcasted broadly as a randomized region of $broadcastingRadius instead of dropping a precise GPS pin, preventing bad actors from triangulating your home neighborhood while showing you as 'Active in Region'!"
+                            } else {
+                                "📍 Precise Mode: Your approximate neighborhood pin is visible inside $broadcastingRadius for immediate proximity connections."
+                            },
+                            fontSize = 8.5.sp,
+                            lineHeight = 12.sp,
+                            color = if (isFuzzy) RadarCyanGlow else Color.LightGray
+                        )
+                    }
+                }
+            }
         }
     }
 }

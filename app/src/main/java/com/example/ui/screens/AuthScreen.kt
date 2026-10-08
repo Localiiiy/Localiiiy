@@ -12,6 +12,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -405,8 +406,8 @@ fun AuthScreen(
         }
     }
 
-    // Register 6: Optional Referral / Invite Code
-    var referralCode by remember { mutableStateOf("") }
+    // Register 6: Optional Referral / Invite Code (Pre-populated to simulate dynamic bio link detection!)
+    var referralCode by remember { mutableStateOf("julia_styles") }
     var referralSuccessNotice by remember { mutableStateOf<String?>(null) }
 
     // Register 7: Simplified "Your Home Community Anchor"
@@ -1405,37 +1406,94 @@ fun AuthScreen(
                                 .testTag("auth_confirm_password_input")
                         )
 
-                        // Section 4: Optional Referral / Invite Code & Auto-Connection
+                        // Section 4: Deep-Linked Influencer Referrals & Seamless Auto-Connections
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            border = BorderStroke(1.2.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.4f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Icon(Icons.Default.CardGiftcard, contentDescription = null, tint = LocaliiiyPrimaryTeal, modifier = Modifier.size(18.dp))
-                                    Text("Referral / Invite Code (Optional)", fontWeight = FontWeight.Bold, fontSize = 12.5.sp)
+                                    Icon(Icons.Default.Link, contentDescription = null, tint = LocaliiiyPrimaryTeal, modifier = Modifier.size(18.dp))
+                                    Text("Influencer Invite & Auto-Connection", fontWeight = FontWeight.Bold, fontSize = 12.5.sp)
                                 }
+                                
                                 Text(
-                                    text = "Auto-connects with the referring member upon signup: \"New neighbor connected through your referral link!\".",
-                                    fontSize = 11.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = "We auto-embed metadata carried from social media bios (Instagram, TikTok, YouTube etc.). Tapping an option below simulates clicking their deep-link (localiiiy.com/refer/creator):",
+                                    fontSize = 10.5.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 14.sp
                                 )
+
+                                // Simulated Bio Link presets
+                                val influencerLinks = listOf(
+                                    Triple("julia_styles", "Julia Styles (50k)", "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"),
+                                    Triple("alex_adventures", "Alex Adv (120k)", "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"),
+                                    Triple("mike_bites", "Mike Bites (75k)", "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80")
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    influencerLinks.forEach { (code, label, img) ->
+                                        val isSelected = referralCode.equals(code, ignoreCase = true)
+                                        Surface(
+                                            shape = RoundedCornerShape(100.dp),
+                                            color = if (isSelected) LocaliiiyPrimaryTeal.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface,
+                                            border = BorderStroke(
+                                                1.dp,
+                                                if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.outlineVariant
+                                            ),
+                                            modifier = Modifier
+                                                .clickable { referralCode = code }
+                                                .padding(vertical = 2.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                            ) {
+                                                AsyncImage(
+                                                    model = img,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp).clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                                Text(
+                                                    text = label,
+                                                    fontSize = 9.5.sp,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) LocaliiiyPrimaryTeal else MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
                                 OutlinedTextField(
                                     value = referralCode,
-                                    onValueChange = { referralCode = it.trim().uppercase() },
-                                    placeholder = { Text("e.g. NEIGHBOR2026 or @friend") },
+                                    onValueChange = { referralCode = it.trim() },
+                                    label = { Text("Active Referral Code", fontSize = 11.sp) },
                                     singleLine = true,
                                     modifier = Modifier.fillMaxWidth()
                                 )
+
                                 if (referralCode.isNotBlank()) {
-                                    Text(
-                                        text = "✨ Referral connection ready for code: $referralCode",
-                                        fontSize = 11.sp,
-                                        color = LocaliiiyPrimaryTeal,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.08f),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = "🔗 Deep-link payload carries localiiiy.com/refer/${referralCode.lowercase()}. Zero-Click Auto-Connection with @${referralCode.lowercase()} is active upon signup!",
+                                            fontSize = 9.5.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = LocaliiiyPrimaryTeal,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -2173,6 +2231,48 @@ fun AuthScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    if (referralCode.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                            border = BorderStroke(1.5.dp, LocaliiiyPrimaryTeal),
+                            modifier = Modifier.fillMaxWidth().testTag("referral_success_banner")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(LocaliiiyPrimaryTeal.copy(alpha = 0.2f), CircleShape)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.HowToReg,
+                                        contentDescription = "Connected",
+                                        tint = LocaliiiyPrimaryTeal,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Connected with @${referralCode.lowercase()}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                    Text(
+                                        text = "Friction-free deep-link onboarding active. @${referralCode.lowercase()}'s connection count increased! ✨",
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     NeighborhoodWelcomeDispatchCard(
                         welcomeCreators = welcomeCreators,
                         onToggleConnect = { creator ->

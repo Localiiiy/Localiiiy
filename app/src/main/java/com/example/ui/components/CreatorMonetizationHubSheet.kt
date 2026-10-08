@@ -30,6 +30,7 @@ import com.example.data.DraftClipEntity
 import com.example.data.MerchantBountyEntity
 import com.example.data.PayoutTransaction
 import com.example.data.PlatformAdRevenueMetrics
+import com.example.data.UserProfileEntity
 import com.example.ui.components.studio.MerchantBountyBoardDialog
 import com.example.ui.components.studio.UnifiedDraftVaultDialog
 import com.example.ui.screens.WalletScreen
@@ -40,6 +41,7 @@ import com.example.util.LocaliiiyLanguage
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatorMonetizationHubSheet(
+    userProfile: UserProfileEntity,
     earnings: CreatorEarningsSummary,
     payoutAccount: CreatorPayoutAccount,
     payoutHistory: List<PayoutTransaction>,
@@ -345,6 +347,224 @@ fun CreatorMonetizationHubSheet(
                             text = "Minimum withdrawal baseline is $1,000.00 USD ($minPayoutFormatted in ${currentCurrency.code}) for fraud prevention & creator tax protection.",
                             fontSize = 10.5.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Section: Hyperlocal Revenue Projection Tool (Requested Feature)
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("hyperlocal_revenue_calculator_card"),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
+                ) {
+                    Column(modifier = Modifier.padding(18.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text("📊", fontSize = 22.sp)
+                            Column {
+                                Text(
+                                    text = "Hyperlocal Revenue Projection Tool",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = "Project potential monthly earnings based on your local network",
+                                    fontSize = 11.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Slider 1: Connection Count
+                        val initialConnections = if (userProfile.connectionsCount > 0) userProfile.connectionsCount.toFloat() else 1480f
+                        var connections by remember { mutableFloatStateOf(initialConnections) }
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Projected Connections:", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = String.format(java.util.Locale.US, "%,.0f", connections),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Slider(
+                                value = connections,
+                                onValueChange = { connections = it },
+                                valueRange = 50f..15000f,
+                                steps = 299, // step is 50
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Slider 2: Conversion Rate (1% to 5%)
+                        var conversionRate by remember { mutableFloatStateOf(2.5f) }
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Conversion Rate (e.g. Market Sales):", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = String.format(java.util.Locale.US, "%.1f%%", conversionRate),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFF10B981)
+                                )
+                            }
+                            Slider(
+                                value = conversionRate,
+                                onValueChange = { conversionRate = it },
+                                valueRange = 1.0f..5.0f,
+                                steps = 7, // step is 0.5%
+                                colors = SliderDefaults.colors(
+                                    thumbColor = Color(0xFF10B981),
+                                    activeTrackColor = Color(0xFF10B981)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Slider 3: Avg Transaction Value
+                        var avgOrderValue by remember { mutableFloatStateOf(25f) }
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Avg Transaction Value:", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    text = CurrencyHelper.format(avgOrderValue.toDouble(), currentCurrency),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFFC084FC)
+                                )
+                            }
+                            Slider(
+                                value = avgOrderValue,
+                                onValueChange = { avgOrderValue = it },
+                                valueRange = 5f..150f,
+                                steps = 29, // step is $5
+                                colors = SliderDefaults.colors(
+                                    thumbColor = Color(0xFFC084FC),
+                                    activeTrackColor = Color(0xFFC084FC)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Calculations
+                        val marketQty = Math.round(connections * (conversionRate / 100f))
+                        val marketRevUSD = marketQty * avgOrderValue.toDouble()
+
+                        val tipsQty = Math.round(connections * ((conversionRate * 0.5f) / 100f))
+                        val tipsRevUSD = tipsQty * (avgOrderValue.toDouble() * 0.4)
+
+                        val totalCombinedUSD = marketRevUSD + tipsRevUSD
+
+                        // Live results layout
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFF10B981).copy(alpha = 0.05f),
+                                border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.15f))
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("MARKET SALES", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = CurrencyHelper.format(marketRevUSD, currentCurrency),
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFF10B981)
+                                    )
+                                    Text("$marketQty items sold", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+
+                            Surface(
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFFC084FC).copy(alpha = 0.05f),
+                                border = BorderStroke(1.dp, Color(0xFFC084FC).copy(alpha = 0.15f))
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text("CREATOR TIPS", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = CurrencyHelper.format(tipsRevUSD, currentCurrency),
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFFC084FC)
+                                    )
+                                    Text("$tipsQty tips received", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Total profit banner
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("COMBINED PROJECTED INCOME", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        text = CurrencyHelper.format(totalCombinedUSD, currentCurrency),
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                Text("🚀", fontSize = 24.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Estimates are calculated using standard 1-5% local network conversion baselines. Creators retain 90% for fan tips and 100% directly for Escrow Marketplace Handshakes.",
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 13.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }

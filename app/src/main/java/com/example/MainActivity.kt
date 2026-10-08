@@ -1541,6 +1541,7 @@ fun LocaliiiyApp(
         }
         if (showMonetizationHub) {
             CreatorMonetizationHubSheet(
+                userProfile = userProfile,
                 earnings = creatorEarnings,
                 payoutAccount = payoutAccount,
                 payoutHistory = payoutHistory,
@@ -1630,8 +1631,14 @@ fun LocaliiiyApp(
 
         // Eyecatching Opening Animation Overlay: ALWAYS shown on opening app
         if (showOpeningAnimation) {
+            val dynamicNeighborsCount = if (radarBlipUsers.isNotEmpty()) radarBlipUsers.size else otherUsers.size.coerceAtLeast(32)
+            val dynamicBazaarDealsCount = marketplaceItems.size.coerceAtLeast(12)
+            val dynamicLocationName = if (!currentLocation?.locationName.isNullOrBlank()) currentLocation!!.locationName else "Seattle"
             LocaliiiyOpeningAnimation(
                 onAnimationFinished = { showOpeningAnimation = false },
+                neighborsCount = dynamicNeighborsCount,
+                bazaarDealsCount = dynamicBazaarDealsCount,
+                currentLocationName = dynamicLocationName,
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(9999f)

@@ -109,6 +109,7 @@ fun LiveRadarComponent(
     val context = LocalContext.current
 
     var isGhostActive by remember { mutableStateOf(hidePreciseLocationOnRadar) }
+    var broadcastingRadius by remember { mutableStateOf("3k") }
     var is3DPerspective by remember { mutableStateOf(false) }
     var isDayTheme by remember { mutableStateOf(false) }
     var isBatterySaver by remember { mutableStateOf(false) }
@@ -471,6 +472,8 @@ fun LiveRadarComponent(
                 isGhostActive = !isGhostActive
                 onToggleHidePreciseLocation?.invoke(isGhostActive)
             },
+            broadcastingRadius = broadcastingRadius,
+            onBroadcastingRadiusChange = { broadcastingRadius = it },
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 3.dp)
         )
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.UserProfileEntity
@@ -55,16 +56,16 @@ fun PulseSandboxUpgradesScreen(
     var sosTimer by remember { mutableIntStateOf(0) }
     var sosResponders by remember { mutableStateOf(listOf<String>()) }
 
-    // Lost & Found Sniffer States
+    // Hyperlocal Advertisement & Merchant Sponsored Radar States
     var showAddLostAlert by remember { mutableStateOf(false) }
     var lostAlertName by remember { mutableStateOf("") }
     var lostAlertReward by remember { mutableStateOf("250") }
     var lostAlertsList by remember {
         mutableStateOf(
             listOf(
-                Triple("Golden Retriever 'Max' 🐕", "Pike Corridor block", "350 Sparks"),
-                Triple("Black leather pouch 🔑", "Central Metro entrance", "100 Sparks"),
-                Triple("Car keys with red tag 🚗", "Broadway parking lot", "150 Sparks")
+                Triple("Fresh Brew Alki Coffee - Buy 1 Get 1 ☕", "Target: Alki Block (Within 1.5km)", "200 Sparks Bid"),
+                Triple("Sunset Beach Yoga - Free Trial Class 🧘", "Target: Seattle Harbor (Within 2km)", "150 Sparks Bid"),
+                Triple("Artisanal Bakery Discount Code 'LOCAL15' 🥐", "Target: Seattle North Corridor", "300 Sparks Bid")
             )
         )
     }
@@ -320,9 +321,9 @@ fun PulseSandboxUpgradesScreen(
             }
         }
 
-        // --- Community Sniffer Lost & Found ---
+        // --- Hyperlocal Sponsored Radar & Merchant Ads ---
         item {
-            Card(shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, Color.DarkGray)) {
+            Card(shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.5f))) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -330,14 +331,14 @@ fun PulseSandboxUpgradesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🐕", fontSize = 18.sp)
+                            Text("📢", fontSize = 18.sp)
                             Column {
-                                Text("Community Sniffer Lost Radar", fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
-                                Text("Pledge Spark bounties for missing items & pets", fontSize = 11.sp, color = Color.Gray)
+                                Text("Sponsored Radar Ads & Community Billboard", fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
+                                Text("Bid Sparks to feature your local shop, events, or deals", fontSize = 11.sp, color = Color.Gray)
                             }
                         }
                         IconButton(onClick = { showAddLostAlert = !showAddLostAlert }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add Lost Alert")
+                            Icon(Icons.Default.Add, contentDescription = "Create Ad Campaign")
                         }
                     }
 
@@ -346,14 +347,14 @@ fun PulseSandboxUpgradesScreen(
                         OutlinedTextField(
                             value = lostAlertName,
                             onValueChange = { lostAlertName = it },
-                            label = { Text("What is lost?", fontSize = 11.sp) },
+                            label = { Text("What are you promoting? (e.g. Alki Coffee Sale)", fontSize = 11.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodySmall
                         )
                         OutlinedTextField(
                             value = lostAlertReward,
                             onValueChange = { lostAlertReward = it },
-                            label = { Text("Spark Reward Bounty", fontSize = 11.sp) },
+                            label = { Text("Sparks Bid Budget (e.g. 250 Sparks)", fontSize = 11.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = MaterialTheme.typography.bodySmall
                         )
@@ -363,18 +364,18 @@ fun PulseSandboxUpgradesScreen(
                                     val cost = lostAlertReward.toIntOrNull() ?: 50
                                     val success = viewModel.deductSparks(cost)
                                     if (success) {
-                                        lostAlertsList = listOf(Triple(lostAlertName, "Pike Corridor block", "$lostAlertReward Sparks")) + lostAlertsList
-                                        viewModel.triggerCustomRadarAlert("🐕 LOST PROPERTY BOUNTY", "Lost alert placed: $lostAlertName. Reward of $lostAlertReward Sparks is locked in escrow!")
+                                        lostAlertsList = listOf(Triple(lostAlertName, "Target: Neighborhood Block (Within 1.5km)", "$lostAlertReward Sparks Bid")) + lostAlertsList
+                                        viewModel.triggerCustomRadarAlert("📢 SPONSORED LOCAL AD", "Sponsored Ad Campaign: '$lostAlertName' is now pinned across nearby user maps!")
                                         lostAlertName = ""
                                         showAddLostAlert = false
                                     } else {
-                                        Toast.makeText(context, "Insufficient Sparks balance to post bounty!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Insufficient Sparks balance to launch ad campaign!", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
                         ) {
-                            Text("Post & Escrow Sparks Bounty", fontSize = 11.sp)
+                            Text("Launch Geolocated Ad Campaign", fontSize = 11.sp)
                         }
                     }
 
@@ -388,8 +389,13 @@ fun PulseSandboxUpgradesScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                Text(alert.first, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color.White)
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFF10B981).copy(alpha = 0.2f)) {
+                                        Text("SPONSORED", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color(0xFF10B981), modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp))
+                                    }
+                                    Text(alert.first, fontWeight = FontWeight.Bold, fontSize = 11.5.sp, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
                                 Text(alert.second, fontSize = 10.sp, color = Color.Gray)
                             }
                             Text(alert.third, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold, fontSize = 11.sp)
@@ -547,53 +553,6 @@ fun PulseSandboxUpgradesScreen(
                                 )
                             }
                         }
-                    }
-                }
-            }
-        }
-
-        // --- 3D Radar HUD Sonar Visualizer ---
-        item {
-            Card(shape = RoundedCornerShape(14.dp), border = BorderStroke(1.dp, Color.DarkGray)) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("📡", fontSize = 18.sp)
-                        Column {
-                            Text("3D Radar HUD Sonar Sweep", fontWeight = FontWeight.Bold, fontSize = 13.5.sp)
-                            Text("Visualizes close connections dynamically in real time", fontSize = 11.sp, color = Color.Gray)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Box(
-                        modifier = Modifier.fillMaxWidth().height(160.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Canvas(modifier = Modifier.size(140.dp)) {
-                            // Circular radar grids
-                            drawCircle(color = Color(0xFF10B981), radius = size.minDimension / 2, style = Stroke(1.5f))
-                            drawCircle(color = Color(0xFF10B981).copy(alpha = 0.5f), radius = size.minDimension / 3, style = Stroke(1f))
-                            drawCircle(color = Color(0xFF10B981).copy(alpha = 0.25f), radius = size.minDimension / 6, style = Stroke(0.5f))
-
-                            // Radar scanning line
-                            val center = Offset(size.width / 2, size.height / 2)
-                            val radius = size.minDimension / 2
-                            val xX = center.x + radius * kotlin.math.cos(Math.toRadians(sonarAngle.toDouble())).toFloat()
-                            val yY = center.y + radius * kotlin.math.sin(Math.toRadians(sonarAngle.toDouble())).toFloat()
-                            drawLine(color = Color(0xFF10B981), start = center, end = Offset(xX, yY), strokeWidth = 3f)
-
-                            // Simulated nearby neighbor blips
-                            drawCircle(color = Color(0xFF00E5FF), radius = 5f, center = Offset(size.width * 0.3f, size.height * 0.4f))
-                            drawCircle(color = Color(0xFF00E5FF), radius = 6f, center = Offset(size.width * 0.75f, size.height * 0.65f))
-                            drawCircle(color = Color(0xFFFFB74D), radius = 4f, center = Offset(size.width * 0.55f, size.height * 0.2f))
-                        }
-
-                        Text(
-                            text = "Sonar Active: ${sonarAngle.toInt()}°",
-                            fontSize = 10.sp,
-                            color = Color.LightGray,
-                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 6.dp)
-                        )
                     }
                 }
             }
