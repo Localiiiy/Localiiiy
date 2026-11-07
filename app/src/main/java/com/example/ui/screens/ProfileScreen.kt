@@ -1559,7 +1559,7 @@ fun ProfileScreen(
                         }
                     }
 
-                    // Option 2: Google Drive Android APK
+                    // Option 2: Official Google Play Store + Apple App Store (Available Soon)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -1567,7 +1567,7 @@ fun ProfileScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL))
+                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.GOOGLE_PLAY_STORE_URL))
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 context.startActivity(intent)
                             }
@@ -1592,12 +1592,12 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "2. Android Release APK (Latest Build)",
+                                    text = "2. Download from Google Play Store",
                                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Direct download & instant install",
+                                    text = "Apple App Store: Available Soon",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF10B981)
                                 )
@@ -1615,7 +1615,7 @@ fun ProfileScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val shareText = "Download & Connect on Localiiiy:\n\n🌐 Web App: ${com.example.util.ShareHelper.WEBAPP_BASE_URL}\n📦 Android APK (Google Drive): ${com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL}"
+                        val shareText = "Download the app from Google Play Store:\n\n🤖 Google Play Store: ${com.example.util.ShareHelper.GOOGLE_PLAY_STORE_URL}\n🍎 Apple App Store: Available Soon\n🌐 Web App: ${com.example.util.ShareHelper.WEBAPP_BASE_URL}"
                         com.example.util.ShareHelper.launchNativeShare(
                             context = context,
                             shareText = shareText,

@@ -149,7 +149,7 @@ fun InformationSheet(onDismiss: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // Option 2: Google Drive APK
+                        // Option 2: Google Play Store + Apple App Store (Available Soon)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -157,7 +157,7 @@ fun InformationSheet(onDismiss: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL))
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.GOOGLE_PLAY_STORE_URL))
                                     intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
                                     context.startActivity(intent)
                                 }
@@ -166,8 +166,8 @@ fun InformationSheet(onDismiss: () -> Unit) {
                                 Icon(Icons.Default.Android, contentDescription = null, tint = Color(0xFF10B981))
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Android APK (Google Drive)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                                    Text("Direct APK download link", style = MaterialTheme.typography.bodySmall, color = Color(0xFF10B981))
+                                    Text("Download from Google Play Store", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                                    Text("Apple App Store: Available Soon", style = MaterialTheme.typography.bodySmall, color = Color(0xFF10B981))
                                 }
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                             }

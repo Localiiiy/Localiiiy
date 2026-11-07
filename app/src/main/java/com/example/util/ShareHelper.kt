@@ -14,23 +14,25 @@ object ShareHelper {
     const val FIREBASE_APP_URL = "https://localiiiy.firebaseapp.com"
     const val PRIVACY_POLICY_URL = "https://localiiiy.web.app/privacy.html"
     const val TERMS_URL = "https://localiiiy.web.app/terms.html"
-    const val GOOGLE_DRIVE_APK_URL = "https://tmpfiles.org/wzw8pPSX4ZYT/app-release.apk"
-    const val DIRECT_APK_DOWNLOAD_URL = "https://tmpfiles.org/wzw8pPSX4ZYT/app-release.apk"
+    const val DELETE_ACCOUNT_URL = "https://localiiiy.web.app/delete-account"
+    const val GOOGLE_PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live"
+    const val GOOGLE_DRIVE_APK_URL = "https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live"
+    const val DIRECT_APK_DOWNLOAD_URL = "https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live"
     const val PREVIEW_WEBAPP_URL = "https://localiiiy.web.app"
 
     fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN): String {
         val message = when (language) {
-            LocaliiiyLanguage.HI -> "📲 Localiiiy डाउनलोड करें: वेबऐप से चलाएं या सीधे Android APK डाउनलोड करें।"
-            LocaliiiyLanguage.TE -> "📲 Localiiiy ని డౌన్‌లోడ్ చేసుకోండి: వెబ్‌యాప్ ద్వారా ఉపయోగించండి లేదా Android APK ని నేరుగా డౌన్‌లోడ్ చేయండి."
-            LocaliiiyLanguage.ES -> "📲 Descarga Localiiiy: Usa la webapp o descarga el APK oficial directamente."
-            LocaliiiyLanguage.FR -> "📲 Téléchargez Localiiiy : Utilisez l'application web ou téléchargez directement le fichier APK officiel."
-            LocaliiiyLanguage.DE -> "📲 Localiiiy herunterladen: Nutze die Webapp oder lade die offizielle Android-APK herunter."
-            LocaliiiyLanguage.JA -> "📲 Localiiiyをダウンロード: Webアプリを使用するか、公式Android APKを直接ダウンロードしてください。"
-            LocaliiiyLanguage.ZH -> "📲 下载 Localiiiy：使用 Web 应用或直接下载官方 Android APK。"
-            LocaliiiyLanguage.AR -> "📲 حمّل Localiiiy: استخدم تطبيق الويب أو حمّل ملف APK الرسمي مباشرة."
-            else -> "📲 Localiiiy — Connect with your neighborhood Earth through live radar, creator clips, and local pulses, Market and Studio."
+            LocaliiiyLanguage.HI -> "📲 Localiiiy डाउनलोड करें: Google Play Store या वेबऐप से चलाएं (Apple App Store: जल्द उपलब्ध)।"
+            LocaliiiyLanguage.TE -> "📲 Localiiiy ని డౌన్‌లోడ్ చేసుకోండి: Google Play Store లేదా వెబ్‌యాప్ ద్వారా ఉపయోగించండి (Apple App Store: త్వరలో)."
+            LocaliiiyLanguage.ES -> "📲 Descarga Localiiiy desde Google Play Store (Apple App Store: Próximamente)."
+            LocaliiiyLanguage.FR -> "📲 Téléchargez Localiiiy sur Google Play Store (Apple App Store : Bientôt disponible)."
+            LocaliiiyLanguage.DE -> "📲 Localiiiy im Google Play Store herunterladen (Apple App Store: Bald verfügbar)."
+            LocaliiiyLanguage.JA -> "📲 Google Play ストアから Localiiiy をダウンロード（Apple App Store：近日公開）。"
+            LocaliiiyLanguage.ZH -> "📲 从 Google Play 商店下载 Localiiiy（Apple App Store：即将推出）。"
+            LocaliiiyLanguage.AR -> "📲 حمّل Localiiiy من متجر Google Play (متجر Apple: قريباً)."
+            else -> "📲 Download the app from Google Play Store • Apple App Store: Available Soon"
         }
-        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n📦 Android Release APK: $DIRECT_APK_DOWNLOAD_URL"
+        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n🤖 Google Play Store: $GOOGLE_PLAY_STORE_URL\n🍎 Apple App Store: Available Soon"
     }
 
     fun buildDeepLink(itemType: String, id: Any): String {

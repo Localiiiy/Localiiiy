@@ -100,6 +100,33 @@ googleServices {
     missingGoogleServicesStrategy = com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy.WARN
 }
 
+val syncWebAssets by tasks.registering {
+    doLast {
+        val publicDir = rootProject.file("public")
+        val rootDir = rootProject.projectDir
+        val assetsWebDir = project.file("src/main/assets/webapp")
+        assetsWebDir.mkdirs()
+
+        val filesToSync = listOf("index.html", "delete-account.html", "privacy.html", "terms.html", "sw.js")
+        for (name in filesToSync) {
+            val src = File(publicDir, name)
+            if (src.exists()) {
+                src.copyTo(File(rootDir, name), overwrite = true)
+                src.copyTo(File(assetsWebDir, name), overwrite = true)
+            }
+        }
+        val publicIndex = File(publicDir, "index.html")
+        if (publicIndex.exists()) {
+            publicIndex.copyTo(File(publicDir, "404.html"), overwrite = true)
+            publicIndex.copyTo(File(rootDir, "404.html"), overwrite = true)
+        }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn(syncWebAssets)
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -5,6 +5,7 @@
 **Apple App Store:** Available Soon  
 **Official Web App:** [https://localiiiy.web.app](https://localiiiy.web.app)  
 **Web Privacy Portal:** [https://localiiiy.web.app/privacy](https://localiiiy.web.app/privacy)  
+**Delete Account Permanently:** [https://localiiiy.web.app/delete-account](https://localiiiy.web.app/delete-account)  
 **GitHub Canonical Policy:** [https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md](https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md)
 
 ---
@@ -46,12 +47,13 @@
 ## Section 3.0 — Real User Account Deletion & Right to Permanent Erasure (GDPR Art. 17 / DPDP)
 
 Every user has an unconditional **Right to Erasure**:
-1. **1-Tap In-App & Web Erasure:** Navigate to **Space (Profile) → Delete Account & Purge Cloud Data** in either the Android app or Web app (`https://localiiiy.web.app`).
-2. **Instant Irrevocable Purge:** Triggering account deletion immediately erases:
+1. **Dedicated Web Permanent Deletion Portal:** Delete your account and all cloud records online at **[https://localiiiy.web.app/delete-account](https://localiiiy.web.app/delete-account)**.
+2. **1-Tap In-App & Web Erasure:** Navigate to **Space (Profile) → Delete My Account Permanently** in either the Android app or Web app (`https://localiiiy.web.app`).
+3. **Instant Irrevocable Purge:** Triggering account deletion immediately erases:
    - Your Firebase Authentication account record (`auth.currentUser.delete()`).
    - Your Cloud Firestore profile (`users/{uid}`), username reservation (`usernames/{handle}`), and active radar beacon (`radar_beacons/{uid}`).
    - All local SQLite Room database tables and browser `localStorage` caches.
-3. **Direct Support Erasure Request:** You may also request deletion anytime via **support@localiiiy.web.app**.
+4. **Direct Support Erasure Request:** You may also request deletion anytime via **Localiiiy.Helpdesk@gmail.com**.
 
 ---
 

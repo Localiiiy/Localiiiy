@@ -1,8 +1,11 @@
 // Localiiiy Service Worker v2.4.0 (100% Android Parity & Instant Cache Purge)
-const CACHE_NAME = 'localiiiy-cache-v2.4.0-sync';
+const CACHE_NAME = 'localiiiy-cache-v2.4.0-android-100-parity';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './delete-account.html',
+  './privacy.html',
+  './terms.html',
   './app_logo_original.png',
   './manifest.json',
   './assets/icon-192.png',

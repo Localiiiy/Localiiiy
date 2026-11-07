@@ -1,0 +1,6 @@
+{
+  "summary":  "Implementation plan for 100% visual, icon, and live-data parity between the Localiiiy Web App and Android APK (v2.4.0), decluttering store badges to show only Google Play Store and Apple App Store (Available Soon), and adding a dedicated Permanent Account Deletion portal (/delete-account) with direct links across Sign-In, Space, and Privacy Policy.",
+  "updatedAt":  "2026-11-07T09:25:29.425935355Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

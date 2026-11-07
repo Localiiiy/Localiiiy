@@ -2017,7 +2017,7 @@
        (100% Parity with Android AuthScreen.kt v2.4.0)
        ======================================================== -->
   <div id="mandatoryAuthGate">
-    <div class="auth-gate-box" style="max-width: 540px;">
+    <div class="auth-gate-box" style="max-width: 520px;">
       <!-- Top Bar Header matching Android AuthScreen TopAppBar -->
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 14px;">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -2035,30 +2035,36 @@
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <span class="cloud-sync-pill" id="gateCloudSyncBadge">☁️ Firebase Live</span>
-          <button type="button" onclick="scrubSessionIdentity()" title="One-Tap Identity Scrub" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 8px; padding: 6px 8px; font-size: 12px; cursor: pointer;">
-            🧹
+          <span class="cloud-sync-pill" id="gateCloudSyncBadge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+            Firebase Live
+          </span>
+          <button type="button" onclick="scrubSessionIdentity()" title="One-Tap Identity Scrub" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #F87171; border-radius: 8px; padding: 6px 8px; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 9v10H8V9h8m-1.5-6h-5l-1 1H5v2h14V4h-3.5l-1-1zM18 7H6v12c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7z"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- Store Download Strip inside Auth Gate (User Requested Line) -->
-      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(0, 180, 216, 0.12)); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 10px 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 6px;">
-        <div style="font-size: 12px; font-weight: 800; color: #FFFFFF; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
-          <span>📲 Download the app from Google Play Store</span>
-          <span style="font-size: 10px; background: rgba(255,255,255,0.08); padding: 2px 8px; border-radius: 999px; color: #FCD34D;">🍎 Apple App Store: Available Soon</span>
+      <!-- Clean Official Store Badges Strip (Google Play Store + Apple App Store: Available Soon ONLY) -->
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0, 180, 216, 0.1)); border: 1px solid rgba(16, 185, 129, 0.32); border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;">
+          Download the app from Google Play Store
         </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-          <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11.5px; padding: 6px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-            🤖 Google Play Store Link ↗
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11.5px; padding: 9px 12px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;">
+            <svg width="15" height="15" viewBox="0 0 512 512"><path fill="#032417" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0zm363.7 282.8L104.6 459l220.7-224.7 85.4 48.5zm0-53.6l-85.4-55 60.1 60.1 25.3-5.1z"/></svg>
+            <span>Google Play Store</span>
           </a>
-          <span style="font-size: 11px; color: var(--text-secondary);">Apple Play / App Store: <strong>Available Soon</strong></span>
+          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.38); color: #FCD34D; font-weight: 800; font-size: 11px; padding: 9px 10px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+            <svg width="14" height="14" viewBox="0 0 170 170" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.93-14.3-5.99-9.13-10.76-19.6-14.3-31.42-3.54-11.82-5.31-23.08-5.31-33.78 0-14.28 3.59-26.04 10.76-35.27 7.18-9.24 16.2-13.96 27.06-14.18 5.43 0 11.19 1.41 17.27 4.23 6.08 2.83 10.15 4.35 12.21 4.56 1.74-.21 6.08-1.79 13.03-4.73 6.95-2.93 13.03-4.29 18.24-4.07 13.8.76 24.66 5.86 32.59 15.31-12.17 7.39-18.14 17.27-17.92 29.65.22 9.78 3.96 17.98 11.22 24.6 7.26 6.62 16.03 10.37 26.31 11.25-2.28 7.06-5.16 14.07-8.64 21.03zM119.22 33.02c0-7.82 2.82-15.15 8.47-21.99 5.65-6.84 12.71-10.86 21.19-12.03.22 1.09.33 2.17.33 3.26 0 7.82-3.04 15.31-9.12 22.48-6.08 7.17-13.36 11.19-21.84 12.06-.22-1.3-.33-2.55-.33-3.78z"/></svg>
+            <span>Apple Store: Available Soon</span>
+          </div>
         </div>
       </div>
 
-      <!-- Segmented Mode Switcher: ONLY TWO TABS [ -> Sign In ] and [ + Register ] -->
+      <!-- Segmented Mode Switcher: ONLY TWO TABS [ Sign In ] and [ + Register ] -->
       <div class="auth-tab-switch" style="margin: 0 0 16px 0; background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);">
-        <button class="auth-tab-btn active" id="gateTabLogin" onclick="switchGateTab('login')">➔ Sign In</button>
+        <button class="auth-tab-btn active" id="gateTabLogin" onclick="switchGateTab('login')">Sign In</button>
         <button class="auth-tab-btn" id="gateTabRegister" onclick="switchGateTab('register')">+ Register</button>
       </div>
 
@@ -2071,46 +2077,55 @@
       <form class="auth-form" id="gateLoginForm" onsubmit="handleGateLogin(event)">
         <div class="form-field">
           <label>Email Address or @Username</label>
-          <input type="text" class="form-input" id="gateLoginEmail" placeholder="e.g. @alex_creative or name@example.com" required>
+          <input type="text" class="form-input" id="gateLoginEmail" placeholder="Enter your @username or email@domain.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
           <div style="position: relative; display: flex; align-items: center;">
             <input type="password" class="form-input" id="gateLoginPassword" placeholder="Enter secure password" style="width: 100%; padding-right: 42px;" required>
-            <button type="button" onclick="togglePasswordVisibility('gateLoginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 14px;">👁️</button>
+            <button type="button" onclick="togglePasswordVisibility('gateLoginPassword', this)" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 13px; font-weight: 700;">Show</button>
           </div>
         </div>
 
         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11.5px;">
           <button type="button" onclick="toggleForgotPasswordBox()" style="background: none; border: none; color: var(--primary-teal); font-weight: 700; cursor: pointer;">Forgot Password?</button>
-          <span style="color: var(--text-muted); font-size: 11px;">🔒 Firebase Auth 256-Bit</span>
+          <span style="color: var(--text-muted); font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+            Firebase Auth 256-Bit
+          </span>
         </div>
 
         <!-- Inline Forgot Password Box -->
-        <div id="gateForgotPasswordBox" style="display: none; background: rgba(0, 180, 216, 0.08); border: 1px solid rgba(0, 180, 216, 0.3); border-radius: 10px; padding: 10px;">
+        <div id="forgotPasswordInlineBox" style="display: none; background: rgba(0, 180, 216, 0.08); border: 1px solid rgba(0, 180, 216, 0.3); border-radius: 10px; padding: 10px;">
           <div style="font-size: 11.5px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px;">Reset Password via Firebase Auth</div>
           <div style="display: flex; gap: 6px;">
-            <input type="email" id="gateResetEmailInput" class="form-input" placeholder="Enter your registered email" style="flex: 1; padding: 8px 10px; font-size: 12px;">
+            <input type="email" id="forgotPasswordEmailInput" class="form-input" placeholder="Enter your registered email" style="flex: 1; padding: 8px 10px; font-size: 12px;">
             <button type="button" onclick="sendFirebasePasswordReset()" class="btn-submit-auth" style="margin: 0; padding: 8px 12px; font-size: 11.5px;">Send Link</button>
           </div>
+          <div id="forgotPasswordStatusText" style="font-size: 11px; margin-top: 6px;"></div>
         </div>
 
-        <button type="submit" class="btn-submit-auth">Sign In to Localiiiy Radar 🚀</button>
+        <button type="submit" class="btn-submit-auth">Sign In to Localiiiy</button>
 
-        <!-- Google Sign-In & Stealth Ghost Spectator Mode (Matching Android AuthScreen) -->
+        <!-- Google Sign-In, Ghost Spectator Mode & Permanent Account Deletion Link -->
         <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
           <button type="button" onclick="signInWithGoogleFirebase()" style="width: 100%; padding: 11px; border-radius: 999px; background: #FFFFFF; color: #0F172A; font-weight: 800; font-size: 13px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
             Continue with Google
           </button>
 
-          <button type="button" onclick="enterGhostSpectatorMode()" style="width: 100%; padding: 10px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); border: 1px dashed var(--accent-mint); color: var(--accent-mint); font-weight: 800; font-size: 12px; cursor: pointer;">
-            👻 Enter as Ghost Spectator • Zero GPS Footprint
+          <button type="button" onclick="enterGhostSpectatorMode()" style="width: 100%; padding: 10px; border-radius: 999px; background: rgba(16, 185, 129, 0.12); border: 1px dashed var(--accent-mint); color: var(--accent-mint); font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.03 2 3 6.03 3 11v9l3-3 3 3 3-3 3 3 3-3 3 3v-9c0-4.97-4.03-9-9-9zm-3 8c-.83 0-1.5-.67-1.5-1.5S8.17 7 9 7s1.5.67 1.5 1.5S9.83 10 9 10zm6 0c-.83 0-1.5-.67-1.5-1.5S14.17 7 15 7s1.5.67 1.5 1.5S15.83 10 15 10z"/></svg>
+            Enter as Ghost Spectator • Zero GPS Footprint
           </button>
 
-          <button type="button" style="background: none; border: none; color: #38BDF8; font-size: 12px; font-weight: 700; cursor: pointer; margin-top: 2px;" onclick="gateInstantDemoLogin()">
-            ⚡ Instant Verified Neighbor Login (Alex Rivera)
-          </button>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 8px; margin-top: 4px; border-top: 1px solid var(--border-subtle); font-size: 11px;">
+            <a href="/privacy" style="color: var(--text-secondary); text-decoration: none; font-weight: 600;">Privacy &amp; Terms</a>
+            <a href="/delete-account" style="color: #F87171; text-decoration: none; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              Delete My Account Permanently
+            </a>
+          </div>
         </div>
       </form>
 
@@ -2124,23 +2139,18 @@
           <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px;">Stored under users/{uid}/space_avatar.jpg</div>
           <div style="position: relative; width: 78px; height: 78px; margin: 0 auto 8px; border-radius: 50%; border: 2px solid var(--primary-teal); overflow: hidden; cursor: pointer;" onclick="document.getElementById('gateAvatarFileInput').click()">
             <img id="gateAvatarPreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80" alt="Space Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-            <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-teal); color: #041B26; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">📷</div>
+            <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-teal); color: #041B26; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">+</div>
           </div>
           <input type="file" id="gateAvatarFileInput" accept="image/*" style="display: none;" onchange="handleGateAvatarUpload(event)">
           <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
-            <button type="button" onclick="document.getElementById('gateAvatarFileInput').click()" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 11px; padding: 4px 10px; border-radius: 999px; cursor: pointer;">📤 Upload From Gallery</button>
-            <span style="font-size: 10px; color: var(--text-muted);">or preset:</span>
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" onclick="selectAvatarPreset(this.src)" style="width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 1.5px solid var(--accent-mint); object-fit: cover;">
-            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" onclick="selectAvatarPreset(this.src)" style="width: 24px; height: 24px; border-radius: 50%; cursor: pointer; object-fit: cover;">
-            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80" onclick="selectAvatarPreset(this.src)" style="width: 24px; height: 24px; border-radius: 50%; cursor: pointer; object-fit: cover;">
-            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80" onclick="selectAvatarPreset(this.src)" style="width: 24px; height: 24px; border-radius: 50%; cursor: pointer; object-fit: cover;">
+            <button type="button" onclick="document.getElementById('gateAvatarFileInput').click()" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 11px; padding: 4px 10px; border-radius: 999px; cursor: pointer;">Upload From Gallery</button>
           </div>
         </div>
 
         <!-- Full Name Input (Letters and spaces only, min 3 chars) -->
         <div class="form-field">
-          <label>Full Name (Letters & spaces, min 3 chars)</label>
-          <input type="text" class="form-input" id="gateRegFullName" placeholder="e.g. Alex Rivera" oninput="validateGateFullName(this.value)" required>
+          <label>Full Name (Letters &amp; spaces, min 3 chars)</label>
+          <input type="text" class="form-input" id="gateRegFullName" placeholder="Enter your full name" oninput="validateGateFullName(this.value)" required>
           <span id="gateFullNameStatus" style="font-size: 10.5px; color: var(--text-muted);">Letters and spaces only (min 3 chars)</span>
         </div>
 
@@ -2149,7 +2159,7 @@
           <label>Unique @Username</label>
           <div style="position: relative; display: flex; align-items: center;">
             <span style="position: absolute; left: 12px; color: var(--primary-teal); font-weight: 800;">@</span>
-            <input type="text" class="form-input" id="gateRegUsername" placeholder="alex_creative" style="width: 100%; padding-left: 28px;" oninput="checkLiveUsernameAvailability(this.value)" required>
+            <input type="text" class="form-input" id="gateRegUsername" placeholder="your_handle" style="width: 100%; padding-left: 28px;" oninput="checkLiveUsernameAvailability(this.value)" required>
           </div>
           <span id="gateUsernameStatus" style="font-size: 10.5px; color: var(--text-muted);">Debounced live check against Firestore usernames collection</span>
         </div>
@@ -2161,50 +2171,46 @@
         </div>
         <div class="otp-verify-box" id="gateEmailOtpBox">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <span id="gateEmailOtpTitle" style="font-size: 12px; font-weight: 700; color: #FFFFFF;">✉️ Email OTP Verification (Mandatory)</span>
+            <span id="gateEmailOtpTitle" style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Email OTP Verification (Mandatory)</span>
             <button type="button" id="btnSendEmailOtp" onclick="dispatchGateEmailOtp()" style="background: var(--primary-teal); color: #041B26; border: none; font-weight: 800; font-size: 11px; padding: 5px 10px; border-radius: 999px; cursor: pointer;">Verify Email via OTP</button>
           </div>
-          <div id="gateEmailOtpInputRow" style="display: none; gap: 6px; align-items: center;">
+          <div id="gateEmailOtpInputRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
             <input type="text" id="gateEmailOtpInput" class="form-input" maxlength="6" placeholder="Enter 6-digit Email OTP" style="flex: 1; padding: 8px 10px; font-size: 12px;">
             <button type="button" onclick="confirmGateEmailOtp()" style="background: var(--accent-mint); color: #042417; border: none; font-weight: 800; font-size: 11.5px; padding: 8px 12px; border-radius: 8px; cursor: pointer;">Verify Code</button>
           </div>
-          <span id="gateEmailOtpHint" style="font-size: 10.5px; color: var(--accent-mint); display: none;"></span>
+          <span id="gateEmailOtpStatus" style="font-size: 10.5px; color: var(--accent-mint);"></span>
         </div>
 
         <!-- Section 3: Mobile Phone Number (Mandatory) + Country Code + SMS OTP -->
         <div class="otp-verify-box" id="gatePhoneOtpBox">
-          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;" id="gatePhoneOtpTitle">📱 Mobile Phone Number (Mandatory)</div>
+          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;" id="gatePhoneOtpTitle">Mobile Phone Number (Mandatory)</div>
           <div style="display: flex; gap: 6px;">
-            <select id="gateCountryCode" class="form-select" style="width: 115px; padding: 8px; font-size: 12px;">
-              <option value="+91 (IN)">+91 (IN)</option>
-              <option value="+1 (US)">+1 (US)</option>
-              <option value="+44 (GB)">+44 (GB)</option>
-              <option value="+61 (AU)">+61 (AU)</option>
-              <option value="+1 (CA)">+1 (CA)</option>
-              <option value="+49 (DE)">+49 (DE)</option>
-              <option value="+33 (FR)">+33 (FR)</option>
-              <option value="+81 (JP)">+81 (JP)</option>
-              <option value="+65 (SG)">+65 (SG)</option>
-              <option value="+971 (AE)">+971 (AE)</option>
+            <select id="gatePhoneCountryCode" class="form-select" style="width: 115px; padding: 8px; font-size: 12px;">
+              <option value="+91">+91 (IN)</option>
+              <option value="+1">+1 (US)</option>
+              <option value="+44">+44 (GB)</option>
+              <option value="+61">+61 (AU)</option>
+              <option value="+49">+49 (DE)</option>
+              <option value="+33">+33 (FR)</option>
+              <option value="+81">+81 (JP)</option>
+              <option value="+65">+65 (SG)</option>
+              <option value="+971">+971 (AE)</option>
             </select>
             <input type="tel" id="gateRegPhone" class="form-input" placeholder="9876543210" style="flex: 1; padding: 8px 10px; font-size: 13px;" required>
             <button type="button" id="btnSendPhoneOtp" onclick="dispatchGatePhoneOtp()" style="background: var(--primary-teal); color: #041B26; border: none; font-weight: 800; font-size: 11px; padding: 0 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;">Send SMS OTP</button>
           </div>
-          <div id="gatePhoneOtpInputRow" style="display: none; gap: 6px; align-items: center;">
+          <div id="gatePhoneOtpInputRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
             <input type="text" id="gatePhoneOtpInput" class="form-input" maxlength="6" placeholder="Enter 6-digit SMS OTP" style="flex: 1; padding: 8px 10px; font-size: 12px;">
             <button type="button" onclick="confirmGatePhoneOtp()" style="background: var(--accent-mint); color: #042417; border: none; font-weight: 800; font-size: 11.5px; padding: 8px 12px; border-radius: 8px; cursor: pointer;">Verify SMS</button>
           </div>
-          <span id="gatePhoneOtpHint" style="font-size: 10.5px; color: var(--accent-mint); display: none;"></span>
+          <span id="gatePhoneOtpStatus" style="font-size: 10.5px; color: var(--accent-mint);"></span>
         </div>
 
         <!-- Password + Live Password Strength Indicator + Confirm Password -->
         <div class="form-field">
           <label>Password</label>
           <input type="password" class="form-input" id="gateRegPassword" placeholder="Create strong password (min 6 chars)" oninput="updateGatePasswordStrength(this.value)" required>
-          <div style="height: 4px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin-top: 4px;">
-            <div id="gatePassStrengthBar" style="height: 100%; width: 0%; background: var(--accent-mint); transition: width 0.25s, background 0.25s;"></div>
-          </div>
-          <span id="gatePassStrengthText" style="font-size: 10px; color: var(--text-muted);">256-Bit PBKDF2 / Firebase Auth Security</span>
+          <span id="gatePasswordStrengthLabel" style="font-size: 10px; color: var(--text-muted);">256-Bit PBKDF2 / Firebase Auth Security</span>
         </div>
         <div class="form-field">
           <label>Confirm Password</label>
@@ -2213,138 +2219,119 @@
 
         <!-- Section 4: Deep-Linked Influencer Referrals & Auto-Connection -->
         <div class="otp-verify-box">
-          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">🔗 Influencer Invite & Auto-Connection</div>
-          <div style="font-size: 10px; color: var(--text-muted);">Tap a creator deep-link preset (localiiiy.com/refer/creator) for Zero-Click Auto-Connection:</div>
-          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button type="button" class="interest-pill" onclick="setReferralPreset('julia_styles', this)">✨ Julia Styles (50k)</button>
-            <button type="button" class="interest-pill" onclick="setReferralPreset('alex_adventures', this)">🏔️ Alex Adv (120k)</button>
-            <button type="button" class="interest-pill" onclick="setReferralPreset('mike_bites', this)">🍔 Mike Bites (75k)</button>
-          </div>
-          <input type="text" id="gateReferralCode" class="form-input" placeholder="Active Referral Code (Optional)" style="padding: 8px 10px; font-size: 12px;">
+          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Creator Invite &amp; Auto-Connection (Optional)</div>
+          <input type="text" id="gateRegReferral" class="form-input" placeholder="Enter creator invite handle (Optional)" style="padding: 8px 10px; font-size: 12px;">
         </div>
 
         <!-- Section 5: Your Home Community Anchor -->
         <div class="form-field">
-          <label>📍 Your Home Community Anchor (Zero-Knowledge Anchor Picker)</label>
+          <label>Your Home Community Anchor (~110m Privacy Grid)</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" class="form-input" id="gateRegNeighborhood" placeholder="e.g. Pike Place, Seattle" style="flex: 1;" required>
+            <input type="text" class="form-input" id="gateRegNeighborhood" placeholder="Enter city or neighborhood" style="flex: 1;" required>
             <button type="button" class="btn-hero-secondary" style="padding: 0 12px; font-size: 11.5px; white-space: nowrap;" onclick="autoDetectGateLocation()">
-              🛰️ Auto GPS
+              Auto GPS
             </button>
           </div>
           <span id="gateGpsStatus" style="font-size: 10px; color: var(--accent-mint); min-height: 14px;"></span>
         </div>
 
-        <!-- Section 7: Expanded Interest Constellation (20 Categories) -->
+        <!-- Section 7: Expanded Interest Constellation -->
         <div class="form-field">
-          <label>✨ Interest Constellation (Select Your Neighborhood Circles)</label>
+          <label>Interest Constellation (Select Your Neighborhood Circles)</label>
           <input type="hidden" id="gateRegCategory" value="Local Creator">
-          <div class="interest-chip-constellation" id="gateInterestChips">
-            <span class="interest-pill selected" onclick="toggleInterestPill(this)">🎨 Street Art</span>
-            <span class="interest-pill selected" onclick="toggleInterestPill(this)">🥖 Artisan Food</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">📷 Photography</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">⚡ Tech & AI</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🚲 Cycling</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🎵 Live Music</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🌱 Urban Gardening</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🐕 Pet Neighbors</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">📚 Book Swap</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🛠️ DIY & Tools</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">☕ Indie Cafes</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🎬 Filmmaking</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🏛️ Civic Watch</span>
-            <span class="interest-pill" onclick="toggleInterestPill(this)">🤝 Mutual Aid</span>
+          <div class="interest-chip-constellation" id="gateInterestsGrid">
+            <span class="interest-pill active selected" onclick="toggleInterestPill(this)">Street Art</span>
+            <span class="interest-pill active selected" onclick="toggleInterestPill(this)">Artisan Food</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Photography</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Tech &amp; AI</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Cycling</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Live Music</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Urban Gardening</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Pet Neighbors</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Book Swap</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">DIY &amp; Tools</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Indie Cafes</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Filmmaking</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Civic Watch</span>
+            <span class="interest-pill" onclick="toggleInterestPill(this)">Mutual Aid</span>
           </div>
         </div>
 
         <!-- Section 8 & 9: Neighborhood Visibility ("Show in Area" vs "Hide (Ghost) Default") -->
         <div class="otp-verify-box">
-          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">🛡️ Neighborhood Visibility (Zero-Location-Storage Pledge)</div>
-          <div style="font-size: 10.5px; color: var(--text-muted);">Default is Ghost Mode (~110m spatial privacy truncation) to safeguard your privacy:</div>
+          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Neighborhood Visibility (Zero-Location-Storage Pledge)</div>
+          <input type="hidden" id="gateRegVisibility" value="GHOST">
           <div class="visibility-choice-grid">
-            <div class="visibility-card" id="visCardShowArea" onclick="setGateVisibilityMode(true)">
-              <div style="font-size: 12px; font-weight: 800; color: var(--primary-teal);">📡 Show in Area</div>
+            <div class="visibility-card" id="visShowBtn" onclick="setGateVisibilityMode('SHOW')">
+              <div style="font-size: 12px; font-weight: 800; color: var(--primary-teal);">Show in Area</div>
               <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">Visible on local radar</div>
             </div>
-            <div class="visibility-card active-ghost" id="visCardHideGhost" onclick="setGateVisibilityMode(false)">
-              <div style="font-size: 12px; font-weight: 800; color: var(--accent-mint);">👻 Hide (Ghost)</div>
+            <div class="visibility-card active-ghost" id="visGhostBtn" onclick="setGateVisibilityMode('GHOST')">
+              <div style="font-size: 12px; font-weight: 800; color: var(--accent-mint);">Hide (Ghost)</div>
               <div style="font-size: 10px; color: var(--accent-mint); font-weight: 700; margin-top: 2px;">Active (Default)</div>
             </div>
           </div>
         </div>
 
-        <!-- Section 10: Date of Birth Picker (Minimum Age 13+ Gate, 13-17 Teen Safety Ghost Default) -->
+        <!-- Section 10: Date of Birth Picker (Minimum Age 13+ Gate) -->
         <div class="otp-verify-box">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 12px; font-weight: 700; color: #FFFFFF;">📅 Date of Birth (13+ Age Gate)</span>
+            <span style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Date of Birth (13+ Age Gate)</span>
             <span id="gateAgeBadge" style="font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0, 180, 216, 0.15); color: var(--primary-teal);">13+ Required</span>
           </div>
-          <div style="font-size: 10.5px; color: var(--text-muted);">Minimum age: 13+ years required. Accounts aged 13–17 automatically default to Ghost Mode for teen safety.</div>
           <input type="date" id="gateRegDob" class="form-input" onchange="validateGateDob(this.value)" required>
+          <span id="gateDobStatus" style="font-size: 10.5px; color: var(--text-muted);">Minimum age: 13+ years required.</span>
         </div>
 
         <!-- Section 11: Mandatory 24-Article Omnibus Legal Charter, NDA, Copyright & Privacy -->
         <div class="otp-verify-box">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">⚖️ Omnibus Legal Charter, NDA, Copyright & Privacy</div>
+              <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">Omnibus Legal Charter, NDA, Copyright &amp; Privacy</div>
               <div style="font-size: 9.5px; color: var(--text-muted);">All 24 Master Articles • 0km–Earth Dual-Reach • LCC Copyright • Right-to-Erasure</div>
             </div>
-            <button type="button" onclick="unlockOmnibusCharter()" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); color: var(--accent-mint); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; cursor: pointer;">⬇ Unlock</button>
+            <button type="button" onclick="unlockOmnibusCharter()" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); color: var(--accent-mint); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; cursor: pointer;">Unlock</button>
           </div>
           <div class="omnibus-scroll-box" id="gateOmnibusScrollBox" onscroll="checkOmnibusScroll(this)">
-            <strong style="color: var(--primary-teal);">LOCALIIIY MASTER OMNIBUS LEGAL AGREEMENT, NON-DISCLOSURE (NDA), COPYRIGHT (LCC), DUAL-REACH (0 KM TO EARTH) & PRIVACY CHARTER (v2.4.0)</strong><br><br>
-            <strong>Article 1–4 (Identity & 13+ Age Covenant):</strong> Users must be 13+ years old. Accounts aged 13–17 operate with mandatory Teen Safety Ghost Mode by default.<br>
-            <strong>Article 5–9 (Zero-Knowledge Spatial Privacy & ~110m Truncation):</strong> Exact home GPS coordinates are never broadcast publicly; radar beacons truncate coordinates to 3 decimal places (~110m grid) and purge immediately upon activating Ghost Mode.<br>
-            <strong>Article 10–14 (Safe-Haven Handshake Escrow & 5% Market Waiver):</strong> Marketplace exchanges use 6-digit OTP handshake verification at Police Precinct CCTV Green Zones.<br>
-            <strong>Article 15–19 (Localiiiy Creator Copyright LCC & 0km–Earth Dual Reach):</strong> Creators retain ownership with SHA-256 attribution, 55% Creator RevShare, and $1,000 USD Payout Charter.<br>
-            <strong>Article 20–24 (Anti-Cyberstalking Covenant, ISO/IEC 27037 Forensic Logs & Right to Erasure):</strong> Cyberstalking is strictly prohibited. Full cloud + local account deletion is available anytime in Profile.<br><br>
+            <strong style="color: var(--primary-teal);">LOCALIIIY MASTER OMNIBUS LEGAL AGREEMENT, NON-DISCLOSURE (NDA), COPYRIGHT (LCC), DUAL-REACH (0 KM TO EARTH) &amp; PRIVACY CHARTER (v2.4.0)</strong><br><br>
+            <strong>Article 1–4 (Identity &amp; 13+ Age Covenant):</strong> Users must be 13+ years old. Accounts aged 13–17 operate with mandatory Teen Safety Ghost Mode by default.<br>
+            <strong>Article 5–9 (Zero-Knowledge Spatial Privacy &amp; ~110m Truncation):</strong> Exact home GPS coordinates are never broadcast publicly; radar beacons truncate coordinates to 3 decimal places (~110m grid) and purge immediately upon activating Ghost Mode.<br>
+            <strong>Article 10–14 (Safe-Haven Handshake Escrow &amp; 5% Market Waiver):</strong> Marketplace exchanges use 6-digit OTP handshake verification at Police Precinct CCTV Green Zones.<br>
+            <strong>Article 15–19 (Localiiiy Creator Copyright LCC &amp; 0km–Earth Dual Reach):</strong> Creators retain ownership with SHA-256 attribution, 55% Creator RevShare, and $1,000 USD Payout Charter.<br>
+            <strong>Article 20–24 (Anti-Cyberstalking Covenant, ISO/IEC 27037 Forensic Logs &amp; Right to Erasure):</strong> Cyberstalking is strictly prohibited. Full cloud + local account deletion is available anytime in Space or at /delete-account.<br><br>
             <strong style="color: var(--accent-mint);">--- END OF ALL 24 MASTER ARTICLES ---</strong>
           </div>
-          <div style="display: flex; gap: 6px;">
-            <a href="/terms" target="_blank" style="font-size: 10.5px; color: var(--primary-teal); text-decoration: none; font-weight: 700;">📜 Full Terms (/terms) ↗</a>
+          <div id="omnibusUnlockBanner" style="font-size: 10.5px; color: var(--accent-mint);"></div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="/terms" target="_blank" style="font-size: 10.5px; color: var(--primary-teal); text-decoration: none; font-weight: 700;">Full Terms (/terms) ↗</a>
             <span style="color: var(--text-muted);">•</span>
-            <a href="/privacy" target="_blank" style="font-size: 10.5px; color: var(--primary-teal); text-decoration: none; font-weight: 700;">🛡️ Privacy Policy (/privacy) ↗</a>
+            <a href="/privacy" target="_blank" style="font-size: 10.5px; color: var(--primary-teal); text-decoration: none; font-weight: 700;">Privacy Policy (/privacy) ↗</a>
+            <span style="color: var(--text-muted);">•</span>
+            <a href="/delete-account" target="_blank" style="font-size: 10.5px; color: #F87171; text-decoration: none; font-weight: 700;">Delete Account (/delete-account) ↗</a>
           </div>
           <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: var(--text-secondary); cursor: pointer;">
-            <input type="checkbox" id="gateNdaCheck1" required style="margin-top: 2px; accent-color: var(--accent-mint);">
-            <span>I agree to the Binding NDA & Anti-Cyberstalking Covenant: I will never stalk neighbors or misuse spatial radar.</span>
+            <input type="checkbox" id="chkLegalTerms" required style="margin-top: 2px; accent-color: var(--accent-mint);">
+            <span>I agree to the Binding NDA &amp; Anti-Cyberstalking Covenant: I will never stalk neighbors or misuse spatial radar.</span>
           </label>
           <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: var(--text-secondary); cursor: pointer;">
-            <input type="checkbox" id="gateNdaCheck2" required style="margin-top: 2px; accent-color: var(--accent-mint);">
-            <span>I acknowledge SHA-256 audit logs & 2-Way OTP records protect community safety.</span>
+            <input type="checkbox" id="chkLegalPrivacy" required style="margin-top: 2px; accent-color: var(--accent-mint);">
+            <span>I acknowledge SHA-256 audit logs &amp; 2-Way OTP records protect community safety.</span>
           </label>
           <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: var(--text-secondary); cursor: pointer;">
-            <input type="checkbox" id="gateRegTerms" required style="margin-top: 2px; accent-color: var(--accent-mint);">
-            <span>I accept all 24 Articles of the Omnibus Terms, Privacy Policy, LCC Copyright, 0km–Earth Dual-Reach & Safe-Haven Charter.</span>
+            <input type="checkbox" id="chkLegalZeroTolerance" required style="margin-top: 2px; accent-color: var(--accent-mint);">
+            <span>I accept all 24 Articles of the Omnibus Terms, Privacy Policy, LCC Copyright, 0km–Earth Dual-Reach &amp; Safe-Haven Charter.</span>
           </label>
         </div>
 
-        <button type="submit" class="btn-submit-auth">Complete Registration & Sync Cloud 🚀</button>
+        <button type="submit" class="btn-submit-auth">Complete Registration &amp; Sync Cloud</button>
       </form>
     </div>
   </div>
 
-  <!-- TOP STICKY PLAY STORE & AAB/APK BAR -->
-  <div class="apk-alert-banner">
-    <div class="left-info">
-      <span>📲</span>
-      <span><strong>Download the app from Google Play Store</strong> • <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="color: #A7F3D0; text-decoration: underline; font-weight: 800;">Google Play Store</a> • 🍎 Apple App Store: <strong>Available Soon</strong></span>
-    </div>
-    <div class="apk-btn-group" style="display: flex; gap: 6px; flex-wrap: wrap;">
-      <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-download-apk" style="text-decoration: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 800; background: #10B981; color: #032417; padding: 5px 12px; border-radius: 999px;">
-        🤖 Google Play Store
-      </a>
-      <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #FCD34D; padding: 5px 10px; border-radius: 999px;">
-        🍎 Apple App Store: Available Soon
-      </span>
-    </div>
-  </div>
-
-  <!-- TOP APPBAR (100% MATCHING JETPACK COMPOSE LocaliiiyTopBar.kt) -->
+  <!-- TOP APPBAR (100% MATCHING JETPACK COMPOSE LocaliiiyTopBar.kt — ZERO DUPLICATE STICKY BANNERS) -->
   <header class="app-topbar">
     <div class="topbar-brand" onclick="switchDeck('pulse')">
-      <div class="android-logo-badge" style="width: 34px; height: 34px;">
+      <div class="android-logo-badge" style="width: 32px; height: 32px;">
         <div class="logo-outer-halo"></div>
         <div class="logo-iridescent-ring"></div>
         <div class="logo-inner-core">
@@ -2353,133 +2340,59 @@
         <div class="logo-coral-beacon"></div>
       </div>
       <div>
-        <div class="brand-title" style="line-height: 1.05;">Localiiiy</div>
-        <div style="font-size: 9.5px; color: var(--accent-mint); font-weight: 700; display: flex; align-items: center; gap: 4px;" onclick="event.stopPropagation(); openLocationPickerModal();">
-          <span>📍</span>
-          <span id="currentLocationText">Pike Place, Seattle</span>
+        <div class="brand-title" style="line-height: 1.05; font-size: 18px;">Localiiiy</div>
+        <div style="font-size: 10px; color: var(--accent-mint); font-weight: 700; display: flex; align-items: center; gap: 3px;" onclick="event.stopPropagation(); openLocationPickerModal();">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="#EF4444"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          <span id="currentLocationText">Locating GPS...</span>
         </div>
       </div>
     </div>
 
-    <div class="topbar-actions" style="gap: 6px;">
-      <!-- Search Toggle (LocaliiiyTopBar parity) -->
-      <div class="icon-action-btn" onclick="toggleTopSearchBar()" title="Search Neighborhood">
-        🔍
-      </div>
-
-      <!-- Atmospheric Space Themes Switcher -->
-      <div class="icon-action-btn" onclick="cycleAtmosphericTheme()" title="Space & Atmospheric Themes">
-        🎨
-      </div>
-
-      <!-- Broadcast / Add Pulse Button (+) -->
-      <div class="icon-action-btn" onclick="openCreationModal('post')" title="Create Broadcast" style="background: var(--primary-teal); color: #041B26; font-weight: 900;">
-        +
-      </div>
-
-      <!-- Notifications -->
-      <div class="icon-action-btn" onclick="openNotificationsModal()" title="Notifications">
-        🔔
-        <div class="badge-dot"></div>
-      </div>
-
-      <!-- Direct Messages Chat -->
-      <div class="icon-action-btn" onclick="openChatDrawer()" title="Direct Messages">
-        💬
-        <div class="badge-dot"></div>
-      </div>
-
-      <!-- Global Language & Currency Pill -->
-      <button class="topbar-auth-btn" onclick="cycleCurrencyLanguage()" id="langCurrencyPill" title="Switch Language & Currency" style="background: rgba(255,255,255,0.06); color: #E2E8F0; border: 1px solid var(--border-subtle); padding: 5px 10px; font-size: 11px;">
-        🌐 <span id="activeCurrencyLabel">EN • USD $</span>
+    <!-- Exact 5 Material 3 Action Buttons from LocaliiiyTopBar.kt: Search, Palette, Add (+), Notifications, Messages -->
+    <div class="topbar-actions" style="gap: 8px;">
+      <!-- 1. Search Toggle (Icons.Default.Search) -->
+      <button type="button" class="icon-action-btn" onclick="toggleTopSearchBar()" title="Search Neighborhood" aria-label="Search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       </button>
 
-      <!-- User Login / Profile Pill -->
-      <button class="topbar-auth-btn" id="headerAuthBtn" onclick="openAuthModal('login')">
-        <span>👤</span>
-        <span id="authButtonLabel">Sign In</span>
+      <!-- 2. Atmospheric Space Themes Switcher (Icons.Default.Palette) -->
+      <button type="button" class="icon-action-btn" onclick="cycleAtmosphericTheme()" title="Space & Atmospheric Themes" aria-label="Theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      </button>
+
+      <!-- 3. Broadcast / Add Pulse Button (Icons.Default.Add) -->
+      <button type="button" class="icon-action-btn" onclick="openCreationModal('post')" title="Create Broadcast" aria-label="Create" style="background: var(--primary-teal); color: #041B26; border-color: var(--primary-teal);">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </button>
+
+      <!-- 4. Notifications (Icons.Outlined.Notifications) -->
+      <button type="button" class="icon-action-btn" onclick="openNotificationsModal()" title="Notifications" aria-label="Notifications">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
+        <div class="badge-dot"></div>
+      </button>
+
+      <!-- 5. Direct Messages Chat (Icons.Outlined.Message) -->
+      <button type="button" class="icon-action-btn" onclick="openChatDrawer()" title="Direct Messages" aria-label="Messages">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zM6 12h12v2H6zm0-3h12v2H6zm0-3h12v2H6z"/></svg>
+        <div class="badge-dot"></div>
       </button>
     </div>
   </header>
 
   <!-- Expandable Top Search Bar (Matching LocaliiiyTopBar.kt) -->
-  <div id="topSearchExpandBar" style="display: none; background: var(--bg-surface); padding: 8px 16px; border-bottom: 1px solid var(--border-subtle);">
-    <input type="text" id="globalFeedSearchInput" class="form-input" placeholder="🔍 Search neighbors, @handles, posts, market items or landmarks..." oninput="filterFeedBySearch(this.value)" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
+  <div id="topSearchDrawer" style="display: none; background: var(--bg-surface); padding: 8px 16px; border-bottom: 1px solid var(--border-subtle);">
+    <input type="text" id="globalSearchInput" class="form-input" placeholder="Search neighbors, @handles, posts, market items or landmarks..." oninput="filterFeedBySearch(this.value)" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
   </div>
 
   <!-- MAIN SCROLLABLE VIEWPORT -->
   <main id="appViewport">
 
     <!-- ========================================================
-         VIEW 1: PULSE (FEED SCREEN)
+         VIEW 1: PULSE (FEED SCREEN — 100% ANDROID PulseFeedComponent.kt PARITY)
          ======================================================== -->
     <div id="view-pulse" class="screen-view active">
-
-      <!-- HIGH VISIBILITY OFFICIAL GOOGLE PLAY STORE & APPLE APP STORE CARD -->
-      <div class="apk-hero-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <div class="android-logo-badge" style="width: 44px; height: 44px;">
-              <div class="logo-outer-halo"></div>
-              <div class="logo-iridescent-ring"></div>
-              <div class="logo-inner-core">
-                <img src="./app_logo_original.png" alt="Localiiiy">
-              </div>
-              <div class="logo-coral-beacon"></div>
-            </div>
-            <div>
-              <div class="apk-badge-tag">OFFICIAL MOBILE APP & CLOUD SYNC</div>
-              <h3 style="font-size: 15.5px; font-weight: 800; color: #FFFFFF; margin: 3px 0 2px;">Download the app from Google Play Store</h3>
-              <p style="font-size: 11.5px; color: #CBD5E1; margin: 0;">100% Real-Time Cloud Synced with Android App • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
-            </div>
-          </div>
-          <span class="cloud-sync-pill" id="pulseCloudStatusBadge">☁️ Synced</span>
-        </div>
-
-        <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-          <!-- Primary Google Play Store Link (User Requested) -->
-          <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-hero-download">
-            🤖 Download the app from Google Play Store ↗
-          </a>
-          <!-- Apple App Store Available Soon Badge -->
-          <button type="button" class="btn-hero-secondary" style="background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.45); color: #FCD34D;" onclick="promptStoreNotification('Apple App Store')">
-            🍎 Apple App Store — Available Soon
-          </button>
-          <!-- Direct APK / 10 Mirrors -->
-          <button type="button" class="btn-hero-secondary" style="background: rgba(59, 130, 246, 0.15); border-color: #60A5FA; color: #93C5FD;" onclick="openTenMirrorsModal()">
-            🌐 Direct APK & 10 Mirrors
-          </button>
-        </div>
-
-        <!-- Official Store Badges Row -->
-        <div class="store-badges-row">
-          <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="store-badge-card" style="text-decoration: none;">
-            <svg viewBox="0 0 512 512" class="store-badge-icon"><path fill="#4285F4" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z"/><path fill="#34A853" d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0z"/><path fill="#FBBC04" d="M410.7 282.8L104.6 459l220.7-224.7 85.4 48.5z"/><path fill="#EA4335" d="M410.7 229.2L325.3 174.2l60.1 60.1 25.3-5.1z"/></svg>
-            <div class="store-badge-text">
-              <span class="store-sub">DOWNLOAD THE APP FROM</span>
-              <span class="store-title">Google Play Store</span>
-            </div>
-          </a>
-
-          <div class="store-badge-card" onclick="promptStoreNotification('Apple App Store')">
-            <svg viewBox="0 0 170 170" class="store-badge-icon" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.93-14.3-5.99-9.13-10.76-19.6-14.3-31.42-3.54-11.82-5.31-23.08-5.31-33.78 0-14.28 3.59-26.04 10.76-35.27 7.18-9.24 16.2-13.96 27.06-14.18 5.43 0 11.19 1.41 17.27 4.23 6.08 2.83 10.15 4.35 12.21 4.56 1.74-.21 6.08-1.79 13.03-4.73 6.95-2.93 13.03-4.29 18.24-4.07 13.8.76 24.66 5.86 32.59 15.31-12.17 7.39-18.14 17.27-17.92 29.65.22 9.78 3.96 17.98 11.22 24.6 7.26 6.62 16.03 10.37 26.31 11.25-2.28 7.06-5.16 14.07-8.64 21.03zM119.22 33.02c0-7.82 2.82-15.15 8.47-21.99 5.65-6.84 12.71-10.86 21.19-12.03.22 1.09.33 2.17.33 3.26 0 7.82-3.04 15.31-9.12 22.48-6.08 7.17-13.36 11.19-21.84 12.06-.22-1.3-.33-2.55-.33-3.78z"/></svg>
-            <div class="store-badge-text">
-              <span class="store-sub" style="color: #FCD34D; font-weight: 800;">AVAILABLE SOON</span>
-              <span class="store-title">Apple App Store</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="store-notify-row">
-          <input type="email" id="storeNotifyEmail" class="form-input" placeholder="Enter email to get notified when Apple App Store launches" style="font-size: 11px; padding: 7px 10px;">
-          <button class="btn-submit-auth" style="margin: 0; padding: 0 12px; font-size: 11px; white-space: nowrap;" onclick="subscribeStoreNotification()">
-            Notify Me
-          </button>
-        </div>
-      </div>
-
-      <!-- Pulse Mode 3-Tab Switcher (100% Android PulseFeedComponent.kt Parity: Pulse Feed | Local Community | Civic Tools) -->
-      <div style="display: flex; gap: 6px; margin: 10px 0 14px 0; background: rgba(15, 23, 42, 0.92); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
+      <!-- Pulse Mode 3-Tab Switcher (Pulse Feed | Local Community | Civic Tools) -->
+      <div style="display: flex; gap: 6px; margin: 12px 16px 12px 16px; background: rgba(15, 23, 42, 0.92); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
         <button id="btnPulseTabFeed" class="dial-lens-btn active" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('feed')">
           📡 Pulse Feed
         </button>
@@ -2712,10 +2625,14 @@
 
         <!-- Mode bar: Radar Orbit vs Google Map Moments (Android LiveRadarScreen.kt Parity) -->
         <div class="radar-view-mode-bar">
-          <button class="mode-tab-btn active" onclick="setRadarMode('radar')">
-            🧭 Radar Orbit
+          <button class="mode-tab-btn active" onclick="setRadarMode('radar')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="12" x2="18.5" y2="5.5"/></svg>
+            Radar Orbit
           </button>
-          <button class="mode-tab-btn" onclick="setRadarMode('grid')">🗺️ Google Map Moments</button>
+          <button class="mode-tab-btn" onclick="setRadarMode('grid')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+            Google Map Moments
+          </button>
         </div>
 
         <!-- Radar Canvas HUD Container -->
@@ -2737,11 +2654,27 @@
               <!-- Center User Blip -->
               <div class="radar-center-blip" title="You are here (~110m Privacy Grid)"></div>
 
-              <!-- Safe-Haven & Live Beacons -->
-              <div class="radar-blip connected-blip" style="top: 82%; left: 52%;" onclick="showBlipDetails('Police Precinct Safe-Haven', '0.5 km', 'CCTV Green Zone Exchange Hub', 'Officer')">🛡️</div>
-              <div class="radar-blip market-blip" style="top: 28%; left: 72%;" onclick="showBlipDetails('Safe-Haven Escrow Hub #2', '1.2 km', 'Verified Commerce Point', 'Market')">🛍️</div>
-              <div class="radar-blip neighbor-blip" style="top: 34%; left: 32%;" onclick="showBlipDetails('Local Creator Beacon', '0.8 km', 'Connected Neighbor', 'Creator')">📡</div>
+              <!-- Safe-Haven & Live Beacons (Material 3 SVG Vector Icons) -->
+              <div class="radar-blip connected-blip" style="top: 80%; left: 52%;" onclick="showBlipDetails('Police Precinct Safe-Haven', '0.5 km', '24/7 CCTV Green Zone Exchange Hub', 'Officer')" title="Safe-Haven Precinct">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#10B981"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+              </div>
+              <div class="radar-blip market-blip" style="top: 28%; left: 72%;" onclick="showBlipDetails('Safe-Haven Escrow Hub #2', '1.2 km', 'Verified Commerce Point', 'Market')" title="Escrow Hub">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+              </div>
+              <div class="radar-blip neighbor-blip" style="top: 34%; left: 32%;" onclick="showBlipDetails('Connected Neighbor Beacon', '0.8 km', 'Verified Community Node', 'Creator')" title="Neighbor Beacon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              </div>
             </div>
+          </div>
+
+          <!-- Quick Range Selector Pills (Android LiveRadarScreen.kt Parity: 500m, 2km, 5km, 10km, 50km, Global) -->
+          <div style="display: flex; gap: 6px; overflow-x: auto; padding: 0 4px 10px 4px;">
+            <button class="filter-chip" onclick="updateRadarRange('0.5')">500m</button>
+            <button class="filter-chip" onclick="updateRadarRange('2')">2 km</button>
+            <button class="filter-chip active" onclick="updateRadarRange('5')">5 km</button>
+            <button class="filter-chip" onclick="updateRadarRange('10')">10 km</button>
+            <button class="filter-chip" onclick="updateRadarRange('50')">50 km</button>
+            <button class="filter-chip" onclick="updateRadarRange('Earth')">🌍 Global</button>
           </div>
 
           <!-- Radar Tactical Controls (1 km – 50 km Systematic Scale) -->
@@ -2756,7 +2689,7 @@
 
             <div class="ghost-mode-row">
               <div>
-                <div style="font-size: 14px; font-weight: 700;">Ghost / Cloak Mode 👻</div>
+                <div style="font-size: 14px; font-weight: 700;">Ghost / Cloak Mode</div>
                 <div style="font-size: 11px; color: var(--text-muted);">Purge live radar beacon &amp; fuzz GPS to ~110m grid</div>
               </div>
               <div class="toggle-pill-switch" id="ghostToggleSwitch" onclick="toggleGhostMode()">
@@ -2766,16 +2699,17 @@
           </div>
         </div>
 
-        <!-- Google Map Moments & Spatial Grid Container -->
+        <!-- Google Map Moments & Spatial Grid Container (Zero Fake Stock Images) -->
         <div id="radarGridView" style="display: none;">
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&auto=format&fit=crop&q=80" alt="Local Moment">
-          </div>
-          <div class="grid-cell-item" onclick="switchDeck('market')">
-            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop&q=80" alt="Market Moment">
-          </div>
-          <div class="grid-cell-item" onclick="switchDeck('studio')">
-            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80" alt="Studio Moment">
+          <div class="post-card" style="grid-column: 1 / -1; padding: 28px 18px; text-align: center; border: 1px dashed rgba(0, 229, 255, 0.35);">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="#00E5FF" style="margin: 0 auto 10px;"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+            <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Live Google Map Moments Grid</h4>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+              Synced with your Android app's spatial moments (`radar_beacons` &amp; `posts`). Share a geo-verified moment or Safe-Haven listing to pin it on your neighborhood map!
+            </p>
+            <button class="btn-submit-auth" style="margin-top: 12px; width: auto; padding: 8px 18px; font-size: 12px;" onclick="openCreationModal('post')">
+              + Pin Neighborhood Moment
+            </button>
           </div>
         </div>
 
@@ -2783,140 +2717,106 @@
     </div>
 
     <!-- ========================================================
-         VIEW 3: MARKET SCREEN (100% ANDROID MarketScreen.kt PARITY)
+         VIEW 3: MARKET SCREEN (100% ANDROID MarketScreen.kt PARITY — ZERO FAKE DEMO ITEMS)
          ======================================================== -->
     <div id="view-market" class="screen-view">
       <div class="market-screen-content">
 
-        <!-- Market Sub-tabs (100% Android MarketScreen.kt Parity) -->
+        <!-- Market Sub-tabs (100% Android MarketScreen.kt Parity with Material 3 SVG Icons) -->
         <div class="market-subtabs-row">
-          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">🏪 All / Goods</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">🛠️ Services</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'trends')">📈 AI Price Trends</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">🔖 Watchlist</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'upgrades')">🔧 Civic &amp; Barter Hubs</div>
+          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+            All / Goods
+          </div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'services')" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+            Services
+          </div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'trends')" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+            AI Price Trends
+          </div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+            Watchlist
+          </div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'upgrades')" style="display: inline-flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+            Civic &amp; Barter Hubs
+          </div>
         </div>
 
         <!-- Panel 1: Goods Catalog -->
         <div id="market-panel-goods" class="market-sub-panel active">
           <!-- All 12 Official Android MarketScreen.kt Categories -->
           <div class="market-categories-row" style="margin-bottom: 8px;">
-            <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
-            <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
-            <div class="category-chip" onclick="filterCategory(this, 'lands')">🏡 Properties &amp; Land</div>
-            <div class="category-chip" onclick="filterCategory(this, 'tech')">📱 Mobiles &amp; Tech</div>
-            <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Home &amp; Living</div>
-            <div class="category-chip" onclick="filterCategory(this, 'fashion')">👗 Fashion &amp; Style</div>
-            <div class="category-chip" onclick="filterCategory(this, 'services')">🛠️ Jobs &amp; Services</div>
-            <div class="category-chip" onclick="filterCategory(this, 'food')">🥬 Farm &amp; Fresh</div>
-            <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books &amp; Sports</div>
-            <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art &amp; Crafts</div>
-            <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets &amp; Care</div>
-            <div class="category-chip" onclick="filterCategory(this, 'barter')">🤝 Borrow &amp; Barter</div>
+            <div class="category-chip active" onclick="filterCategory(this, 'all')">All</div>
+            <div class="category-chip" onclick="filterCategory(this, 'vehicles')">Vehicles</div>
+            <div class="category-chip" onclick="filterCategory(this, 'lands')">Properties &amp; Land</div>
+            <div class="category-chip" onclick="filterCategory(this, 'tech')">Mobiles &amp; Tech</div>
+            <div class="category-chip" onclick="filterCategory(this, 'furniture')">Home &amp; Living</div>
+            <div class="category-chip" onclick="filterCategory(this, 'fashion')">Fashion &amp; Style</div>
+            <div class="category-chip" onclick="filterCategory(this, 'services')">Jobs &amp; Services</div>
+            <div class="category-chip" onclick="filterCategory(this, 'food')">Farm &amp; Fresh</div>
+            <div class="category-chip" onclick="filterCategory(this, 'books')">Books &amp; Sports</div>
+            <div class="category-chip" onclick="filterCategory(this, 'art')">Art &amp; Crafts</div>
+            <div class="category-chip" onclick="filterCategory(this, 'pets')">Pets &amp; Care</div>
+            <div class="category-chip" onclick="filterCategory(this, 'barter')">Borrow &amp; Barter</div>
           </div>
 
           <div class="market-banner">
             <div>
-              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">Safe-Haven Handshake Escrow 🛡️</h3>
+              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B; display: flex; align-items: center; gap: 6px;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                Safe-Haven Handshake Escrow
+              </h3>
               <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV &amp; OTP handshake codes (5% Fee • 0% for Localiiiy Pro).</p>
             </div>
-            <button class="btn-download-apk" style="background: var(--accent-amber); color: #000; font-size: 12px; padding: 6px 12px;" onclick="checkGhostAction('list items for sale') ? null : openCreationModal('market')">
+            <button class="btn-download-apk" style="background: var(--accent-amber); color: #000; font-size: 12px; padding: 8px 14px; font-weight: 800;" onclick="checkGhostAction('list items for sale') ? null : openCreationModal('market')">
               + Sell Item
             </button>
           </div>
 
+          <!-- Dynamic Cloud Firestore `marketplace_items` Grid (Zero Hardcoded Demo Items) -->
           <div class="market-grid" id="marketGridContainer">
-            <!-- Item 1 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80" alt="Item">
-              <div class="market-info">
-                <div class="market-price">$120</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Vintage 35mm Film Camera</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">0.8 km • Mint • 🎥 10s Video Tour</p>
-                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('120')">
-                  Request Handshake 🤝
-                </button>
-              </div>
-            </div>
-
-            <!-- Item 2 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80" alt="Item">
-              <div class="market-info">
-                <div class="market-price">$12 / loaf</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Artisan Sourdough Loaves</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Maya's Bakehouse</p>
-                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('12')">
-                  Request Handshake 🤝
-                </button>
-              </div>
-            </div>
-
-            <!-- Item 4 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
-              <div class="market-info">
-                <div class="market-price">$38</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Hand-thrown Ceramic Mug Set</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
-                <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('38')">
-                  Request Handshake 🤝
-                </button>
-              </div>
+            <div id="emptyMarketGoodsCard" class="post-card" style="grid-column: 1 / -1; padding: 28px 18px; text-align: center; border: 1px dashed rgba(245, 158, 11, 0.4);">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="#F59E0B" style="margin: 0 auto 10px;"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+              <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Safe-Haven Marketplace Ready</h4>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+                100% synced with your Android app &amp; Cloud Firestore (<code>marketplace_items</code>). Zero fake demo listings — list your first neighborhood item with Safe-Haven Escrow protection!
+              </p>
+              <button class="btn-submit-auth" style="margin-top: 12px; width: auto; padding: 8px 18px; font-size: 12px; background: var(--accent-amber); color: #000;" onclick="checkGhostAction('list items for sale') ? null : openCreationModal('market')">
+                + List First Item for Sale
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Panel 2: Services Catalog -->
+        <!-- Panel 2: Services Catalog (Zero Hardcoded Demo Services) -->
         <div id="market-panel-services" class="market-sub-panel" style="display: none;">
           <div class="market-banner" style="background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.35);">
             <div>
-              <h3 style="font-size: 15px; font-weight: 800; color: #A78BFA;">Hyperlocal Gigs & Services 🛠️</h3>
-              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Verified local expertise from professional craftsmen and skilled neighbors.</p>
+              <h3 style="font-size: 15px; font-weight: 800; color: #A78BFA; display: flex; align-items: center; gap: 6px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#A78BFA"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+                Hyperlocal Gigs &amp; Services
+              </h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Verified local expertise from professional craftsmen and skilled connected neighbors.</p>
             </div>
-            <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFF; font-size: 12px; padding: 6px 12px;" onclick="checkGhostAction('list services') ? null : openCreationModal('market')">
+            <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFF; font-size: 12px; padding: 8px 14px; font-weight: 800;" onclick="checkGhostAction('list services') ? null : openCreationModal('market')">
               + Offer Service
             </button>
           </div>
 
-          <div class="market-grid">
-            <!-- Service 1 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80" alt="Bicycle">
-              <div class="market-info">
-                <div class="market-price">$45 / hr</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Bicycle Tune-up & Safety Check</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">1.1 km • Devon's Mobile Shop</p>
-                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Devon Miller', 'Bicycle Tune-up & Safety Check', '$45 / hr', '🚲')">
-                  Inquire Service 🤝
-                </button>
-              </div>
-            </div>
-
-            <!-- Service 2 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=500&auto=format&fit=crop&q=80" alt="Film">
-              <div class="market-info">
-                <div class="market-price">$50 / hr</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Artisan Film & Video Editing</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">1.4 km • Marcus Vance Cinema</p>
-                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Marcus Vance', 'Artisan Film & Video Editing', '$50 / hr', '🎥')">
-                  Inquire Service 🤝
-                </button>
-              </div>
-            </div>
-
-            <!-- Service 3 -->
-            <div class="market-card ripple-effect">
-              <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
-              <div class="market-info">
-                <div class="market-price">$60 / class</div>
-                <h4 style="font-size: 13px; font-weight: 700;">Custom Wheel Pottery Class</h4>
-                <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
-                <button class="btn-buy-handshake ripple-effect" style="background: var(--accent-purple); border-color: var(--accent-purple);" onclick="checkGhostAction('inquire service') ? null : openSimulatedInquiryChat('Elena Rostova', 'Custom Wheel Pottery Class', '$60 / class', '🎨')">
-                  Inquire Service 🤝
-                </button>
-              </div>
+          <div class="market-grid" id="servicesGridContainer">
+            <div class="post-card" style="grid-column: 1 / -1; padding: 28px 18px; text-align: center; border: 1px dashed rgba(167, 139, 250, 0.4);">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="#A78BFA" style="margin: 0 auto 10px;"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg>
+              <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">No Local Services Listed Yet</h4>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+                Be the first skilled neighbor in your radius to offer a service or gig on the live cloud marketplace.
+              </p>
+              <button class="btn-submit-auth" style="margin-top: 12px; width: auto; padding: 8px 18px; font-size: 12px; background: var(--accent-purple); color: #FFF;" onclick="checkGhostAction('list services') ? null : openCreationModal('market')">
+                + Offer Neighborhood Service
+              </button>
             </div>
           </div>
         </div>
@@ -2924,56 +2824,38 @@
         <!-- Panel 3: Community Upgrades & Engagement Tools -->
         <div id="market-panel-upgrades" class="market-sub-panel" style="display: none;">
           <div style="padding: 12px 0 6px;">
-            <h2 style="font-size: 18px; font-weight: 800; color: #FFFFFF; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">Social, Safety & Civic Engagement Tools</h2>
-            <p style="font-size: 11.5px; color: var(--accent-mint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Category: Community Upgrades</p>
+            <h2 style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Social, Safety &amp; Civic Engagement Hubs</h2>
+            <p style="font-size: 11.5px; color: var(--accent-mint); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Synced with Android Civic &amp; Barter Architecture</p>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
-            <div style="background: var(--bg-card); border: 1.2px solid rgba(0, 229, 255, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 22px;">🥦</span>
-                <div>
-                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Bulk Buying Hubs</h4>
-                  <p style="font-size: 11px; color: var(--text-secondary);">Pool essential grocery & supply orders with neighbors for wholesale savings</p>
-                </div>
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(0, 229, 255, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <div>
+                <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Bulk Buying Hubs</h4>
+                <p style="font-size: 11px; color: var(--text-secondary);">Pool essential grocery &amp; supply orders with connected neighbors for wholesale savings.</p>
               </div>
-              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
-                <strong>Active Hub:</strong> Mrs. Kapoor's Fresh Organic Produce • 8 slots joined of 15. Targets 30% savings on local market rates.
-              </div>
-              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--primary-teal); color: #041B26;" onclick="checkGhostAction('join bulk hubs') ? null : openSimulatedEngagementChat('Maya Patel', 'Bulk Buying Hubs', 'Mrs. Kapoor\'s Organic Produce pool')">
-                Join Bulk Hub 🥦
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--primary-teal); color: #041B26;" onclick="checkGhostAction('join bulk hubs') ? null : openCreationModal('market')">
+                + Start or Join Bulk Hub
               </button>
             </div>
 
-            <div style="background: var(--bg-card); border: 1.2px solid rgba(167, 139, 250, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 22px;">🧑‍🏫</span>
-                <div>
-                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Skill Matching Leagues</h4>
-                  <p style="font-size: 11px; color: var(--text-secondary);">Trade skills, language exchange, repairs, or tutoring inside local circles</p>
-                </div>
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(167, 139, 250, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <div>
+                <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Skill Matching Leagues</h4>
+                <p style="font-size: 11px; color: var(--text-secondary);">Trade skills, language exchange, repairs, or tutoring inside verified local circles.</p>
               </div>
-              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
-                <strong>Active Matching:</strong> Alex Rivera is offering creative video/editing leagues in exchange for Spanish classes.
-              </div>
-              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-purple); color: #FFFFFF;" onclick="checkGhostAction('join skill leagues') ? null : openSimulatedEngagementChat('Alex Rivera', 'Skill Matching Leagues', 'Creative Editing vs Spanish exchange')">
-                Open Matching League 🧑‍🏫
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-purple); color: #FFFFFF;" onclick="checkGhostAction('join skill leagues') ? null : openCreationModal('market')">
+                + Create Skill Exchange
               </button>
             </div>
 
-            <div style="background: var(--bg-card); border: 1.2px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 22px;">🔄</span>
-                <div>
-                  <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Barter & Swap Hubs</h4>
-                  <p style="font-size: 11px; color: var(--text-secondary);">Physical, completely cashless item exchanges for sustainable neighborhood circulation</p>
-                </div>
+            <div style="background: var(--bg-card); border: 1.2px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+              <div>
+                <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Barter &amp; Swap Hubs</h4>
+                <p style="font-size: 11px; color: var(--text-secondary);">Cashless item exchanges verified at Police Safe-Haven Green Zones.</p>
               </div>
-              <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-sm); padding: 10px; font-size: 11px; line-height: 1.5; color: #CBD5E1; margin: 4px 0;">
-                <strong>Local Proposals:</strong> Bosch Power Drill 🛠️ wanted for heavy-duty extension ladder, Sourdough score wanted for fresh rooftop tomatoes.
-              </div>
-              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('propose barter swap') ? null : openSimulatedEngagementChat('Jordan Sterling', 'Barter & Swap Hubs', 'Bosch Power Drill trade proposal')">
-                Propose Swap 🔄
+              <button class="btn-submit-auth ripple-effect" style="margin-top: 4px; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('propose barter swap') ? null : openCreationModal('market')">
+                + Propose Barter Swap
               </button>
             </div>
           </div>
@@ -2983,31 +2865,24 @@
         <div id="market-panel-trends" class="market-sub-panel" style="display: none;">
           <div class="market-banner" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35);">
             <div>
-              <h3 style="font-size: 15px; font-weight: 800; color: var(--accent-mint);">AI Hyperlocal Price Trends 📈</h3>
-              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Real-time neighborhood fair-value index calculated from verified Safe-Haven Escrow handshakes within 10 km.</p>
+              <h3 style="font-size: 15px; font-weight: 800; color: var(--accent-mint);">AI Hyperlocal Price Trends</h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Real-time neighborhood fair-value index calculated from verified Safe-Haven Escrow handshakes within your GPS radius.</p>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <div class="neighbor-card" style="padding: 14px;">
               <div>
-                <div style="font-weight: 800; font-size: 13.5px; color: #FFFFFF;">📷 Vintage 35mm Cameras & Lenses</div>
-                <div style="font-size: 11px; color: var(--text-secondary);">Avg Neighborhood Escrow: <strong>$115 – $140</strong> • High Local Demand</div>
+                <div style="font-weight: 800; font-size: 13.5px; color: #FFFFFF;">Mobiles, Cameras &amp; Creator Tech</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">Safe-Haven Escrow Index • Verified 0% Pro Fee Eligible</div>
               </div>
-              <span style="color: #10B981; font-weight: 800; font-size: 12px;">▲ +8.4%</span>
+              <span style="color: #10B981; font-weight: 800; font-size: 12px;">LIVE INDEX</span>
             </div>
             <div class="neighbor-card" style="padding: 14px;">
               <div>
-                <div style="font-weight: 800; font-size: 13.5px; color: #FFFFFF;">🚲 Commuter & Vintage Bicycles</div>
-                <div style="font-size: 11px; color: var(--text-secondary);">Avg Neighborhood Escrow: <strong>$160 – $220</strong> • 14 Handshakes this week</div>
+                <div style="font-weight: 800; font-size: 13.5px; color: #FFFFFF;">Vehicles &amp; Commuter Mobility</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">Precinct CCTV Handshake Verification Active</div>
               </div>
-              <span style="color: #10B981; font-weight: 800; font-size: 12px;">▲ +5.1%</span>
-            </div>
-            <div class="neighbor-card" style="padding: 14px;">
-              <div>
-                <div style="font-weight: 800; font-size: 13.5px; color: #FFFFFF;">🥖 Artisan Sourdough & Micro-Bakery</div>
-                <div style="font-size: 11px; color: var(--text-secondary);">Avg Neighborhood Escrow: <strong>$10 – $14 / loaf</strong> • Stable Price Index</div>
-              </div>
-              <span style="color: #38BDF8; font-weight: 800; font-size: 12px;">● 0.0%</span>
+              <span style="color: #00E5FF; font-weight: 800; font-size: 12px;">VERIFIED</span>
             </div>
           </div>
         </div>
@@ -3016,14 +2891,14 @@
         <div id="market-panel-watchlist" class="market-sub-panel" style="display: none;">
           <div class="market-banner" style="background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35);">
             <div>
-              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">My Watchlist 🔖</h3>
-              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Items and services you have saved or bookmarked to monitor in real-time.</p>
+              <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">My Watchlist</h3>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Items and services you have saved to monitor in real-time.</p>
             </div>
           </div>
 
           <div class="market-grid" id="watchlistGridContainer">
             <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted); font-size: 12px;">
-              Your watchlist is currently empty. Bookmark listings on the Goods tab to see them here! 🏪
+              Your watchlist is currently empty. Bookmark listings on the Goods tab to see them here.
             </div>
           </div>
         </div>
@@ -3032,20 +2907,23 @@
     </div>
 
     <!-- ========================================================
-         VIEW 4: CLIPS SCREEN (FULLSCREEN VERTICAL REELS)
+         VIEW 4: CLIPS SCREEN (100% ANDROID ClipsScreen.kt PARITY — ZERO STATIC CYCLIST IMAGE)
          ======================================================== -->
     <div id="view-clips" class="screen-view">
-      <div class="clips-viewport">
+      <div class="clips-viewport" id="clipsViewportContainer">
 
-        <!-- Clip 1 -->
-        <div class="clip-screen-item">
-          <!-- Top Discovery Filter (AGENTS.md mandate: header solely for title & filters) -->
+        <!-- Live / Clean Clips Viewport (AGENTS.md compliant: clean top header + bottom-left locality badge) -->
+        <div class="clip-screen-item" style="background: radial-gradient(circle at 50% 35%, #0F2942 0%, #060D1A 70%, #030712 100%); display: flex; flex-direction: column; justify-content: center; align-items: center;">
+          <!-- Top Discovery Filter (AGENTS.md mandate: header solely for title, auto-scroll/sound toggles & 4 discovery filters) -->
           <div class="clips-top-discovery">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 14px; font-weight: 800; color: #FFFFFF;">🎬 Clips</span>
-              <!-- Auto Scroll / Sound Toggles inside the top header area -->
-              <button class="clip-top-toggle-btn" id="btnClipAutoScroll" onclick="toggleClipAutoScroll(this)" title="Auto-Scroll Autoplay Toggle">🔄</button>
-              <button class="clip-top-toggle-btn" id="btnClipMute" onclick="toggleClipSound(this)" title="Mute/Unmute Toggle">🔊</button>
+              <span style="font-size: 15px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.3px;">Clips</span>
+              <button class="clip-top-toggle-btn" id="btnClipAutoScroll" onclick="toggleClipAutoScroll(this)" title="Auto-Scroll Toggle">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+              </button>
+              <button class="clip-top-toggle-btn" id="btnClipMute" onclick="toggleClipSound(this)" title="Sound Toggle">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+              </button>
             </div>
             <div class="clips-filter-pills">
               <div class="clip-filter-tab" onclick="setClipTab(this)">All</div>
@@ -3055,39 +2933,63 @@
             </div>
           </div>
 
-          <img class="clip-video-mock" src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&auto=format&fit=crop&q=80" alt="Video">
-
-          <!-- Bottom Left Overlay (AGENTS.md mandate: Proximity/locality anchored directly above creator) -->
-          <div class="clip-bottom-info">
-            <div class="clip-proximity-badge" style="background: rgba(0, 229, 255, 0.15); border: 1.2px solid #00E5FF; color: #00E5FF; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; margin-bottom: 2px;">0.3 km • Proximity Verified</div>
-            <div class="clip-landmark-name" style="font-weight: 800; font-size: 14px; color: #FFFFFF; margin-bottom: 4px;">Pike Place Market</div>
-            <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-bottom: 2px;">Morning baking routine in the alley 🥐✨</div>
-            <div style="font-size: 12px; color: #CBD5E1; font-weight: 600;">@maya_bakes • Connected Neighbor</div>
+          <!-- Center Live Clips Stream / Upload Prompt (Replaces hardcoded cyclist stock photo) -->
+          <div id="emptyClipsCenterPrompt" style="text-align: center; max-width: 320px; padding: 24px; z-index: 5;">
+            <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(0, 229, 255, 0.12); border: 1.5px solid rgba(0, 229, 255, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            </div>
+            <h3 style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Hyperlocal Clips Stream</h3>
+            <p style="font-size: 12px; color: #CBD5E1; margin-top: 6px; line-height: 1.5;">
+              100% synced with your Android app &amp; Cloud Firestore (<code>clips</code>). Broadcast your first vertical neighborhood reel with Neighbor, City, or Earth dual reach!
+            </p>
+            <button class="btn-submit-auth" style="margin-top: 14px; padding: 10px 20px; font-size: 12.5px;" onclick="checkGhostAction('upload clips') ? null : openCreationModal('clip')">
+              + Broadcast First Clip
+            </button>
           </div>
 
-          <!-- Side Actions -->
+          <!-- Bottom Left Overlay (AGENTS.md mandate: Proximity/locality badge anchored directly above creator details & caption) -->
+          <div class="clip-bottom-info">
+            <div class="clip-proximity-badge" id="activeClipProximityBadge" style="background: rgba(0, 229, 255, 0.15); border: 1.2px solid #00E5FF; color: #00E5FF; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+              Live GPS Proximity Verified
+            </div>
+            <div class="clip-landmark-name" id="activeClipLandmark" style="font-weight: 800; font-size: 14px; color: #FFFFFF; margin-bottom: 2px;">Localiiiy Neighborhood Grid</div>
+            <div id="activeClipCaption" style="font-size: 13px; font-weight: 700; color: #E2E8F0; margin-bottom: 2px;">Dual-Reach Vertical Video Engine (Neighbor • City • Earth)</div>
+            <div id="activeClipAuthor" style="font-size: 12px; color: #00E5FF; font-weight: 700;">@localiiiy_clips • Connected</div>
+          </div>
+
+          <!-- Right Side Material 3 Vector Actions -->
           <div class="clip-side-actions">
-            <!-- Creator Avatar with interactive Connect Badge -->
-            <div class="clip-action-node" style="position: relative;" onclick="toggleClipConnect(this, 'maya_bakes')">
-              <div class="clip-action-circle" style="background: #0E1322; border: 2px solid #00E5FF; font-size: 18px; width: 48px; height: 48px;">👤</div>
-              <div class="clip-connect-badge" style="position: absolute; bottom: -4px; background: #00E5FF; color: #041B26; font-size: 9px; font-weight: 900; padding: 2px 5px; border-radius: var(--radius-full); box-shadow: 0 2px 6px rgba(0,0,0,0.4); white-space: nowrap;">Connect +</div>
+            <div class="clip-action-node" style="position: relative;" onclick="toggleClipConnect(this, 'localiiiy_clips')">
+              <div class="clip-action-circle" style="background: #0E1322; border: 2px solid #00E5FF; width: 48px; height: 48px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+              </div>
+              <div class="clip-connect-badge" style="position: absolute; bottom: -4px; background: #00E5FF; color: #041B26; font-size: 9px; font-weight: 900; padding: 2px 5px; border-radius: var(--radius-full); white-space: nowrap;">Connect +</div>
             </div>
 
             <div class="clip-action-node" onclick="toggleClipLike(this)">
-              <div class="clip-action-circle">❤️</div>
-              <span>1.2k</span>
+              <div class="clip-action-circle">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <span>0</span>
             </div>
-            <div class="clip-action-node" onclick="checkGhostAction('comment on clips') ? null : openCommentsModal('Morning Baking Clip', ['Looks so fresh!', 'Best baker in Seattle'])">
-              <div class="clip-action-circle">💬</div>
-              <span>84</span>
+            <div class="clip-action-node" onclick="checkGhostAction('comment on clips') ? null : openCommentsModal('Neighborhood Clip', [])">
+              <div class="clip-action-circle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              </div>
+              <span>0</span>
             </div>
-            <div class="clip-action-node" onclick="sharePost('Morning Baking Clip')">
-              <div class="clip-action-circle">🔄</div>
+            <div class="clip-action-node" onclick="sharePost('Localiiiy Clip')">
+              <div class="clip-action-circle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+              </div>
               <span>Share</span>
             </div>
-            <div class="clip-action-node" onclick="checkGhostAction('initiate secure handshake pre-order') ? null : openEscrowModal('Sourdough Pre-order', '$12')">
-              <div class="clip-action-circle" style="background: var(--accent-amber);">🛍️</div>
-              <span style="color: #FCD34D;">Buy</span>
+            <div class="clip-action-node" onclick="checkGhostAction('upload clips') ? null : openCreationModal('clip')">
+              <div class="clip-action-circle" style="background: var(--accent-amber); color: #000;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#041B26"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+              </div>
+              <span style="color: #FCD34D;">Upload</span>
             </div>
           </div>
         </div>
@@ -3096,58 +2998,68 @@
     </div>
 
     <!-- ========================================================
-         VIEW 5: STUDIO SCREEN
+         VIEW 5: STUDIO SCREEN (100% ANDROID StudioScreen.kt PARITY — ZERO FAKE $142.50 DEMO METRICS)
          ======================================================== -->
     <div id="view-studio" class="screen-view">
-      <div class="studio-screen-content" style="padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; height: 100%;">
+      <div class="studio-screen-content" style="padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; height: 100%;">
         
-        <!-- Header & Switcher matching Android StudioScreen -->
+        <!-- Header & Switcher matching Android StudioScreen.kt -->
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h2 style="font-size: 20px; font-weight: 800; color: #FFFFFF;">Creator Studio</h2>
-            <p style="font-size: 11px; color: var(--text-secondary);">Manage your hyperlocal audience, LCC copyright & 0km–Earth dual-reach broadcasts</p>
+            <h2 style="font-size: 20px; font-weight: 800; color: #FFFFFF;">Creator Studio &amp; Cinema</h2>
+            <p style="font-size: 11px; color: var(--text-secondary);">4K Independent Cinema, LCC Copyright Shield &amp; Neighbor-to-Earth Dual Reach</p>
           </div>
-          <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFFFFF; font-size: 11.5px; padding: 6px 12px; border-radius: var(--radius-full);" onclick="checkGhostAction('broadcast clips') ? null : openCreationModal('clip')">
-            + Broadcast Clip
+          <button class="btn-download-apk" style="background: var(--accent-purple); color: #FFFFFF; font-size: 11.5px; padding: 8px 14px; border-radius: var(--radius-full); font-weight: 800;" onclick="checkGhostAction('broadcast clips') ? null : openCreationModal('clip')">
+            + Publish Film
           </button>
         </div>
 
-        <!-- Metric Cards Row -->
+        <!-- 7 Official Android StudioScreen.kt Sub-Tabs -->
+        <div class="feed-chips-bar" style="margin-bottom: 2px;">
+          <div class="filter-chip active" onclick="setFeedFilter(this, 'cinema')">🎬 All Cinema</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'trending')">🔥 Trending</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'indie')">🎭 Local Indie</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'series')">📺 Series</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'aistudio')">✨ AI Studio</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'analytics')">📊 Analytics</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'lcc')">🛡️ Copyright (LCC)</div>
+        </div>
+
+        <!-- Real Dynamic Metric Cards Row (Zero Fake 1,840h / 192.4K Numbers) -->
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
           <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Watch Hours</div>
-            <div style="font-size: 18px; font-weight: 800; color: #00E5FF; margin-top: 4px;">1,840h</div>
-            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +12%</div>
+            <div id="studioWatchHoursValue" style="font-size: 18px; font-weight: 800; color: #00E5FF; margin-top: 4px;">0h</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">Live Cloud</div>
           </div>
           <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Studio Views</div>
-            <div style="font-size: 18px; font-weight: 800; color: #10B981; margin-top: 4px;">192.4K</div>
-            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +18%</div>
+            <div id="studioViewsValue" style="font-size: 18px; font-weight: 800; color: #10B981; margin-top: 4px;">0</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">Real-Time</div>
           </div>
           <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 12px; border-radius: var(--radius-md); text-align: center;">
             <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Connected</div>
-            <div style="font-size: 18px; font-weight: 800; color: #C084FC; margin-top: 4px;">1,480</div>
-            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">▲ +24%</div>
+            <div id="studioConnectedValue" style="font-size: 18px; font-weight: 800; color: #C084FC; margin-top: 4px;">0</div>
+            <div style="font-size: 9px; color: #10B981; margin-top: 2px;">Connections</div>
           </div>
         </div>
 
-        <!-- Monetization & RevShare Card -->
+        <!-- Monetization & RevShare Card (Real $0.00 Live Balance — Zero Fake $142.50 Demo Balance) -->
         <div class="studio-card-hero" style="background: linear-gradient(135deg, #130A2B 0%, #1E0D4F 100%); border: 1px solid rgba(192, 132, 252, 0.35); padding: 16px; border-radius: var(--radius-lg); position: relative; overflow: hidden;">
-          <div style="position: absolute; top: -10px; right: -10px; font-size: 70px; opacity: 0.08; pointer-events: none;">💎</div>
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
-              <span style="font-size: 10px; font-weight: 800; color: #C084FC; text-transform: uppercase; letter-spacing: 1px;">Est. Creator Earnings ($1k Payout Charter)</span>
-              <div style="font-size: 32px; font-weight: 800; color: #FFFFFF; margin-top: 4px;" id="studioEarningsValue">$142.50</div>
-              <p style="font-size: 11px; color: #D1D5DB; margin-top: 4px;">Super Thanks Sparks tips & local goods escrow handshake commissions split.</p>
+              <span style="font-size: 10px; font-weight: 800; color: #C084FC; text-transform: uppercase; letter-spacing: 1px;">Creator Earnings Vault (55% RevShare Charter)</span>
+              <div style="font-size: 30px; font-weight: 800; color: #FFFFFF; margin-top: 4px;" id="studioEarningsValue">$0.00</div>
+              <p style="font-size: 11px; color: #D1D5DB; margin-top: 4px;">Synced with your Android Creator Wallet • Super Thanks Sparks &amp; Escrow splits.</p>
             </div>
-            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: var(--radius-full); white-space: nowrap;">55% Creator RevShare</span>
+            <span style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: var(--radius-full); white-space: nowrap;">55% RevShare</span>
           </div>
           <div style="display: flex; gap: 10px; margin-top: 14px;">
-            <button class="btn-submit-auth ripple-effect" style="margin-top: 0; flex: 1; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('withdraw creator earnings') ? null : showToast('Instant cashout dispatched to safe wallet! 💸')">
-              Cash Out to Local Bank
+            <button class="btn-submit-auth ripple-effect" style="margin-top: 0; flex: 1; padding: 10px; font-size: 12px; font-weight: 800; background: var(--accent-mint); color: #042417;" onclick="checkGhostAction('upload studio cinema') ? null : openCreationModal('clip')">
+              + Upload 4K Studio Film
             </button>
-            <button class="btn-post-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 12px; padding: 10px 14px; border-radius: var(--radius-md);" onclick="showToast('Opened Creator Exclusive Tiers & LCC Copyright Vault 🌟')">
-              Tiers & LCC 🔒
+            <button class="btn-post-action" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); color: #FFFFFF; font-size: 12px; padding: 10px 14px; border-radius: var(--radius-md);" onclick="showToast('LCC SHA-256 Copyright Vault Active 🛡️')">
+              LCC Vault 🛡️
             </button>
           </div>
         </div>
@@ -3155,74 +3067,33 @@
         <!-- AI Creative Studio & LCC Copyright Fingerprint Generator (Android AiCreativeStudioComponent Parity) -->
         <div style="background: var(--bg-card); border: 1px solid rgba(0, 180, 216, 0.3); padding: 14px; border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 13px; font-weight: 800; color: #00E5FF;">✨ AI Creative Studio & LCC Copyright Shield</span>
+            <span style="font-size: 13px; font-weight: 800; color: #00E5FF;">✨ AI Creative Studio &amp; LCC Copyright Shield</span>
             <span style="font-size: 10px; color: var(--accent-mint); font-weight: 700;">SHA-256 Active</span>
           </div>
           <p style="font-size: 11px; color: var(--text-secondary);">Generate hyperlocal viral hooks, dual-reach tags, and cryptographic Localiiiy Creator Copyright (LCC) fingerprints.</p>
           <div style="display: flex; gap: 8px;">
-            <input type="text" id="studioAiTopicInput" class="form-input" placeholder="e.g. Morning sourdough bake at Pike Place..." style="flex: 1; padding: 8px 10px; font-size: 12px;">
+            <input type="text" id="studioAiPromptInput" class="form-input" placeholder="Enter your film or neighborhood documentary topic..." style="flex: 1; padding: 8px 10px; font-size: 12px;">
             <button type="button" onclick="generateStudioAiHook()" class="btn-submit-auth" style="margin: 0; padding: 8px 12px; font-size: 11.5px;">✨ Generate</button>
           </div>
-          <div id="studioAiResultBox" style="display: none; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; font-size: 11px; color: #E2E8F0; line-height: 1.5;"></div>
+          <div id="studioAiOutputBox" style="display: none; background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 10px; font-size: 11px; color: #E2E8F0; line-height: 1.5;"></div>
         </div>
 
         <!-- Dual-Velocity Analytics Chart -->
         <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 16px; border-radius: var(--radius-lg); display: flex; flex-direction: column; gap: 12px;">
           <div>
             <h3 style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Dual-Velocity Propagation Analytics</h3>
-            <p style="font-size: 11px; color: var(--text-secondary);">Real-time comparison of seed neighborhood spread vs global algorithmic lift</p>
+            <p style="font-size: 11px; color: var(--text-secondary);">Real-time comparison of Neighbor seed spread vs Global Earth algorithmic lift</p>
           </div>
-          
-          <!-- SVG Responsive Chart -->
-          <div style="width: 100%; height: 180px; position: relative;">
-            <svg viewBox="0 0 100 50" style="width: 100%; height: 100%; overflow: visible;" preserveAspectRatio="none">
-              <line x1="0" y1="10" x2="100" y2="10" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
-              <line x1="0" y1="20" x2="100" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
-              <line x1="0" y1="30" x2="100" y2="30" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
-              <line x1="0" y1="40" x2="100" y2="40" stroke="rgba(255,255,255,0.05)" stroke-width="0.3"/>
-              <path d="M 0 45 Q 15 15, 30 25 T 60 22 T 100 24" fill="none" stroke="#00E5FF" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M 0 45 Q 15 15, 30 25 T 60 22 T 100 24 L 100 50 L 0 50 Z" fill="url(#localGrad)" opacity="0.12"/>
-              <path d="M 0 48 Q 20 45, 45 42 Q 65 10, 80 5 T 100 3" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M 0 48 Q 20 45, 45 42 Q 65 10, 80 5 T 100 3 L 100 50 L 0 50 Z" fill="url(#globalGrad)" opacity="0.12"/>
-              <defs>
-                <linearGradient id="localGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#00E5FF"/>
-                  <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
-                </linearGradient>
-                <linearGradient id="globalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#10B981"/>
-                  <stop offset="100%" stop-color="#10B981" stop-opacity="0"/>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div style="position: absolute; top: 15px; left: 52%; background: rgba(7, 10, 18, 0.95); border: 1.2px solid #10B981; padding: 6px 10px; border-radius: var(--radius-sm); pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 2px;">
-              <span style="font-size: 9px; font-weight: 800; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.5px;">Algorithmic Lift</span>
-              <span style="font-size: 11px; font-weight: 800; color: #10B981;">+14.2x Velocity</span>
-              <span style="font-size: 8px; color: var(--text-muted);">Global Earth reach triggered</span>
-            </div>
-          </div>
-          
-          <div style="display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 4px;">
+          <div style="display: flex; gap: 16px; justify-content: center; font-size: 11px; font-weight: 700;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="width: 10px; height: 10px; background: #00E5FF; border-radius: 50%; display: inline-block;"></span>
-              <span style="color: #00E5FF;">Local Seed (Neighborhood)</span>
+              <span style="color: #00E5FF;">Neighbor Seed (1–5 km)</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="width: 10px; height: 10px; background: #10B981; border-radius: 50%; display: inline-block;"></span>
-              <span style="color: #10B981;">Global Propagation (Earth Feed)</span>
+              <span style="color: #10B981;">Earth Reach (Global)</span>
             </div>
           </div>
-        </div>
-
-        <!-- Clips Draft Vault -->
-        <div class="neighbor-card" style="padding: 16px;">
-          <div>
-            <div style="font-weight: 700; font-size: 14px; color: #FFFFFF;">Draft Clips Vault</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">3 clips ready for dual reach broadcast</div>
-          </div>
-          <button class="btn-download-apk" style="padding: 6px 14px; background: var(--accent-purple); color: #FFFFFF; font-size: 12px;" onclick="checkGhostAction('upload video to Clips vault') ? null : openCreationModal('clip')">
-            + Upload New
-          </button>
         </div>
       </div>
     </div>
@@ -3241,22 +3112,22 @@
 
           <div class="profile-avatar-large" id="profileDisplayAvatar" style="overflow: hidden;">👤</div>
           <div>
-            <h2 id="profileDisplayName" style="font-size: 20px; font-weight: 800;">Local Explorer</h2>
-            <p id="profileDisplayHandle" style="font-size: 13px; color: var(--text-muted);">@local_neighbor • Seattle, WA</p>
+            <h2 id="profileDisplayName" style="font-size: 20px; font-weight: 800;">Local Neighbor</h2>
+            <p id="profileDisplayHandle" style="font-size: 13px; color: var(--text-muted);">@neighbor • Local GPS Grid</p>
           </div>
 
           <!-- Strictly Connected / Connections Social Graph -->
           <div class="profile-stats-row">
             <div class="stat-box">
-              <h3 id="profileConnectionsCount">128</h3>
+              <h3 id="profileConnectionsCount">0</h3>
               <p>Connections</p>
             </div>
             <div class="stat-box">
-              <h3 id="profileSparksCount">450 ⚡</h3>
+              <h3 id="profileSparksCount">100 ⚡</h3>
               <p>Sparks</p>
             </div>
             <div class="stat-box">
-              <h3>24</h3>
+              <h3 id="profileHandshakesCount">0</h3>
               <p>Handshakes</p>
             </div>
           </div>
@@ -3264,27 +3135,29 @@
           <!-- Action Buttons in Profile -->
           <div style="display: flex; gap: 8px; width: 100%; margin-top: 8px; flex-wrap: wrap;">
             <button class="btn-post-action" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); justify-content: center;" onclick="openEditProfileModal()">
-              ✏️ Edit Space
+              Edit Space
             </button>
             <button class="btn-post-action" style="flex: 1; padding: 10px; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.4); color: #FCD34D; border-radius: var(--radius-md); justify-content: center;" onclick="claimDailySparksCheckIn()">
-              🔥 Daily Check-In
+              Daily Check-In
             </button>
             <button class="btn-download-apk" style="flex: 1; padding: 10px; justify-content: center;" onclick="openPremiumUpgradeModal()">
-              👑 Premium
+              Localiiiy Pro
             </button>
           </div>
         </div>
 
-        <!-- Store Download Card in Profile (User Requested Google Play + Apple Available Soon) -->
+        <!-- Clean Decluttered Store Download Card (ONLY Google Play Store + Apple App Store: Available Soon) -->
         <div class="apk-hero-card" style="margin-bottom: 12px;">
-          <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">📲 Download the app from Google Play Store</div>
-          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Sync your Space profile across Android and Web in real time.</div>
+          <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">Download the app from Google Play Store</div>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">100% real-time synchronization between your Android app and Web Space.</div>
           <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-            <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-hero-download" style="font-size: 12px; padding: 8px 14px;">
-              🤖 Google Play Store Link ↗
+            <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-hero-download" style="font-size: 12px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l14 8.5c.6.37.6 1.23 0 1.6l-14 8.5c-.66.5-1.6.03-1.6-.8z"/></svg>
+              Google Play Store ↗
             </a>
             <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.4); color: #FCD34D; font-size: 11.5px; font-weight: 800; padding: 8px 12px; border-radius: 999px;">
-              🍎 Apple App Store: Available Soon
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.08-.52 2.72-1.3z"/></svg>
+              Apple App Store: Available Soon
             </span>
           </div>
         </div>
@@ -3292,23 +3165,23 @@
         <!-- Android v2.4.0 Feature Hubs -->
         <div class="neighbor-card" style="cursor: pointer;" onclick="toggleGhostMode()">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">👻 Ghost & Cloak Mode (~110m Spatial Privacy)</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Instantly purge active radar beacon & browse zero-footprint</div>
+            <div style="font-weight: 700; font-size: 14px;">Ghost &amp; Cloak Mode (~110m Spatial Privacy)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Instantly purge active radar beacon &amp; browse zero-footprint</div>
           </div>
           <span>➔</span>
         </div>
 
         <div class="neighbor-card" style="cursor: pointer;" onclick="openCyberstalkingShieldModal()">
           <div>
-            <div style="font-weight: 700; font-size: 14px; color: #38BDF8;">🛡️ Cyberstalking Safety Shield & Police SOS</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Perimeter anomaly detection, Safe-Haven routing & forensic logs</div>
+            <div style="font-weight: 700; font-size: 14px; color: #38BDF8;">Cyberstalking Safety Shield &amp; Police SOS</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Perimeter anomaly detection, Safe-Haven routing &amp; forensic logs</div>
           </div>
           <span>➔</span>
         </div>
 
         <div class="neighbor-card" style="cursor: pointer;" onclick="openPanicCloakDecoy()">
           <div>
-            <div style="font-weight: 700; font-size: 14px; color: #F59E0B;">🧮 Panic Cloak Decoy (Calculator Disguise)</div>
+            <div style="font-weight: 700; font-size: 14px; color: #F59E0B;">Panic Cloak Decoy (Calculator Disguise)</div>
             <div style="font-size: 11px; color: var(--text-muted);">Instant one-tap emergency screen disguise (matching Android PrivacySettingsScreen)</div>
           </div>
           <span>➔</span>
@@ -3316,32 +3189,41 @@
 
         <div class="neighbor-card" style="cursor: pointer;" onclick="openAuditLogsModal()">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">📜 SHA-256 Forensic Activity Audit Log</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Inspect cryptographic session, OTP & privacy events</div>
+            <div style="font-weight: 700; font-size: 14px;">SHA-256 Forensic Activity Audit Log</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Inspect cryptographic session, OTP &amp; privacy events</div>
           </div>
           <span>➔</span>
         </div>
 
         <div class="neighbor-card" style="cursor: pointer;" onclick="window.open('/privacy', '_blank')">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Privacy Policy & Data Safety (/privacy)</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Zero-sale guarantee, ~110m truncation & permissions</div>
+            <div style="font-weight: 700; font-size: 14px;">Privacy Policy &amp; Data Safety (/privacy)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Zero-sale guarantee, ~110m truncation &amp; permissions</div>
           </div>
           <span>➔</span>
         </div>
 
         <div class="neighbor-card" style="cursor: pointer;" onclick="window.open('/terms', '_blank')">
           <div>
-            <div style="font-weight: 700; font-size: 14px;">Terms of Service & 24-Article Charter (/terms)</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Community guidelines, LCC copyright & Safe-Haven rules</div>
+            <div style="font-weight: 700; font-size: 14px;">Terms of Service &amp; 24-Article Charter (/terms)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Community guidelines, LCC copyright &amp; Safe-Haven rules</div>
           </div>
           <span>➔</span>
         </div>
 
+        <!-- Dedicated Permanent Account Deletion Portal Link (/delete-account) -->
+        <a href="/delete-account" class="neighbor-card" style="cursor: pointer; text-decoration: none; background: rgba(239, 68, 68, 0.1); border: 1.5px solid rgba(239, 68, 68, 0.45); margin-top: 8px;">
+          <div>
+            <div style="font-weight: 800; font-size: 14px; color: #F87171;">Delete My Account Permanently (/delete-account)</div>
+            <div style="font-size: 11px; color: #FCA5A5;">Official Google Play Data Safety &amp; GDPR Right-to-Erasure Portal</div>
+          </div>
+          <span style="color: #F87171; font-weight: 800;">↗</span>
+        </a>
+
         <!-- Official Support & Helpdesk -->
         <div class="neighbor-card" style="cursor: pointer; background: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2); margin-top: 8px;" onclick="window.location.href='mailto:Localiiiy.Helpdesk@gmail.com'">
           <div>
-            <div style="font-weight: 700; font-size: 14px; color: var(--accent-mint);">Official Support & Helpdesk</div>
+            <div style="font-weight: 700; font-size: 14px; color: var(--accent-mint);">Official Support &amp; Helpdesk</div>
             <div style="font-size: 11px; color: var(--text-muted);">Localiiiy.Helpdesk@gmail.com</div>
           </div>
           <span style="color: var(--accent-mint);">✉️</span>
@@ -3356,11 +3238,11 @@
           <span style="color: #F87171;">➔</span>
         </div>
 
-        <!-- Right-to-Erasure Account Deletion (Matching Android FirebaseAuthService.deleteCurrentAccount) -->
-        <div class="neighbor-card" style="cursor: pointer; margin-top: 12px; background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.45);" onclick="deleteFullCloudAndLocalAccount()">
+        <!-- Instant 1-Tap Right-to-Erasure Account Deletion (Matching Android FirebaseAuthService.deleteCurrentAccount) -->
+        <div class="neighbor-card" style="cursor: pointer; margin-top: 8px; background: rgba(239, 68, 68, 0.08); border: 1px dashed rgba(239, 68, 68, 0.45);" onclick="deleteFullCloudAndLocalAccount()">
           <div style="color: #F87171;">
-            <div style="font-weight: 800; font-size: 14px;">🗑️ Delete Account (Right-to-Erasure Cloud + Local Purge)</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Permanently erase users/{uid}, usernames/@handle, radar_beacons & local storage</div>
+            <div style="font-weight: 800; font-size: 13.5px;">Instant 1-Tap Purge Account &amp; Cloud Data</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Immediately erase users/{uid}, usernames/@handle, radar_beacons &amp; local storage</div>
           </div>
         </div>
       </div>
@@ -3397,7 +3279,7 @@
       <span>Market</span>
     </button>
 
-    <!-- 4. Clips (Moved before Studio to 100% match DeckSwitcherBar.kt) -->
+    <!-- 4. Clips -->
     <button class="deck-pill-btn" onclick="switchDeck('clips')" id="tab-clips">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
       <span>Clips</span>
@@ -3417,7 +3299,7 @@
   </nav>
 
   <!-- ========================================================
-       MODAL 1: ROBUST APK DOWNLOAD & INSTALL GUIDE MODAL
+       MODAL 1: OFFICIAL STORE DOWNLOAD MODAL (ONLY GOOGLE PLAY + APPLE APP STORE)
        ======================================================== -->
   <div class="modal-backdrop" id="downloadModalBackdrop">
     <div class="modal-sheet-card">
@@ -3432,57 +3314,23 @@
           </div>
           <div class="logo-coral-beacon"></div>
         </div>
-        <h3 style="font-size: 19px; font-weight: 800; margin-top: 6px;">Download the app from Google Play Store</h3>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Download the app from Google Play Store</h3>
         <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • Target SDK 36 (v2.4.0) • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
-        <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14.5px; padding: 14px; font-weight: 800;">
-          🤖 Download the app from Google Play Store ↗
+        <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; padding: 14px; font-weight: 800;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l14 8.5c.6.37.6 1.23 0 1.6l-14 8.5c-.66.5-1.6.03-1.6-.8z"/></svg>
+          Download from Google Play Store ↗
         </a>
 
-        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 10px 14px; text-align: center; font-size: 12.5px; font-weight: 800; color: #FCD34D;">
-          🍎 Apple App Store — Available Soon
+        <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 11px 14px; text-align: center; font-size: 12.5px; font-weight: 800; color: #FCD34D;">
+          Apple App Store — Available Soon
         </div>
-
-        <button class="btn-mirror-apk ripple-effect" style="cursor: pointer; justify-content: center; padding: 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; background: rgba(59, 130, 246, 0.18); border-color: #3B82F6; color: #93C5FD; font-weight: 700;" onclick="openTenMirrorsModal()">
-          🌐 Direct APK & 10 Alternate Download Mirrors
-        </button>
       </div>
 
       <div style="margin-top: 14px; font-size: 10px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; font-family: monospace; word-break: break-all;">
         Package: com.aistudio.localiiiy.live • Version: 2.4.0 (Build 10)
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================================
-       MODAL: 10-MIRROR HIGH-AVAILABILITY APK DOWNLOAD HUB
-       ======================================================== -->
-  <div class="modal-backdrop" id="tenMirrorsModalBackdrop">
-    <div class="modal-sheet-card" style="max-height: 90vh; overflow-y: auto;">
-      <button class="modal-close-btn" onclick="closeTenMirrorsModal()">✕</button>
-
-      <div style="text-align: center; margin-bottom: 12px;">
-        <div style="font-size: 32px;">🌐</div>
-        <h3 style="font-size: 19px; font-weight: 800; margin-top: 4px;">10-Mirror Download Hub</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Fault-tolerant redundancy with zero dead links & instant auto-failover</p>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
-        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-family: monospace;">Global Mirrors (10 Active)</span>
-        <button onclick="pingAllMirrors()" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); color: var(--accent-mint); font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; cursor: pointer;">
-          ⚡ Ping All Mirrors
-        </button>
-      </div>
-
-      <!-- Live Mirrors List Container -->
-      <div id="mirrorsListContainer" style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Populated dynamically by renderMirrorsList() -->
-      </div>
-
-      <div style="margin-top: 14px; font-size: 10.5px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; line-height: 1.4;">
-        🔒 <strong>Cryptographic Parity Assurance:</strong> Every APK mirror maintains identical SHA-256 binary checksums with the production release pipeline.
       </div>
     </div>
   </div>
@@ -3509,7 +3357,7 @@
         <div class="form-field">
           <label>City or Neighborhood Landmark</label>
           <div style="display: flex; gap: 8px;">
-            <input type="text" class="form-input" id="manualLocationSearchInput" placeholder="e.g. Brooklyn, NY or Shinjuku, Tokyo" style="flex: 1;">
+            <input type="text" class="form-input" id="manualLocationSearchInput" placeholder="e.g. Vaddem, Vasco da Gama or Brooklyn, NY" style="flex: 1;">
             <button class="btn-hero-secondary" onclick="searchAndApplyManualLocation()">Apply</button>
           </div>
         </div>
@@ -3548,20 +3396,20 @@
       <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-field">
           <label>Email or @Username</label>
-          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. @alex_creative or name@mail.com" required>
+          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. @your_handle or name@mail.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
           <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="btn-submit-auth">Sign In to Radar 🚀</button>
+        <button type="submit" class="btn-submit-auth">Sign In to Localiiiy</button>
         <button type="button" onclick="signInWithGoogleFirebase()" style="width: 100%; padding: 10px; border-radius: 999px; background: #FFFFFF; color: #0F172A; font-weight: 800; font-size: 12.5px; border: none; cursor: pointer; margin-top: 4px;">
-          🌐 Continue with Google
+          Continue with Google
         </button>
-        <div style="text-align: center; margin-top: 6px;">
-          <button type="button" style="background: none; border: none; color: var(--accent-mint); font-size: 12px; cursor: pointer;" onclick="demoQuickLogin()">
-            ⚡ Instant Demo Login (Alex Rivera)
-          </button>
+        <div style="text-align: center; margin-top: 8px;">
+          <a href="/delete-account" style="color: #F87171; font-size: 11px; font-weight: 700; text-decoration: underline;">
+            Delete My Account Permanently
+          </a>
         </div>
       </form>
 
@@ -3569,15 +3417,15 @@
       <form class="auth-form" id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
         <div class="form-field">
           <label>Full Name (min 3 chars)</label>
-          <input type="text" class="form-input" id="regFullName" placeholder="Alex Rivera" required>
+          <input type="text" class="form-input" id="regFullName" placeholder="Enter your full name" required>
         </div>
         <div class="form-field">
           <label>Choose @Username</label>
-          <input type="text" class="form-input" id="regUsername" placeholder="@alex_creative" required>
+          <input type="text" class="form-input" id="regUsername" placeholder="@your_handle" required>
         </div>
         <div class="form-field">
           <label>Home Community Anchor / Landmark</label>
-          <input type="text" class="form-input" id="regNeighborhood" placeholder="e.g. Pike Place, Seattle" required>
+          <input type="text" class="form-input" id="regNeighborhood" placeholder="Auto-detect or enter city/landmark" required>
         </div>
         <div class="form-field">
           <label>Date of Birth (13+ Required • 13–17 Teen Ghost Default)</label>
@@ -3585,13 +3433,13 @@
         </div>
         <div class="form-field">
           <label>Email Address</label>
-          <input type="email" class="form-input" id="regEmail" placeholder="alex@example.com" required>
+          <input type="email" class="form-input" id="regEmail" placeholder="name@example.com" required>
         </div>
         <div class="form-field">
           <label>Password</label>
           <input type="password" class="form-input" id="regPassword" placeholder="Create strong password" required>
         </div>
-        <button type="submit" class="btn-submit-auth">Complete Cloud Registration 🚀</button>
+        <button type="submit" class="btn-submit-auth">Complete Cloud Registration</button>
       </form>
     </div>
   </div>
@@ -4022,11 +3870,11 @@
       return Math.round(Number(coord) * 1000) / 1000;
     }
 
-    // Automatic v2.4.0 Schema Migration: Purge stale v1.2.0 demo cache (@alex_creative / Pike Place, Seattle)
-    const CURRENT_SCHEMA_VERSION = '2.4.0';
+    // Automatic v2.4.0-android-100-parity Schema Migration: Purge stale demo cache
+    const CURRENT_SCHEMA_VERSION = '2.4.0-android-100-parity';
     if (localStorage.getItem('localiiiy_schema_version') !== CURRENT_SCHEMA_VERSION) {
       const cachedActive = localStorage.getItem('localiiiy_active_user') || '';
-      if (cachedActive.includes('alex_creative') || cachedActive.includes('Pike Place')) {
+      if (cachedActive.includes('alex_creative') || cachedActive.includes('Pike Place') || cachedActive.includes('demo_explorer')) {
         localStorage.removeItem('localiiiy_active_user');
         localStorage.removeItem('localiiiy_all_users');
         localStorage.removeItem('localiiiy_user_location_label');
@@ -4034,7 +3882,7 @@
       localStorage.setItem('localiiiy_schema_version', CURRENT_SCHEMA_VERSION);
       if ('caches' in window) {
         caches.keys().then(keys => keys.forEach(k => {
-          if (!k.includes('v2.4.0')) caches.delete(k);
+          if (!k.includes('android-100-parity')) caches.delete(k);
         })).catch(() => {});
       }
     }
@@ -4045,6 +3893,8 @@
     let users = JSON.parse(localStorage.getItem('localiiiy_all_users') || '[]');
     let currentUser = JSON.parse(localStorage.getItem('localiiiy_active_user') || 'null');
     let posts = JSON.parse(localStorage.getItem('localiiiy_local_posts') || '[]');
+    let marketItems = JSON.parse(localStorage.getItem('localiiiy_market_items') || '[]');
+    let clipsList = JSON.parse(localStorage.getItem('localiiiy_clips_list') || '[]');
     let auditLogs = JSON.parse(localStorage.getItem('localiiiy_audit_logs') || '[]');
     let creationType = 'post';
     let currentLocationLabel = localStorage.getItem('localiiiy_user_location_label') || '';
@@ -4084,11 +3934,11 @@
       }
     }
 
-    // Sync Live Posts & Marketplace Items from Cloud Firestore (`posts` & `marketplace_items`)
+    // Sync Live Posts, Marketplace Items & Clips from Cloud Firestore (`posts`, `marketplace_items`, `clips`)
     function attachLiveFirestoreListeners() {
       if (!isFirebaseLive || !fbDb) return;
 
-      // Real-time `posts` listener synced with Android app
+      // 1. Real-time `posts` listener synced with Android app
       try {
         fbDb.collection('posts').orderBy('createdAt', 'desc').limit(25).onSnapshot((snapshot) => {
           const cloudPosts = [];
@@ -4115,9 +3965,54 @@
             localStorage.setItem('localiiiy_local_posts', JSON.stringify(posts));
             renderPostsFromDb();
           }
-        }, (err) => {
-          console.log('Firestore posts listener using cached local feed:', err.message);
-        });
+        }, () => {});
+      } catch (_e) {}
+
+      // 2. Real-time `marketplace_items` listener synced with Android MarketScreen.kt
+      try {
+        fbDb.collection('marketplace_items').orderBy('createdAt', 'desc').limit(25).onSnapshot((snapshot) => {
+          const cloudItems = [];
+          snapshot.forEach((doc) => {
+            const d = doc.data();
+            if (d) {
+              cloudItems.push({
+                id: doc.id,
+                title: d.title || d.description || 'Neighborhood Listing',
+                price: d.price || '0',
+                sellerName: d.sellerName || 'Local Neighbor',
+                neighborhood: d.neighborhood || 'Local GPS Grid'
+              });
+            }
+          });
+          if (cloudItems.length > 0) {
+            marketItems = cloudItems;
+            localStorage.setItem('localiiiy_market_items', JSON.stringify(marketItems));
+            renderMarketItemsFromDb();
+          }
+        }, () => {});
+      } catch (_e) {}
+
+      // 3. Real-time `clips` listener synced with Android ClipsScreen.kt
+      try {
+        fbDb.collection('clips').orderBy('createdAt', 'desc').limit(15).onSnapshot((snapshot) => {
+          const cloudClips = [];
+          snapshot.forEach((doc) => {
+            const d = doc.data();
+            if (d) {
+              cloudClips.push({
+                id: doc.id,
+                caption: d.caption || d.title || 'Hyperlocal Clip',
+                authorHandle: d.authorHandle || '@neighbor',
+                landmark: d.neighborhood || d.landmark || 'Local GPS Grid'
+              });
+            }
+          });
+          if (cloudClips.length > 0) {
+            clipsList = cloudClips;
+            localStorage.setItem('localiiiy_clips_list', JSON.stringify(clipsList));
+            renderClipsFromDb();
+          }
+        }, () => {});
       } catch (_e) {}
     }
 
@@ -4155,6 +4050,8 @@
       }
 
       renderPostsFromDb();
+      renderMarketItemsFromDb();
+      renderClipsFromDb();
       initFirebaseHostingOrRuntime();
     });
 
@@ -5526,238 +5423,22 @@
     }
 
     // ========================================================
-    // 10-MIRROR HIGH-AVAILABILITY APK DOWNLOAD ENGINE + PLAY STORE
+    // OFFICIAL GOOGLE PLAY STORE & APPLE APP STORE MODAL LOGIC
     // ========================================================
-    const APK_MIRRORS = [
-      {
-        id: 1,
-        title: "Mirror 1 (Primary): Direct Web & Firebase CDN Distribution",
-        name: "Firebase Primary Storage",
-        url: "/downloads/Localiiiy.apk",
-        fallbackUrl: "./Localiiiy.apk",
-        region: "Global Edge",
-        badge: "PRIMARY ⚡",
-        badgeColor: "#10B981",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 2,
-        title: "Mirror 2: Official GitHub Releases Asset",
-        name: "GitHub Releases CDN",
-        url: "https://github.com/localiiiy-org/localiiiy-mobile/releases/latest/download/Localiiiy.apk",
-        region: "Global Fastly CDN",
-        badge: "OFFICIAL 🚀",
-        badgeColor: "#60A5FA",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 3,
-        title: "Mirror 3: Google Drive High-Speed Cloud Mirror",
-        name: "Google Drive High-Speed CDN",
-        url: "https://drive.google.com/file/d/1CiMuxjfPOlGKg-aCDhhVZvnimhOiljMq/view?usp=drivesdk",
-        region: "Worldwide Anycast",
-        badge: "FAILOVER 📁",
-        badgeColor: "#F59E0B",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 4,
-        title: "Mirror 4: GitHub Raw CDN Public Mirror",
-        name: "GitHub Raw Edge CDN",
-        url: "https://raw.githubusercontent.com/localiiiy-org/localiiiy-mobile/main/public/downloads/Localiiiy.apk",
-        region: "Worldwide Edge (300+ Cities)",
-        badge: "RAW CDN 🏎️",
-        badgeColor: "#F97316",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 5,
-        title: "Mirror 5: jsDelivr Global Multi-CDN Proxy",
-        name: "jsDelivr Multi-CDN Proxy",
-        url: "https://cdn.jsdelivr.net/gh/localiiiy-org/localiiiy-mobile@main/public/downloads/Localiiiy.apk",
-        region: "Unthrottled Global Proxy",
-        badge: "MULTI-CDN 🌐",
-        badgeColor: "#A855F7",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 6,
-        title: "Mirror 6: Firebase Storage Bucket Direct Link",
-        name: "Firebase Cloud Storage Bucket",
-        url: "https://firebasestorage.googleapis.com/v0/b/localiiiy.firebasestorage.app/o/downloads%2FLocaliiiy.apk?alt=media",
-        region: "Google Cloud Anycast Bucket",
-        badge: "GCLOUD 🛡️",
-        badgeColor: "#06B6D4",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 7,
-        title: "Mirror 7: Direct Root Distribution Endpoint",
-        name: "Localiiiy Direct Root Endpoint",
-        url: "/Localiiiy.apk",
-        region: "Direct Host Root",
-        badge: "ROOT HOST 🌏",
-        badgeColor: "#EC4899",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 8,
-        title: "Mirror 8: Media GitHub Fastly Git LFS Proxy",
-        name: "GitHub Media LFS Proxy",
-        url: "https://media.githubusercontent.com/media/localiiiy-org/localiiiy-mobile/main/downloads/Localiiiy.apk",
-        region: "Git LFS Fastly Cache",
-        badge: "GIT-LFS 📦",
-        badgeColor: "#84CC16",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 9,
-        title: "Mirror 9: Public Applet Downloads Hub",
-        name: "Applet Public Directory Mirror",
-        url: "/public/downloads/Localiiiy.apk",
-        region: "Local Web Distribution",
-        badge: "PUBLIC HUB 🪐",
-        badgeColor: "#14B8A6",
-        latency: null,
-        status: "READY"
-      },
-      {
-        id: 10,
-        title: "Mirror 10: DigitalOcean Spaces Multi-Region Cloud Backup",
-        name: "DigitalOcean Spaces Cold Backup",
-        url: "https://localiiiy-backup.sfo3.digitaloceanspaces.com/apks/Localiiiy.apk",
-        region: "Multi-Region Cold Disaster Recovery",
-        badge: "COLD DR ❄️",
-        badgeColor: "#64748B",
-        latency: null,
-        status: "READY"
-      }
-    ];
-
     function openDownloadModal() {
-      document.getElementById('downloadModalBackdrop').classList.add('open');
+      const m = document.getElementById('downloadModalBackdrop');
+      if (m) m.classList.add('open');
     }
     function closeDownloadModal() {
-      document.getElementById('downloadModalBackdrop').classList.remove('open');
+      const m = document.getElementById('downloadModalBackdrop');
+      if (m) m.classList.remove('open');
     }
 
-    function openTenMirrorsModal() {
-      renderMirrorsList();
-      document.getElementById('tenMirrorsModalBackdrop').classList.add('open');
-    }
-    function closeTenMirrorsModal() {
-      document.getElementById('tenMirrorsModalBackdrop').classList.remove('open');
-    }
-
-    function renderMirrorsList() {
-      const container = document.getElementById('mirrorsListContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      APK_MIRRORS.forEach((mirror, idx) => {
-        const item = document.createElement('div');
-        item.style.cssText = 'background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;';
-        
-        const latencyHtml = mirror.latency !== null 
-          ? `<span style="color: ${mirror.latency < 200 ? '#10B981' : (mirror.latency < 800 ? '#F59E0B' : '#EF4444')}; font-weight: bold; font-family: monospace;">🟢 ${mirror.latency}ms</span>` 
-          : `<span style="color: var(--text-muted); font-size: 10px; font-family: monospace;">${mirror.status}</span>`;
-
-        item.innerHTML = `
-          <div style="flex: 1; min-width: 0;">
-            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-              <span style="font-weight: 700; font-size: 12.5px; color: #FFFFFF;">${mirror.name}</span>
-              <span style="background: ${mirror.badgeColor}25; color: ${mirror.badgeColor}; border: 1px solid ${mirror.badgeColor}60; font-size: 9px; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-family: monospace;">${mirror.badge}</span>
-            </div>
-            <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">
-              ${mirror.region} • ${latencyHtml}
-            </div>
-          </div>
-          <button onclick="triggerSmartApkDownload(${idx})" style="background: #00B4D8; color: #041B26; border: none; font-weight: 800; font-size: 11px; padding: 6px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap;">
-            ⬇️ Download
-          </button>
-        `;
-        container.appendChild(item);
-      });
-    }
-
-    async function checkMirrorHealth(mirror, timeoutMs = 2000) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      const start = performance.now();
-      try {
-        await fetch(mirror.url, {
-          method: 'HEAD',
-          mode: 'no-cors',
-          signal: controller.signal
-        });
-        clearTimeout(timer);
-        const latency = Math.round(performance.now() - start);
-        mirror.latency = latency;
-        mirror.status = 'ONLINE';
-        return { ok: true, latency, mirror };
-      } catch (err) {
-        clearTimeout(timer);
-        if (mirror.fallbackUrl) {
-          try {
-            const fCtrl = new AbortController();
-            const fTimer = setTimeout(() => fCtrl.abort(), 1500);
-            await fetch(mirror.fallbackUrl, { method: 'HEAD', signal: fCtrl.signal });
-            clearTimeout(fTimer);
-            const latency = Math.round(performance.now() - start);
-            mirror.latency = latency;
-            mirror.status = 'ONLINE';
-            return { ok: true, latency, mirror, useFallback: true };
-          } catch (_e) {}
-        }
-        mirror.status = 'FAIL';
-        return { ok: false, error: err.name, mirror };
-      }
-    }
-
-    async function pingAllMirrors() {
-      showToast('Pinging all 10 mirrors in parallel... ⚡');
-      await Promise.all(APK_MIRRORS.map(m => checkMirrorHealth(m, 2500)));
-      renderMirrorsList();
-      showToast('Mirrors health check updated! 🟢');
-    }
-
-    async function triggerSmartApkDownload(manualIndex = null) {
-      if (manualIndex !== null && APK_MIRRORS[manualIndex]) {
-        const mirror = APK_MIRRORS[manualIndex];
-        showToast(`Starting direct download via ${mirror.name}... ⬇️`);
-        initiateBrowserDownload(mirror.url);
-        return;
-      }
-
+    function triggerSmartApkDownload() {
       showToast('Redirecting to official Google Play Store... 🚀');
       setTimeout(() => {
         window.open('https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live', '_blank');
-      }, 400);
-    }
-
-    function initiateBrowserDownload(url) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Localiiiy.apk';
-      if (url.startsWith('http')) {
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-      }
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-
-    function triggerDownloadFeedback(server) {
-      showToast(`Starting APK download via ${server}... ⬇️`);
+      }, 300);
     }
 
     // ========================================================
@@ -5985,19 +5666,7 @@
     }
 
     function demoQuickLogin() {
-      const explorer = {
-        uid: 'demo_explorer',
-        fullName: 'Local Explorer',
-        username: '@local_neighbor',
-        neighborhood: currentLocationLabel || 'Verified GPS Grid',
-        connections: 128,
-        sparks: 450
-      };
-      currentUser = explorer;
-      localStorage.setItem('localiiiy_active_user', JSON.stringify(explorer));
-      updateUserUI(explorer);
-      closeAuthModal();
-      showToast('Signed in to Localiiiy v2.4.0! ✨');
+      enterGhostSpectatorMode();
     }
 
     async function logoutUser() {
@@ -6022,11 +5691,16 @@
       const profName = document.getElementById('profileDisplayName');
       if (profName) profName.textContent = user.fullName || 'Local Neighbor';
       const profHandle = document.getElementById('profileDisplayHandle');
-      if (profHandle) profHandle.textContent = `${user.username || '@neighbor'} • ${user.neighborhood || 'Local Grid'}`;
+      if (profHandle) profHandle.textContent = `${user.username || '@neighbor'} • ${user.neighborhood || 'Local GPS Grid'}`;
+      const connCount = user.connections !== undefined ? user.connections : 0;
       const profConn = document.getElementById('profileConnectionsCount');
-      if (profConn) profConn.textContent = user.connections || 128;
+      if (profConn) profConn.textContent = connCount;
+      const studioConn = document.getElementById('studioConnectedValue');
+      if (studioConn) studioConn.textContent = connCount;
+      const profSparks = document.getElementById('profileSparksCount');
+      if (profSparks) profSparks.textContent = `${user.sparks !== undefined ? user.sparks : 100} ⚡`;
 
-      const initial = (user.fullName && user.fullName.charAt(0)) || '👤';
+      const initial = (user.fullName && user.fullName.charAt(0).toUpperCase()) || '👤';
       const deckThumb = document.getElementById('deckAvatarThumb');
       if (deckThumb) deckThumb.textContent = user.avatarEmoji || initial;
       const profAvatar = document.getElementById('profileDisplayAvatar');
@@ -6042,7 +5716,7 @@
       if (authBtn) authBtn.onclick = () => switchDeck('profile');
     }
 
-    // Content creation (+) synced with Live Firestore `posts` and `marketplace_items`
+    // Content creation (+) synced with Live Firestore `posts`, `marketplace_items`, and `clips`
     function openCreationModal(type) {
       if (!currentUser) {
         showToast('Please sign in to publish content! 👤');
@@ -6056,11 +5730,15 @@
       const priceGroup = document.getElementById('priceFieldGroup');
 
       if (type === 'market') {
-        title.textContent = 'Post Item or Service';
+        title.textContent = 'List Safe-Haven Item or Service';
         icon.textContent = '🛍️';
         priceGroup.style.display = 'flex';
+      } else if (type === 'clip') {
+        title.textContent = 'Broadcast Vertical Clip / Studio Film';
+        icon.textContent = '🎬';
+        priceGroup.style.display = 'none';
       } else if (type === 'story') {
-        title.textContent = 'Add 24h Story';
+        title.textContent = 'Add 24h Neighborhood Story';
         icon.textContent = '📸';
         priceGroup.style.display = 'none';
       } else {
@@ -6097,7 +5775,30 @@
       posts.unshift(newPost);
       localStorage.setItem('localiiiy_local_posts', JSON.stringify(posts));
 
-      // Write to Live Firestore (`posts` and `marketplace_items`) so Android app sees it immediately
+      if (creationType === 'market') {
+        const newMarketItem = {
+          id: postId,
+          title: text,
+          price: price || '0',
+          sellerName: currentUser.fullName,
+          neighborhood: currentUser.neighborhood || currentLocationLabel || 'Local GPS Grid'
+        };
+        marketItems.unshift(newMarketItem);
+        localStorage.setItem('localiiiy_market_items', JSON.stringify(marketItems));
+        renderMarketItemsFromDb();
+      } else if (creationType === 'clip') {
+        const newClip = {
+          id: postId,
+          caption: text,
+          authorHandle: currentUser.username || '@neighbor',
+          landmark: currentUser.neighborhood || currentLocationLabel || 'Local GPS Grid'
+        };
+        clipsList.unshift(newClip);
+        localStorage.setItem('localiiiy_clips_list', JSON.stringify(clipsList));
+        renderClipsFromDb();
+      }
+
+      // Write to Live Firestore (`posts`, `marketplace_items`, `clips`) so Android app sees it immediately
       if (isFirebaseLive && fbDb) {
         try {
           await fbDb.collection('posts').doc(postId).set({
@@ -6113,7 +5814,7 @@
             neighborhood: currentUser.neighborhood || currentLocationLabel || 'Local Grid',
             createdAt: Date.now()
           });
-          if (creationType === 'market' && price) {
+          if (creationType === 'market') {
             await fbDb.collection('marketplace_items').doc(postId).set({
               id: postId,
               sellerName: currentUser.fullName,
@@ -6123,6 +5824,16 @@
               price: Number(price) || 0,
               neighborhood: currentUser.neighborhood || 'Local Grid',
               safeHavenEscrow: true,
+              createdAt: Date.now()
+            });
+          } else if (creationType === 'clip') {
+            await fbDb.collection('clips').doc(postId).set({
+              id: postId,
+              authorName: currentUser.fullName,
+              authorHandle: currentUser.username,
+              caption: text,
+              neighborhood: currentUser.neighborhood || 'Local Grid',
+              reachTier: reach,
               createdAt: Date.now()
             });
           }
@@ -6170,6 +5881,42 @@
         `;
         container.insertBefore(card, container.firstChild);
       });
+    }
+
+    function renderMarketItemsFromDb() {
+      const container = document.getElementById('marketGridContainer');
+      if (!container) return;
+      container.querySelectorAll('.dynamic-market-item').forEach(el => el.remove());
+      const emptyCard = document.getElementById('emptyMarketGoodsCard');
+      if (emptyCard) {
+        emptyCard.style.display = marketItems.length > 0 ? 'none' : 'block';
+      }
+      marketItems.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'market-card dynamic-market-item ripple-effect';
+        card.innerHTML = `
+          <div class="market-info" style="padding: 14px;">
+            <div class="market-price">$${item.price || '0'}</div>
+            <h4 style="font-size: 13.5px; font-weight: 800; margin-top: 4px; color: #FFFFFF;">${item.title}</h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${item.neighborhood || 'Local GPS Grid'} • ${item.sellerName || 'Verified Neighbor'}</p>
+            <button class="btn-buy-handshake ripple-effect" style="margin-top: 10px;" onclick="initiateHandshake('${item.price || '0'}')">
+              Request Safe-Haven Handshake 🤝
+            </button>
+          </div>
+        `;
+        container.insertBefore(card, container.firstChild);
+      });
+    }
+
+    function renderClipsFromDb() {
+      if (!clipsList || clipsList.length === 0) return;
+      const latest = clipsList[0];
+      const landmarkEl = document.getElementById('activeClipLandmark');
+      const captionEl = document.getElementById('activeClipCaption');
+      const authorEl = document.getElementById('activeClipAuthor');
+      if (landmarkEl && latest.landmark) landmarkEl.textContent = latest.landmark;
+      if (captionEl && latest.caption) captionEl.textContent = latest.caption;
+      if (authorEl && latest.authorHandle) authorEl.textContent = `${latest.authorHandle} • Connected`;
     }
 
     // Comments Modal

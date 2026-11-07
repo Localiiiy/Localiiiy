@@ -27,6 +27,7 @@ It empowers verified neighbors to **Connect**, broadcast across a **Dual-Reach L
 | 🌐 **Official Web Application (PWA)** | **🟢 LIVE (100% Android Synced)** | **[https://localiiiy.web.app](https://localiiiy.web.app)** |
 | 🔒 **Privacy Policy (GitHub & Web)** | **🟢 LIVE (GDPR / DPDP / Play Data Safety)** | **[GitHub Privacy Policy (`PRIVACY_POLICY.md`)](https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md)** • **[Web Privacy Portal](https://localiiiy.web.app/privacy)** |
 | 📜 **Terms of Service (GitHub & Web)** | **🟢 LIVE (24-Article Omnibus Charter)** | **[GitHub Terms of Service (`TERMS_OF_SERVICE.md`)](https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md)** • **[Web Terms Portal](https://localiiiy.web.app/terms)** |
+| 🗑️ **Delete My Account Permanently** | **🟢 LIVE (Google Play Data Safety URL)** | **[https://localiiiy.web.app/delete-account](https://localiiiy.web.app/delete-account)** |
 
 > **📲 Download the app from Google Play Store:**  
 > 👉 **[https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live](https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live)**  
