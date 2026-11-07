@@ -76,7 +76,7 @@ fun TermsAndConditionsScreen(
 
     val anchors = remember(filteredClauses) {
         buildList {
-            add(HashAnchorItem(id = "#overview", label = "Overview (All 24)", targetIndex = 0))
+            add(HashAnchorItem(id = "#overview", label = "Overview (All 36)", targetIndex = 0))
             filteredClauses.forEachIndexed { idx, clause ->
                 val shortNum = clause.clauseNumber.replace("Section ", "Sec ")
                 add(
@@ -101,12 +101,12 @@ fun TermsAndConditionsScreen(
                         Column {
                             Text("Omnibus Terms & Protocols", fontWeight = FontWeight.Bold, fontSize = 16.5.sp)
                             Text(
-                                text = "Registration -> 0km–Earth -> LCC Copyright -> NDA -> Oblivion",
+                                text = "18+ Radar Lock -> LCC SHA-256 Hash -> Developer Safe-Harbor -> 15 Civic Tools -> Oblivion",
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        EnergeticPulseBadge(text = "24 ARTICLES", color = Color(0xFF00FF66))
+                        EnergeticPulseBadge(text = "36 ARTICLES", color = Color(0xFF00FF66))
                     }
                 },
                 navigationIcon = {
@@ -120,7 +120,7 @@ fun TermsAndConditionsScreen(
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             val fullText = LegalPolicyRepository.buildFullOmnibusDocumentText()
                             clipboard.setPrimaryClip(ClipData.newPlainText("Localiiiy Omnibus Terms", fullText))
-                            copiedBanner = "Copied all 24 Master Articles & Subsections to clipboard! 📋"
+                            copiedBanner = "Copied all 36 Master Articles & Subsections to clipboard! 📋"
                         },
                         modifier = Modifier.testTag("terms_copy_all_button")
                     ) {

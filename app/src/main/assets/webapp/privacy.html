@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy & Community Guidelines — Localiiiy</title>
-  <meta name="description" content="Official Privacy Policy and Community Guidelines for Localiiiy. Google Play Store & Apple App Store compliant.">
+  <title>Master Privacy Policy, Data Safety &amp; Developer Safe-Harbor Charter — Localiiiy (v2.4.0)</title>
+  <meta name="description" content="Official 20-Chapter Master Privacy Policy, Google Play Data Safety Charter, 18+ Radar Restriction, LCC SHA-256 Copyright Hash Protocol, and Developer Non-Liability Safe-Harbor for Localiiiy.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,9 +15,10 @@
       --accent-mint: #10B981;
       --accent-cyan: #06B6D4;
       --accent-gold: #F59E0B;
+      --accent-red: #EF4444;
       --text-main: #F3F4F6;
       --text-muted: #9CA3AF;
-      --border-color: rgba(255, 255, 255, 0.08);
+      --border-color: rgba(255, 255, 255, 0.09);
       --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
@@ -26,17 +27,26 @@
       background-color: var(--bg);
       color: var(--text-main);
       font-family: var(--font-main);
-      line-height: 1.65;
-      padding: 24px 16px 80px;
+      line-height: 1.7;
+      padding: 20px 16px 80px;
     }
-    .container {
-      max-width: 860px;
-      margin: 0 auto;
+    .container { max-width: 920px; margin: 0 auto; }
+    .store-top-banner {
+      background: linear-gradient(90deg, #042F2E 0%, #0F172A 50%, #082F49 100%);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
     }
     header {
-      padding: 32px 0 24px;
+      padding: 24px 0;
       border-bottom: 1px solid var(--border-color);
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
     .badge-pill {
       display: inline-flex;
@@ -45,26 +55,26 @@
       background: rgba(16, 185, 129, 0.15);
       color: var(--accent-mint);
       border: 1px solid rgba(16, 185, 129, 0.35);
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 999px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       letter-spacing: 0.5px;
       text-transform: uppercase;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     h1 {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: 800;
       letter-spacing: -0.5px;
       margin-bottom: 8px;
-      background: linear-gradient(135deg, #FFF, #93C5FD);
+      background: linear-gradient(135deg, #FFF, #67E8F9, #34D399);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .meta-text {
       color: var(--text-muted);
-      font-size: 13px;
+      font-size: 12.5px;
       font-family: var(--font-mono);
     }
     .card {
@@ -72,21 +82,21 @@
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      margin-bottom: 22px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.35);
     }
     h2 {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 19px;
+      font-weight: 800;
       color: #38BDF8;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
     h3 {
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15.5px;
+      font-weight: 700;
       color: #F9FAFB;
       margin: 16px 0 8px;
     }
@@ -96,19 +106,41 @@
       margin-bottom: 12px;
     }
     ul, ol {
-      padding-left: 20px;
+      padding-left: 22px;
       color: #D1D5DB;
       font-size: 14.5px;
       margin-bottom: 14px;
     }
-    li { margin-bottom: 6px; }
-    strong { color: #FFF; font-weight: 600; }
+    li { margin-bottom: 7px; }
+    strong { color: #FFF; font-weight: 700; }
+    code {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      background: rgba(255,255,255,0.08);
+      color: #67E8F9;
+      padding: 2px 6px;
+      border-radius: 5px;
+    }
     .highlight-box {
       background: rgba(56, 189, 248, 0.08);
       border-left: 4px solid #38BDF8;
       padding: 14px 18px;
       border-radius: 0 10px 10px 0;
-      margin: 16px 0;
+      margin: 14px 0;
+    }
+    .safeharbor-box {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1.5px solid rgba(245, 158, 11, 0.45);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 14px 0;
+    }
+    .agegate-box {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1.5px solid rgba(239, 68, 68, 0.45);
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 14px 0;
     }
     .btn-return {
       display: inline-flex;
@@ -117,18 +149,14 @@
       background: rgba(255,255,255,0.08);
       color: #FFF;
       text-decoration: none;
-      padding: 10px 18px;
+      padding: 9px 16px;
       border-radius: 999px;
-      font-size: 13.5px;
-      font-weight: 600;
-      margin-bottom: 24px;
+      font-size: 13px;
+      font-weight: 700;
       transition: all 0.2s ease;
       border: 1px solid var(--border-color);
     }
-    .btn-return:hover {
-      background: rgba(255,255,255,0.15);
-      border-color: rgba(255,255,255,0.25);
-    }
+    .btn-return:hover { background: rgba(255,255,255,0.16); }
     .footer {
       text-align: center;
       padding-top: 32px;
@@ -140,123 +168,201 @@
 </head>
 <body>
   <div class="container">
-    <a href="/" class="btn-return">← Back to Localiiiy Web App</a>
-    
+    <!-- Top Store & Navigation Banner -->
+    <div class="store-top-banner">
+      <div style="font-size: 12.5px; font-weight: 700; color: #E2E8F0;">
+        📲 For exploring all full features of Localiiiy, download the official app:
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener" style="background: #10B981; color: #042417; font-weight: 800; font-size: 12px; padding: 6px 12px; border-radius: 999px; text-decoration: none;">🤖 Google Play Store</a>
+        <span style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4); color: #FBBF24; font-weight: 700; font-size: 11.5px; padding: 5px 11px; border-radius: 999px;">🍎 Apple App Store: Available Soon</span>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px;">
+      <a href="/" class="btn-return">← Back to Localiiiy Web App</a>
+      <a href="/terms" class="btn-return" style="border-color: rgba(56,189,248,0.4); color: #7DD3FC;">📜 Read 36-Article Terms of Service (/terms)</a>
+      <a href="/delete-account" class="btn-return" style="border-color: rgba(239,68,68,0.5); background: rgba(239,68,68,0.14); color: #FCA5A5;">🗑️ Delete My Account Permanently (/delete-account)</a>
+    </div>
+
     <header>
-      <div class="badge-pill">🛡️ Official Legal Disclosure & Store Compliance</div>
-      <h1>Privacy Policy & Community Guidelines</h1>
-      <p class="meta-text">Effective Date: September 2026 • Version 2.4.0 • Google Play & App Store Production Compliant</p>
+      <div class="badge-pill">🛡️ Official 20-Chapter Master Privacy Policy &amp; Data Safety Charter</div>
+      <h1>Master Privacy Policy, Data Safety &amp; Developer Safe-Harbor Charter</h1>
+      <p class="meta-text">Effective &amp; Updated: November 7, 2026 • Version: v2.4.0 (36-Article Omnibus Edition) • Package ID: com.aistudio.localiiiy.live • Official Helpdesk: Localiiiy.Helpdesk@gmail.com</p>
     </header>
 
+    <!-- CHAPTER 1 -->
     <div class="card">
-      <h2>Section 1.0 — Overview & Core Privacy Principles</h2>
-      <p>Localiiiy ("we", "us", "our", or "the Platform") is a next-generation hyperlocal social discovery, creator clips, and neighborhood marketplace platform accessible via our Android Application and official Firebase Web App (<strong>https://localiiiy.web.app</strong>).</p>
-      <p>We believe social networking should be authentic, privacy-first, and respectful. We do not sell your personal data to data brokers or third-party behavioral advertising networks.</p>
+      <h2>Chapter 1.0 — Preamble, Sovereign Privacy Philosophy &amp; Unified Cross-Platform Scope</h2>
+      <p><strong>Localiiiy</strong> ("Platform", "Application", "We", "Us", or "Our") is a privacy-first hyperlocal community network, 15-category civic utility hub, 18+ tactical proximity radar, 9:16 vertical clips stream, 4K creator cinema studio, and Safe-Haven neighborhood marketplace accessible via our official Android Application (<code>com.aistudio.localiiiy.live</code>) and our synchronized Progressive Web Application (<strong><a href="https://localiiiy.web.app" style="color:#38BDF8;">https://localiiiy.web.app</a></strong> and <strong>https://localiiiy.firebaseapp.com</strong>).</p>
+      <ul>
+        <li><strong>Sovereign Privacy by Design:</strong> Unlike legacy social media platforms that silently harvest continuous background GPS trajectories for behavioral advertising brokers, Localiiiy puts 100% of location, radar, and identity visibility switches directly under the user's own voluntary control.</li>
+        <li><strong>Exclusive "Connections" Social Graph Terminology:</strong> Localiiiy permanently abolishes predatory "follower/following" surveillance hierarchies. Every social relationship, tab filter, and profile counter strictly uses <strong>"Connect"</strong>, <strong>"Connected"</strong>, and <strong>"Connections"</strong>.</li>
+        <li><strong>Single Official Contact Email:</strong> For all privacy inquiries, Data Protection Officer (DPO) requests, copyright notices, or safety grievances, our sole and exclusive official email address is <strong><code>Localiiiy.Helpdesk@gmail.com</code></strong>.</li>
+      </ul>
     </div>
 
+    <!-- CHAPTER 2: DEVELOPER & OWNER NON-LIABILITY -->
     <div class="card">
-      <h2>Section 2.0 — Google Play Store Data Safety Disclosures</h2>
-      <div class="highlight-box">
-        <p><strong>Google Play Developer Program Compliance:</strong> The following declarations reflect the exact data collected, processed, and secured in Localiiiy for all real users.</p>
+      <h2>Chapter 2.0 — Absolute Developer, Creator &amp; Owner Non-Liability &amp; Sovereign User Choice Safe-Harbor</h2>
+      <div class="safeharbor-box">
+        <p style="margin-bottom:0;"><strong>⚖️ CRITICAL LEGAL NOTICE &amp; DEVELOPER IMMUNITY COVENANT:</strong> The Developer, Creator, Architect, Founder, and Owner of Localiiiy is <strong>NOT responsible or liable for anything</strong> arising from user actions, offline meetups, cybercrime, financial fraud, scams, or voluntary data sharing, because the Platform has engineered and placed every privacy switch (Radar ON/OFF, Location ON/OFF, Ghost Mode ON/OFF, 1km–500km obfuscation) AND downloadable SHA-256 Forensic Activity Logs (<code>/safety_logs/</code> &amp; <code>audit_logs</code>) directly into the user's own hands for their own choice and self-defense.</p>
       </div>
-
-      <h3>A. Personal Information</h3>
+      <h3>2.1 Complete User Choice Over All Privacy &amp; Visibility Switches</h3>
+      <p>Localiiiy provides every user with 100% free, instant, 1-tap controls to govern their own digital and physical privacy:</p>
       <ul>
-        <li><strong>Display Name, Username & Email:</strong> Processed securely via Firebase Authentication (Google Cloud) strictly for user authentication, security verification, and account recovery.</li>
-        <li><strong>Account Identifiers:</strong> Randomly generated cryptographic UUIDs used to manage your local profile, posts, and community badges.</li>
+        <li><strong>Tactical Radar ON / OFF Power Switch:</strong> Users can switch the Radar transceiver completely OFF at any second using the power button below the radar scope or in Settings.</li>
+        <li><strong>Master Ghost Mode (Stealth Observer Mode) ON / OFF:</strong> Enabled by default at registration. When Ghost Mode is ON, your active beacon in <code>radar_beacons/{uid}</code> is immediately purged and zero coordinates are broadcasted.</li>
+        <li><strong>Device Location Permission ON / OFF:</strong> Users can deny or revoke Android OS or Web browser GPS permissions at any time while continuing to use the app in Off-Grid mode.</li>
+        <li><strong>Coordinate Fuzzing (<code>roundCoord3</code> ~110m Grid) &amp; 1 km–500 km Obfuscation Sliders:</strong> Even when an 18+ user chooses to broadcast, coordinates are truncated to 3 decimal places (~110m grid) and masked across <code>3k</code>, <code>5k</code>, <code>10k</code>, or up to <code>500 km</code> privacy rings.</li>
+        <li><strong>Granular Profile Concealment Switches:</strong> Users can independently hide their Profile Picture, Posts, Clips, Email Address, Mobile Number, Street Address, View Receipts, and Direct Calls.</li>
+        <li><strong>Safe-Haven Police Precinct 6-Digit Handshake OTP Escrow:</strong> Users are provided with cryptographic 6-digit OTP escrow and 24/7 CCTV Police Precinct meetup routing for marketplace trades.</li>
       </ul>
+      <h3>2.2 Self-Service SHA-256 Forensic Audit Logs for Cybercrime &amp; Fraud Reporting</h3>
+      <p>If any user experiences suspected cybercrime, online fraud, harassment, or scam attempts, Localiiiy provides built-in <strong>Tamper-Evident SHA-256 Activity Audit Logs (<code>audit_logs</code>)</strong> and <strong>ISO/IEC 27037 Forensic Safety Logs (<code>/safety_logs/</code>)</strong> directly inside the app. The user can immediately export these cryptographically signed logs (containing timestamps, offender <code>@username</code> handles, interaction hashes, and SHA-256 certificates) and submit them directly to their local Cyber Crime Police Cell or law enforcement authorities. Under global intermediary safe-harbor laws (including Section 79 of the Indian IT Act, 47 U.S.C. § 230, and EU DSA Articles 4–6), the Developer and Owner of Localiiiy bears <strong>zero civil, criminal, or financial responsibility or liability</strong> for any user misconduct, cybercrime, or fraud.</p>
+    </div>
 
-      <h3>B. Location Telemetry & Dynamic Proximity Radar</h3>
+    <!-- CHAPTER 3: STRICT 18+ RADAR RESTRICTION -->
+    <div class="card">
+      <h2>Chapter 3.0 — Strict 18+ Adult Age Restriction on Tactical Radar (Totally Restricted Below 18 Years)</h2>
+      <div class="agegate-box">
+        <p style="margin-bottom:0;"><strong>🔞 MANDATORY UNDER-18 RADAR LOCKOUT:</strong> In Localiiiy, the <strong>Tactical Radar option is TOTALLY RESTRICTED, LOCKED, and PROHIBITED for all users below 18 years of age (<code>calculatedAge &lt; 18</code>)</strong>. Only verified adults aged 18 years and older (18+) may access or broadcast on Tactical Radar.</p>
+      </div>
       <ul>
-        <li><strong>Approximate & Precise Location:</strong> Used exclusively for real-time proximity discovery when the user actively switches ON the Proximity Radar or uses "Nearby" filters.</li>
-        <li><strong>Zero Background Tracking:</strong> Location coordinates are <em>never</em> polled, tracked, or broadcast when the application is closed or in the background.</li>
-        <li><strong>Off-Grid / Ghost Cloak (Stealth Observer Mode):</strong> Users can browse without broadcasting their GPS pin or appearing on nearby radars.</li>
-        <li><strong>Spatial Obfuscation (Radar Masks):</strong> Users can blur their coordinates to a 3km, 5km, or 10km radius grid. Minors (under 18) are protected with mandatory location obfuscation.</li>
-      </ul>
-
-      <h3>C. Photos, Videos & Media</h3>
-      <ul>
-        <li><strong>Zero-Permission Photo Picker:</strong> Localiiiy utilizes Android's native system Photo Picker (<code>PickVisualMedia</code>). The application never requests broad storage access (<code>READ_EXTERNAL_STORAGE</code> or <code>READ_MEDIA_IMAGES</code>).</li>
-        <li><strong>Creator Content:</strong> Media uploaded for posts, clips, or marketplace listings is transmitted over TLS 1.3 encrypted connections and stored securely in Google Cloud Firebase Storage.</li>
-      </ul>
-
-      <h3>D. What We NEVER Collect</h3>
-      <ul>
-        <li>We <strong>NEVER</strong> access or scrape your contact address book.</li>
-        <li>We <strong>NEVER</strong> listen to your microphone or wiretap calls.</li>
-        <li>We <strong>NEVER</strong> inspect SMS messages or personal files on your device.</li>
-        <li>We <strong>NEVER</strong> collect or store credit card numbers, bank PINs, or raw financial instruments.</li>
+        <li><strong>Under 13 Strictly Blocked (COPPA Compliance):</strong> Individuals under 13 years of age are strictly blocked from creating an account by the Section 10 Date-of-Birth Age Gate.</li>
+        <li><strong>Ages 13 to 17 — Total Tactical Radar Prohibition &amp; Permanent Ghost Lock:</strong> Any registered user aged 13 to 17 is <strong>completely barred and technically locked out from the Tactical Radar module</strong> (no live radar beacon broadcasting, no nearby stranger radar sweeps, and no proximity waves). Accounts aged 13–17 are permanently locked into <strong>Master Ghost Mode</strong> with restricted adult DM barriers and high-sensitivity media shields.</li>
+        <li><strong>18+ Verified Adult Requirement:</strong> Accessing Tactical Radar 2.0, executing legally binding Safe-Haven Digital Escrow contracts, or withdrawing Creator Wallet payouts requires verified 18+ adult status. Falsifying a Date of Birth during registration is a material breach of contract that voids account access and absolves the Developer and Owner of all liability.</li>
       </ul>
     </div>
 
+    <!-- CHAPTER 4: 11-SECTION REGISTRATION & 2-WAY OTP -->
     <div class="card">
-      <h2>Section 3.0 — Real User Account Deletion & Right to Permanent Erasure</h2>
-      <p>In strict compliance with Google Play Store User Data & Account Deletion policies:</p>
+      <h2>Chapter 4.0 — 11-Section Registration Data Collection &amp; Dual 6-Digit OTP Verification</h2>
+      <p>To prevent bot networks, sybil attacks, and impersonation while maintaining strict data minimization, our 11-Section Registration pipeline collects:</p>
       <ol>
-        <li><strong>1-Tap In-App Erasure:</strong> Any real user can permanently wipe their account at any time by navigating to: <strong>Profile → Settings → Delete Account (Complete Data Oblivion)</strong>.</li>
-        <li><strong>Instant Irrevocable Purge:</strong> Deleting your account immediately erases:
-          <ul>
-            <li>Your Firebase Authentication account credentials.</li>
-            <li>Your Firestore user profile, post records, clips, and messages.</li>
-            <li>All local SQLite Room database tables and cached media on your device.</li>
-          </ul>
-        </li>
-        <li><strong>Dedicated Web Account Deletion Portal:</strong> You can permanently delete your account online at any time via our dedicated portal: <a href="/delete-account" style="color: #EF4444; font-weight: 800; text-decoration: underline;">Delete My Account Permanently (https://localiiiy.web.app/delete-account)</a> or by emailing <strong>Localiiiy.Helpdesk@gmail.com</strong>.</li>
+        <li><strong>Space Profile Avatar:</strong> Selected via the zero-permission Android Photo Picker or preset Space ID icons.</li>
+        <li><strong>Legal Full Name &amp; Unique <code>@username</code> Handle:</strong> Validated in real time against <code>usernames/{handle}</code> to prevent impersonation.</li>
+        <li><strong>Salted &amp; Hashed Password:</strong> Enforcing 8+ characters, numeric digits, and special symbols via 256-bit Firebase Authentication (never stored in plaintext).</li>
+        <li><strong>Dual 6-Digit Cryptographic OTP (Email OTP + Mobile SMS OTP):</strong> Both your Email Address and Mobile Phone Number (across 190+ country dialing codes) are verified via 6-digit One-Time Passcodes with a 5-attempt brute-force lockout timer.</li>
+        <li><strong>Date of Birth (DOB) Age Gate:</strong> Enforces the 13+ registration floor and the <strong>Strict 18+ Tactical Radar Lock</strong>.</li>
+        <li><strong>Home Community Anchor &amp; 20 Interest Constellations:</strong> Seeds your initial 0 km neighborhood discovery and interest feeds.</li>
+        <li><strong>Default "Hide (Ghost)" Privacy State:</strong> Every new account starts with Radar Visibility set to <strong>Ghost Mode ON</strong> by default.</li>
+        <li><strong>Scroll-to-Unlock 36-Article Legal Charter Attestation:</strong> Records your timestamped SHA-256 consent certificate.</li>
+      </ol>
+    </div>
+
+    <!-- CHAPTER 5: BIDIRECTIONAL WEB & ANDROID SYNC -->
+    <div class="card">
+      <h2>Chapter 5.0 — Bidirectional Web App (localiiiy.web.app) ↔ Android APK Cloud Synchronization</h2>
+      <p>Localiiiy operates a single, unified Google Cloud Firestore and Firebase Authentication backend across both our Android APK (<code>com.aistudio.localiiiy.live</code>) and our official Web App (<code>https://localiiiy.web.app</code>):</p>
+      <ul>
+        <li><strong>Unified Login Credentials:</strong> A real user registered on the Android app is immediately authenticated on the Web App (and vice versa) using either their <strong><code>@username</code> handle</strong> or their <strong>Email Address + Password</strong>, or via Google Sign-In.</li>
+        <li><strong>Real-Time Privacy Parity:</strong> Toggling Ghost Mode, updating your coordinate obfuscation radius, blocking a user, or deleting your account on the Web App synchronizes instantaneously with the Android app over TLS 1.3 encrypted channels.</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 6: SPATIAL PRIVACY & GHOST MODE -->
+    <div class="card">
+      <h2>Chapter 6.0 — Spatial Coordinate Fuzzing (~110m roundCoord3 Grid), 1km–500km Obfuscation &amp; Ghost Mode</h2>
+      <ul>
+        <li><strong>Zero Exact Street-Address Storage (<code>roundCoord3</code>):</strong> Before any coordinate is written to Cloud Firestore (<code>radar_beacons/{uid}</code>), latitude and longitude are mathematically truncated to 3 decimal places (~110-meter neighborhood grid) and layered with radial jitter so your exact room, apartment door, or residential address is never transmitted.</li>
+        <li><strong>1 km to 500 km Obfuscation Slider &amp; <code>3k</code> / <code>5k</code> / <code>10k</code> Rings:</strong> 18+ users can widen their spatial blur radius from 1 km up to 500 km at any time.</li>
+        <li><strong>Zero Background Location Tracking:</strong> Localiiiy never polls or tracks device location when the app is closed or running in the background.</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 7: GUEST SPECTATOR MODE -->
+    <div class="card">
+      <h2>Chapter 7.0 — Guest Spectator (Read-Only) Mode &amp; Zero-GPS Footprint Browsing</h2>
+      <p>Unregistered visitors on both Android and Web may browse public Pulse posts, vertical Clips, 4K Studio videos, and Marketplace listings in <strong>Guest Spectator Mode</strong> with zero persistent identity token and zero GPS beacon transmission. Attempting any interactive write action (liking, remarks, posting, Civic broadcasts, Community Hub access, Safe-Haven Escrow, or Connecting) triggers a clean prompt to Sign In or Register.</p>
+    </div>
+
+    <!-- CHAPTER 8: GOOGLE PLAY DATA SAFETY & ANDROID PERMISSIONS -->
+    <div class="card">
+      <h2>Chapter 8.0 — Google Play Store Data Safety Matrix &amp; Zero-Permission Photo Picker</h2>
+      <div class="highlight-box">
+        <p style="margin-bottom:0;"><strong>Strict Google Play Policy Compliance:</strong> Localiiiy follows the Principle of Least Privilege and never requests invasive broad storage or contact-scraping permissions.</p>
+      </div>
+      <ul>
+        <li><strong>Zero-Permission Android Photo Picker (<code>PickVisualMedia</code>):</strong> Localiiiy never requests <code>READ_EXTERNAL_STORAGE</code>, <code>WRITE_EXTERNAL_STORAGE</code>, <code>READ_MEDIA_IMAGES</code>, or <code>READ_MEDIA_VIDEO</code>. Media selection uses Android's secure system Photo Picker.</li>
+        <li><strong>Context-Only Runtime Permissions:</strong> <code>CAMERA</code> and <code>RECORD_AUDIO</code> are requested only when you actively record a Clip, Studio video, or speak in a Live Audio Room; <code>ACCESS_FINE_LOCATION</code> / <code>ACCESS_COARSE_LOCATION</code> are requested only when an 18+ user voluntarily activates Nearby/Radar features.</li>
+        <li><strong>What We NEVER Collect:</strong> We never scrape your contact address book (<code>READ_CONTACTS</code>), never wiretap background microphone audio, never read private SMS logs, never store raw credit card numbers/CVVs, and never execute Dynamic Code Loading (<code>.dex</code> / <code>.jar</code> / <code>.so</code>).</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 9: LOCALIIIY CREATOR COPYRIGHT (LCC) SHA-256 HASH ENGINE -->
+    <div class="card">
+      <h2>Chapter 9.0 — Localiiiy Creator Copyright (LCC) &amp; Cryptographic Hash Value Engine (SHA-256 + pHash)</h2>
+      <p>Creators retain 100% copyright ownership of their original photos, 9:16 Clips, and 4K Studio productions. Every upload is protected by Localiiiy's automated dual-layer cryptographic fingerprinting engine (<code>MediaFingerprintEngine</code>):</p>
+      <h3>9.1 Exact Cryptographic Hash Value Formula</h3>
+      <p>At the moment of upload, Localiiiy computes a deterministic <strong>256-bit SHA-256 Cryptographic Hash Value</strong> over the canonical media and authorship payload:</p>
+      <div class="highlight-box" style="font-family: var(--font-mono); font-size: 12.5px; color: #67E8F9; overflow-x: auto;">
+        LCC_SHA256_DIGEST = SHA-256( Creator_UID || "|" || Normalized_@Username || "|" || Raw_Media_Byte_Stream || "|" || Perceptual_pHash_Vector || "|" || UTC_Epoch_Millis_Timestamp || "|" || License_Mode_Salt )
+      </div>
+      <ul>
+        <li><strong>Full 64-Character Hexadecimal SHA-256 Digest:</strong> Stored immutably in Firestore <code>copyright_registry</code> (e.g., <code>sha256:8f4e9b2c7a1d6e5f4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a</code>) to prove mathematical priority of creation.</li>
+        <li><strong>Public Certificate Badge (<code>LCC-XXXXXX-2026</code>):</strong> Derived from the upper 24 bits (6 Base-36 alphanumeric characters) of the SHA-256 digest and displayed on the Clip and 4K Studio player overlay.</li>
+        <li><strong>64-Bit DCT Perceptual &amp; Acoustic Hash (<code>phash_</code>):</strong> Extracts normalized visual keyframe luminance matrices and audio spectral peaks (<code>phash_&lt;16-hex&gt;</code>) so that even if a pirate crops, mirrors, screen-records, color-grades, or re-encodes your video (altering raw bytes), our Hamming-distance scanner detects the duplicate upload automatically.</li>
+        <li><strong>Parent-Child Remix Hash Chaining:</strong> When you select <em>Localiiiy Creative Commons (LCC)</em> and permit Remixes/Duets, downstream remixes embed an immutable pointer to your parent <code>LCC_SHA256_DIGEST</code>, guaranteeing permanent credit and royalty routing.</li>
+        <li><strong>7-Day Counter-Notice Quarantine, 100% Revenue Rerouting &amp; 3-Strike Ban:</strong> Infringing uploads matching a protected <code>LCC_SHA256_DIGEST</code> or <code>phash_</code> are quarantined for a 7-day counter-notice window. Confirmed copyright theft results in <strong>100% of accrued ad revenue and fan tips being automatically rerouted to the original LCC hash owner's Creator Wallet</strong> and enforces our <strong>3-Strike / 90-Day Permanent Account &amp; Hardware Ban</strong>.</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 10: 15-CATEGORY CIVIC TOOLS -->
+    <div class="card">
+      <h2>Chapter 10.0 — 15-Category Hyperlocal Civic Tools, AI Translator &amp; Anti-Hoax SOS Governance</h2>
+      <p>The <strong>Civic Tools</strong> tab inside Pulse provides 15 structured neighborhood utility channels sorted by ascending proximity (3 KM, 5 KM, 10 KM, 15 KM, 20 KM, 30 KM, up to 50 KM): <em>(1) Blood SOS, (2) Lost &amp; Found, (3) Civic Fix, (4) Ride Pool, (5) Food Rescue, (6) Skill Swap, (7) Flash Deal, (8) Rent Tool, (9) Play Match, (10) Work Cafe, (11) Yard Sale, (12) Safe Walk, (13) Street Art, (14) Plant Swap, and (15) Elder Care</em>, paired with an <strong>AI Multi-Lingual Local Dialect Translator</strong>.</p>
+      <ul>
+        <li><strong>Voluntary Blood Donor &amp; Elder Care Privacy:</strong> Opt-in responder flags can be disabled with 1 tap at any time. Localiiiy is not a medical hospital or government emergency dispatch service—always dial 112 / 911 / 999 / 100 / 108 in life-threatening emergencies.</li>
+        <li><strong>Zero-Tolerance Anti-Hoax SOS Policy:</strong> Broadcasting false Blood SOS alerts or fake civic emergencies results in immediate permanent hardware banishment and law enforcement referral.</li>
+        <li><strong>Ephemeral AI Translation &amp; Studio Scripting:</strong> Prompts sent to the AI Dialect Translator or 4K Studio AI Hook Generator are processed ephemerally and are never sold or used to train third-party advertising models.</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 11: LOCAL COMMUNITY HUB & SAFE-HAVEN MARKETPLACE -->
+    <div class="card">
+      <h2>Chapter 11.0 — Local Community Hub (5 Sub-Tabs), Safe-Haven 5% Escrow &amp; $1,000 Creator Payouts</h2>
+      <ul>
+        <li><strong>Local Community Hub (5 Sub-Tabs):</strong> Includes <em>Feed &amp; Alerts</em>, <em>Live Voice (Spatial Audio Rooms)</em> streamed ephemerally only while unmuted, <em>Polls &amp; Votes</em> (<code>1 Verified Neighbor = 1 Vote</code>), <em>Resource Vault</em>, and <em>VIP Lounge</em>.</li>
+        <li><strong>Safe-Haven Handshake OTP Escrow:</strong> Marketplace funds are locked in neutral escrow (5% standard fee; 0% for Localiiiy Pro) and released only when buyer and seller meet at a verified 24/7 CCTV Police Precinct Safe-Haven Green Zone and verify the <strong>6-Digit Handshake OTP</strong>.</li>
+        <li><strong>Creator Wallet &amp; $1,000 USD Equivalent Minimum Payout:</strong> Creators earn a <strong>55% net ad-revenue share</strong> and <strong>100% of direct fan micro-tips (0% platform fee)</strong>. Withdrawals via UPI, Stripe Connect, PayPal, SWIFT, SEPA, or PIX require a settled balance of at least <strong>$1,000.00 USD (or live local currency equivalent)</strong> and standard KYC/tax verification.</li>
+      </ul>
+    </div>
+
+    <!-- CHAPTER 12: 1-TAP ACCOUNT OBLIVION -->
+    <div class="card">
+      <h2>Chapter 12.0 — 1-Tap Account Oblivion &amp; Permanent Right to Erasure (/delete-account)</h2>
+      <p>In full compliance with Google Play Store User Data Policy, Apple App Store Guidelines, GDPR Article 17, CCPA/CPRA, and the India Digital Personal Data Protection (DPDP) Act 2023, every user holds an unconditional right to permanent erasure at any second:</p>
+      <ol>
+        <li><strong>In-App 1-Tap Erasure:</strong> Open <strong>Space (Profile) → Settings &amp; Privacy → Complete Account &amp; Data Oblivion</strong> and confirm deletion.</li>
+        <li><strong>Standalone Web Deletion Portal (No App Required):</strong> Visit <strong><a href="/delete-account" style="color: #EF4444; font-weight: 800; text-decoration: underline;">https://localiiiy.web.app/delete-account</a></strong> (or click the Delete Account link on the Sign-In screen or Space tab) to immediately purge your Firebase Auth credentials, Firestore <code>users/{uid}</code> profile, <code>usernames/{handle}</code> lock, <code>radar_beacons/{uid}</code>, posts, clips, and local storage.</li>
+        <li><strong>Helpdesk Assisted Erasure:</strong> You may also request immediate erasure by emailing <strong><code>Localiiiy.Helpdesk@gmail.com</code></strong>.</li>
       </ol>
       <div style="margin-top: 14px;">
         <a href="/delete-account" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.16); border: 1px solid rgba(239, 68, 68, 0.45); color: #FCA5A5; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 999px; text-decoration: none;">
-          🗑️ Delete My Account Permanently ↗
+          🗑️ Open Self-Service Permanent Account Deletion Portal (/delete-account) ↗
         </a>
       </div>
     </div>
 
+    <!-- CHAPTER 13: EXCLUSIVE OFFICIAL CONTACT -->
     <div class="card">
-      <h2>Section 4.0 — Dual-Reach Creator Distribution & Content Sovereignty</h2>
-      <p>Localiiiy provides creators complete control over their content distribution:</p>
+      <h2>Chapter 13.0 — Exclusive Official Helpdesk, Grievance Officer &amp; Platform Links</h2>
+      <p>All privacy inquiries, Data Protection Officer (DPO) requests, LCC/DMCA copyright notices, Safe-Haven Escrow tickets, and statutory grievances are handled exclusively through our single official contact channel:</p>
       <ul>
-        <li><strong>Hyperlocal Anchoring (Neighbor):</strong> Content first surfaces in your immediate neighborhood, enabling authentic discoverability without requiring large connection counts.</li>
-        <li><strong>Algorithmic Scaling (Neighbor to Earth):</strong> Engaging clips naturally graduate through: <em>Neighbor → Neighborhood → City → State → Earth (Worldwide)</em>.</li>
-        <li><strong>Creator Sovereignty:</strong> Creators can choose to constrain content locally or enable global worldwide reach before publishing.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Section 5.0 — Community Safety, Anti-Harassment & Zero-Tolerance UGC Policy</h2>
-      <div class="highlight-box">
-        <p><strong>Apple Guideline 1.2 & Google Play UGC Compliance:</strong> Localiiiy maintains zero tolerance for abusive, objectionable, or harmful content.</p>
-      </div>
-      <ul>
-        <li><strong>Prohibited Content:</strong> Violence, hate speech, sexual exploitation, harassment, illicit substances, weapons, and scam listings are strictly forbidden.</li>
-        <li><strong>Instant 1-Tap Flagging & Reporting:</strong> Every post, clip, and user profile includes a visible report button dispatched immediately to our 24-hour moderation queue.</li>
-        <li><strong>Instant 2-Way Blocking:</strong> Blocking any user immediately removes them from your live radar, feed, and messaging channels.</li>
-        <li><strong>24-Hour Moderation SLA:</strong> Violations result in immediate content takedown and permanent account termination.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Section 6.0 — Creator Monetization, Bounties & Worldwide Payouts</h2>
-      <p>Localiiiy supports creator monetization through verified ad revenue sharing (55% creator share), direct fan tips (0% platform commission), and marketplace services.</p>
-      <ul>
-        <li><strong>Minimum Withdrawal Threshold:</strong> To prevent financial fraud, the baseline minimum payout threshold is <strong>1,000.00 USD</strong> or the exact live exchange equivalent in your country's local currency.</li>
-        <li><strong>Disbursement Channels:</strong> Payouts are routed through verified international networks (Stripe Connect, PayPal, SWIFT Bank Wire, SEPA, UPI) upon completing standard identity verification.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Section 7.0 — Official Contact, GitHub Policy & Store Links</h2>
-      <p>For questions regarding this Privacy Policy, data requests, or community safety inquiries, contact our team:</p>
-      <ul>
+        <li><strong>Exclusive Official Helpdesk &amp; Grievance Email:</strong> <strong><code>Localiiiy.Helpdesk@gmail.com</code></strong></li>
+        <li><strong>Acknowledgement &amp; Resolution SLA:</strong> Emergency safety/CSAM reports triaged within &lt;15 mins to 4 hours; formal grievance acknowledgment within 24 hours; full resolution within 15 calendar days.</li>
         <li><strong>Official Web App:</strong> <a href="https://localiiiy.web.app" style="color: #38BDF8;">https://localiiiy.web.app</a></li>
-        <li><strong>Google Play Store:</strong> <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" style="color: #10B981;">Download the app from Google Play Store</a> <em>(Apple App Store: Available Soon)</em></li>
+        <li><strong>Google Play Store:</strong> <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" style="color: #10B981; font-weight: 700;">Download the app from Google Play Store</a> <em>(Apple App Store: Available Soon)</em></li>
         <li><strong>Delete Account Permanently:</strong> <a href="https://localiiiy.web.app/delete-account" style="color: #EF4444; font-weight: 700;">https://localiiiy.web.app/delete-account</a></li>
-        <li><strong>GitHub Privacy Policy:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md</a></li>
-        <li><strong>GitHub Terms of Service:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md</a></li>
-        <li><strong>Privacy & Safety Desk:</strong> Localiiiy.Helpdesk@gmail.com</li>
+        <li><strong>Terms of Service (36-Article Charter):</strong> <a href="https://localiiiy.web.app/terms" style="color: #38BDF8;">https://localiiiy.web.app/terms</a></li>
+        <li><strong>GitHub Canonical Privacy Policy:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md</a></li>
+        <li><strong>GitHub Canonical Terms of Service:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md</a></li>
       </ul>
     </div>
 
     <div class="footer">
-      <p>© 2026 Localiiiy (v2.4.0). All rights reserved. Registered for global distribution on Google Play Store, GitHub & Firebase Hosting.</p>
+      <p>© 2026 Localiiiy (v2.4.0 • 36-Article Omnibus Charter). All rights reserved. Exclusive Official Helpdesk: <strong>Localiiiy.Helpdesk@gmail.com</strong></p>
     </div>
   </div>
 </body>

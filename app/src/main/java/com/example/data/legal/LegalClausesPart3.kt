@@ -74,7 +74,7 @@ Every user holds the unconditional right to permanent account deletion at any ti
     1. Your Firebase Authentication user record and session tokens;
     2. Your Firestore cloud profile, reserved `@username` document, posts, clips, and connection records;
     3. Your entire local Android Room SQLite database (`AppDatabase`), SharedPreferences, and media caches;
-(c) Web Portal Deletion Option: Users who have uninstalled the app may request permanent account deletion at `https://localiiiy.web.app/privacy.html` or by emailing `support@localiiiy.web.app`.
+(c) Web Portal Deletion Option: Users who have uninstalled the app may execute permanent self-service account deletion at `https://localiiiy.web.app/delete-account.html` (`https://localiiiy.web.app/privacy.html`) or by emailing `Localiiiy.Helpdesk@gmail.com`.
             """.trimIndent(),
             subSections = listOf(
                 LegalSubSection(

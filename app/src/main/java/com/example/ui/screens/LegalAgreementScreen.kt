@@ -124,7 +124,7 @@ fun LegalAgreementScreen(
                                     .background(if (isAccepted) LocaliiiyAccentMint else MaterialTheme.colorScheme.tertiary)
                             )
                             Text(
-                                text = "${LegalPolicyRepository.CURRENT_POLICY_VERSION} • 24 Master Articles",
+                                text = "${LegalPolicyRepository.CURRENT_POLICY_VERSION} • 36 Master Articles",
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -199,7 +199,7 @@ fun LegalAgreementScreen(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (isAccepted) "Signed for @$currentUsername • 24 Articles Verified in Room DB" else "Tap below to certify your legal understanding of all 24 Articles",
+                                text = if (isAccepted) "Signed for @$currentUsername • 36 Articles Verified in Room DB" else "Tap below to certify your legal understanding of all 36 Articles",
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

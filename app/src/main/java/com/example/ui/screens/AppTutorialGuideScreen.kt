@@ -39,10 +39,19 @@ import com.example.util.LocalAppLanguage
 import kotlinx.coroutines.launch
 
 enum class TutorialTab(val title: String, val emoji: String) {
-    RUNNING_GUIDE("App Guide", "📱"),
+    RUNNING_GUIDE("App Guide (18 Steps)", "📱"),
+    HELPDESK_FAQ("Helpdesk & FAQ", "🛟"),
     ACTIVATION_BADGES("Activation Badges", "🎖️"),
     MONETIZATION("Earn & Payouts", "💰")
 }
+
+data class HelpdeskFaqItem(
+    val id: String,
+    val category: String,
+    val question: String,
+    val answer: String,
+    val quickTip: String
+)
 
 data class TutorialGuideStep(
     val title: String,
@@ -82,11 +91,19 @@ fun AppTutorialGuideScreen(
             HashAnchorItem(id = "#step-2", label = "3. 9:16 Clips", targetIndex = 3),
             HashAnchorItem(id = "#step-3", label = "4. Copyright & Revenue", targetIndex = 4),
             HashAnchorItem(id = "#step-4", label = "5. Verified Badges", targetIndex = 5),
-            HashAnchorItem(id = "#step-5", label = "6. Pulse & Feed", targetIndex = 6),
-            HashAnchorItem(id = "#step-6", label = "7. Proximity Radar", targetIndex = 7),
-            HashAnchorItem(id = "#step-7", label = "8. Long Studio", targetIndex = 8),
-            HashAnchorItem(id = "#step-8", label = "9. Safety Shield", targetIndex = 9),
-            HashAnchorItem(id = "#step-9", label = "10. Creator Wallet", targetIndex = 10)
+            HashAnchorItem(id = "#step-5", label = "6. Safety Shield", targetIndex = 6),
+            HashAnchorItem(id = "#step-6", label = "7. Creator Wallet", targetIndex = 7),
+            HashAnchorItem(id = "#step-7", label = "8. Clip to Shop", targetIndex = 8),
+            HashAnchorItem(id = "#step-8", label = "9. 75+ Languages", targetIndex = 9),
+            HashAnchorItem(id = "#step-9", label = "10. Web & Deep Links", targetIndex = 10),
+            HashAnchorItem(id = "#step-10", label = "11. Radar Obfuscation", targetIndex = 11),
+            HashAnchorItem(id = "#step-11", label = "12. Account Oblivion", targetIndex = 12),
+            HashAnchorItem(id = "#step-12", label = "13. 15 Civic Tools", targetIndex = 13),
+            HashAnchorItem(id = "#step-13", label = "14. Community Hub", targetIndex = 14),
+            HashAnchorItem(id = "#step-14", label = "15. Tactical Radar 2.0", targetIndex = 15),
+            HashAnchorItem(id = "#step-15", label = "16. Web-Android Sync", targetIndex = 16),
+            HashAnchorItem(id = "#step-16", label = "17. Spectator & Teens", targetIndex = 17),
+            HashAnchorItem(id = "#step-17", label = "18. 4K Studio & AI", targetIndex = 18)
         )
     }
 
@@ -247,6 +264,82 @@ fun AppTutorialGuideScreen(
                     "Official live Privacy Policy & Terms hosted at https://localiiiy.web.app/privacy.html"
                 ),
                 tag = "Store Safety"
+            ),
+            TutorialGuideStep(
+                title = "13. 15-Category Hyperlocal Civic Tools & AI Local Translator",
+                subtitle = "Emergency SOS, civic infrastructure fixes & ascending proximity (3 KM to 50 KM)",
+                imageUrl = "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=1080&auto=format&fit=crop&q=80",
+                description = "Access the Civic Tools tab inside Pulse to broadcast and respond to verified neighborhood needs sorted strictly by ascending distance from 3 KM up to 50 KM.",
+                bulletPoints = listOf(
+                    "15 Dedicated Categories: Blood SOS, Lost & Found, Civic Fix, Ride Pool, Food Rescue, Skill Swap, Flash Deal, Rent Tool, Play Match, Work Cafe, Yard Sale, Safe Walk, Street Art, Plant Swap, and Elder Care",
+                    "Tap the '+' button on any category pill to open a structured, category-specific broadcast form",
+                    "Filter broadcasts by exact radius: 3 KM, 5 KM, 10 KM, 15 KM, 20 KM, 30 KM, or 50 KM",
+                    "Built-in AI Multi-Lingual Local Translator with voice dictation across regional and global languages"
+                ),
+                tag = "Civic Tools"
+            ),
+            TutorialGuideStep(
+                title = "14. Localiiiy Community Hub (5 Interactive Sub-Tabs)",
+                subtitle = "Neighborhood clubs, Spatial Voice Rooms, Ranked Polls, Vault & VIP Lounge",
+                imageUrl = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1080&auto=format&fit=crop&q=80",
+                description = "Join or create hyperlocal micro-communities (Urban Gardeners, Local Dog Owners, Neighborhood Watch, Indie Creators) with five specialized collaboration spaces.",
+                bulletPoints = listOf(
+                    "Feed & Alerts: Share neighborhood updates and attach Market items, Studio episodes, or Clips",
+                    "Live Voice: Drop into low-latency Spatial Audio Rooms with connected neighbors",
+                    "Polls & Votes: Participate in democratic neighborhood governance and budget priorities",
+                    "Resource Vault & VIP Lounge: Access shared emergency contacts, tool registries, and 100+ Sparks perks"
+                ),
+                tag = "Community Hub"
+            ),
+            TutorialGuideStep(
+                title = "15. Tactical Radar 2.0: 3D Pitch, Sonar, +10km Boost & HUD Themes",
+                subtitle = "Dual actionable control strips, Kalman telemetry smoothing & geofence pins",
+                imageUrl = "https://images.unsplash.com/photo-1508614589041-895b88991e3e?w=1080&auto=format&fit=crop&q=80",
+                description = "Master the two actionable tactical control strips above the circular radar scope to customize range, perspective, power consumption, and visual HUD palettes.",
+                bulletPoints = listOf(
+                    "Row 1 Controls: 2D Top-Down / 3D Pitch 45°, Active Sonar Shockwave, +10km RF Boost, Privacy Shield, Broadcast Signal, Night HUD, and Full Power / Eco Scan",
+                    "Row 2 Controls: Compass Heading Lock, Sweep Interval (1.5s–10s), Map Overlay, Alert Pins toggle, Verified Residents filter, and Kalman Filter smoothing",
+                    "5 Custom HUD Themes: Switch between Phosphor Green (PHOS), Amber Gold (GOLD), Cyber Cyan (CYAN), Crimson Night (CRIM), and Violet Aura (AURA)",
+                    "Switch seamlessly between Circular Radar View, Street Map View, and Neighbor Grid View"
+                ),
+                tag = "Tactical Radar"
+            ),
+            TutorialGuideStep(
+                title = "16. 11-Section Registration & Bidirectional Web ↔ Android Sync",
+                subtitle = "One unified account across the Android APK and https://localiiiy.web.app",
+                imageUrl = "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1080&auto=format&fit=crop&q=80",
+                description = "Your Localiiiy identity is unified through Firebase Authentication and Cloud Firestore (`users/{uid}` and `usernames/{handle}`). Register once and sign in on either Android or Web.",
+                bulletPoints = listOf(
+                    "Dual Sign-In Support: Log in using either your unique @username handle OR your registered Email Address + Password on both Android and Web",
+                    "Dual 6-Digit Cryptographic OTP: Verifies both Email and Mobile SMS during registration with 5-attempt brute-force lockout protection",
+                    "Live @username Reservation: Real-time availability check against Cloud Firestore with smart handle suggestions",
+                    "Scroll-to-Accept Omnibus Legal Charter: Ensures every neighbor reads and accepts community safety standards"
+                ),
+                tag = "Web ↔ Android Sync"
+            ),
+            TutorialGuideStep(
+                title = "17. Guest Spectator Mode & Strict Under-18 Radar Lock (18+ Only)",
+                subtitle = "Zero-footprint browsing and total Radar restriction below 18 years of age",
+                imageUrl = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1080&auto=format&fit=crop&q=80",
+                description = "Explore public neighborhood feeds without logging in via Guest Spectator Mode, while strict age-gating totally restricts Tactical Radar for anyone below 18 years of age.",
+                bulletPoints = listOf(
+                    "Guest Spectator Mode: Allows read-only viewing of public posts, clips, studio videos, and market listings with zero GPS footprint",
+                    "Tactical Radar Totally Restricted Below 18 Years: Users aged 13–17 are strictly prohibited and locked out from Tactical Radar broadcasting or stranger radar sweeps (18+ Verified Adults Only)",
+                    "Developer Safe-Harbor: Users control Radar ON/OFF, Location ON/OFF, Ghost Mode, and SHA-256 Forensic Logs at their own sovereign choice"
+                ),
+                tag = "18+ Radar Gate"
+            ),
+            TutorialGuideStep(
+                title = "18. 4K Studio Cinema, AI Hook Generator & LCC SHA-256 Hash Engine",
+                subtitle = "16:9 neighborhood documentaries, AI shot scripts & SHA-256 + pHash copyright proof",
+                imageUrl = "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1080&auto=format&fit=crop&q=80",
+                description = "Publish widescreen 4K episodes, mini-documentaries, and neighborhood spotlights in the Studio tab with built-in AI script assistance and SHA-256 + perceptual pHash copyright protection.",
+                bulletPoints = listOf(
+                    "AI Hook & Shot Script Generator: Enter any local topic to generate a 3-part hook, story sequence, and call-to-connect script",
+                    "LCC Cryptographic Hash Formula: Computes SHA-256(Creator_UID | Media_Bytes | pHash | UTC_Timestamp) mapped to LCC-XXXXXX-2026 + 64-hex digest",
+                    "100% Revenue Rerouting & 3-Strike Rule: Unauthorized re-uploads are flagged by pHash/SHA-256 and 100% of ad revenue is rerouted to the true LCC creator"
+                ),
+                tag = "Studio & LCC Hash"
             )
         )
     }
@@ -503,6 +596,404 @@ fun AppTutorialGuideScreen(
                             }
                         }
                     }
+                    }
+                }
+
+                TutorialTab.HELPDESK_FAQ -> {
+                    var faqSearchQuery by remember { mutableStateOf("") }
+                    var selectedFaqCategory by remember { mutableStateOf("All") }
+                    var expandedFaqId by remember { mutableStateOf<String?>("faq-1") }
+
+                    val faqCategories = remember {
+                        listOf(
+                            "All",
+                            "Account & Login",
+                            "Radar & Ghost Mode",
+                            "Civic Tools & Community",
+                            "Market & Escrow",
+                            "Creator Wallet & Payouts",
+                            "Safety, SOS & Deletion"
+                        )
+                    }
+
+                    val helpdeskFaqs = remember {
+                        listOf(
+                            HelpdeskFaqItem(
+                                id = "faq-1",
+                                category = "Account & Login",
+                                question = "Can I use the same Localiiiy account on both the Android App and the Web App (localiiiy.web.app)?",
+                                answer = "Yes! Localiiiy uses a unified Firebase Authentication and Cloud Firestore identity engine (`users/{uid}` and `usernames/{handle}`). Any account registered on the Android app or on https://localiiiy.web.app works immediately on both platforms.",
+                                quickTip = "You can sign in using either your @username handle OR your registered Email Address + Password."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-2",
+                                category = "Account & Login",
+                                question = "Why do I need to verify both a 6-digit Email OTP and a 6-digit Mobile SMS OTP during registration?",
+                                answer = "Dual 6-digit cryptographic OTP verification prevents bot networks, fake sybil accounts, and neighborhood spam. It ensures every neighbor on the radar and in Safe-Haven Marketplace transactions is an authentic human.",
+                                quickTip = "After 5 incorrect OTP attempts, verification locks for 60 seconds to prevent brute-force guessing."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-3",
+                                category = "Account & Login",
+                                question = "What is Guest Spectator (Read-Only) Mode and what is restricted when I'm not signed in?",
+                                answer = "Guest Spectator Mode lets you explore public Pulse posts, vertical Clips, Studio videos, and Marketplace listings without logging in or broadcasting any GPS footprint. However, interactive actions—Liking, Remarks, posting, uploading, Space IDs, Community Hubs, Civic Tool broadcasts, and Connecting—require signing in.",
+                                quickTip = "Tap 'Log In or Register' on the top Spectator banner anytime to unlock full community participation."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-4",
+                                category = "Account & Login",
+                                question = "What is the minimum age requirement, and why is Tactical Radar totally restricted below 18 years of age?",
+                                answer = "You must be at least 13 years old to register (COPPA, GDPR-K, and India DPDP Act compliance). However, the Tactical Radar option (live radar broadcasting, stranger radar sweeps, and proximity beacons) is TOTALLY RESTRICTED and LOCKED for anyone below 18 years of age (`calculatedAge < 18`). Users aged 13–17 have Ghost Mode permanently locked ON and cannot access Tactical Radar until they turn 18.",
+                                quickTip = "Tactical Radar is strictly an 18+ adult feature; users under 13 are completely blocked from registration."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-5",
+                                category = "Account & Login",
+                                question = "Why does Localiiiy use 'Connect', 'Connected', and 'Connections' instead of 'Follow' or 'Followers'?",
+                                answer = "Localiiiy is built around reciprocal neighborhood community rather than passive celebrity hierarchies. Every social link on Pulse, Clips, Studio, Radar, and Space strictly uses Connect / Connected / Connections.",
+                                quickTip = "Use the 'Connected' filter tab in Pulse and Clips to view updates exclusively from your connected neighbors."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-6",
+                                category = "Radar & Ghost Mode",
+                                question = "How does Ghost Mode (Stealth Observer) protect my exact home or room location?",
+                                answer = "When Ghost Mode is ON, your device immediately purges any active `radar_beacons/{uid}` document from Cloud Firestore and stops transmitting coordinates. Even when an 18+ adult enables broadcasting ('Show in Area'), all coordinates are rounded to 3 decimal places (`roundCoord3`, ~110m fuzzing grid) plus 1km–500km obfuscation sliders so your exact room or apartment door is never exposed.",
+                                quickTip = "You can also select 3 KM, 5 KM, or 10 KM obfuscation rings below the radar scope."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-7",
+                                category = "Radar & Ghost Mode",
+                                question = "What do the two control rows above the circular Tactical Radar do?",
+                                answer = "Row 1 controls perspective and transceiver modes: 2D Top-Down vs. 3D Pitch 45°, Active Sonar Pulse shockwave, +10km High-Gain RF Boost, Privacy Shield, Broadcast Signal, Night HUD, and Full Power vs. Eco Scan. Row 2 controls telemetry: Compass Heading lock, Sweep Interval (1.5s–10s), Map Overlay, Alert Pins toggle, All Residents vs. Verified Only, Node count, and Kalman Filter smoothing.",
+                                quickTip = "Tap '+10km BOOST' to expand your effective radar reach by +10 KM instantly."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-8",
+                                category = "Radar & Ghost Mode",
+                                question = "Can I turn off the radar transceiver completely without logging out?",
+                                answer = "Yes. Directly below the circular radar canvas is the 'Radar Online / Turn OFF' power card. Tapping 'Turn OFF' places the RF transceiver in standby mode until you turn it back ON.",
+                                quickTip = "You can also switch between 5 HUD color palettes: Phosphor Green (PHOS), Gold, Cyan, Crimson, and Aura."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-9",
+                                category = "Civic Tools & Community",
+                                question = "What are the 15 Hyperlocal Civic Tools categories inside the Pulse tab?",
+                                answer = "The Civic Tools tab provides 15 structured neighborhood utility channels sorted by ascending proximity (3 KM to 50 KM): (1) Blood SOS, (2) Lost & Found, (3) Civic Fix, (4) Ride Pool, (5) Food Rescue, (6) Skill Swap, (7) Flash Deal, (8) Rent Tool, (9) Play Match, (10) Work Cafe, (11) Yard Sale, (12) Safe Walk, (13) Street Art, (14) Plant Swap, and (15) Elder Care.",
+                                quickTip = "Tap the '+' icon inside any of the 15 category pills to publish a verified alert for that specific category."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-10",
+                                category = "Civic Tools & Community",
+                                question = "How does the Ascending Proximity radius filter (3 KM to 50 KM) work in Civic Tools?",
+                                answer = "Civic broadcasts are sorted nearest-first (0.1 KM -> 50 KM) so critical neighborhood alerts—such as an urgent Blood SOS or Lost Pet 400 meters away—appear at the top. You can filter the feed by 3 KM, 5 KM, 10 KM, 15 KM, 20 KM, 30 KM, or 50 KM.",
+                                quickTip = "Use the built-in AI Multi-Lingual Local Translator inside Civic Tools to translate alerts into regional languages."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-11",
+                                category = "Civic Tools & Community",
+                                question = "What are the 5 sub-tabs inside the Local Community Hub?",
+                                answer = "Each neighborhood hub (e.g., Urban Gardeners, Local Dog Owners, Neighborhood Watch, Indie Creators) includes 5 sub-tabs: (1) Feed & Alerts, (2) Live Voice (Spatial Audio Rooms), (3) Polls & Votes (ranked civic governance), (4) Resource Vault (emergency contacts & shared tool registry), and (5) VIP Lounge (for neighbors with 100+ Sparks).",
+                                quickTip = "You can attach Marketplace items, Studio episodes, or Clips directly to your Community Hub posts."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-12",
+                                category = "Civic Tools & Community",
+                                question = "How does Creator Dual-Reach Distribution (Neighbor / City / Earth) work?",
+                                answer = "When publishing a Pulse post, Clip, or Studio video, you choose its primary reach tier: Neighbor (5 KM hyperlocal ward), City (50 KM municipal sector), or Earth (global discovery). High-engagement local posts organically graduate from Neighbor to City and Earth.",
+                                quickTip = "You can also toggle between Pure Chronological (zero-algorithm) and Algorithmic feeds at the top of Pulse."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-13",
+                                category = "Market & Escrow",
+                                question = "How does Safe-Haven Handshake Escrow protect buyers and sellers in the Market?",
+                                answer = "When you tap 'Request Safe-Haven Handshake' on a Marketplace listing, funds are locked in cryptographic escrow and a 6-digit OTP handshake code is generated. Both parties meet at a verified 24/7 CCTV Police Safe-Haven Exchange Zone (Green Zone) and verify the 6-digit OTP to release payment.",
+                                quickTip = "Never release the 6-digit Handshake OTP before inspecting the physical item in person."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-14",
+                                category = "Market & Escrow",
+                                question = "What is the platform fee for Marketplace sales and Service Gigs?",
+                                answer = "Standard Safe-Haven Escrow transactions carry a 5% platform escrow protection fee. Upgrading to Localiiiy Pro / Premium reduces your Safe-Haven Escrow fee to 0%.",
+                                quickTip = "Direct peer-to-peer neighborhood swaps and fan micro-tips always have 0% platform commission."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-15",
+                                category = "Market & Escrow",
+                                question = "How do I convert a 9:16 vertical Clip into a shoppable Marketplace product?",
+                                answer = "When uploading or viewing your 9:16 vertical Clip, enable the 'Clip-to-Shop' toggle and attach an item title, price, and Safe-Haven pickup landmark. Viewers will see a golden shopping bag button on your Clip to initiate an instant Safe-Haven Handshake.",
+                                quickTip = "Keep proximity and landmark badges anchored in the bottom-left info column of your Clip for clean visibility."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-16",
+                                category = "Creator Wallet & Payouts",
+                                question = "What is the minimum withdrawal threshold for the Creator Wallet, and why is it $1,000 USD equivalent?",
+                                answer = "All creator withdrawals require a minimum balance of $1,000 USD (or its exact equivalent in your local currency, such as ₹83,500 INR, €920 EUR, or £790 GBP). This threshold ensures international AML/KYC compliance, tax reporting verification, and zero cross-border wire settlement friction.",
+                                quickTip = "Use the Currency Converter inside the 'Earn & Payouts' tab to check the exact $1,000 equivalent in 50+ currencies."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-17",
+                                category = "Creator Wallet & Payouts",
+                                question = "How much ad revenue and fan tip revenue do creators keep?",
+                                answer = "Creators earn a guaranteed 55% share of verified gross in-stream ad revenue on Clips and 4K Studio videos (45% platform infrastructure share). On direct Fan Micro-Tips & Super Support, creators keep 100% (0% platform commission).",
+                                quickTip = "Supported payout methods include UPI (India), Stripe Connect, PayPal, SWIFT/IBAN, SEPA, and PIX."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-18",
+                                category = "Creator Wallet & Payouts",
+                                question = "How does the Localiiiy Creator Copyright (LCC) SHA-256 + pHash Hash Value Engine work?",
+                                answer = "Every original Post, 9:16 Clip, and 4K Studio video is stamped with a deterministic cryptographic digest: `SHA-256(Creator_UID | @username | Media_Byte_Stream | Perceptual_pHash | UTC_Epoch_Timestamp | License_Salt)` formatted as both a 64-character hex SHA-256 hash (`sha256:8f4e...`) and a human-readable certificate (`LCC-XXXXXX-2026`). Our `MediaFingerprintEngine` checks both exact SHA-256 bytes and perceptual/acoustic `phash_` vectors on every upload—automatically quarantining stolen re-uploads and rerouting 100% of ad revenue to the verified original LCC creator.",
+                                quickTip = "You can select 'All Rights Reserved' or 'Localiiiy Creative Commons (LCC)' and toggle Audio Reuse & Remix rights per upload."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-19",
+                                category = "Creator Wallet & Payouts",
+                                question = "How do Daily Check-In Sparks and Referral Bonuses work?",
+                                answer = "Tapping 'Claim Daily Check-In' awards +25 Sparks per day and builds your streak toward a 24-hour Radar Visibility Glow. Referring a verified neighbor via your `@handle` invite code awards bonus Sparks to both accounts upon OTP completion.",
+                                quickTip = "Sparks unlock VIP Community Lounge access and local feed boosts."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-20",
+                                category = "Safety, SOS & Deletion",
+                                question = "What is the Cyberstalking Safety Shield & Rapid Approach Velocity Alert?",
+                                answer = "Localiiiy monitors relative coordinate closure rates. If another radar node closes distance toward you faster than 25 km/h within a 250m perimeter, the Cyberstalking Safety Shield automatically cloaks your profile into Ghost Mode and offers 1-tap Safe-Haven Police SOS routing.",
+                                quickTip = "Localiiiy enforces a Zero-Tolerance Anti-Stalking Policy with permanent hardware bans."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-21",
+                                category = "Safety, SOS & Deletion",
+                                question = "How does the Panic Cloak Decoy Calculator work in an emergency?",
+                                answer = "Tapping the Panic Cloak button (or shaking your device when enabled) immediately disguises the entire app as a functional standard Utility Calculator v1.0 while purging your live radar beacon in the background. Tap 'C' three times (`C` -> `C` -> `C`) or enter your 4-digit PIN (default `7777`) to exit the decoy.",
+                                quickTip = "Accessible from the Space / Profile safety bar on both Android and Web."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-22",
+                                category = "Safety, SOS & Deletion",
+                                question = "How do I permanently delete my Localiiiy account and erase all cloud and local data?",
+                                answer = "You can permanently delete your account in two ways: (1) In-App: Go to Space (Profile) -> tap 'Delete My Account Permanently (1-Tap Oblivion)', or (2) Web Self-Service Portal: Visit https://localiiiy.web.app/delete-account.html. Both methods immediately delete your Firebase Auth credentials, `users/{uid}` profile, `usernames/{handle}` reservation, `radar_beacons/{uid}`, and local storage.",
+                                quickTip = "Account deletion is immediate and irreversible under GDPR Art. 17, CCPA, and India DPDP Act."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-23",
+                                category = "Safety, SOS & Deletion",
+                                question = "What is the SHA-256 Forensic Activity Audit Log?",
+                                answer = "Every security-sensitive action (login, registration, Ghost Mode cloak, radar beacon purge, content publish) is recorded in a tamper-evident SHA-256 hash ledger (`audit_logs` & `/safety_logs/`) that you can inspect anytime in Space -> Forensic Audit Log or export as ISO/IEC 27037 court evidence.",
+                                quickTip = "Helps verify that your account and location beacon have never been accessed without authorization."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-24",
+                                category = "Safety, SOS & Deletion",
+                                question = "Does Localiiiy access my contacts list, background microphone, or raw photo library?",
+                                answer = "No. Localiiiy strictly complies with Google Play Developer Program policies: we never request `READ_CONTACTS`, background audio recording, or broad `READ_EXTERNAL_STORAGE` permissions. Media uploads use the zero-permission Android system Photo Picker.",
+                                quickTip = "Location access is strictly optional—you can use Ghost Spectator Mode with zero permissions."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-25",
+                                category = "Safety, SOS & Deletion",
+                                question = "How do I report illegal content, harassment, CSAM, or a marketplace scam?",
+                                answer = "Use the 1-tap Report / Flag button on any post, clip, profile, or market listing, or email our Official Helpdesk & Grievance Desk directly at Localiiiy.Helpdesk@gmail.com. Emergency safety reports are triaged within <15 minutes, and standard grievances are resolved within 24 hours.",
+                                quickTip = "Blocking a user enforces a bidirectional Zero-Knowledge Block—making you completely invisible to each other."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-26",
+                                category = "Account & Login",
+                                question = "Where can I download the official Localiiiy mobile app?",
+                                answer = "Download the official Android app directly from the Google Play Store (`https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live`). The Apple App Store (iOS) release is currently in final preparation and marked 'Available Soon'.",
+                                quickTip = "Avoid unofficial third-party APK mirror sites—always use the official Google Play Store link or https://localiiiy.web.app."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-27",
+                                category = "Safety, SOS & Deletion",
+                                question = "Is the Developer or Owner of Localiiiy responsible for user actions, cybercrime, or fraud?",
+                                answer = "No. The Developer, Creator, and Owner of Localiiiy holds ZERO civil, criminal, or financial responsibility or liability for any user's actions, offline meetups, cybercrime, or financial fraud because Localiiiy provides 100% sovereign self-protection switches directly to the user's choice—including Radar ON/OFF, Location ON/OFF, Master Ghost Mode ON/OFF, 1km–500km GPS obfuscation, Hide Profile/Phone/Email toggles, Safe-Haven Police Precinct 6-Digit OTP Escrow, and downloadable ISO/IEC 27037 SHA-256 Forensic `/safety_logs/` for direct submission to Cyber Crime authorities.",
+                                quickTip = "Always keep Ghost Mode ON when you want stealth, never share OTPs before physical inspection, and export `/safety_logs/` if you ever need to file a police cybercrime report."
+                            ),
+                            HelpdeskFaqItem(
+                                id = "faq-28",
+                                category = "Radar & Ghost Mode",
+                                question = "Why is the Tactical Radar option completely restricted and disabled for users under 18 years of age?",
+                                answer = "To guarantee absolute minor protection under international child-safety frameworks, the Tactical Radar module (`LiveRadarScreen` / `TacticalRadarHUD` / live beacon broadcasting and nearby stranger radar sweeps) is strictly restricted to verified adults aged 18 and older (`18+ Only`). Any account with a Date of Birth under 18 has Tactical Radar completely locked and Master Ghost Mode permanently enforced.",
+                                quickTip = "Minors aged 13–17 can safely enjoy creative Clips, Studio tutorials, and family-safe feeds with zero radar exposure."
+                            )
+                        )
+                    }
+
+                    val filteredFaqs = remember(faqSearchQuery, selectedFaqCategory, helpdeskFaqs) {
+                        helpdeskFaqs.filter { item ->
+                            val matchesCat = selectedFaqCategory == "All" || item.category == selectedFaqCategory
+                            val q = faqSearchQuery.trim().lowercase()
+                            val matchesQuery = q.isEmpty() ||
+                                item.question.lowercase().contains(q) ||
+                                item.answer.lowercase().contains(q) ||
+                                item.category.lowercase().contains(q)
+                            matchesCat && matchesQuery
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
+                        contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        item {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF0B253A),
+                                border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.45f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Text("🛟", fontSize = 24.sp)
+                                        Column {
+                                            Text(
+                                                text = "Localiiiy 24/7 Helpdesk & FAQ Center",
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 15.5.sp,
+                                                color = Color.White
+                                            )
+                                            Text(
+                                                text = "28 Updated Answers • 18+ Radar Gate • LCC SHA-256 Hash • Developer Safe-Harbor • Civic & Escrow",
+                                                fontSize = 11.sp,
+                                                color = Color(0xFF38BDF8)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    OutlinedTextField(
+                                        value = faqSearchQuery,
+                                        onValueChange = { faqSearchQuery = it },
+                                        placeholder = { Text("Search Helpdesk questions (e.g. 18+ Radar, LCC Hash, Ghost Mode, Developer Liability)...", fontSize = 12.sp) },
+                                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search FAQ") },
+                                        singleLine = true,
+                                        shape = RoundedCornerShape(12.dp),
+                                        modifier = Modifier.fillMaxWidth().testTag("helpdesk_search_input")
+                                    )
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        items(faqCategories) { cat ->
+                                            val isSelected = selectedFaqCategory == cat
+                                            Surface(
+                                                shape = RoundedCornerShape(100.dp),
+                                                color = if (isSelected) Color(0xFF00E5FF) else Color.White.copy(alpha = 0.08f),
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(100.dp))
+                                                    .clickable { selectedFaqCategory = cat }
+                                            ) {
+                                                Text(
+                                                    text = cat,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isSelected) Color(0xFF041B26) else Color.White,
+                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        items(filteredFaqs, key = { it.id }) { faq ->
+                            val isExpanded = expandedFaqId == faq.id
+                            Card(
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (isExpanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { expandedFaqId = if (isExpanded) null else faq.id }
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = MaterialTheme.colorScheme.primaryContainer
+                                        ) {
+                                            Text(
+                                                text = faq.category,
+                                                fontSize = 9.5.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = if (isExpanded) "▲ Collapse" else "▼ Read Answer",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = faq.question,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 13.5.sp,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    AnimatedVisibility(visible = isExpanded) {
+                                        Column(modifier = Modifier.padding(top = 8.dp)) {
+                                            Text(
+                                                text = faq.answer,
+                                                fontSize = 12.sp,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                lineHeight = 18.sp
+                                            )
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFF10B981).copy(alpha = 0.12f),
+                                                border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.35f)),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    text = "💡 Quick Tip: ${faq.quickTip}",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = Color(0xFF10B981),
+                                                    modifier = Modifier.padding(10.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            Card(
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E293B)),
+                                border = BorderStroke(1.dp, Color(0xFF38BDF8).copy(alpha = 0.4f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Text(
+                                        text = "📬 Direct Helpdesk & Grievance Officer Escalation",
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 13.sp,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "• Official Support & Grievance Email: Localiiiy.Helpdesk@gmail.com\n• Web Self-Service Account Deletion: https://localiiiy.web.app/delete-account.html\n• Response SLA: <15 mins for Emergency SOS / Safety • <24 hours for Account & Escrow tickets",
+                                        fontSize = 11.5.sp,
+                                        color = Color(0xFFCBD5E1),
+                                        lineHeight = 17.sp
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

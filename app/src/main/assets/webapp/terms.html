@@ -1,101 +1,484 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service & Universal EULA — Localiiiy</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Localiiiy — Master Terms & Conditions of Service & 36-Article Omnibus Legal Charter (v2.4.0)</title>
+  <meta name="description" content="Official 36-Article Master Terms & Conditions of Service, Developer & Owner Non-Liability Safe-Harbor, Strict 18+ Tactical Radar Gate, and Localiiiy Creator Copyright (LCC SHA-256 + pHash) Charter for Localiiiy (v2.4.0)." />
   <style>
     :root {
-      --bg: #090B10;
-      --card-bg: #121620;
-      --accent-mint: #10B981;
-      --accent-cyan: #06B6D4;
-      --text-main: #F3F4F6;
-      --text-muted: #9CA3AF;
-      --border-color: rgba(255, 255, 255, 0.08);
-      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --bg-void: #050914;
+      --bg-card: #0D1527;
+      --bg-elevated: #131E36;
+      --border: rgba(0, 229, 255, 0.22);
+      --cyan: #00E5FF;
+      --emerald: #00E676;
+      --amber: #FFB300;
+      --purple: #B388FF;
+      --danger: #FF5252;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background-color: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      background: radial-gradient(circle at top right, #0D1B38 0%, var(--bg-void) 65%);
       color: var(--text-main);
-      font-family: var(--font-main);
-      line-height: 1.65;
-      padding: 24px 16px 80px;
+      line-height: 1.72;
+      padding: 28px 16px 80px;
     }
-    .container { max-width: 860px; margin: 0 auto; }
-    header { padding: 32px 0 24px; border-bottom: 1px solid var(--border-color); margin-bottom: 32px; }
-    .badge-pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);
-      border: 1px solid rgba(6, 182, 212, 0.35); padding: 4px 12px;
-      border-radius: 999px; font-size: 12px; font-weight: 700;
-      text-transform: uppercase; margin-bottom: 16px;
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 36px 30px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
     }
-    h1 {
-      font-size: 32px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px;
-      background: linear-gradient(135deg, #FFF, #67E8F9);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    .top-store-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      background: linear-gradient(90deg, rgba(0, 230, 118, 0.14), rgba(0, 229, 255, 0.14));
+      border: 1px solid rgba(0, 230, 118, 0.38);
+      border-radius: 14px;
+      margin-bottom: 24px;
     }
-    .meta-text { color: var(--text-muted); font-size: 13px; font-family: var(--font-mono); }
-    .card {
-      background: var(--card-bg); border: 1px solid var(--border-color);
-      border-radius: 16px; padding: 24px; margin-bottom: 24px;
+    .store-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
     }
-    h2 { font-size: 19px; font-weight: 700; color: #38BDF8; margin-bottom: 12px; }
-    p, ul, ol { color: #D1D5DB; font-size: 14.5px; margin-bottom: 12px; }
-    ul, ol { padding-left: 20px; }
-    li { margin-bottom: 6px; }
-    strong { color: #FFF; }
-    .btn-return {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255,255,255,0.08); color: #FFF; text-decoration: none;
-      padding: 10px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
-      margin-bottom: 24px; border: 1px solid var(--border-color);
+    .play-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--emerald);
+      color: #04120B;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      text-decoration: none;
     }
-    .footer { text-align: center; padding-top: 32px; border-top: 1px solid var(--border-color); color: var(--text-muted); font-size: 13px; }
+    .apple-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 179, 0, 0.14);
+      border: 1px solid rgba(255, 179, 0, 0.45);
+      color: var(--amber);
+      font-weight: 700;
+      font-size: 12px;
+      padding: 7px 13px;
+      border-radius: 999px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 29px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.4px; }
+    .meta { color: var(--text-muted); font-size: 13.5px; margin-bottom: 26px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    h2 {
+      color: var(--cyan);
+      font-size: 19.5px;
+      font-weight: 800;
+      margin: 30px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.16);
+      padding-bottom: 6px;
+    }
+    h3 {
+      color: var(--emerald);
+      font-size: 15.5px;
+      font-weight: 700;
+      margin: 16px 0 8px;
+    }
+    p, li { color: #CBD5E1; font-size: 14.5px; margin-bottom: 10px; }
+    ul, ol { padding-left: 22px; margin-bottom: 16px; }
+    .callout {
+      background: rgba(0, 230, 118, 0.08);
+      border-left: 4px solid var(--emerald);
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin: 18px 0;
+    }
+    .callout-danger {
+      background: rgba(255, 82, 82, 0.1);
+      border-left: 4px solid var(--danger);
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin: 18px 0;
+    }
+    .callout-amber {
+      background: rgba(255, 179, 0, 0.1);
+      border-left: 4px solid var(--amber);
+      padding: 16px 18px;
+      border-radius: 10px;
+      margin: 18px 0;
+    }
+    .hash-box {
+      background: #070C18;
+      border: 1px solid rgba(179, 136, 255, 0.45);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: var(--purple);
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    .article-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .article-card {
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .article-card h3 {
+      margin-top: 0;
+      color: var(--cyan);
+      font-size: 16px;
+    }
+    .article-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(0, 229, 255, 0.14);
+      color: var(--cyan);
+      margin-bottom: 8px;
+      letter-spacing: 0.4px;
+    }
+    a { color: var(--cyan); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .nav-bar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 229, 255, 0.14);
+      border: 1px solid var(--cyan);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+    .btn-danger {
+      background: rgba(255, 82, 82, 0.15);
+      border-color: var(--danger);
+      color: #FF8A80;
+    }
+    code {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 13px;
+      color: var(--cyan);
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <a href="/" class="btn-return">← Back to Localiiiy Web App</a>
-    <header>
-      <div class="badge-pill">📜 Legal Agreement & End User License Agreement</div>
-      <h1>Terms of Service & Universal EULA</h1>
-      <p class="meta-text">Effective Date: September 2026 • Production Version 2.4.0</p>
-    </header>
-
-    <div class="card">
-      <h2>1. Acceptance of 24-Article Omnibus Charter & Universal EULA</h2>
-      <p>By creating an account, installing the Android app from Google Play (<a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" style="color: #10B981;">com.aistudio.localiiiy.live</a>), or accessing the Localiiiy web application at <strong>https://localiiiy.web.app</strong>, you agree to enter into a legally binding contract consisting of these Terms of Service, the Community Guidelines, and our <a href="/privacy" style="color: #38BDF8;">Privacy Policy</a> (<a href="https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md" style="color: #38BDF8;">GitHub Mirror</a>).</p>
+    <div class="top-store-bar">
+      <div>
+        <strong style="color: var(--text-main); font-size: 14px;">Download the app from Google Play Store for the full Localiiiy experience</strong>
+        <div style="font-size: 12px; color: var(--text-muted);">Synchronized 100% across Android APK (<code>com.aistudio.localiiiy.live</code>) &amp; Web Companion (<code>localiiiy.web.app</code>)</div>
+      </div>
+      <div class="store-badges">
+        <a class="play-btn" href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener">Google Play Store</a>
+        <span class="apple-badge">Apple App Store: Available Soon</span>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>2. Worldwide Availability & Non-Trader Consumer Disclosure (EU DSA Art. 30)</h2>
-      <p>Localiiiy is available worldwide across all regions (including all 27 EU member states, UK, India, and North America). Localiiiy is operated by an independent non-trader creator for hyperlocal social connection and neighborhood discovery. Peer-to-peer marketplace exchanges occur directly between connected neighbors.</p>
+    <div class="badge">36-Article Master Terms &amp; Universal EULA • v2.4.0</div>
+    <h1>Localiiiy — Master Terms &amp; Conditions of Service &amp; 36-Article Omnibus Legal Charter</h1>
+    <div class="meta">
+      <strong>Effective Date:</strong> November 7, 2026 &nbsp;|&nbsp;
+      <strong>Charter Version:</strong> v2026.11.07-OMNIBUS-GLOBAL-CHARTER (v2.4.0) &nbsp;|&nbsp;
+      <strong>Android Package ID:</strong> <code>com.aistudio.localiiiy.live</code> &nbsp;|&nbsp;
+      <strong>Official Helpdesk:</strong> <a href="mailto:Localiiiy.Helpdesk@gmail.com">Localiiiy.Helpdesk@gmail.com</a>
     </div>
 
-    <div class="card">
-      <h2>3. Safe-Haven Handshake OTP Escrow & Localiiiy Creator Copyright (LCC)</h2>
-      <p>Physical marketplace handoffs are designed for Police Precinct CCTV Safe-Haven Green Zones using 6-digit Handshake OTP verification. Original creator videos and Clips are protected by SHA-256 <strong>Localiiiy Creator Copyright (LCC)</strong> fingerprints.</p>
+    <div class="callout-danger">
+      <strong>MANDATORY SUMMARY OF KEY LEGAL PROTECTIONS &amp; RESTRICTIONS:</strong><br/>
+      1. <strong>Developer &amp; Owner Absolute Non-Liability Safe-Harbor (Articles 2.0, 9.0, 22.0 &amp; 25.0):</strong> The Developer, Creator, Founder, and Owner of Localiiiy is <strong>NOT responsible or liable for anything</strong> (including cybercrime, online/offline fraud, scams, financial loss, physical meetups, or user disputes) because Localiiiy provides 100% self-sovereign user-controlled privacy toggles (<strong>Radar ON/OFF, Location ON/OFF, Master Ghost Mode ON/OFF, 1km–500km Spatial Obfuscation, Hide Profile/Phone/Email</strong>) and provides downloadable <strong>SHA-256 Forensic Activity Audit Logs (<code>/safety_logs/</code> &amp; <code>audit_logs</code>)</strong> so users can directly file cybercrime or police reports themselves.<br/>
+      2. <strong>Tactical Radar Totally Restricted Below 18 Years of Age (Articles 1.0, 7.0 &amp; 26.0):</strong> The Tactical Radar feature is <strong>100% restricted, locked, and prohibited for any user below 18 years of age (<code>calculatedAge &lt; 18</code>)</strong>. Users aged 13–17 have Ghost Mode permanently locked ON by hardware/cloud enforcement.<br/>
+      3. <strong>Localiiiy Creator Copyright (<code>LCC</code>) SHA-256 + Perceptual Hash (<code>pHash</code>) Engine (Articles 6.0 &amp; 27.0):</strong> Every original post, clip, and studio asset is sealed with a cryptographic 64-character SHA-256 digest and 64-bit DCT perceptual hash.<br/>
+      4. <strong>Single Official Contact Email (Article 36.0):</strong> All legal, privacy, copyright, and support communications are handled exclusively via <a href="mailto:Localiiiy.Helpdesk@gmail.com">Localiiiy.Helpdesk@gmail.com</a>.
     </div>
 
-    <div class="card">
-      <h2>4. Zero Tolerance for Objectionable Content & Official Links</h2>
-      <p>Under Apple App Store Review Guideline 1.2 and Google Play Developer Policies, abusive, threatening, or sexually explicit content is strictly prohibited. Accounts violating community integrity are terminated within 24 hours.</p>
-      <ul>
-        <li><strong>Google Play Store:</strong> <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" style="color: #10B981;">Download the app from Google Play Store</a> <em>(Apple App Store: Available Soon)</em></li>
-        <li><strong>GitHub Terms of Service:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md</a></li>
-        <li><strong>GitHub Privacy Policy:</strong> <a href="https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md" style="color: #38BDF8;">https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md</a></li>
-      </ul>
+    <h2>Complete 36-Article Omnibus Legal, Safety &amp; Operational Charter</h2>
+    <p>By registering an account, signing in via Google OAuth or Email/Password, entering Guest Spectator Mode, or accessing Localiiiy on Android (<code>com.aistudio.localiiiy.live</code>) or Web (<code>https://localiiiy.web.app</code>), you enter into a legally binding contract governed by all thirty-six (36) Master Articles below:</p>
+
+    <div class="article-grid">
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 1.0 • AGE_ELIGIBILITY</span>
+        <h3>1.0 Minimum Age Gate (13+), Strict 18+ Tactical Radar Lock &amp; Capacity</h3>
+        <p>You must be at least thirteen (13) years of age (or the minimum digital consent age in your jurisdiction) to register a standard account. Users under 13 are strictly blocked from registration and data collection under COPPA and GDPR-K.</p>
+        <p><strong>TOTAL PROHIBITION OF TACTICAL RADAR BELOW 18 YEARS OF AGE:</strong> The <strong>Tactical Radar</strong>, live nearby neighbor vectoring, proximity distance telemetry, and Safe-Haven physical meetup tools are <strong>strictly restricted and locked to verified adults aged eighteen (18) years or older (<code>calculatedAge &gt;= 18</code>)</strong>. Any user below 18 years of age (ages 13–17) is automatically placed in mandatory <strong>Locked Ghost Mode</strong> and is strictly prohibited from viewing, opening, or broadcasting on Tactical Radar until their verified 18th birthday.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 2.0 • GEOLOCATION_PRIVACY</span>
+        <h3>2.0 User-Controlled Geolocation, Radar ON/OFF, Ghost Mode &amp; Developer Non-Liability</h3>
+        <p>Localiiiy places 100% of telemetry and visibility switches directly in the hands of the user inside the Space Privacy Hub and Tactical Radar header:</p>
+        <ul>
+          <li><strong>Radar ON / OFF Toggle:</strong> Instantly turn Tactical Radar visibility completely OFF at any time.</li>
+          <li><strong>Location ON / OFF Toggle:</strong> Disable live GPS coordinate updates at the app and OS level.</li>
+          <li><strong>Master Ghost Mode (Invisible Spectating):</strong> Browse feeds and community updates with zero GPS broadcast footprint.</li>
+          <li><strong>1km–500km Spatial Obfuscation Slider:</strong> Add deterministic coordinate fuzzing so your exact home or office pin is never exposed.</li>
+          <li><strong>Hide Profile / Phone / Email Toggles:</strong> Conceal contact identifiers from all public and neighbor views.</li>
+        </ul>
+        <p>Because you have complete, real-time control over whether these switches are ON or OFF, the Developer and Owner of Localiiiy bears zero responsibility or liability for any consequences arising from your decision to enable location sharing or disclose personal information.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 3.0 • UGC_ZERO_TOLERANCE</span>
+        <h3>3.0 Zero-Tolerance UGC Policy &amp; Mandatory EULA</h3>
+        <p>Localiiiy enforces a strict Zero-Tolerance Policy against CSAM/CSAE, non-consensual sexual content, doxxing, stalking, hate speech, terrorism, illegal weapons/narcotics, and financial phishing. Violating content is purged within 24 hours and offending accounts/devices are permanently banned.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 4.0 • AI_MODERATION</span>
+        <h3>4.0 Automated AI Safety Shield &amp; 3-Warning Strike System</h3>
+        <p>All public posts, clips, and marketplace listings pass through an automated pre-flight safety classifier. Users accumulating three (3) verified policy warnings (`warningCount &gt;= 3`) have their publishing privileges automatically suspended (`isFlagged = true`).</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 5.0 • MARKETPLACE_ESCROW</span>
+        <h3>5.0 Hyperlocal Marketplace, Safe-Haven 6-Digit OTP Escrow &amp; Independent Peer Liability</h3>
+        <p>Localiiiy is a discovery venue and does not act as a broker, courier, or title insurer. Peer-to-peer transactions use the <strong>6-Digit Safe-Haven OTP Handshake</strong> so funds are only released when buyer and seller verify the physical item in person at a verified public Safe-Haven zone (police lobby, transit hub, bank plaza). Users assume 100% responsibility for inspecting items and meeting solely in public daytime Safe-Haven zones.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 6.0 • COPYRIGHT_IP</span>
+        <h3>6.0 Localiiiy Creator Copyright (LCC) Cryptographic Hash Value &amp; Anti-Piracy Protocol</h3>
+        <p>Every original Post, Clip, and Studio creation published on Localiiiy is automatically protected at upload time by the <strong>Localiiiy Creator Copyright (<code>LCC</code>) Cryptographic Hash Engine</strong>:</p>
+        <div class="hash-box">
+LCC_SHA256_DIGEST = SHA-256(Creator_UID | Normalized_@Username | Raw_Media_Byte_Stream | Perceptual_pHash_Vector | UTC_Epoch_Millis_Timestamp | License_Mode_Salt)
+Public Certificate Format: LCC-XXXXXX-2026
+Cryptographic Digest Format: sha256:[64-character hexadecimal string]
+Perceptual Media Fingerprint: phash_[16-character DCT visual + acoustic hash]
+        </div>
+        <ul>
+          <li><strong>4 Creator License Modes:</strong> <code>LCC-STRICT</code> (All Rights Reserved), <code>LCC-REMIX-ATTR</code> (Remix allowed inside Localiiiy with automatic <code>parentLccHash</code> attribution), <code>LCC-NON-COMMERCIAL</code>, and <code>LCC-PUBLIC-PULSE</code> (Civic/Emergency alerts).</li>
+          <li><strong>Duplicate Hash &amp; Re-Upload Detection:</strong> Any unauthorized re-upload matching an existing SHA-256 digest or exceeding the 92% perceptual similarity threshold (<code>pHash</code>) against a <code>LCC-STRICT</code> asset is flagged and blocked or demonetized.</li>
+          <li><strong>100% Revenue Rerouting &amp; 3-Strike Ban:</strong> 100% of ad/tip revenue generated by an infringing re-upload is automatically rerouted to the original verified <code>LCC</code> hash owner. Three (3) verified copyright strikes within 90 days trigger permanent account and hardware termination.</li>
+        </ul>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 7.0 • CHILD_SAFETY_CSAE</span>
+        <h3>7.0 Child Safety (CSAE/CSAM) Zero-Tolerance &amp; Total Under-18 Radar Prohibition</h3>
+        <p>Exploitation or endangerment of minors results in immediate account termination, hash preservation, and mandatory reporting to NCMEC and law enforcement. Furthermore, as codified in Articles 1.0 and 26.0, <strong>Tactical Radar is 100% prohibited and locked for all users under 18 years of age</strong>.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 8.0 • CREATOR_MONETIZATION</span>
+        <h3>8.0 Creator Monetization, $1,000 USD Equivalent Payout Threshold &amp; Multi-Currency Settlement</h3>
+        <p>Eligible creators (18+, verified <code>LCC</code> original content, zero active copyright/safety strikes) accrue revenue in their local currency and may request settlement once their verified balance reaches the <strong>$1,000.00 USD Equivalent Payout Threshold</strong> (e.g., ₹83,500 INR, €920 EUR, £790 GBP) subject to KYC/AML and tax withholding compliance.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 9.0 • LAW_ENFORCEMENT</span>
+        <h3>9.0 Cybercrime Logs, User Self-Reporting &amp; Law Enforcement Preservation</h3>
+        <p>Every user has direct access to their own <strong>Immutable SHA-256 Forensic Activity Audit Logs (<code>/safety_logs/{userId}/entries</code> and <code>audit_logs</code>)</strong> containing UTC timestamps, transaction IDs, OTP handshake hashes, and interaction hashes. If a user experiences any cybercrime, online scam, or financial fraud, the user can immediately export these tamper-evident logs from the Space Hub to file an official police FIR or national cybercrime report. The Developer/Owner of Localiiiy is not an investigative agency or insurer and bears zero liability for third-party criminal acts.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 10.0 • ACCOUNT_SECURITY</span>
+        <h3>10.0 Account Credentials, Single-Identity Sync &amp; Session Integrity</h3>
+        <p>Your single Firebase Authentication UID synchronizes seamlessly across the Android APK and Web Companion. You are solely responsible for safeguarding your password, Google OAuth session, and 6-digit Safe-Haven OTP codes.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 11.0 • ANTI_MANIPULATION</span>
+        <h3>11.0 Anti-Bot, Anti-Scraping &amp; GPS Spoofing Prohibition</h3>
+        <p>Automated scraping, headless browsers, mock-location GPS spoofing to manipulate hyperlocal Neighborhood Polls or Radar vectors, and artificial view/connection farming are strictly prohibited.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 12.0 • EMERGENCY_DISCLAIMER</span>
+        <h3>12.0 SOS Beacon &amp; Emergency Services Disclaimer (Not a 911/112 Replacement)</h3>
+        <p>Localiiiy SOS Alerts and Safe-Haven corridors are peer-to-peer neighborhood awareness tools and <strong>do NOT replace official government emergency services (911, 112, 999, 100)</strong>. Always contact official emergency dispatch first in life-threatening situations.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 13.0 • PRIVACY_DATA_RIGHTS</span>
+        <h3>13.0 Global Privacy Compliance (GDPR, CCPA/CPRA, DPDP Act) &amp; Zero Data Selling</h3>
+        <p>Localiiiy never sells personal or location data to data brokers. Users exercise full rights of access, correction, portability, and permanent erasure via the in-app Space Hub or <a href="/delete-account.html">/delete-account</a>.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 14.0 • TELECOM_CONSENT</span>
+        <h3>14.0 Transactional Security Alerts &amp; Push Notification Consent</h3>
+        <p>By enabling notifications or requesting OTP verification, you consent to receive strictly transactional security codes, copyright alerts, and neighborhood safety notifications.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 15.0 • THIRD_PARTY_INFRASTRUCTURE</span>
+        <h3>15.0 Cloud Infrastructure, Firebase Services &amp; Open-Source Map Attribution</h3>
+        <p>Localiiiy operates on Google Cloud / Firebase Authentication and Firestore infrastructure and utilizes open-source cartographic tiles with full attribution.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 16.0 • SANCTIONS_EXPORT</span>
+        <h3>16.0 International Trade Sanctions &amp; Export Control Compliance</h3>
+        <p>You represent that you are not located in a sanctioned jurisdiction or listed on any restricted party list maintained by OFAC, the UN, the EU, or applicable national authorities.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 17.0 • FORCE_MAJEURE</span>
+        <h3>17.0 Service Availability, Maintenance &amp; Force Majeure</h3>
+        <p>Localiiiy is provided on an "AS IS" and "AS AVAILABLE" basis without warranty of uninterrupted uptime during cloud outages, natural disasters, or telecommunications failures.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 18.0 • APP_STORE_APPLE_GOOGLE</span>
+        <h3>18.0 Google Play Store &amp; Apple App Store Third-Party Beneficiary Terms</h3>
+        <p>Google Play (`com.aistudio.localiiiy.live`) and Apple Inc. (iOS App Store release — Available Soon) are third-party infrastructure providers and have no obligation to furnish maintenance, warranty, or legal defense for user disputes on Localiiiy.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 19.0 • TAX_WITHHOLDING</span>
+        <h3>19.0 Creator Tax Responsibility, GST/VAT &amp; Withholding Compliance</h3>
+        <p>Creators and Marketplace sellers are solely responsible for reporting and remitting all applicable income taxes, GST, VAT, or self-employment taxes arising from their earnings.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 20.0 • BETA_FEATURES</span>
+        <h3>20.0 Experimental Features, AI Studio Enhancements &amp; Telemetry</h3>
+        <p>Experimental studio filters, AI caption translation, and radar HUD overlays may be modified or retired at any time to preserve platform performance and safety.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 21.0 • ACCOUNT_OBLIVION</span>
+        <h3>21.0 Right to Erasure &amp; 1-Tap Account Oblivion (<code>/delete-account</code>)</h3>
+        <p>You may permanently delete your account at any time in 1 tap via <strong>Space → Privacy &amp; Security → Delete My Account Permanently</strong> or on the web at <a href="/delete-account.html">https://localiiiy.web.app/delete-account</a>, purging your profile, posts, clips, market items, and live radar vectors immediately.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 22.0 • LIABILITY_INDEMNITY</span>
+        <h3>22.0 Limitation of Liability, Warranty Disclaimer &amp; User Indemnification</h3>
+        <p>To the maximum extent permitted by law, Localiiiy and its Developer/Owner disclaim all implied warranties and shall not be liable for any indirect, incidental, consequential, punitive, or special damages. You agree to indemnify and hold harmless the Developer and Owner of Localiiiy from any claims arising from your content, your privacy toggle choices, your marketplace trades, or your violation of this Charter.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 23.0 • DISPUTE_ARBITRATION</span>
+        <h3>23.0 Amicable Helpdesk Resolution, Binding Arbitration &amp; Class-Action Waiver</h3>
+        <p>Before initiating formal proceedings, you agree to submit any dispute in writing to <a href="mailto:Localiiiy.Helpdesk@gmail.com">Localiiiy.Helpdesk@gmail.com</a> for a 30-day informal resolution period. Unresolved claims shall be resolved through individual binding arbitration, and you waive participation in any class or representative action where permitted by law.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 24.0 • SEVERABILITY_ENTIRE_AGREEMENT</span>
+        <h3>24.0 Severability, Electronic Signature &amp; Entire Agreement</h3>
+        <p>If any provision of this 36-Article Charter is held unenforceable, the remaining articles remain in full force and effect. Your electronic acceptance during registration or continued use constitutes a binding digital signature.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 25.0 • DEVELOPER_SAFE_HARBOR</span>
+        <h3>25.0 Developer &amp; Owner Absolute Non-Liability &amp; User-Choice Safe-Harbor Charter</h3>
+        <p><strong>EXPLICIT SAFE-HARBOR NOTICE:</strong> The Developer, Creator, Founder, and Owner of Localiiiy provides an automated technological software utility with complete, granular user-controlled privacy and safety switches—including <strong>Radar ON/OFF, Location ON/OFF, Master Ghost Mode ON/OFF, 1km–500km Spatial Fuzzing, Hide Profile/Phone/Email toggles, and 6-Digit Safe-Haven OTP Escrow</strong>—together with downloadable <strong>SHA-256 Forensic Activity Audit Logs (<code>/safety_logs/</code> &amp; <code>audit_logs</code>)</strong>.</p>
+        <p>Accordingly, the Developer and Owner of Localiiiy is <strong>NOT responsible or liable for anything</strong> resulting from a user's decision to turn Radar or Location ON/OFF, interact with other users, conduct peer-to-peer transactions, or share data, nor for any third-party cybercrime, online fraud, financial scam, or offline incident. Users agree to utilize their downloadable Forensic Activity Audit Logs to report any cybercrime or fraud directly to appropriate police and cybercrime authorities.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 26.0 • RADAR_18_PLUS_GATE</span>
+        <h3>26.0 Strict 18+ Adult-Only Tactical Radar Gate &amp; Total Prohibition Below 18 Years</h3>
+        <p>Tactical Radar is <strong>100% restricted and prohibited for anyone below 18 years of age (<code>calculatedAge &lt; 18</code>)</strong>. Both the Android APK and Web Companion enforce a mandatory date-of-birth age calculation check before rendering Tactical Radar. Accounts belonging to users aged 13–17 have Tactical Radar hard-locked, Ghost Mode permanently forced ON, and zero visibility on any neighbor's radar screen.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 27.0 • COPYRIGHT_IP</span>
+        <h3>27.0 Deep Technical Specification of the LCC SHA-256 &amp; Perceptual Hash (<code>pHash</code>) Engine</h3>
+        <p>Every asset registered under Localiiiy Creator Copyright (<code>LCC</code>) stores an immutable Firestore ledger record containing: (a) <code>lccCertificateId</code> (<code>LCC-XXXXXX-2026</code>), (b) <code>lccSha256Digest</code> (64-char hex digest of raw bytes + UID + UTC timestamp + license salt), (c) <code>perceptualHashVector</code> (64-bit DCT visual/audio fingerprint), and (d) <code>parentLccHash</code> for authorized remixes. Any dispute or counter-notice must be submitted with the exact 64-character SHA-256 hash to <a href="mailto:Localiiiy.Helpdesk@gmail.com">Localiiiy.Helpdesk@gmail.com</a> within 7 calendar days.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 28.0 • CIVIC_TOOLS_COMMUNITY</span>
+        <h3>28.0 15-Category Hyperlocal Civic Tools &amp; Public Utility Verification Protocol</h3>
+        <p>Localiiiy provides 15 hyperlocal Civic Tools (Road Hazard, Power Outage, Water Supply, Streetlight Fault, Lost Pet, Blood Donor Appeal, Senior Check-In, Tree Fall, Noise Alert, Air Quality, EV Charger Status, Community Clean-Up, Transit Delay, Safe Corridor Escort, and Emergency Shelter Pin). Submitting knowingly false civic alerts or hoax blood/hazard reports results in immediate account suspension.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 29.0 • AI_MODERATION</span>
+        <h3>29.0 AI Dialect Translator &amp; Cross-Language Neighborhood Bridge</h3>
+        <p>Automated dialect and language translations in the Pulse Feed and Civic Alerts are provided for neighborhood accessibility. Users remain responsible for verifying critical medical, legal, or safety instructions in their primary language.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 30.0 • CIVIC_TOOLS_COMMUNITY</span>
+        <h3>30.0 Local Community Hub: Emergency Broadcasts, Polls, Watch Ledger &amp; Volunteering</h3>
+        <p>The Local Community sub-tab in Pulse includes Emergency Broadcasts, Neighborhood Voice Polls, the Neighborhood Watch Ledger, and Skill-Share Volunteering. All community interactions strictly use <strong>"Connect / Connected / Connections"</strong> terminology to foster genuine neighborhood solidarity rather than vanity metrics.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 31.0 • RADAR_18_PLUS_GATE</span>
+        <h3>31.0 Tactical Radar 2.0 HUD, AR Compass, Safe-Haven Pins &amp; Vibe Filters (18+ Only)</h3>
+        <p>For verified 18+ adults who voluntarily toggle Radar ON, Tactical Radar 2.0 provides range rings (1km, 5km, 25km, 50km), Vibe Filters, AR Compass bearings, and Safe-Haven meetup pins. Users must never use Tactical Radar while operating a motor vehicle or in violation of local trespassing laws.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 32.0 • ACCOUNT_SECURITY</span>
+        <h3>32.0 Bidirectional 100% Web Companion (<code>localiiiy.web.app</code>) &amp; Android APK Sync</h3>
+        <p>All profiles, Connections, Pulse posts, Clips, Marketplace listings, LCC copyright hashes, and privacy toggle states synchronize in real time between the Android APK (<code>com.aistudio.localiiiy.live</code>) and the Web Companion (<code>https://localiiiy.web.app</code>) via shared Cloud Firestore collections.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 33.0 • GEOLOCATION_PRIVACY</span>
+        <h3>33.0 Guest Spectator Mode (Read-Only Zero-Footprint Browsing &amp; Registration Gate)</h3>
+        <p>Unauthenticated visitors on Web or Android may browse public Earth/City Pulse feeds in read-only Guest Spectator Mode with zero GPS footprint. Interactive actions (publishing, connecting, voting, messaging, opening 18+ Tactical Radar, or trading in Market) require full authenticated registration and acceptance of this 36-Article Charter.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 34.0 • GEOLOCATION_PRIVACY</span>
+        <h3>34.0 Panic Cloak, Rapid Approach Velocity Shield &amp; Anti-Stalking Protections</h3>
+        <p>Localiiiy includes a 1-tap <strong>Panic Cloak</strong> (which immediately engages Ghost Mode and purges live radar vectors) and an automated <strong>Rapid Approach Velocity Shield</strong> that obscures distance vectors if an unknown node approaches rapidly.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 35.0 • THIRD_PARTY_INFRASTRUCTURE</span>
+        <h3>35.0 Open-Source GitHub Repository Security &amp; Zero-Secret Public Distribution</h3>
+        <p>Public repository distributions of Localiiiy contain zero private server keys, signing keystores, or service-account credentials. Unauthorized cloning of the Localiiiy brand, logo, or verified <code>LCC</code> certificate authority to deceive users is strictly prohibited.</p>
+      </div>
+
+      <div class="article-card">
+        <span class="article-tag">ARTICLE 36.0 • DISPUTE_ARBITRATION</span>
+        <h3>36.0 Single Official Helpdesk Contact, Grievance Officer &amp; 24-Hour SLA</h3>
+        <p>Localiiiy operates a single, unified official communication channel for all support, privacy inquiries, GDPR/DPDP/CCPA data requests, Child Safety alerts, LCC Copyright counter-notices, and legal notices:</p>
+        <p style="margin-top: 8px; font-size: 16px;"><strong>Official Helpdesk Email:</strong> <a href="mailto:Localiiiy.Helpdesk@gmail.com">Localiiiy.Helpdesk@gmail.com</a> (24-Hour Grievance Acknowledgement SLA)</p>
+      </div>
     </div>
 
-    <div class="footer">
-      <p>© 2026 Localiiiy (v2.4.0). Hosted on Firebase Hosting (https://localiiiy.web.app) & GitHub (https://github.com/Localiiiy/Localiiiy).</p>
+    <div class="nav-bar">
+      <a class="btn" href="/">← Return to Localiiiy Web App</a>
+      <a class="btn" href="/privacy.html">View Master Privacy Policy →</a>
+      <a class="btn btn-danger" href="/delete-account.html">Permanent Account Deletion (/delete-account)</a>
     </div>
   </div>
 </body>

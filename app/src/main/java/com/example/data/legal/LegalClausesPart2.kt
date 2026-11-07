@@ -7,34 +7,34 @@ object LegalClausesPart2 {
             id = "clause_7_eligibility_jurisdiction",
             clauseNumber = "Section 7.0",
             anchorId = "#eligibility",
-            title = "Account Eligibility, Age Verification Calendar, Minor Radar Shielding & Dispute Resolution",
-            category = LegalCategory.DISCLAIMERS,
-            plainSummary = "All ages are welcome to enjoy safe family and cartoon channels, while interactive social/adult UGC features require age verification via the native Date of Birth Calendar during Registration. Users under 18 have their live radar coordinates automatically cloaked and shielded by default. Disputes are resolved through good-faith civil negotiation and standard arbitration.",
+            title = "Account Eligibility, Age Verification Calendar, Total Radar Prohibition Below 18 Years (18+ Only) & Dispute Resolution",
+            category = LegalCategory.RADAR_18_PLUS_GATE,
+            plainSummary = "Users must be at least 13 years old to register via the Date of Birth Calendar. However, the Tactical Radar option is TOTALLY RESTRICTED and LOCKED for anyone below 18 years of age (`calculatedAge < 18`). Only verified 18+ adults can access or broadcast on Tactical Radar. Users aged 13–17 have Master Ghost Mode permanently locked ON by default. Disputes are resolved through good-faith civil negotiation via Localiiiy.Helpdesk@gmail.com.",
             legalText = """
-7.1 Age Verification & Registration Date-of-Birth Governance:
-During registration on `AuthScreen` and `SignUpDialog`, every prospective user must input their true Date of Birth via the native calendar picker (`dobString` / `calculatedAge`):
-(a) General Platform Threshold: Users must meet the minimum digital consent age in their jurisdiction (at least 13 years of age globally, or 16 in jurisdictions governed by strict GDPR minor digital consent mandates);
-(b) Mandatory Automatic Minor Radar Shielding (Under 18): For any account where `calculatedAge < 18`, the Platform automatically enforces "Hide (Ghost)" mode by default, disables precise live radar coordinate broadcasting, restricts adult-designated marketplace/monetization contracts, and shields the minor's identity with mandatory spatial obfuscation;
-(c) Adult Attestation for Full Commerce & Unfiltered UGC: Users accessing unrestricted creator monetization payouts, legally binding Digital Escrow contracts, or 18+ designated creator tiers must attest that they are at least 18 years of age (`signup_age_checkbox`).
+7.1 Age Verification, 13+ Minimum Registration Gate & Total Under-18 Radar Prohibition:
+During registration on `AuthScreen`, `SignUpDialog`, and `localiiiy.web.app`, every prospective user must input their true Date of Birth via the native calendar picker (`dobString` / `calculatedAge`):
+(a) Minimum Registration Age (13+): Users under 13 years of age (`calculatedAge < 13`) are strictly blocked from creating an account under COPPA, GDPR-K, and India DPDP Act 2023;
+(b) Total Prohibition of Tactical Radar Below 18 Years of Age (`calculatedAge < 18`): For ANY account where the user is below 18 years of age (ages 13 to 17), the Tactical Radar option (`LiveRadarScreen`, `TacticalRadarHUD`, live proximity beacon broadcasting, and nearby stranger radar sweeps) is TOTALLY RESTRICTED, LOCKED, and DISABLED. Minors under 18 are permanently locked into Master Ghost Mode (`isGhostMode = true`), restricted from adult marketplace escrow contracts, and shielded from unconnected adult DMs;
+(c) Strict 18+ Adult Verification for Tactical Radar, Full Commerce & Monetization: Only verified adult users aged 18 years or older (`calculatedAge >= 18`) may access Tactical Radar, execute legally binding Safe-Haven Digital Escrow contracts, or withdraw Creator Wallet monetization payouts (`signup_age_checkbox`).
 
 7.2 Good-Faith Civil Dispute Resolution & Informal Negotiation:
 In the event of any controversy, claim, or dispute arising out of or relating to your use of Localiiiy or this Omnibus Charter:
-(a) 30-Day Informal Resolution Period: Both parties agree to first attempt informal, good-faith written negotiation by submitting a formal notice to `support@localiiiy.web.app` before initiating litigation or arbitration;
+(a) 30-Day Informal Resolution Period: Both parties agree to first attempt informal, good-faith written negotiation by submitting a formal notice to `Localiiiy.Helpdesk@gmail.com` before initiating litigation or arbitration;
 (b) Individual Capacity & Severability: Claims shall be resolved on an individual basis. If any clause or sub-clause of this Agreement is held invalid or unenforceable by a court of competent jurisdiction, such provision shall be reformed to the minimum extent necessary and all remaining sections shall remain in full force and effect.
             """.trimIndent(),
             subSections = listOf(
                 LegalSubSection(
                     subNumber = "7.1",
-                    subTitle = "Family-Friendly & Animated Channels vs. Adult Sovereignty",
-                    content = "Localiiiy supports family-safe creative content, educational tutorials, and animated cartoon channels alongside adult neighborhood commerce. Age-appropriate filtering is automatically applied based on the verified Date of Birth recorded at registration."
+                    subTitle = "Strict 18+ Radar Lock & Teen Ghost Enforcement",
+                    content = "Localiiiy enforces an unbypassable age lock on the Tactical Radar module for any user under 18. Falsifying a Date of Birth during registration to bypass the 18+ Radar restriction is a material breach of these Terms, absolving the Developer and Owner of any liability and resulting in immediate account suspension."
                 ),
                 LegalSubSection(
                     subNumber = "7.2",
                     subTitle = "Universal Civil Law & Individual Privacy Sovereignty",
-                    content = "This Agreement is governed by universal principles of civil contract law and individual privacy sovereignty, without prejudice to mandatory consumer protection statutes in the user's country of residence."
+                    content = "This Agreement is governed by universal principles of civil contract law, Developer Safe-Harbor immunity, and individual privacy sovereignty."
                 )
             ),
-            isHighlighted = false
+            isHighlighted = true
         ),
 
         LegalClause(
@@ -69,9 +69,9 @@ Upon clicking "Create Account & Secure" or "I Agree" inside `LegalAgreementScree
             id = "clause_9_cyberstalking_zero_tolerance",
             clauseNumber = "Section 9.0",
             anchorId = "#cyberstalking",
-            title = "Universal Zero-Tolerance Anti-Cyberstalking Policy, Forensic `/safety_logs/` Vault (ISO/IEC 27037) & Permanent Hardware Ban",
+            title = "Universal Zero-Tolerance Anti-Cyberstalking Policy, Forensic `/safety_logs/` Vault (ISO/IEC 27037), Developer Safe-Harbor & Hardware Ban",
             category = LegalCategory.CYBERSTALKING,
-            plainSummary = "Cyberstalking, persistent harassment, and unauthorized location tracking are strictly prohibited under our universal Zero-Tolerance Policy. Offenders face immediate, permanent account suspension and device hardware bans with zero right of appeal. Victims can record incidents in the Immutable Cyberstalking Evidence Vault and export SHA-256 sealed forensic logs (`/safety_logs/`) conforming to ISO/IEC 27037 court evidence standards.",
+            plainSummary = "Cyberstalking, persistent harassment, and unauthorized location tracking are strictly prohibited under our universal Zero-Tolerance Policy. Offenders face immediate, permanent account suspension and device hardware bans. Victims can record incidents in the Immutable Cyberstalking Evidence Vault and export SHA-256 sealed forensic logs (`/safety_logs/`) conforming to ISO/IEC 27037 court evidence standards to submit directly to Cyber Crime authorities. The Developer or Owner of Localiiiy is NOT responsible for any cybercrime or user misconduct.",
             legalText = """
 9.1 Comprehensive Definition of Cyberstalking & Electronic Pursuit Offenses:
 Cyberstalking, physical triangulation, and malicious electronic pursuit are grave criminal offenses under municipal, federal, and international penal statutes. On Localiiiy, prohibited conduct includes:
@@ -86,11 +86,12 @@ Localiiiy enforces an uncompromising Zero-Tolerance protocol (`CyberstalkingSafe
 (b) Cryptographic Hardware & Network Fingerprinting Ban: The offender's device signatures, installation UUIDs, and authentication tokens are permanently blacklisted by `AppSecurityGuard` to prevent account recreation;
 (c) Zero Right of Appeal: Because physical and psychological neighborhood safety is paramount, permanent bans issued for verified stalking or physical endangerment carry zero right of administrative appeal.
 
-9.3 Immutable Cyberstalking Evidence Vault & ISO/IEC 27037 Forensic `/safety_logs/` Directory:
+9.3 Immutable Cyberstalking Evidence Vault, ISO/IEC 27037 Forensic `/safety_logs/` & Developer Non-Liability:
 Localiiiy equips every user with a courtroom-grade defensive forensic system (`CyberstalkingEvidenceVault`, `CyberstalkingIncidentEntity`, `SafetyLogManager`, `SafetyLogsViewerSheet`):
-(a) Dedicated `/safety_logs/` Internal Storage Vault: Users can log and export chat histories, radar sighting metadata, offender usernames, and incident descriptions directly into the protected internal `/safety_logs/` directory;
+(a) Dedicated `/safety_logs/` & `audit_logs` Vault: Users can log and export chat histories, radar sighting metadata, offender usernames, and incident descriptions directly into the protected `/safety_logs/` directory;
 (b) Cryptographic SHA-256 Tamper-Evident Sealing: Every recorded incident and exported log file is stamped with an immutable epoch timestamp and a cryptographic SHA-256 hash digest, proving that the digital evidence has not been altered post-capture;
-(c) ISO/IEC 27037 Statutory Evidence Certificate: Exported safety logs automatically include a formatted Statutory Digital Evidence Certificate suitable for direct submission to police cybercrime cells, magistrates, prosecutors, and civil courts worldwide (including compliance with Section 65B / Section 63 BSA electronic evidence standards, US Federal Rules of Evidence 902(14), and EU eIDAS forensic norms).
+(c) ISO/IEC 27037 Statutory Evidence Certificate for Self-Service Police Filing: Exported safety logs automatically include a formatted Statutory Digital Evidence Certificate suitable for direct submission by the user to police cybercrime cells, magistrates, prosecutors, and civil courts worldwide;
+(d) Developer & Owner Non-Liability for Cybercrime & Fraud: Because the Developer and Owner of Localiiiy provides full user-controlled privacy switches (Radar ON/OFF, Ghost Mode ON/OFF, Location ON/OFF, 2-way blocking) AND provides downloadable SHA-256 forensic logs (`/safety_logs/`) for direct law-enforcement reporting, the Developer and Owner of Localiiiy shall NEVER be held liable or responsible for any cybercrime, fraud, or unlawful act committed by any user.
             """.trimIndent(),
             subSections = listOf(
                 LegalSubSection(
@@ -101,7 +102,7 @@ Localiiiy equips every user with a courtroom-grade defensive forensic system (`C
                 LegalSubSection(
                     subNumber = "9.2",
                     subTitle = "24/7 Priority Law Enforcement Dispatch Cooperation",
-                    content = "Localiiiy's Trust & Safety engineering unit complies with lawful emergency disclosure requests, judicial subpoenas, and Mutual Legal Assistance Treaties (MLAT) to assist police in prosecuting cyberstalkers."
+                    content = "Localiiiy's Trust & Safety engineering unit (`Localiiiy.Helpdesk@gmail.com`) complies with lawful emergency disclosure requests, judicial subpoenas, and Mutual Legal Assistance Treaties (MLAT) to assist police in prosecuting cyberstalkers."
                 )
             ),
             isHighlighted = true

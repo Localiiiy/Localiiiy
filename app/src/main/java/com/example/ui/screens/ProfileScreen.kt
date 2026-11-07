@@ -2144,8 +2144,8 @@ private fun ProfileSettingsSheetContent(
 
         SettingsRowItem(
             icon = Icons.Default.School,
-            title = "Tutorials & Badges",
-            subtitle = "Interactive guides, Ghost Mode, Safe spots, 9:16 clips & badges",
+            title = "Tutorials, Helpdesk & Badges",
+            subtitle = "18-step master guide, 26 Helpdesk FAQs, Civic Tools, Radar 2.0 & Badges",
             onClick = onOpenInformation
         )
 
