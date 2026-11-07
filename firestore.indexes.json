@@ -1,0 +1,22 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "hyperlocal_updates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isGlobalReach", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "market_items",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "price", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

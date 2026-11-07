@@ -1,0 +1,2945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Localiiiy — Hyperlocal Social Radar & Community Commerce</title>
+  <meta name="description" content="Localiiiy: Connect with verified neighbors, live tactical spatial radar, watch hyperlocal clips, and trade safely with Safe-Haven Handshake Escrow.">
+  <meta name="theme-color" content="#070A12">
+
+  <!-- PWA & Mobile Web Capabilities -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Localiiiy">
+  <link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #070A12;
+      --bg-surface: #0E1322;
+      --bg-card: rgba(18, 24, 40, 0.88);
+      --bg-card-hover: rgba(28, 38, 62, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(16, 185, 129, 0.35);
+
+      --primary-teal: #00B4D8;
+      --accent-mint: #10B981;
+      --accent-mint-glow: rgba(16, 185, 129, 0.3);
+      --accent-amber: #F59E0B;
+      --accent-purple: #8B5CF6;
+      --accent-coral: #F43F5E;
+
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-full: 9999px;
+
+      --deck-height: 68px;
+      --topbar-height: 60px;
+    }
+
+    body[data-theme="moon"] {
+      --bg-base: #0A0F1D;
+      --bg-surface: #131B2E;
+      --bg-card: rgba(24, 34, 56, 0.9);
+      --accent-mint: #38BDF8;
+      --border-accent: rgba(56, 189, 248, 0.35);
+    }
+    body[data-theme="galaxy"] {
+      --bg-base: #080415;
+      --bg-surface: #130A2B;
+      --bg-card: rgba(28, 16, 58, 0.9);
+      --accent-mint: #C084FC;
+      --accent-amber: #F472B6;
+      --border-accent: rgba(192, 132, 252, 0.35);
+    }
+    body[data-theme="void"] {
+      --bg-base: #000000;
+      --bg-surface: #0A0A0A;
+      --bg-card: rgba(18, 18, 18, 0.95);
+      --accent-mint: #22C55E;
+      --border-accent: rgba(255, 255, 255, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Ambient animated backdrop */
+    .ambient-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(16, 185, 129, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 88% 78%, rgba(0, 180, 216, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 95%, rgba(245, 158, 11, 0.08) 0%, transparent 40%);
+    }
+
+    /* Top Sticky APK Download Bar */
+    .apk-alert-banner {
+      background: linear-gradient(90deg, #006070 0%, #008EAA 35%, #059669 100%);
+      color: #FFFFFF;
+      padding: 9px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .apk-alert-banner .left-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .apk-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download-apk {
+      background: #FFFFFF;
+      color: #005F6E;
+      font-weight: 800;
+      padding: 7px 16px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s;
+    }
+    .btn-download-apk:active {
+      transform: scale(0.96);
+    }
+    .btn-mirror-apk {
+      background: rgba(0, 0, 0, 0.35);
+      color: #FFFFFF;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+    }
+
+    /* App Header */
+    header.app-topbar {
+      height: var(--topbar-height);
+      background: rgba(7, 10, 18, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+      position: relative;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .brand-radar-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #10B981 0%, #00B4D8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--accent-mint-glow);
+    }
+    .brand-title {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #FFFFFF 30%, #A7F3D0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .topbar-location {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .topbar-location span.pulse {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-mint);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-mint);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      position: relative;
+    }
+    .icon-action-btn .badge-dot {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent-mint);
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-base);
+    }
+
+    .topbar-auth-btn {
+      padding: 6px 14px;
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      color: #04241B;
+      font-weight: 800;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Content Viewports */
+    main#appViewport {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      z-index: 10;
+      padding-bottom: calc(var(--deck-height) + 24px);
+    }
+
+    .screen-view {
+      display: none;
+      min-height: 100%;
+      animation: fadeIn 0.22s ease-out forwards;
+    }
+    .screen-view.active {
+      display: block;
+    }
+
+    /* Material Ripple Simulation */
+    .ripple-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple-effect::after {
+      content: "";
+      background: rgba(255, 255, 255, 0.2);
+      display: block;
+      position: absolute;
+      border-radius: 50%;
+      padding-top: 240%;
+      padding-left: 240%;
+      margin-left: -120%;
+      margin-top: -120%;
+      opacity: 0;
+      transition: all 0.6s;
+    }
+    .ripple-effect:active::after {
+      padding: 0;
+      margin: 0;
+      opacity: 1;
+      transition: 0s;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .screen-view.active {
+      display: block;
+      animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    /* ========================================================
+       1. PULSE (FEED SCREEN)
+       ======================================================== */
+    /* Tri-Dial Blast Radius Lens (Neighbor / City / Earth) */
+    .tactile-tri-dial-lens {
+      margin: 12px 16px 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dial-lens-btn {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: var(--radius-full);
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .dial-lens-btn.active {
+      background: var(--accent-mint);
+      color: #032417;
+      box-shadow: 0 0 12px var(--accent-mint-glow);
+    }
+
+    /* Stories Tray */
+    .stories-tray {
+      padding: 10px 16px;
+      display: flex;
+      gap: 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .stories-tray::-webkit-scrollbar { display: none; }
+
+    .story-bubble {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      width: 64px;
+      flex-shrink: 0;
+    }
+    .story-ring {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      padding: 2.5px;
+      background: linear-gradient(135deg, #10B981, #00B4D8, #F59E0B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .story-ring.add-ring {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px dashed var(--accent-mint);
+    }
+    .story-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #1E293B;
+      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border: 2px solid var(--bg-base);
+    }
+    .story-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-align: center;
+      max-width: 64px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Community Poll Card */
+    .community-poll-card {
+      margin: 8px 16px 14px;
+      background: linear-gradient(135deg, rgba(0, 180, 216, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+      border: 1px solid rgba(0, 180, 216, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .poll-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--primary-teal);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .poll-option-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 8px 12px;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .poll-option-btn:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--accent-mint);
+    }
+
+    /* Neighbor Creators Carousel */
+    .creators-carousel-title {
+      font-size: 13px;
+      font-weight: 800;
+      padding: 0 16px;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .creators-carousel-row {
+      display: flex;
+      gap: 12px;
+      padding: 0 16px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .creators-carousel-row::-webkit-scrollbar { display: none; }
+    .creator-mini-card {
+      width: 145px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      flex-shrink: 0;
+      gap: 6px;
+    }
+
+    /* Feed Filter Chips */
+    .feed-chips-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 16px 14px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .feed-chips-bar::-webkit-scrollbar { display: none; }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-chip.active {
+      background: var(--accent-mint);
+      color: #032417;
+      border-color: var(--accent-mint);
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--accent-mint-glow);
+    }
+
+    /* Post Stream */
+    .post-stream {
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .post-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .post-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .post-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .author-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1E293B, #0F172A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+    }
+    .author-meta h4 {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .author-meta p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .reach-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .reach-neighbor {
+      background: rgba(16, 185, 129, 0.16);
+      color: #6EE7B7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .reach-city {
+      background: rgba(59, 130, 246, 0.16);
+      color: #93C5FD;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    .reach-earth {
+      background: rgba(245, 158, 11, 0.16);
+      color: #FCD34D;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .post-body {
+      padding: 4px 16px 12px;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #E2E8F0;
+    }
+
+    .post-media-container {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #0B101D;
+      position: relative;
+      overflow: hidden;
+    }
+    .post-media-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .safe-haven-tag {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-accent);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 10px;
+      font-weight: 700;
+      color: #A7F3D0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .post-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .post-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn-post-action {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .btn-post-action:hover, .btn-post-action.liked {
+      color: #F43F5E;
+    }
+
+    .btn-connect-user {
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--accent-mint);
+      color: var(--accent-mint);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-connect-user.connected {
+      background: var(--accent-mint);
+      color: #04241B;
+    }
+
+    /* ========================================================
+       2. RADAR SCREEN (TACTICAL SPATIAL HUD & GRID)
+       ======================================================== */
+    .radar-screen-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* View Switcher (Radar vs Grid) */
+    .radar-view-mode-bar {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: var(--radius-full);
+      padding: 3px;
+      gap: 4px;
+    }
+    .mode-tab-btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      border: none;
+      background: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .mode-tab-btn.active {
+      background: var(--accent-mint);
+      color: #032417;
+    }
+
+    .radar-hud-wrapper {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-dish {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #0D1629 0%, #030610 100%);
+      border: 2px solid rgba(16, 185, 129, 0.3);
+      position: relative;
+      box-shadow:
+        inset 0 0 40px rgba(16, 185, 129, 0.12),
+        0 0 35px rgba(16, 185, 129, 0.08);
+      overflow: hidden;
+    }
+
+    .radar-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 1px dashed rgba(16, 185, 129, 0.25);
+      pointer-events: none;
+    }
+    .ring-inner { width: 100px; height: 100px; }
+    .ring-mid { width: 190px; height: 190px; }
+    .ring-outer { width: 280px; height: 280px; }
+
+    .radar-crosshair-x {
+      position: absolute;
+      top: 50%; left: 0; right: 0;
+      height: 1px;
+      background: rgba(16, 185, 129, 0.15);
+    }
+    .radar-crosshair-y {
+      position: absolute;
+      top: 0; bottom: 0; left: 50%;
+      width: 1px;
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .radar-sweep-beam {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 160px; height: 160px;
+      transform-origin: top left;
+      background: conic-gradient(from 0deg, rgba(16, 185, 129, 0.35) 0deg, transparent 65deg);
+      border-radius: 100% 0 0 0;
+      animation: sweepRadar 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes sweepRadar {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .radar-center-blip {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px; height: 14px;
+      background: var(--accent-mint);
+      border-radius: 50%;
+      box-shadow: 0 0 16px var(--accent-mint);
+      z-index: 20;
+    }
+
+    .radar-blip {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 25;
+      transition: transform 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+    .radar-blip.connected-blip {
+      background: var(--accent-mint);
+      box-shadow: 0 0 12px var(--accent-mint);
+    }
+    .radar-blip.market-blip {
+      background: var(--accent-amber);
+      box-shadow: 0 0 12px var(--accent-amber);
+    }
+    .radar-blip.neighbor-blip {
+      background: var(--primary-teal);
+      box-shadow: 0 0 12px var(--primary-teal);
+    }
+    .radar-blip:hover {
+      transform: translate(-50%, -50%) scale(1.6);
+    }
+
+    .radar-control-card {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .slider-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .radar-range-slider {
+      width: 100%;
+      accent-color: var(--accent-mint);
+      height: 6px;
+      border-radius: 4px;
+      background: #1E293B;
+      cursor: pointer;
+    }
+
+    .ghost-mode-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .toggle-pill-switch {
+      width: 48px;
+      height: 26px;
+      background: #1E293B;
+      border-radius: var(--radius-full);
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle-pill-switch.active {
+      background: var(--accent-mint);
+    }
+    .toggle-pill-thumb {
+      width: 20px;
+      height: 20px;
+      background: #FFFFFF;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle-pill-switch.active .toggle-pill-thumb {
+      transform: translateX(22px);
+    }
+
+    /* Radar Grid View Container */
+    #radarGridView {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+    }
+    .grid-cell-item {
+      aspect-ratio: 1;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .grid-cell-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ========================================================
+       3. MARKET SCREEN (GOODS & SERVICES ESCROW)
+       ======================================================== */
+    .market-screen-content {
+      padding: 16px;
+      max-width: 680px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Market Categories Carousel */
+    .market-categories-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 4px;
+    }
+    .market-categories-row::-webkit-scrollbar { display: none; }
+    .category-chip {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .category-chip.active {
+      background: var(--accent-amber);
+      color: #261603;
+      font-weight: 700;
+    }
+
+    .market-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(16, 185, 129, 0.1) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 12px 16px;
+    }
+
+    .market-subtabs-row {
+      display: flex;
+      gap: 20px;
+      padding: 12px 16px 8px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 4px;
+    }
+    .subtab-item {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      position: relative;
+      padding-bottom: 6px;
+    }
+    .subtab-item.active {
+      color: var(--text-primary);
+    }
+    .subtab-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 2.5px;
+      background: var(--accent-mint);
+      border-radius: 2px;
+      box-shadow: 0 0 10px var(--accent-mint);
+    }
+    .market-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) {
+      .market-grid { grid-template-columns: 1fr; }
+    }
+    .market-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .market-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+    .market-info {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+    .market-price {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--accent-amber);
+    }
+    .btn-buy-handshake {
+      width: 100%;
+      padding: 8px;
+      background: var(--accent-amber);
+      color: #261603;
+      font-weight: 800;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+
+    /* ========================================================
+       4. CLIPS SCREEN (HYPERLOCAL OVERLAYS PER AGENTS.md)
+       ======================================================== */
+    .clips-viewport {
+      height: calc(100vh - var(--topbar-height) - var(--deck-height) - 40px);
+      width: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      position: relative;
+    }
+    .clips-viewport::-webkit-scrollbar { display: none; }
+
+    .clip-screen-item {
+      height: 100%;
+      width: 100%;
+      scroll-snap-align: start;
+      position: relative;
+      background: #020617;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+    }
+    .clip-video-mock {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* AGENTS.md Mandate: Top header clean and dedicated solely to screen title & discovery filters */
+    .clips-top-discovery {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 50;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+    }
+    .clips-filter-pills {
+      display: flex;
+      gap: 6px;
+    }
+    .clip-filter-tab {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+    }
+    .clip-filter-tab.active {
+      background: rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+    }
+
+    /* AGENTS.md Mandate: Proximity/locality anchored in the bottom-left info column directly above creator */
+    .clip-bottom-info {
+      position: absolute;
+      bottom: 20px;
+      left: 14px;
+      right: 70px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+    .clip-proximity-badge {
+      align-self: flex-start;
+      background: rgba(16, 185, 129, 0.9);
+      color: #042417;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .clip-side-actions {
+      position: absolute;
+      bottom: 24px;
+      right: 12px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .clip-action-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .clip-action-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    /* ========================================================
+       5. STUDIO SCREEN
+       ======================================================== */
+    .studio-screen-content {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .studio-card-hero {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ========================================================
+       6. PROFILE SCREEN (STRICTLY CONNECTED PER AGENTS.md)
+       ======================================================== */
+    .profile-screen-content {
+      padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .profile-header-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+    .profile-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      border: 3px solid var(--accent-mint);
+      box-shadow: 0 0 25px var(--accent-mint-glow);
+    }
+    .profile-stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      width: 100%;
+      padding-top: 14px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .stat-box h3 {
+      font-size: 20px;
+      font-weight: 800;
+    }
+    .stat-box p {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Profile Sub-tabs */
+    .profile-tabs-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-top: 8px;
+    }
+    .profile-tab-item {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .profile-tab-item.active {
+      color: var(--accent-mint);
+      border-bottom-color: var(--accent-mint);
+    }
+
+    /* ========================================================
+       DECKSWITCHER FLOATING CAPSULE & CREATE (+) BUTTON
+       ======================================================== */
+    nav#deckSwitcher {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 24px);
+      max-width: 520px;
+      height: var(--deck-height);
+      background: rgba(14, 20, 32, 0.94);
+      backdrop-filter: blur(24px);
+      border: 1.2px solid rgba(16, 185, 129, 0.25);
+      border-radius: 34px;
+      box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.7),
+        0 0 25px rgba(16, 185, 129, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+      z-index: 150;
+    }
+
+    .deck-pill-btn {
+      flex: 1;
+      height: 48px;
+      border-radius: 24px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .deck-pill-btn.active {
+      background: rgba(16, 185, 129, 0.18);
+      color: #A7F3D0;
+      font-weight: 800;
+    }
+    .deck-pill-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Floating Creation (+) Center Node */
+    .deck-create-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      border: none;
+      color: #042417;
+      font-size: 22px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 15px var(--accent-mint-glow);
+      margin: 0 4px;
+      transition: transform 0.15s ease;
+    }
+    .deck-create-btn:active {
+      transform: scale(0.92);
+    }
+
+    .deck-avatar-node {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .deck-pill-btn.active .deck-avatar-node {
+      border-color: var(--accent-mint);
+    }
+
+    /* ========================================================
+       MODALS & SLIDE-OVER SHEETS
+       ======================================================== */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(14px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      animation: fadeIn 0.2s ease-out;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-sheet-card {
+      background: #0E1424;
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-primary);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .auth-tab-switch {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-full);
+      padding: 4px;
+      margin: 16px 0;
+    }
+    .auth-tab-btn {
+      flex: 1;
+      padding: 8px 0;
+      border-radius: var(--radius-full);
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+    .auth-tab-btn.active {
+      background: var(--accent-mint);
+      color: #032417;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .form-input, .form-textarea, .form-select {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+      border-color: var(--accent-mint);
+    }
+
+    .btn-submit-auth {
+      background: linear-gradient(135deg, #10B981, #00B4D8);
+      color: #032417;
+      font-weight: 800;
+      font-size: 15px;
+      padding: 14px;
+      border-radius: var(--radius-full);
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 18px var(--accent-mint-glow);
+      margin-top: 8px;
+    }
+
+    /* Live Toast Notification */
+    #liveToast {
+      position: fixed;
+      top: 74px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-30px);
+      background: rgba(16, 185, 129, 0.95);
+      color: #042417;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 20px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s;
+    }
+    #liveToast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body data-theme="default">
+
+  <!-- Ambient Light Backdrops -->
+  <!-- Splash Screen -->
+  <div id="splashScreen" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #020617; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease, visibility 0.5s;">
+    <div style="width: 160px; height: 160px; margin-bottom: 24px; position: relative;">
+      <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
+        <defs>
+          <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0F172A" />
+            <stop offset="50%" stop-color="#022C22" />
+            <stop offset="100%" stop-color="#0F172A" />
+          </linearGradient>
+          <radialGradient id="circleBg" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#075985" />
+            <stop offset="100%" stop-color="#064E3B" />
+          </radialGradient>
+        </defs>
+        <!-- Background Circle -->
+        <circle cx="256" cy="256" r="230" fill="url(#circleBg)" />
+        <!-- Arcs -->
+        <path d="M150,220 Q120,180 170,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
+        <path d="M362,220 Q392,180 342,160" fill="none" stroke="#2DD4BF" stroke-width="20" stroke-linecap="round" stroke-opacity="0.8" />
+        <!-- Main Pin -->
+        <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
+        <!-- Eye / Center Circle -->
+        <circle cx="256" cy="260" r="45" fill="#020617" />
+        <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
+      </svg>
+    </div>
+    <h1 style="font-size: 38px; font-weight: 900; color: #FFFFFF; letter-spacing: -1.5px; margin: 0;">localiiiy</h1>
+    <div style="margin-top: 40px; width: 60px; height: 2px; background: rgba(45, 212, 191, 0.2); border-radius: 1px; overflow: hidden;">
+      <div style="width: 100%; height: 100%; background: #2DD4BF; transform: translateX(-100%); animation: loadingProgress 2s ease-in-out infinite;"></div>
+    </div>
+  </div>
+
+  <style>
+    @keyframes rotateScan {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4)); transform: scale(1); }
+      50% { filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.6)); transform: scale(1.02); }
+      100% { filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4)); transform: scale(1); }
+    }
+  </style>
+
+  <style>
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 20px var(--accent-mint-glow); transform: scale(1); }
+      50% { box-shadow: 0 0 40px var(--accent-mint-glow); transform: scale(1.05); }
+      100% { box-shadow: 0 0 20px var(--accent-mint-glow); transform: scale(1); }
+    }
+    @keyframes loadingProgress {
+      0% { transform: translateX(-100%); }
+      50% { transform: translateX(0); }
+      100% { transform: translateX(100%); }
+    }
+  </style>
+
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('splashScreen');
+        splash.style.opacity = '0';
+        setTimeout(() => splash.style.visibility = 'hidden', 500);
+      }, 1500);
+    });
+  </script>
+
+  <div class="ambient-bg"></div>
+
+  <!-- Toast Element -->
+  <div id="liveToast">Notification</div>
+
+  <!-- TOP STICKY APK DOWNLOAD BAR -->
+  <div class="apk-alert-banner">
+    <div class="left-info">
+      <span>📱</span>
+      <span><strong>Localiiiy Android APK (Official Build)</strong> • 37 MB</span>
+    </div>
+    <div class="apk-btn-group">
+      <!-- One-click Download Helper Modal -->
+      <button class="btn-download-apk" onclick="openDownloadModal()">
+        ⬇️ Download APK
+      </button>
+      <!-- Direct Cloud Mirror -->
+      <a href="https://drive.google.com/file/d/1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0/view?usp=sharing" target="_blank" class="btn-mirror-apk">
+        ☁️ Google Drive
+      </a>
+    </div>
+  </div>
+
+  <!-- TOP APPBAR (MATCHING JETPACK COMPOSE LOCALIIIY TOP BAR) -->
+  <header class="app-topbar">
+    <div class="topbar-brand" onclick="switchDeck('pulse')">
+      <div class="brand-radar-icon" style="background: none; box-shadow: none;">
+        <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
+          <circle cx="256" cy="256" r="230" fill="#075985" />
+          <path d="M256,120 C180,120 130,180 130,260 C130,340 256,440 256,440 C256,440 382,340 382,260 C382,180 332,120 256,120 Z" fill="#FFFFFF" />
+          <circle cx="256" cy="260" r="22" fill="#2DD4BF" />
+        </svg>
+      </div>
+      <div class="brand-title">Localiiiy</div>
+    </div>
+
+    <!-- Clickable Live GPS Location Chip -->
+    <div class="topbar-location" onclick="triggerGpsDetection()">
+      <span class="pulse"></span>
+      <span id="currentLocationText">Pike Place, Seattle</span>
+    </div>
+
+    <div class="topbar-actions">
+      <!-- Direct Messages Chat -->
+      <div class="icon-action-btn" onclick="openChatDrawer()" title="Direct Messages">
+        💬
+        <div class="badge-dot"></div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="icon-action-btn" onclick="openNotificationsModal()" title="Notifications">
+        🔔
+        <div class="badge-dot"></div>
+      </div>
+
+      <!-- Theme Switcher -->
+      <div class="icon-action-btn" onclick="cycleAtmosphericTheme()" title="Switch Atmospheric Theme">
+        🎨
+      </div>
+
+      <!-- User Login / Profile Pill -->
+      <button class="topbar-auth-btn" id="headerAuthBtn" onclick="openAuthModal('login')">
+        <span>👤</span>
+        <span id="authButtonLabel">Sign In</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN SCROLLABLE VIEWPORT -->
+  <main id="appViewport">
+
+    <!-- ========================================================
+         VIEW 1: PULSE (FEED SCREEN)
+         ======================================================== -->
+    <div id="view-pulse" class="screen-view active">
+      <!-- Tactile Tri-Dial Blast Radius Lens (Neighbor / City / Earth) -->
+      <div class="tactile-tri-dial-lens">
+        <button class="dial-lens-btn active" onclick="setTriDial(this, 'neighbor')">🏡 Neighbor (5km)</button>
+        <button class="dial-lens-btn" onclick="setTriDial(this, 'city')">🏙️ City (50km)</button>
+        <button class="dial-lens-btn" onclick="setTriDial(this, 'earth')">🌍 Earth (Global)</button>
+      </div>
+
+      <!-- Stories Tray -->
+      <div class="stories-tray">
+        <div class="story-bubble" onclick="openCreationModal('story')">
+          <div class="story-ring add-ring">
+            <div class="story-avatar" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">+</div>
+          </div>
+          <span class="story-label">Your Story</span>
+        </div>
+
+        <div class="story-bubble" onclick="showStoryViewer('Elena Rostova', 'Pike Place Artisan')">
+          <div class="story-ring">
+            <div class="story-avatar">👩‍🎨</div>
+          </div>
+          <span class="story-label">Elena R.</span>
+        </div>
+
+        <div class="story-bubble" onclick="showStoryViewer('Marcus Chen', 'Urban Filmmaker')">
+          <div class="story-ring">
+            <div class="story-avatar">🎬</div>
+          </div>
+          <span class="story-label">Marcus C.</span>
+        </div>
+
+        <div class="story-bubble" onclick="showStoryViewer('Maya Patel', 'Civic Baker')">
+          <div class="story-ring">
+            <div class="story-avatar">🥖</div>
+          </div>
+          <span class="story-label">Maya P.</span>
+        </div>
+
+        <div class="story-bubble" onclick="showStoryViewer('Officer Davis', 'Precinct Safe-Haven Hub')">
+          <div class="story-ring">
+            <div class="story-avatar">🛡️</div>
+          </div>
+          <span class="story-label">Safe-Haven</span>
+        </div>
+      </div>
+
+      <!-- Community Pulse Poll Card -->
+      <div class="community-poll-card">
+        <div class="poll-header">
+          <span>📊 Neighborhood Voice Poll</span>
+          <span>Closes in 6h</span>
+        </div>
+        <div style="font-size: 13px; font-weight: 700;">Should Pike Place pedestrianize Pine St on summer weekends?</div>
+        <button class="poll-option-btn" onclick="votePoll(this, 'Yes, more community space (78%)')">
+          <span>Yes, expand pedestrian stalls</span>
+          <span style="color: var(--accent-mint); font-weight: 800;">78%</span>
+        </button>
+        <button class="poll-option-btn" onclick="votePoll(this, 'No, keep vehicle delivery access (22%)')">
+          <span>No, keep delivery vehicle lanes</span>
+          <span style="color: var(--text-muted);">22%</span>
+        </button>
+      </div>
+
+      <!-- Nearby Neighbors Carousel -->
+      <div class="creators-carousel-title">
+        <span>Active Neighbors Nearby</span>
+      </div>
+      <div class="creators-carousel-row">
+        <div class="creator-mini-card">
+          <div class="author-avatar" style="width: 38px; height: 38px;">👩‍🎨</div>
+          <div style="font-size: 12px; font-weight: 700;">Elena Rostova</div>
+          <div style="font-size: 10px; color: var(--accent-mint);">0.3 km • Artisan</div>
+          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Elena Rostova')">+ Connect</button>
+        </div>
+
+        <div class="creator-mini-card">
+          <div class="author-avatar" style="width: 38px; height: 38px;">🚲</div>
+          <div style="font-size: 12px; font-weight: 700;">Devon Miller</div>
+          <div style="font-size: 10px; color: var(--text-muted);">1.1 km • Cyclist</div>
+          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Devon Miller')">+ Connect</button>
+        </div>
+
+        <div class="creator-mini-card">
+          <div class="author-avatar" style="width: 38px; height: 38px;">🥖</div>
+          <div style="font-size: 12px; font-weight: 700;">Maya Patel</div>
+          <div style="font-size: 10px; color: var(--accent-mint);">0.4 km • Baker</div>
+          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Maya Patel')">+ Connect</button>
+        </div>
+      </div>
+
+      <!-- Proximity Filter Chips -->
+      <div class="feed-chips-bar">
+        <div class="filter-chip active" onclick="setFeedFilter(this, 'all')">All Feed</div>
+        <div class="filter-chip" onclick="setFeedFilter(this, 'trending')">🔥 Trending</div>
+        <div class="filter-chip" onclick="setFeedFilter(this, 'nearby')">📍 Nearby (3km)</div>
+        <div class="filter-chip" onclick="setFeedFilter(this, 'connected')">🤝 Connected</div>
+      </div>
+
+      <!-- Posts Stream -->
+      <div class="post-stream" id="postsStreamContainer">
+
+        <!-- Post 1 -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">☕</div>
+              <div class="author-meta">
+                <h4>Maya Patel <span class="reach-pill reach-neighbor">Neighbor</span></h4>
+                <p>0.3 km away • 18m ago • Pike Place Alley</p>
+              </div>
+            </div>
+            <button class="btn-connect-user" onclick="toggleConnect(this, 'Maya Patel')">+ Connect</button>
+          </div>
+          <div class="post-body">
+            Fresh batch of organic cardamom sourdough just came out of our wood-fired oven! Any connected neighbors are welcome to stop by for a hot slice before noon 🍞☕
+          </div>
+          <div class="post-media-container">
+            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=700&auto=format&fit=crop&q=80" alt="Sourdough">
+            <div class="safe-haven-tag">🛡️ Verified Safe Neighbor</div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">42</span></button>
+              <button class="btn-post-action" onclick="openCommentsModal('Maya Patel Sourdough', ['Delicious! On my way.', 'Save one for me please!'])">💬 12</button>
+              <button class="btn-post-action" onclick="sharePost('Maya Patel Sourdough')">🔄 Share</button>
+            </div>
+            <button class="btn-post-action" onclick="waveAtNeighbor('Maya Patel')">👋 Wave</button>
+          </div>
+        </div>
+
+        <!-- Post 2: Market Conversion -->
+        <div class="post-card">
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">📷</div>
+              <div class="author-meta">
+                <h4>Marcus Chen <span class="reach-pill reach-city">City</span></h4>
+                <p>1.4 km away • 1h ago • Civic Center</p>
+              </div>
+            </div>
+            <button class="btn-connect-user" onclick="toggleConnect(this, 'Marcus Chen')">+ Connect</button>
+          </div>
+          <div class="post-body">
+            Selling my mint condition vintage 35mm film camera with 50mm f/1.8 lens. Safe-Haven handshake escrow meetup at the Downtown Police Precinct CCTV zone! 🛍️
+          </div>
+          <div class="post-media-container">
+            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=700&auto=format&fit=crop&q=80" alt="Vintage Camera">
+            <div class="safe-haven-tag">🛡️ Safe-Haven Hub: Civic Plaza Station</div>
+          </div>
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">28</span></button>
+              <button class="btn-post-action" onclick="openCommentsModal('Marcus Chen camera', ['Can you meet at 3pm?'])">💬 9</button>
+            </div>
+            <button class="btn-buy-handshake" style="width: auto; padding: 6px 16px;" onclick="openEscrowModal('Vintage Camera', '$120')">
+              🛍️ Buy / Trade ($120)
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 2: RADAR SCREEN (TACTICAL REAL-TIME SPATIAL HUD & GRID)
+         ======================================================== -->
+    <div id="view-radar" class="screen-view">
+      <div class="radar-screen-content">
+
+        <!-- Mode bar: Radar HUD vs Grid -->
+        <div class="radar-view-mode-bar">
+          <button class="mode-tab-btn active" onclick="setRadarMode('radar')">
+            <svg viewBox="0 0 512 512" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;">
+              <circle cx="256" cy="256" r="180" fill="none" stroke="currentColor" stroke-width="40" stroke-opacity="0.5" />
+              <circle cx="256" cy="256" r="80" fill="currentColor" />
+            </svg>
+            Spatial Radar
+          </button>
+          <button class="mode-tab-btn" onclick="setRadarMode('grid')">▦ Media Grid</button>
+        </div>
+
+        <!-- Radar Canvas HUD Container -->
+        <div id="radarHudContainer">
+          <div class="radar-hud-wrapper">
+            <div class="radar-dish">
+              <!-- Crosshairs -->
+              <div class="radar-crosshair-x"></div>
+              <div class="radar-crosshair-y"></div>
+
+              <!-- Concentric rings -->
+              <div class="radar-ring ring-inner"></div>
+              <div class="radar-ring ring-mid"></div>
+              <div class="radar-ring ring-outer"></div>
+
+              <!-- Rotating Scanning Beam -->
+              <div class="radar-sweep-beam"></div>
+
+              <!-- Center User Blip -->
+              <div class="radar-center-blip" title="You are here"></div>
+
+              <!-- Dynamic Blips -->
+              <div class="radar-blip connected-blip" style="top: 30%; left: 36%;" onclick="showBlipDetails('Elena Rostova', '0.3 km', 'Connected Neighbor', 'Artisan')">🎨</div>
+              <div class="radar-blip market-blip" style="top: 25%; left: 74%;" onclick="showBlipDetails('Vintage 35mm Camera', '1.4 km', 'Market Listing', 'Camera')">📷</div>
+              <div class="radar-blip neighbor-blip" style="top: 68%; left: 28%;" onclick="showBlipDetails('Maya Patel', '0.4 km', 'Connected Baker', 'Neighbor')">🥖</div>
+              <div class="radar-blip neighbor-blip" style="top: 74%; left: 78%;" onclick="showBlipDetails('Devon Miller', '1.1 km', 'Local Neighbor', 'Cyclist')">🚲</div>
+              <div class="radar-blip connected-blip" style="top: 84%; left: 52%;" onclick="showBlipDetails('Officer Davis', '0.5 km', 'Safe-Haven Precinct', 'Officer')">🛡️</div>
+            </div>
+          </div>
+
+          <!-- Radar Tactical Controls -->
+          <div class="radar-control-card">
+            <div class="slider-row">
+              <div class="slider-header">
+                <span>Tactical Radar Range</span>
+                <span id="rangeLabel" style="color: var(--accent-mint); font-weight: 700;">3.0 km</span>
+              </div>
+              <input type="range" min="0.5" max="25" step="0.5" value="3.0" class="radar-range-slider" id="radarRangeSlider" oninput="updateRadarRange(this.value)">
+            </div>
+
+            <div class="ghost-mode-row">
+              <div>
+                <div style="font-size: 14px; font-weight: 700;">Ghost / Cloak Mode 👻</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Hide your location from surrounding radar scans</div>
+              </div>
+              <div class="toggle-pill-switch" id="ghostToggleSwitch" onclick="toggleGhostMode()">
+                <div class="toggle-pill-thumb"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Radar 3-Column Grid Container -->
+        <div id="radarGridView" style="display: none;">
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+          <div class="grid-cell-item" onclick="switchDeck('clips')">
+            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&auto=format&fit=crop&q=80" alt="Item">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 3: MARKET SCREEN (SAFE-HAVEN COMMERCE)
+         ======================================================== -->
+    <div id="view-market" class="screen-view">
+      <div class="market-screen-content">
+
+        <!-- Market Sub-tabs (Android Parity) -->
+        <div class="market-subtabs-row">
+          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">Goods</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">Services</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'wanted')">Wanted</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'video')">Video Shops</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">Watchlist</div>
+        </div>
+
+        <!-- Categories horizontal bar (Expanded Android List) -->
+        <div class="market-categories-row">
+          <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
+          <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
+          <div class="category-chip" onclick="filterCategory(this, 'bikes')">🚲 Bikes</div>
+          <div class="category-chip" onclick="filterCategory(this, 'lands')">🏞️ Lands</div>
+          <div class="category-chip" onclick="filterCategory(this, 'mobiles')">📱 Mobiles</div>
+          <div class="category-chip" onclick="filterCategory(this, 'tech')">💻 Tech</div>
+          <div class="category-chip" onclick="filterCategory(this, 'jobs')">💼 Jobs</div>
+          <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Furniture</div>
+          <div class="category-chip" onclick="filterCategory(this, 'fashion')">👕 Fashion</div>
+          <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Food</div>
+          <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
+          <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books</div>
+          <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets</div>
+          <div class="category-chip" onclick="filterCategory(this, 'crypto')">₿ Crypto</div>
+          <div class="category-chip" onclick="filterCategory(this, 'wellness')">🧘 Wellness</div>
+        </div>
+
+        <div class="market-banner">
+          <div>
+            <h3 style="font-size: 16px; font-weight: 800; color: #F59E0B;">Safe-Haven Handshake Escrow 🛡️</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV & OTP handshake codes.</p>
+          </div>
+          <button class="btn-download-apk" style="background: var(--accent-amber); color: #000;" onclick="openCreationModal('market')">
+            + Sell Item
+          </button>
+        </div>
+
+        <div class="market-grid" id="marketGridContainer">
+          <!-- Item 1 -->
+          <div class="market-card ripple-effect">
+            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&auto=format&fit=crop&q=80" alt="Item">
+            <div class="market-info">
+              <div class="market-price">$120</div>
+              <h4 style="font-size: 13px; font-weight: 700;">Vintage 35mm Film Camera</h4>
+              <p style="font-size: 11px; color: var(--text-muted);">0.8 km • Mint Condition</p>
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('120')">
+                Request Handshake 🤝
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="market-card ripple-effect">
+            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=80" alt="Item">
+            <div class="market-info">
+              <div class="market-price">$12 / loaf</div>
+              <h4 style="font-size: 13px; font-weight: 700;">Artisan Sourdough Loaves</h4>
+              <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Maya's Bakehouse</p>
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('12')">
+                Request Handshake 🤝
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="market-card ripple-effect">
+            <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500&auto=format&fit=crop&q=80" alt="Bicycle">
+            <div class="market-info">
+              <div class="market-price">$45 / hr</div>
+              <h4 style="font-size: 13px; font-weight: 700;">Bicycle Tune-up & Safety Check</h4>
+              <p style="font-size: 11px; color: var(--text-muted);">1.1 km • Devon's Mobile Shop</p>
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('45')">
+                Request Service 🤝
+              </button>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="market-card ripple-effect">
+            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=80" alt="Pottery">
+            <div class="market-info">
+              <div class="market-price">$38</div>
+              <h4 style="font-size: 13px; font-weight: 700;">Hand-thrown Ceramic Mug Set</h4>
+              <p style="font-size: 11px; color: var(--text-muted);">0.3 km • Elena's Studio</p>
+              <button class="btn-buy-handshake ripple-effect" onclick="initiateHandshake('38')">
+                Request Handshake 🤝
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 4: CLIPS SCREEN (FULLSCREEN VERTICAL REELS)
+         ======================================================== -->
+    <div id="view-clips" class="screen-view">
+      <div class="clips-viewport">
+
+        <!-- Clip 1 -->
+        <div class="clip-screen-item">
+          <!-- Top Discovery Filter (AGENTS.md mandate: header solely for title & filters) -->
+          <div class="clips-top-discovery">
+            <span style="font-size: 13px; font-weight: 800; color: #FFFFFF;">🎬 Clips</span>
+            <div class="clips-filter-pills">
+              <div class="clip-filter-tab" onclick="setClipTab(this)">All</div>
+              <div class="clip-filter-tab" onclick="setClipTab(this)">Trending</div>
+              <div class="clip-filter-tab active" onclick="setClipTab(this)">Nearby</div>
+              <div class="clip-filter-tab" onclick="setClipTab(this)">Connected</div>
+            </div>
+          </div>
+
+          <img class="clip-video-mock" src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&auto=format&fit=crop&q=80" alt="Video">
+
+          <!-- Bottom Left Overlay (AGENTS.md mandate: Proximity/locality anchored directly above creator) -->
+          <div class="clip-bottom-info">
+            <div class="clip-proximity-badge">📍 Pike Place • 0.3 km away</div>
+            <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Morning baking routine in the alley 🥐✨</div>
+            <div style="font-size: 12px; color: #CBD5E1; font-weight: 600;">@maya_bakes • Connected Neighbor</div>
+          </div>
+
+          <!-- Side Actions -->
+          <div class="clip-side-actions">
+            <div class="clip-action-node" onclick="toggleClipLike(this)">
+              <div class="clip-action-circle">❤️</div>
+              <span>1.2k</span>
+            </div>
+            <div class="clip-action-node" onclick="openCommentsModal('Morning Baking Clip', ['Looks so fresh!', 'Best baker in Seattle'])">
+              <div class="clip-action-circle">💬</div>
+              <span>84</span>
+            </div>
+            <div class="clip-action-node" onclick="sharePost('Morning Baking Clip')">
+              <div class="clip-action-circle">🔄</div>
+              <span>Share</span>
+            </div>
+            <div class="clip-action-node" onclick="openEscrowModal('Sourdough Pre-order', '$12')">
+              <div class="clip-action-circle" style="background: var(--accent-amber);">🛍️</div>
+              <span style="color: #FCD34D;">Buy</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 5: STUDIO SCREEN
+         ======================================================== -->
+    <div id="view-studio" class="screen-view">
+      <div class="studio-screen-content">
+        <!-- Studio Categories (Matched with Android StudioScreen.kt) -->
+        <div class="market-categories-row" style="padding: 12px 16px 6px;">
+          <div class="category-chip active" onclick="filterCategory(this, 'all')">All Content</div>
+          <div class="category-chip" onclick="filterCategory(this, 'music')">Music</div>
+          <div class="category-chip" onclick="filterCategory(this, 'news')">News</div>
+          <div class="category-chip" onclick="filterCategory(this, 'tech')">Tech</div>
+          <div class="category-chip" onclick="filterCategory(this, 'lifestyle')">Lifestyle</div>
+          <div class="category-chip" onclick="filterCategory(this, 'podcasts')">Podcasts</div>
+          <div class="category-chip" onclick="filterCategory(this, 'documentaries')">Docs</div>
+          <div class="category-chip" onclick="filterCategory(this, 'gaming')">Gaming</div>
+          <div class="category-chip" onclick="filterCategory(this, 'culture')">Culture</div>
+        </div>
+
+        <div class="studio-card-hero">
+          <span style="font-size: 11px; font-weight: 800; color: #C084FC; text-transform: uppercase;">Creator Monetization & Tips</span>
+          <div style="font-size: 32px; font-weight: 800; color: #FFFFFF;">$142.50</div>
+          <p style="font-size: 12px; color: #D1D5DB;">Earned from Super Thanks tips & local goods handshake commissions.</p>
+          <button class="btn-submit-auth ripple-effect" style="margin-top: 6px;" onclick="showToast('Instant cashout dispatched to safe wallet! 💸')">
+            Cash Out to Local Bank
+          </button>
+        </div>
+
+        <div class="neighbor-card" style="padding: 16px;">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Draft Clips Vault</div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">3 clips ready for dual reach broadcast</div>
+          </div>
+          <button class="btn-download-apk" style="padding: 6px 14px; background: var(--accent-purple); color: #FFFFFF;" onclick="openCreationModal('clip')">
+            + Upload New
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         VIEW 6: PROFILE SCREEN (STRICTLY CONNECTED COUNTERS)
+         ======================================================== -->
+    <div id="view-profile" class="screen-view">
+      <div class="profile-screen-content">
+        <div class="profile-header-card">
+          <div class="profile-avatar-large" id="profileDisplayAvatar">👤</div>
+          <div>
+            <h2 id="profileDisplayName" style="font-size: 20px; font-weight: 800;">Local Explorer</h2>
+            <p id="profileDisplayHandle" style="font-size: 13px; color: var(--text-muted);">@local_neighbor • Seattle, WA</p>
+          </div>
+
+          <!-- AGENTS.md Mandate: NEVER USE FOLLOW/FOLLOWERS - ONLY CONNECTED/CONNECTIONS -->
+          <div class="profile-stats-row">
+            <div class="stat-box">
+              <h3 id="profileConnectionsCount">128</h3>
+              <p>Connections</p>
+            </div>
+            <div class="stat-box">
+              <h3>4.9</h3>
+              <p>Safety Trust</p>
+            </div>
+            <div class="stat-box">
+              <h3>24</h3>
+              <p>Handshakes</p>
+            </div>
+          </div>
+
+          <!-- Action Buttons in Profile -->
+          <div style="display: flex; gap: 10px; width: 100%; margin-top: 8px;">
+            <button class="btn-post-action" style="flex: 1; padding: 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); justify-content: center;" onclick="openEditProfileModal()">
+              ✏️ Edit Profile
+            </button>
+            <button class="btn-download-apk" style="flex: 1; padding: 10px; justify-content: center;" onclick="openDownloadModal()">
+              📱 Download APK
+            </button>
+          </div>
+        </div>
+
+        <!-- Privacy & System Settings -->
+        <div class="neighbor-card" style="cursor: pointer;" onclick="toggleGhostMode()">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Ghost & Cloak Settings</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Stealth radar browsing</div>
+          </div>
+          <span>➔</span>
+        </div>
+
+        <div class="neighbor-card" style="cursor: pointer;" onclick="openLegalTerms()">
+          <div>
+            <div style="font-weight: 700; font-size: 14px;">Community Covenant & Safety</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Safe-Haven Escrow guidelines</div>
+          </div>
+          <span>➔</span>
+        </div>
+
+        <!-- NEW: Session Management -->
+        <div class="neighbor-card" style="cursor: pointer; border-color: rgba(239, 68, 68, 0.2); margin-top: 12px;" onclick="logoutUser()">
+          <div style="color: #F87171;">
+            <div style="font-weight: 700; font-size: 14px;">Sign Out</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Switch to another neighborhood account</div>
+          </div>
+          <span style="color: #F87171;">➔</span>
+        </div>
+
+        <div class="neighbor-card" style="cursor: pointer; margin-top: 24px; background: rgba(239, 68, 68, 0.05); border: 1px dashed rgba(239, 68, 68, 0.3);" onclick="clearAllAppData()">
+          <div style="color: #F87171;">
+            <div style="font-weight: 700; font-size: 14px;">Danger Zone: Reset Web Data</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Wipe all local users and post data for testing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================
+       UNIFIED SINGLE-ID DECK SWITCHER BAR & CREATE (+) BUTTON
+       ======================================================== -->
+  <nav id="deckSwitcher">
+    <!-- Pulse -->
+    <button class="deck-pill-btn active" onclick="switchDeck('pulse')" id="tab-pulse">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+      <span>Pulse</span>
+    </button>
+
+    <!-- Radar -->
+    <button class="deck-pill-btn" onclick="switchDeck('radar')" id="tab-radar">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+      <span>Radar</span>
+    </button>
+
+    <!-- Floating Center Creation Button (+) -->
+    <button class="deck-create-btn" onclick="openCreationModal('post')" title="Create Content">+</button>
+
+    <!-- Market -->
+    <button class="deck-pill-btn" onclick="switchDeck('market')" id="tab-market">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+      <span>Market</span>
+    </button>
+
+    <!-- Clips -->
+    <button class="deck-pill-btn" onclick="switchDeck('clips')" id="tab-clips">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      <span>Clips</span>
+    </button>
+
+    <!-- Profile Node -->
+    <button class="deck-pill-btn" onclick="switchDeck('profile')" id="tab-profile">
+      <div class="deck-avatar-node" id="deckAvatarThumb">👤</div>
+      <span>Profile</span>
+    </button>
+  </nav>
+
+  <!-- ========================================================
+       MODAL 1: ROBUST APK DOWNLOAD & INSTALL GUIDE MODAL
+       ======================================================== -->
+  <div class="modal-backdrop" id="downloadModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeDownloadModal()">✕</button>
+
+      <div style="text-align: center;">
+        <div style="font-size: 38px;">📱</div>
+        <h3 style="font-size: 20px; font-weight: 800; margin-top: 6px;">Download Localiiiy APK</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • 37 MB • Verified Clean</p>
+      </div>
+
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 14px; margin: 16px 0; font-size: 13px; line-height: 1.6;">
+        <strong>How to install on your Android phone:</strong>
+        <ol style="margin-left: 18px; margin-top: 6px; font-size: 12px; color: #CBD5E1;">
+          <li>Tap a download button below.</li>
+          <li>If Chrome says <em>"File might be harmful"</em>, tap <strong>"Download anyway"</strong> (standard Android prompt for external APKs).</li>
+          <li>Once finished, open your notification or Files app and tap <strong>Localiiiy.apk</strong> to install!</li>
+        </ol>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Mirror 1: Root File -->
+        <a href="./Localiiiy_Installer.apk" download="Localiiiy_Installer.apk" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center;" onclick="triggerDownloadFeedback('Server 1')">
+          ⚡ Direct Download (Primary Server)
+        </a>
+
+        <!-- Mirror 2: GitHub Raw Link (CDN) -->
+        <a href="https://github.com/Localiiiy/Localiiiy/raw/main/Localiiiy_Installer.apk" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('GitHub CDN')">
+          🐙 GitHub Mirror (Recommended)
+        </a>
+
+        <!-- Mirror 3: External Storage Fallback -->
+        <a href="https://drive.google.com/uc?export=download&id=1twc--6Px_baE2vdCAnSKy2O9KVhF-VZ0" target="_blank" class="btn-mirror-apk ripple-effect" style="justify-content: center; padding: 12px; font-size: 13px; display: flex;" onclick="triggerDownloadFeedback('Cloud Mirror')">
+          ☁️ High-Speed Cloud Mirror
+        </a>
+      </div>
+
+      <div style="margin-top: 16px; font-size: 11px; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 10px; line-height: 1.4;">
+        <strong>Trouble downloading?</strong><br>
+        1. If the download doesn't start, long-press/right-click the button and select "Download link".<br>
+        2. If you see a "Harmful file" warning, this is normal for external APKs. Tap "Download anyway".<br>
+        3. Make sure you are using a mobile browser (Chrome/Edge) for the best install experience.
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 2: REGISTRATION & SIGN IN MODAL
+       ======================================================== -->
+  <div class="modal-backdrop" id="authModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeAuthModal()">✕</button>
+
+      <div style="text-align: center;">
+        <div style="width: 60px; height: 60px; margin: 0 auto 15px;">
+          <svg viewBox="0 0 512 512" style="width: 100%; height: 100%;">
+            <circle cx="256" cy="256" r="200" fill="none" stroke="#10B981" stroke-width="30" stroke-opacity="0.3" />
+            <circle cx="256" cy="256" r="100" fill="#10B981" />
+          </svg>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; margin-top: 4px;">Join Localiiiy</h3>
+        <p style="font-size: 12px; color: var(--text-secondary);">Your Neighborhood, Alive in Real Time</p>
+      </div>
+
+      <div class="auth-tab-switch">
+        <button class="auth-tab-btn active" id="authTabLogin" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab-btn" id="authTabRegister" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- Sign In Form -->
+      <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-field">
+          <label>Email or Username</label>
+          <input type="text" class="form-input" id="loginEmail" placeholder="e.g. alex_creative or name@mail.com" required>
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-submit-auth">Sign In to Radar</button>
+
+        <div style="text-align: center; margin-top: 10px;">
+          <button type="button" style="background: none; border: none; color: var(--accent-mint); font-size: 12px; cursor: pointer;" onclick="demoQuickLogin()">
+            ⚡ Instant Demo Login (Alex)
+          </button>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form class="auth-form" id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" class="form-input" id="regFullName" placeholder="Alex Rivera" required>
+        </div>
+        <div class="form-field">
+          <label>Choose Username</label>
+          <input type="text" class="form-input" id="regUsername" placeholder="@alex_creative" required>
+        </div>
+        <div class="form-field">
+          <label>Neighborhood / City Landmark</label>
+          <input type="text" class="form-input" id="regNeighborhood" placeholder="e.g. Pike Place, Seattle" required>
+        </div>
+        <div class="form-field">
+          <label>Email Address</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="alex@example.com" required>
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="Create strong password" required>
+        </div>
+        <button type="submit" class="btn-submit-auth">Complete Registration 🚀</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 3: CONTENT CREATION MODAL (+)
+       ======================================================== -->
+  <div class="modal-backdrop" id="creationModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeCreationModal()">✕</button>
+
+      <div style="text-align: center;">
+        <div style="font-size: 32px;" id="creationIcon">✍️</div>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="creationModalTitle">Create Neighborhood Post</h3>
+      </div>
+
+      <form class="auth-form" style="margin-top: 16px;" onsubmit="handleCreateContent(event)">
+        <div class="form-field">
+          <label>What's happening nearby?</label>
+          <textarea class="form-textarea" id="createPostText" rows="3" placeholder="Share local news, events, or updates..." required></textarea>
+        </div>
+
+        <div class="form-field" id="priceFieldGroup" style="display: none;">
+          <label>Item Price ($)</label>
+          <input type="number" class="form-input" id="createPrice" placeholder="e.g. 25">
+        </div>
+
+        <div class="form-field">
+          <label>Audience Dual Reach</label>
+          <select class="form-select" id="createReachSelect">
+            <option value="Neighbor">🏡 Neighbor (5 km)</option>
+            <option value="City">🏙️ City (50 km)</option>
+            <option value="Earth">🌍 Earth (Global)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn-submit-auth">Publish to Live Radar 🚀</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 4: INTERACTIVE COMMENTS MODAL
+       ======================================================== -->
+  <div class="modal-backdrop" id="commentsModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeCommentsModal()">✕</button>
+
+      <h3 id="commentsModalTitle" style="font-size: 16px; font-weight: 800;">Comments</h3>
+      <div id="commentsList" style="display: flex; flex-direction: column; gap: 10px; margin: 16px 0; max-height: 240px; overflow-y: auto;">
+        <!-- Injected dynamically -->
+      </div>
+
+      <form class="auth-form" onsubmit="handleAddComment(event)">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" class="form-input" id="newCommentInput" placeholder="Add a neighbor comment..." style="flex: 1;" required>
+          <button type="submit" class="btn-submit-auth" style="margin-top: 0; padding: 0 16px;">Post</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 5: DIRECT MESSAGES CHAT DRAWER
+       ======================================================== -->
+  <div class="modal-backdrop" id="chatModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeChatDrawer()">✕</button>
+
+      <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
+        <div class="author-avatar" style="width: 36px; height: 36px;">🥖</div>
+        <div>
+          <div style="font-weight: 700; font-size: 14px;">Maya Patel</div>
+          <div style="font-size: 11px; color: var(--accent-mint);">Active 0.3 km away</div>
+        </div>
+      </div>
+
+      <div id="chatMessagesContainer" style="display: flex; flex-direction: column; gap: 8px; margin: 14px 0; height: 200px; overflow-y: auto;">
+        <div style="align-self: flex-start; background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%;">
+          Hey! Thanks for connecting. Sourdough loaf is ready whenever you want to swing by!
+        </div>
+      </div>
+
+      <form class="auth-form" onsubmit="handleSendChatMessage(event)">
+        <div style="display: flex; gap: 8px;">
+          <input type="text" class="form-input" id="chatInput" placeholder="Message neighbor..." style="flex: 1;" required>
+          <button type="submit" class="btn-submit-auth" style="margin-top: 0; padding: 0 16px;">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 6: SAFE-HAVEN ESCROW HANDSHAKE
+       ======================================================== -->
+  <div class="modal-backdrop" id="escrowModalBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeEscrowModal()">✕</button>
+      <div style="text-align: center;">
+        <div style="font-size: 34px;">🛡️</div>
+        <h3 id="escrowTitle" style="font-size: 18px; font-weight: 800; margin-top: 4px;">Safe-Haven Handshake Escrow</h3>
+        <p id="escrowPrice" style="font-size: 20px; font-weight: 800; color: var(--accent-amber); margin: 6px 0;">$120</p>
+      </div>
+
+      <div style="background: rgba(16, 185, 129, 0.08); border: 1px dashed var(--accent-mint); border-radius: var(--radius-md); padding: 14px; margin: 16px 0; font-size: 12px; line-height: 1.6;">
+        <strong>Verified Safe Zone:</strong><br>
+        Civic Plaza Police Precinct CCTV Station (Spot #4).<br>
+        Funds held in cryptographic escrow until both parties verify the 6-digit OTP handshake code at the physical exchange.
+      </div>
+
+      <button class="btn-submit-auth" onclick="confirmEscrowHandshake()">
+        Confirm & Generate Handshake Code 🤝
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 7: EDIT PROFILE
+       ======================================================== -->
+  <div class="modal-backdrop" id="editProfileBackdrop">
+    <div class="modal-sheet-card">
+      <button class="modal-close-btn" onclick="closeEditProfileModal()">✕</button>
+
+      <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 14px;">Edit Profile</h3>
+      <form class="auth-form" onsubmit="handleSaveProfile(event)">
+        <div class="form-field">
+          <label>Display Name</label>
+          <input type="text" class="form-input" id="editName" value="Pradeep Chandra" required>
+        </div>
+        <div class="form-field">
+          <label>Neighborhood Landmark</label>
+          <input type="text" class="form-input" id="editNeighborhood" value="Pike Place, Seattle" required>
+        </div>
+        <button type="submit" class="btn-submit-auth">Save Profile Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APP STATE & FUNCTIONALITY -->
+  <script>
+    // Robust Multi-User & Content Simulation System
+    let activeDeckTab = 'pulse';
+    let isGhostMode = false;
+    
+    // Core Data Structures in LocalStorage
+    let users = JSON.parse(localStorage.getItem('localiiiy_all_users') || '[]');
+    let currentUser = JSON.parse(localStorage.getItem('localiiiy_active_user') || 'null');
+    let posts = JSON.parse(localStorage.getItem('localiiiy_local_posts') || '[]');
+    let creationType = 'post';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // If first time, seed some demo users
+      if (users.length === 0) {
+        users.push({
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
+          neighborhood: 'Pike Place, Seattle',
+          email: 'alex@example.com',
+          password: 'password',
+          connections: 142
+        });
+        localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      }
+
+      if (currentUser) {
+        updateUserUI(currentUser);
+      }
+      renderPostsFromDb();
+    });
+
+    // Deck navigation
+    function switchDeck(tabName) {
+      if (window.navigator.vibrate) window.navigator.vibrate(5);
+      activeDeckTab = tabName;
+
+      document.querySelectorAll('.deck-pill-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`tab-${tabName}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      document.querySelectorAll('.screen-view').forEach(view => view.classList.remove('active'));
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.add('active');
+
+      document.getElementById('appViewport').scrollTop = 0;
+    }
+
+    // Likes
+    function toggleLike(btn) {
+      btn.classList.toggle('liked');
+      const countEl = btn.querySelector('.count');
+      if (countEl) {
+        let count = parseInt(countEl.textContent, 10);
+        count = btn.classList.contains('liked') ? count + 1 : count - 1;
+        countEl.textContent = count;
+      }
+      showToast('Heart reaction sent! ❤️');
+    }
+
+    function toggleClipLike(node) {
+      showToast('Liked clip! ❤️');
+    }
+
+    // Connects (Adhering strictly to AGENTS.md)
+    function toggleConnect(btn, username) {
+      btn.classList.toggle('connected');
+      if (btn.classList.contains('connected')) {
+        btn.textContent = '✓ Connected';
+        showToast(`Connected with ${username}! 🤝`);
+      } else {
+        btn.textContent = '+ Connect';
+        showToast(`Disconnected from ${username}`);
+      }
+    }
+
+    function waveAtNeighbor(name) {
+      showToast(`Waved at ${name}! 👋 Proximity pulse sent.`);
+    }
+
+    // Tri-dial lens
+    function setTriDial(btn, range) {
+      document.querySelectorAll('.tactile-tri-dial-lens .dial-lens-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(`Lens Range: ${btn.textContent.trim()} 🔭`);
+    }
+
+    function setFeedFilter(chip, filter) {
+      document.querySelectorAll('.feed-chips-bar .filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      showToast(`Filter applied: ${chip.textContent.trim()} 📍`);
+    }
+
+    function setMarketSubTab(item, tab) {
+      document.querySelectorAll('.market-subtabs-row .subtab-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      showToast(`Market Sub-tab: ${item.textContent.trim()} 🏪`);
+    }
+
+    function initiateHandshake(price) {
+      if (!currentUser) {
+        showToast('Please sign in to initiate a Safe-Haven Handshake! 👤');
+        openAuthModal('login');
+        return;
+      }
+      const code = Math.floor(100000 + Math.random() * 900000);
+      showToast(`Handshake Initiated! Escrow Secure 🔒`);
+      setTimeout(() => {
+        alert(`Safe-Haven Handshake Established!\n\nOTP Code: ${code}\nLocation: Nearest Police Precinct (Green Zone)\nPrice: $${price}\n\nShow this code to the seller at the precinct to release funds.`);
+      }, 500);
+    }
+
+    function votePoll(btn, text) {
+      showToast(`Vote recorded: ${text} ✅`);
+    }
+
+    // Radar mode
+    function setRadarMode(mode) {
+      document.querySelectorAll('.radar-view-mode-bar .mode-tab-btn').forEach(b => b.classList.remove('active'));
+      if (mode === 'radar') {
+        document.querySelector('.radar-view-mode-bar button:nth-child(1)').classList.add('active');
+        document.getElementById('radarHudContainer').style.display = 'block';
+        document.getElementById('radarGridView').style.display = 'none';
+      } else {
+        document.querySelector('.radar-view-mode-bar button:nth-child(2)').classList.add('active');
+        document.getElementById('radarHudContainer').style.display = 'none';
+        document.getElementById('radarGridView').style.display = 'grid';
+      }
+    }
+
+    function updateRadarRange(val) {
+      document.getElementById('rangeLabel').textContent = `${val} km`;
+    }
+
+    function toggleGhostMode() {
+      isGhostMode = !isGhostMode;
+      const toggle = document.getElementById('ghostToggleSwitch');
+      if (toggle) toggle.classList.toggle('active', isGhostMode);
+      showToast(isGhostMode ? 'Ghost Mode Active 👻 (Cloaked on Radar)' : 'Radar Visibility Enabled 🌐');
+    }
+
+    function showBlipDetails(name, distance, type, category) {
+      showToast(`Radar ping: ${name} (${distance}) • ${type}`);
+    }
+
+    // GPS simulation
+    function triggerGpsDetection() {
+      showToast('Detecting GPS coordinates... 🛰️');
+      setTimeout(() => {
+        document.getElementById('currentLocationText').textContent = 'Pike Place, Seattle (GPS locked)';
+        showToast('GPS Location Verified: Pike Place, Seattle 📍');
+      }, 900);
+    }
+
+    // Themes
+    const themes = ['default', 'moon', 'galaxy', 'void'];
+    let themeIndex = 0;
+    function cycleAtmosphericTheme() {
+      themeIndex = (themeIndex + 1) % themes.length;
+      document.body.setAttribute('data-theme', themes[themeIndex]);
+      showToast(`Atmosphere Theme: ${themes[themeIndex].toUpperCase()} 🎨`);
+    }
+
+    // Download Modal
+    function openDownloadModal() {
+      document.getElementById('downloadModalBackdrop').classList.add('open');
+    }
+    function closeDownloadModal() {
+      document.getElementById('downloadModalBackdrop').classList.remove('open');
+    }
+    function triggerDownloadFeedback(server) {
+      showToast(`Starting APK download via ${server}... ⬇️`);
+    }
+
+    // Auth modal
+    function openAuthModal(mode) {
+      document.getElementById('authModalBackdrop').classList.add('open');
+      switchAuthTab(mode);
+    }
+    function closeAuthModal() {
+      document.getElementById('authModalBackdrop').classList.remove('open');
+    }
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('authTabLogin').classList.add('active');
+        document.getElementById('authTabRegister').classList.remove('active');
+        document.getElementById('loginForm').style.display = 'flex';
+        document.getElementById('registerForm').style.display = 'none';
+      } else {
+        document.getElementById('authTabLogin').classList.remove('active');
+        document.getElementById('authTabRegister').classList.add('active');
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'flex';
+      }
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const fullName = document.getElementById('regFullName').value;
+      const usernameRaw = document.getElementById('regUsername').value;
+      const username = usernameRaw.startsWith('@') ? usernameRaw : `@${usernameRaw}`;
+      const neighborhood = document.getElementById('regNeighborhood').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+
+      // Check if user exists
+      if (users.find(u => u.email === email || u.username === username)) {
+        showToast('Account already exists! Try signing in.');
+        return;
+      }
+
+      const newUser = {
+        fullName: fullName,
+        username: username,
+        neighborhood: neighborhood,
+        email: email,
+        password: password,
+        connections: 1
+      };
+
+      users.push(newUser);
+      localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      
+      currentUser = newUser;
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(newUser));
+      
+      updateUserUI(newUser);
+      closeAuthModal();
+      showToast(`Welcome to Localiiiy, ${fullName}! 🚀 Account created.`);
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const identifier = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+
+      const user = users.find(u => (u.email === identifier || u.username === identifier) && u.password === pass);
+
+      if (user) {
+        currentUser = user;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
+        updateUserUI(user);
+        closeAuthModal();
+        showToast(`Welcome back, ${user.fullName}! 👋 Logged in.`);
+      } else {
+        showToast('Invalid credentials. Check your email/password.');
+      }
+    }
+
+    function demoQuickLogin() {
+      const alex = users.find(u => u.username === '@alex_creative');
+      if (alex) {
+        currentUser = alex;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(alex));
+        updateUserUI(alex);
+        closeAuthModal();
+        showToast('Logged in as Alex Rivera! ✨');
+      } else {
+        // Fallback if seeded data was wiped
+        const user = {
+          fullName: 'Alex Rivera',
+          username: '@alex_creative',
+          neighborhood: 'Pike Place, Seattle',
+          connections: 142
+        };
+        currentUser = user;
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
+        updateUserUI(user);
+        closeAuthModal();
+        showToast('Logged in as Demo Alex! ✨');
+      }
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      localStorage.removeItem('localiiiy_active_user');
+      window.location.reload();
+    }
+
+    function clearAllAppData() {
+      if (confirm('Clear all local user data and reset the app?')) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    }
+
+    function updateUserUI(user) {
+      document.getElementById('authButtonLabel').textContent = user.username;
+      document.getElementById('profileDisplayName').textContent = user.fullName;
+      document.getElementById('profileDisplayHandle').textContent = `${user.username} • ${user.neighborhood}`;
+      document.getElementById('profileConnectionsCount').textContent = user.connections || 128;
+      document.getElementById('deckAvatarThumb').textContent = user.fullName.charAt(0);
+      document.getElementById('profileDisplayAvatar').textContent = user.fullName.charAt(0);
+      
+      // Update header button to show profile link if logged in
+      const authBtn = document.getElementById('headerAuthBtn');
+      authBtn.onclick = () => switchDeck('profile');
+    }
+
+    // Content creation (+)
+    function openCreationModal(type) {
+      if (!currentUser) {
+        showToast('Please sign in to publish content! 👤');
+        openAuthModal('login');
+        return;
+      }
+
+      creationType = type;
+      const title = document.getElementById('creationModalTitle');
+      const icon = document.getElementById('creationIcon');
+      const priceGroup = document.getElementById('priceFieldGroup');
+
+      if (type === 'market') {
+        title.textContent = 'Post Item or Service';
+        icon.textContent = '🛍️';
+        priceGroup.style.display = 'flex';
+      } else if (type === 'story') {
+        title.textContent = 'Add 24h Story';
+        icon.textContent = '📸';
+        priceGroup.style.display = 'none';
+      } else {
+        title.textContent = 'Create Neighborhood Post';
+        icon.textContent = '✍️';
+        priceGroup.style.display = 'none';
+      }
+      document.getElementById('creationModalBackdrop').classList.add('open');
+    }
+    function closeCreationModal() {
+      document.getElementById('creationModalBackdrop').classList.remove('open');
+    }
+
+    function handleCreateContent(e) {
+      e.preventDefault();
+      const text = document.getElementById('createPostText').value;
+      const reach = document.getElementById('createReachSelect').value;
+      const price = document.getElementById('createPrice').value;
+
+      const newPost = {
+        id: Date.now(),
+        author: currentUser.fullName,
+        username: currentUser.username,
+        text: text,
+        reach: reach,
+        price: price,
+        type: creationType,
+        timestamp: 'Just now'
+      };
+
+      posts.unshift(newPost);
+      localStorage.setItem('localiiiy_local_posts', JSON.stringify(posts));
+      
+      renderPostsFromDb();
+      closeCreationModal();
+      document.getElementById('createPostText').value = '';
+      showToast('Published to Live Localiiiy Radar! 🚀');
+    }
+
+    function renderPostsFromDb() {
+      const container = document.getElementById('postsStreamContainer');
+      // Clear current "user posts" (first ones) but keep hardcoded demo ones for flavor
+      // Or just clear all and rebuild. Let's keep demo ones.
+      
+      // Remove old dynamic posts
+      document.querySelectorAll('.dynamic-post').forEach(p => p.remove());
+
+      posts.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'post-card dynamic-post';
+        card.innerHTML = `
+          <div class="post-header">
+            <div class="post-author">
+              <div class="author-avatar">${p.author.charAt(0)}</div>
+              <div class="author-meta">
+                <h4>${p.author} <span class="reach-pill reach-neighbor">${p.reach}</span></h4>
+                <p>${p.timestamp} • Local Radar</p>
+              </div>
+            </div>
+            <button class="btn-connect-user" onclick="toggleConnect(this, '${p.author}')">Connect</button>
+          </div>
+          <div class="post-body">${p.text}</div>
+          ${p.price ? `<div style="padding: 0 16px 12px; color: var(--accent-amber); font-weight: 800;">Price: $${p.price}</div>` : ''}
+          <div class="post-footer">
+            <div class="post-actions-left">
+              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">0</span></button>
+              <button class="btn-post-action" onclick="openCommentsModal('${p.author}', [])">💬 0</button>
+            </div>
+          </div>
+        `;
+        container.insertBefore(card, container.firstChild);
+      });
+    }
+
+    // Comments Modal
+    let activeCommentsList = [];
+    function openCommentsModal(title, comments) {
+      activeCommentsList = comments.slice();
+      document.getElementById('commentsModalTitle').textContent = `Comments on ${title}`;
+      renderComments();
+      document.getElementById('commentsModalBackdrop').classList.add('open');
+    }
+    function closeCommentsModal() {
+      document.getElementById('commentsModalBackdrop').classList.remove('open');
+    }
+    function renderComments() {
+      const container = document.getElementById('commentsList');
+      container.innerHTML = '';
+      if (activeCommentsList.length === 0) {
+        container.innerHTML = '<div style="font-size: 12px; color: var(--text-muted);">No comments yet. Be the first neighbor to reply!</div>';
+        return;
+      }
+      activeCommentsList.forEach(c => {
+        const item = document.createElement('div');
+        item.style.cssText = 'background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 10px; font-size: 12px;';
+        item.textContent = c;
+        container.appendChild(item);
+      });
+    }
+    function handleAddComment(e) {
+      e.preventDefault();
+      const input = document.getElementById('newCommentInput');
+      activeCommentsList.push(input.value);
+      renderComments();
+      input.value = '';
+      showToast('Comment posted! 💬');
+    }
+
+    // Direct Messages Chat
+    function openChatDrawer() {
+      document.getElementById('chatModalBackdrop').classList.add('open');
+    }
+    function closeChatDrawer() {
+      document.getElementById('chatModalBackdrop').classList.remove('open');
+    }
+    function handleSendChatMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInput');
+      const val = input.value;
+      const box = document.getElementById('chatMessagesContainer');
+
+      const msg = document.createElement('div');
+      msg.style.cssText = 'align-self: flex-end; background: var(--accent-mint); color: #042417; font-weight: 600; padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%;';
+      msg.textContent = val;
+      box.appendChild(msg);
+
+      input.value = '';
+      box.scrollTop = box.scrollHeight;
+
+      setTimeout(() => {
+        const reply = document.createElement('div');
+        reply.style.cssText = 'align-self: flex-start; background: rgba(255, 255, 255, 0.06); padding: 8px 12px; border-radius: 12px; font-size: 13px; max-width: 80%;';
+        reply.textContent = 'Got your note! See you in the market shortly.';
+        box.appendChild(reply);
+        box.scrollTop = box.scrollHeight;
+      }, 1200);
+    }
+
+    // Escrow Modal
+    function openEscrowModal(title, price) {
+      document.getElementById('escrowTitle').textContent = title;
+      document.getElementById('escrowPrice').textContent = price;
+      document.getElementById('escrowModalBackdrop').classList.add('open');
+    }
+    function closeEscrowModal() {
+      document.getElementById('escrowModalBackdrop').classList.remove('open');
+    }
+    function confirmEscrowHandshake() {
+      closeEscrowModal();
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      alert(`🤝 Handshake Escrow Initiated!\n\nYour Safe Exchange OTP Code is: [ ${otp} ]\n\nMeet at: Civic Plaza Police Precinct Safe-Haven Spot #4. Provide this code to the seller to release escrow.`);
+    }
+
+    // Edit profile
+    function openEditProfileModal() {
+      document.getElementById('editProfileBackdrop').classList.add('open');
+    }
+    function closeEditProfileModal() {
+      document.getElementById('editProfileBackdrop').classList.remove('open');
+    }
+    function handleSaveProfile(e) {
+      e.preventDefault();
+      const name = document.getElementById('editName').value;
+      const neigh = document.getElementById('editNeighborhood').value;
+
+      currentUser = currentUser || {};
+      currentUser.fullName = name;
+      currentUser.neighborhood = neigh;
+      
+      // Update in users list too
+      const uIdx = users.findIndex(u => u.email === currentUser.email);
+      if (uIdx !== -1) users[uIdx] = currentUser;
+      
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+      localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
+      
+      updateUserUI(currentUser);
+      closeEditProfileModal();
+      showToast('Profile updated! ✨');
+    }
+
+    function sharePost(title) {
+      if (navigator.share) {
+        navigator.share({ title: 'Localiiiy Hyperlocal Post', text: title, url: window.location.href });
+      } else {
+        showToast('Link copied to clipboard! 📋');
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('liveToast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    // Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('SW registered:', reg);
+        }).catch(err => {
+          console.log('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

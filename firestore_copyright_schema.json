@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Localiiiy Content Copyright, Licensing & Strike Resolution Schema",
+  "description": "Firestore document schemas and validation constraints for decentralized copyright rights, strikes, and revenue rerouting.",
+  "collections": {
+    "content_fingerprints": {
+      "path": "content_fingerprints/{fingerprintId}",
+      "description": "Acoustic and perceptual media signatures registered upon upload.",
+      "fields": {
+        "contentId": { "type": "string", "description": "Associated post, clip, market item, or studio video ID" },
+        "contentType": { "type": "string", "enum": ["CLIP", "POST", "MARKET", "STUDIO"] },
+        "ownerUid": { "type": "string", "description": "UID of the original creator" },
+        "ownerHandle": { "type": "string", "description": "Username handle of the creator" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "pHash": { "type": "string", "description": "64-bit hexadecimal perceptual hash for visual similarity" },
+        "acousticPeaks": { "type": "array", "items": { "type": "integer" }, "description": "Discrete acoustic spectral frequency peaks in Hz" },
+        "licensing": {
+          "type": "object",
+          "properties": {
+            "permitReuse": { "type": "boolean" },
+            "allowAudioReuse": { "type": "boolean" },
+            "allowVideoRemapping": { "type": "boolean" },
+            "allowMarketplaceShowcase": { "type": "boolean" },
+            "licenseBadge": { "type": "string", "enum": ["Localiiiy Creative Commons (LCC)", "All Rights Reserved (ARR)"] }
+          },
+          "required": ["permitReuse", "allowAudioReuse", "allowVideoRemapping", "allowMarketplaceShowcase", "licenseBadge"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "copyright_claims": {
+      "path": "copyright_claims/{claimId}",
+      "description": "YouTube-style 1-tap copyright claims shift content to unlisted quarantine and reroute earnings.",
+      "fields": {
+        "claimId": { "type": "string" },
+        "targetContentId": { "type": "string" },
+        "targetContentType": { "type": "string", "enum": ["CLIP", "POST", "MARKET", "STUDIO"] },
+        "claimantUid": { "type": "string", "description": "UID of original verified rights holder" },
+        "claimantHandle": { "type": "string" },
+        "uploaderUid": { "type": "string", "description": "UID of user who uploaded contested media" },
+        "uploaderHandle": { "type": "string" },
+        "reason": { "type": "string", "maxLength": 1000 },
+        "status": {
+          "type": "string",
+          "enum": ["PENDING_JUSTIFICATION", "JUSTIFICATION_SUBMITTED", "JUSTIFIED_ACCEPTED", "STRIKE_ISSUED", "RESOLVED_REVOKED"]
+        },
+        "quarantined": { "type": "boolean", "description": "If true, content is unlisted and hidden from public feed/radar" },
+        "counterNotificationDeadline": { "type": "string", "format": "date-time", "description": "Strict 7-day uploader response window" },
+        "reroutedAdRevenueUsd": { "type": "number", "minimum": 0 },
+        "reroutedViewPayoutsUsd": { "type": "number", "minimum": 0 },
+        "reroutedMarketCommissionsUsd": { "type": "number", "minimum": 0 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "counter_justifications": {
+      "path": "counter_justifications/{justificationId}",
+      "description": "Written justification submitted by uploader within 7-day statutory window.",
+      "fields": {
+        "claimId": { "type": "string" },
+        "uploaderUid": { "type": "string" },
+        "writtenStatement": { "type": "string", "minLength": 20, "maxLength": 3000 },
+        "evidenceProofUrls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "perjuryAffirmation": { "type": "boolean", "const": true },
+        "status": { "type": "string", "enum": ["PENDING_REVIEW", "ACCEPTED_BY_OWNER", "REJECTED_STRIKE_CONFIRMED"] },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "copyright_strikes": {
+      "path": "copyright_strikes/{strikeId}",
+      "description": "Official copyright strike for willful infringement. 3 strikes in 90 days = permanent suspension.",
+      "fields": {
+        "strikeId": { "type": "string" },
+        "offenderUid": { "type": "string" },
+        "offenderHandle": { "type": "string" },
+        "claimantUid": { "type": "string" },
+        "claimId": { "type": "string" },
+        "reason": { "type": "string" },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "Exact 90 days from issuedAt" },
+        "isActive": { "type": "boolean" },
+        "cumulativeActiveStrikes": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "suspensionEnacted": { "type": "boolean", "description": "Triggered when cumulativeActiveStrikes >= 3" }
+      }
+    },
+    "revenue_reroutes": {
+      "path": "revenue_reroutes/{rerouteId}",
+      "description": "Immutable ledger rerouting 100% of ad revenue, views, and commissions to original verified creator.",
+      "fields": {
+        "rerouteId": { "type": "string" },
+        "claimId": { "type": "string" },
+        "contentId": { "type": "string" },
+        "fromUploaderUid": { "type": "string" },
+        "toCreatorUid": { "type": "string" },
+        "revenueType": { "type": "string", "enum": ["AD_REVENUE", "VIEW_PAYOUT", "MARKET_COMMISSION"] },
+        "amountUsd": { "type": "number", "minimum": 0 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

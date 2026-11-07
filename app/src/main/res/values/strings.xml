@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Localiiiy</string>
+    <string name="recaptcha_site_key" translatable="false"></string>
+</resources>

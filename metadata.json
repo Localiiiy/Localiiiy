@@ -1,0 +1,7 @@
+{
+  "name": "Localiiiy",
+  "description": "Localiiiy — Connect with your neighborhood Earth through live radar, creator clips, and local pulses, Market and Studio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

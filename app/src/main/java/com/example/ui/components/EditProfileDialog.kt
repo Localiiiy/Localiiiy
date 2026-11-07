@@ -1,0 +1,516 @@
+package com.example.ui.components
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.data.UserProfileEntity
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileDialog(
+    userProfile: UserProfileEntity,
+    isLocationEnabled: Boolean = true,
+    isPrivateAccount: Boolean = false,
+    onLocationToggle: (Boolean) -> Unit = {},
+    onPrivateToggle: (Boolean) -> Unit = {},
+    onDismiss: () -> Unit,
+    onSaveProfile: (String, String, String, String) -> Unit,
+    onSaveProfileWithSocials: ((String, String, String, String, String, String, String, String, String, String, String, String) -> Unit)? = null
+) {
+    var fullName by remember { mutableStateOf(userProfile.fullName) }
+    var bio by remember { mutableStateOf(userProfile.bio) }
+    var pronouns by remember { mutableStateOf("") }
+    var website by remember { mutableStateOf(userProfile.website) }
+    var avatarUrl by remember { mutableStateOf(userProfile.avatarUrl) }
+    var instagramHandle by remember { mutableStateOf(userProfile.instagramHandle) }
+    var twitterHandle by remember { mutableStateOf(userProfile.twitterHandle) }
+    var youtubeHandle by remember { mutableStateOf(userProfile.youtubeHandle) }
+    var tiktokHandle by remember { mutableStateOf(userProfile.tiktokHandle) }
+    var githubHandle by remember { mutableStateOf(userProfile.githubHandle) }
+    var linkedinHandle by remember { mutableStateOf(userProfile.linkedinHandle) }
+    var telegramHandle by remember { mutableStateOf(userProfile.telegramHandle) }
+    var discordHandle by remember { mutableStateOf(userProfile.discordHandle) }
+    var showSocialsSection by remember { mutableStateOf(true) }
+
+    val avatarPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            avatarUrl = uri.toString()
+        }
+    }
+
+    val presetAvatars = emptyList<String>()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+            ) {
+                // Header Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Cancel",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Text(
+                        text = "Edit Space & Privacy",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    TextButton(
+                        onClick = {
+                            if (onSaveProfileWithSocials != null) {
+                                onSaveProfileWithSocials(
+                                    fullName, bio, website, avatarUrl,
+                                    instagramHandle, twitterHandle, youtubeHandle,
+                                    tiktokHandle, githubHandle, linkedinHandle,
+                                    telegramHandle, discordHandle
+                                )
+                            } else {
+                                onSaveProfile(fullName, bio, website, avatarUrl)
+                            }
+                            onDismiss()
+                        },
+                        modifier = Modifier.testTag("save_profile_button")
+                    ) {
+                        Text(
+                            text = "Done",
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 15.sp
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    thickness = 0.5.dp
+                )
+
+                // Avatar and presets
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(avatarUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Profile avatar",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Text(
+                        text = "Choose Space Picture",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            avatarPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        shape = RoundedCornerShape(100.dp),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(bottom = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoCamera,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Upload from Storage / Gallery",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        presetAvatars.forEach { preset ->
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(preset)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Preset avatar",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .clickable { avatarUrl = preset }
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    thickness = 0.5.dp
+                )
+
+                // Privacy & Visibility Settings Section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Hyperlocal Privacy & Radar Control",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    // Location toggle
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isLocationEnabled) Icons.Default.LocationOn else Icons.Default.LocationOff,
+                                    contentDescription = null,
+                                    tint = if (isLocationEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = "Enable Location Radar",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                    Text(
+                                        text = if (isLocationEnabled) "Active on circular Live Radar" else "Hidden from neighborhood radar scans",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Switch(
+                                checked = isLocationEnabled,
+                                onCheckedChange = onLocationToggle,
+                                modifier = Modifier.testTag("profile_edit_location_switch")
+                            )
+                        }
+                    }
+
+                    // Private Account toggle
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isPrivateAccount) Icons.Default.Lock else Icons.Default.Public,
+                                    contentDescription = null,
+                                    tint = if (isPrivateAccount) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Column {
+                                    Text(
+                                        text = "Private Account (Ghost Mode)",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp
+                                    )
+                                    Text(
+                                        text = if (isPrivateAccount) "Only approved connections see your Space" else "Public discovery across neighborhood radar",
+                                        fontSize = 11.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Switch(
+                                checked = isPrivateAccount,
+                                onCheckedChange = onPrivateToggle,
+                                modifier = Modifier.testTag("profile_edit_private_switch")
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    thickness = 0.5.dp
+                )
+
+                // Form Fields
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedTextField(
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        label = { Text("Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+                    
+                    OutlinedTextField(
+                        value = pronouns,
+                        onValueChange = { pronouns = it },
+                        label = { Text("Pronouns (Optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = userProfile.username,
+                        onValueChange = { },
+                        label = { Text("Username") },
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = website,
+                        onValueChange = { website = it },
+                        label = { Text("Website") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true
+                    )
+
+                    OutlinedTextField(
+                        value = bio,
+                        onValueChange = { bio = it },
+                        label = { Text("Bio") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        maxLines = 4
+                    )
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                        thickness = 0.5.dp
+                    )
+
+                    // Link All Social Media Handles in Space ID
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Space ID • Linked Social Media Handles",
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = "Link your channels to display verified badges on your Space ID",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Instagram
+                        OutlinedTextField(
+                            value = instagramHandle,
+                            onValueChange = { instagramHandle = it },
+                            label = { Text("Instagram Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("📸", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_instagram"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // X / Twitter
+                        OutlinedTextField(
+                            value = twitterHandle,
+                            onValueChange = { twitterHandle = it },
+                            label = { Text("X / Twitter Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("🐦", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_twitter"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // YouTube
+                        OutlinedTextField(
+                            value = youtubeHandle,
+                            onValueChange = { youtubeHandle = it },
+                            label = { Text("YouTube Channel") },
+                            placeholder = { Text("@ChannelName") },
+                            leadingIcon = { Text("▶️", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_youtube"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // TikTok
+                        OutlinedTextField(
+                            value = tiktokHandle,
+                            onValueChange = { tiktokHandle = it },
+                            label = { Text("TikTok Handle") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("🎵", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_tiktok"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // GitHub
+                        OutlinedTextField(
+                            value = githubHandle,
+                            onValueChange = { githubHandle = it },
+                            label = { Text("GitHub Space") },
+                            placeholder = { Text("username") },
+                            leadingIcon = { Text("🐙", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_github"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // LinkedIn
+                        OutlinedTextField(
+                            value = linkedinHandle,
+                            onValueChange = { linkedinHandle = it },
+                            label = { Text("LinkedIn Public URL") },
+                            placeholder = { Text("in/username") },
+                            leadingIcon = { Text("💼", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_linkedin"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // Telegram
+                        OutlinedTextField(
+                            value = telegramHandle,
+                            onValueChange = { telegramHandle = it },
+                            label = { Text("Telegram Username") },
+                            placeholder = { Text("@username") },
+                            leadingIcon = { Text("✈️", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_telegram"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+
+                        // Discord
+                        OutlinedTextField(
+                            value = discordHandle,
+                            onValueChange = { discordHandle = it },
+                            label = { Text("Discord Tag") },
+                            placeholder = { Text("user#0000") },
+                            leadingIcon = { Text("💬", fontSize = 16.sp) },
+                            modifier = Modifier.fillMaxWidth().testTag("edit_social_discord"),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

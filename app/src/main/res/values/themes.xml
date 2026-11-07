@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Localiiiy" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#081528</item>
+        <item name="android:statusBarColor">#081528</item>
+        <item name="android:navigationBarColor">#081528</item>
+    </style>
+    <style name="Theme.MyApplication" parent="Theme.Localiiiy">
+        <item name="android:windowBackground">#081528</item>
+        <item name="android:statusBarColor">#081528</item>
+        <item name="android:navigationBarColor">#081528</item>
+    </style>
+    <style name="Theme.Hidden" parent="android:Theme.NoDisplay" />
+</resources>

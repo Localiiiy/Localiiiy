@@ -1,0 +1,510 @@
+package com.example.data
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "posts")
+data class PostEntity(
+    val isAiGenerated: Boolean = false,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String,
+    val isVerified: Boolean = false,
+    val mediaUrl: String,
+    val mediaType: String = "IMAGE", // IMAGE or VIDEO
+    val caption: String,
+    val likesCount: Int,
+    val commentsCount: Int,
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false,
+    val isConnected: Boolean = true,
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val landmark: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val distanceKm: Double? = null,
+    val isNeighbor: Boolean = false,
+    val soundTitle: String? = null,
+    val filterName: String = "Normal",
+    val creatorConnections: Int = 0,
+    val isGeocentricGuaranteed: Boolean = true,
+    val isFlashPulse: Boolean = false,
+    val flashExpiresAt: Long? = null,
+    val isVoicePrint: Boolean = false,
+    val voiceDurationSeconds: Int = 15,
+    val voiceWaveformData: String = "20,40,65,90,75,85,60,95,70,80,55,90,65,40,25",
+    val isLive: Boolean = false
+) {
+    val hashtags: List<String>
+        get() {
+            if (caption.isBlank()) return emptyList()
+            val regex = Regex("#[\\w_]+")
+            return regex.findAll(caption).map { it.value }.distinct().toList()
+        }
+    val mediaUrlsList: List<String>
+        get() {
+            if (mediaUrl.isBlank()) return emptyList()
+            return if (mediaUrl.contains(",")) {
+                mediaUrl.split(",").map { it.trim() }.filter { it.isNotBlank() }
+            } else {
+                listOf(mediaUrl)
+            }
+        }
+}
+
+@Entity(tableName = "clips")
+data class ClipEntity(
+    val isAiGenerated: Boolean = false,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String,
+    val isVerified: Boolean = false,
+    val mediaUrl: String,
+    val caption: String,
+    val soundTitle: String = "Original audio",
+    val soundArtist: String = "",
+    val likesCount: Int,
+    val commentsCount: Int,
+    val sharesCount: Int = 120,
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false,
+    val isConnected: Boolean = false,
+    val viewsCount: String = "245K",
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val landmark: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val distanceKm: Double? = null,
+    val isNeighbor: Boolean = false,
+    val filterName: String = "Normal",
+    val creatorConnections: Int = 0,
+    val isGeocentricGuaranteed: Boolean = true,
+    val isMarketListing: Boolean = false,
+    val marketPriceUSD: Double = 0.0,
+    val marketCondition: String = "Like New",
+    val marketPickupSpot: String = "Safe-Haven Hub • Civic Plaza",
+    val marketEscrowAvailable: Boolean = true,
+    val showLocation: Boolean = true
+) {
+}
+
+@Entity(tableName = "stories")
+data class StoryEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val userId: String,
+    val username: String,
+    val userAvatar: String,
+    val mediaUrl: String,
+    val caption: String = "",
+    val timestamp: Long = System.currentTimeMillis(),
+    val location: String? = null,
+    val distanceKm: Double? = null,
+    val isViewed: Boolean = false,
+    val isUserStory: Boolean = false
+)
+
+@Entity(tableName = "comments")
+data class CommentEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val targetType: String, // "POST" or "CLIP" or "STUDIO"
+    val targetId: Long,
+    val username: String,
+    val userAvatar: String,
+    val text: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false,
+    val parentId: Long? = null,
+    val videoTimestampSeconds: Int? = null,
+    val repliesCount: Int = 0
+)
+
+@Entity(tableName = "user_profile")
+data class UserProfileEntity(
+    @PrimaryKey val id: Int = 1,
+    val username: String = "",
+    val fullName: String = "",
+    val avatarUrl: String = "",
+    val bio: String = "",
+    val website: String = "",
+    val category: String = "",
+    val locationName: String = "",
+    val neighborhood: String = "",
+    val neighborsCount: Int = 0,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val postsCount: Int = 0,
+    val connectionsCount: Int = 0,
+    val connectedCount: Int = 0,
+    val isVerified: Boolean = false,
+    val studioUsername: String = "",
+    val studioChannelName: String = "",
+    val studioConnectionsCount: Int = 0,
+    val instagramHandle: String = "",
+    val twitterHandle: String = "",
+    val youtubeHandle: String = "",
+    val tiktokHandle: String = "",
+    val githubHandle: String = "",
+    val linkedinHandle: String = "",
+    val telegramHandle: String = "",
+    val discordHandle: String = ""
+) {
+}
+
+@Entity(tableName = "other_users")
+data class OtherUserEntity(
+    @PrimaryKey val username: String,
+    val fullName: String,
+    val avatarUrl: String,
+    val bio: String,
+    val website: String = "",
+    val category: String = "Creator",
+    val locationName: String,
+    val landmark: String? = null,
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val distanceKm: Double = 0.5,
+    val isNeighbor: Boolean = true,
+    val isConnected: Boolean = false,
+    val isFriend: Boolean = false,
+    val connectionsCount: Int = 3400,
+    val connectedCount: Int = 290,
+    val postsCount: Int = 18,
+    val isVerified: Boolean = false,
+    val studioUsername: String = "",
+    val studioConnectionsCount: Int = 0,
+    val isBlocked: Boolean = false,
+    val isCyberstalkingBanned: Boolean = false,
+    val instagramHandle: String = "",
+    val twitterHandle: String = "",
+    val youtubeHandle: String = "",
+    val tiktokHandle: String = "",
+    val githubHandle: String = "",
+    val linkedinHandle: String = "",
+    val telegramHandle: String = "",
+    val discordHandle: String = ""
+) {
+    val isMutuallyConnected: Boolean get() = (isConnected || isFriend) && isFriend
+}
+
+@Entity(tableName = "notifications")
+data class NotificationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val username: String,
+    val userAvatar: String,
+    val actionType: String, // "LIKE", "COMMENT", "CONNECT", "NEARBY_WAVE", "FRIEND_REQUEST"
+    val content: String,
+    val mediaPreviewUrl: String? = null,
+    val distanceKm: Double? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isRead: Boolean = false,
+    val isConnectedBack: Boolean = false
+)
+
+@Entity(tableName = "conversations")
+data class DirectMessageEntity(
+    @PrimaryKey val conversationId: String,
+    val contactUsername: String,
+    val contactAvatar: String,
+    val lastMessage: String,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isFromMe: Boolean = false,
+    val isRead: Boolean = true,
+    val isOnline: Boolean = false,
+    val isGroup: Boolean = false,
+    val groupMembersCount: Int = 1,
+    val distanceKm: Double? = null,
+    val landmark: String? = null
+)
+
+@Entity(tableName = "chat_messages")
+data class ChatMessageEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val conversationId: String,
+    val senderUsername: String,
+    val senderAvatar: String,
+    val text: String,
+    val sharedMediaUrl: String? = null,
+    val sharedCaption: String? = null,
+    val timestamp: Long = System.currentTimeMillis(),
+    val isFromMe: Boolean = false
+)
+
+@Entity(tableName = "privacy_settings")
+data class PrivacySettingsEntity(
+    @PrimaryKey val id: Int = 1,
+    // Hyperlocal Location Controls
+    val isLocationRadarEnabled: Boolean = true,
+    val isPrivateAccount: Boolean = false,
+    val allowNearbyDiscovery: Boolean = true,
+    val preciseLocationSharing: Boolean = true,
+    val allowNearbyWaves: Boolean = true,
+    // Activity & Interactions
+    val showActiveStatus: Boolean = true,
+    val readReceiptsEnabled: Boolean = true,
+    val allowDirectCallsFromConnections: Boolean = true,
+    val allowCommentsFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_CONNECTED", "NO_ONE"
+    val allowDirectMessagesFrom: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_CONNECTED", "NO_ONE"
+    val allowTagsAndMentions: String = "EVERYONE", // "EVERYONE", "PEOPLE_YOU_CONNECTED", "NO_ONE"
+    // Stories & Content
+    val hideMomentsFromStrangers: Boolean = false,
+    val allowPostResharing: Boolean = true,
+    val sensitiveContentFilter: String = "STANDARD", // "STANDARD", "STRICT", "LESS"
+    val blockedAccountsCount: Int = 0,
+    val hideMobileNumber: Boolean = false,
+    val hideEmailAddress: Boolean = false,
+    val hideAddress: Boolean = false,
+    // Master Ghost Mode & Granular Visibility Controls
+    val isGhostMode: Boolean = false,
+    val locationPrecisionKm: Float = 10f,
+    val hideLocation: Boolean = false,
+    val hideProfilePicture: Boolean = false,
+    val hidePosts: Boolean = false,
+    val hideClips: Boolean = false,
+    val hideInNeighborhood: Boolean = false,
+    // Live Radar Precise Location & Distance Obfuscation
+    val hidePreciseLocationOnRadar: Boolean = false,
+    val radarObfuscatedRange: String = "3k", // "3k", "10K", "100k", "500K", "Country", "Earth", "Galaxy"
+    val radarCountryName: String = "United States",
+    // App Background & Atmosphere
+    val appThemeBackground: String = "DEFAULT", // "DEFAULT", "BLACK_HOLE", "MOON", "GALAXY", "CUSTOM"
+    val customBackgroundImageUri: String = "",
+    // App Display Size & Mobile Screen Scaling
+    val appDisplayScale: String = "SCALE_95", // "SCALE_95" default (95% mobile scaling), "SYSTEM", "COMPACT", "SCALE_90", "STANDARD"
+    val appFontScaleMultiplier: Float = 1.0f,
+    // Zero-Tolerance Anti-Stalking GPS Obfuscation (500m Proximity Blurring)
+    val gpsObfuscationEnabled: Boolean = true,
+    // Acoustic Voice-Print Density Reactivity
+    val acousticVoicePrintReactive: Boolean = true,
+    // Dual-Consent Communication Gate (Mutual Connection + Explicit Permission)
+    val allowDirectCommunication: Boolean = true,
+    // Localiiiy Premium Pro Membership (₹299/mo / $2.99)
+    val isPremiumConnected: Boolean = false,
+    val premiumPlanName: String = "Premium Pro",
+    val premiumExpiryTimestamp: Long = 0L,
+    val isHyperlocalBoostActive: Boolean = false
+)
+
+@Entity(tableName = "marketplace_items")
+data class MarketplaceItemEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String,
+    val price: Double,
+    val currencySymbol: String = "$",
+    val category: String, // "Tech & Gear", "Farm & Fresh", "Vintage & Style", "Home & Deco", "Mobility & Bikes", "Art & Craft", "Books & Media", "Services"
+    val condition: String = "Like New", // "Brand New", "Like New", "Good", "Fair"
+    val imageUrl: String,
+    val sellerUsername: String,
+    val sellerFullName: String,
+    val creatorConnections: Int = 0,
+    val sellerConnections: Int = 0,
+    val sellerAvatar: String,
+    val sellerRating: Double = 4.9,
+    val sellerReviewCount: Int = 18,
+    val location: String = "Your Community",
+    val landmark: String? = null,
+    val distanceKm: Double = 0.4,
+    val latitude: Double = 47.608013,
+    val longitude: Double = -122.335167,
+    val isAvailable: Boolean = true,
+    val isSaved: Boolean = false,
+    val timestamp: Long = System.currentTimeMillis(),
+    val deliveryOption: String = "Local Meetup / Pickup", // "Local Meetup", "Neighborhood Drop-off", "Contactless Pickup"
+    val isServiceOrGig: Boolean = false, // Physical micro-service (moving, repair, handyman)
+    val escrowStatus: String = "AVAILABLE", // "AVAILABLE", "FUNDS_IN_ESCROW", "COMPLETED_RELEASED"
+    val safeHavenHubName: String? = "Civic Plaza Police Precinct (CCTV Zone)",
+    val escrowBuyerUsername: String? = null,
+    val escrowToken: String? = null,
+    val catalogName: String? = null,
+    val catalogBadge: String? = null, // "Top Dealer", "Verified Workshop", "Vintage Curator", "Master Artisan", "Certified Studio"
+    val catalogBannerUrl: String? = null,
+    val additionalImagesJson: String = "",
+    val videoClipUrl: String? = null,
+    val videoDurationSeconds: Int = 0,
+    val isFlashDeal: Boolean = false
+)
+
+data class SellerCatalog(
+    val id: String,
+    val name: String,
+    val sellerUsername: String,
+    val sellerFullName: String,
+    val sellerAvatar: String,
+    val badge: String = "Top Dealer",
+    val bannerUrl: String,
+    val category: String,
+    val description: String,
+    val rating: Double = 4.9,
+    val totalItems: Int = 4
+)
+
+@Entity(tableName = "studio_videos")
+data class StudioVideoEntity(
+    val isAiGenerated: Boolean = false,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String,
+    val videoUrl: String,
+    val thumbnailUrl: String,
+    val durationSeconds: Int, // Long-form creator content: minimum 60 seconds with unlimited duration (no 240m ceiling)
+    val category: String, // "Music", "News", "Podcasts", "Tech & Gadgets", "Neighborhood & Culture", "Documentaries", "Food & Cooking", "Gaming", "Education", "Entertainment"
+    val creatorUsername: String,
+    val creatorFullName: String,
+    val creatorAvatar: String,
+    val isCreatorVerified: Boolean = false,
+    val creatorConnections: Int = 0,
+    val creatorConnectedCount: String = "124K Connected",
+    val connectedCountInt: Int = 124000,
+    val distanceKm: Double = 1.2,
+    val isConnected: Boolean = false,
+    val viewsCount: Long = 14200,
+    val viewsFormatted: String = "14.2K views",
+    val likesCount: Int = 1250,
+    val dislikesCount: Int = 12,
+    val isLiked: Boolean = false,
+    val isDisliked: Boolean = false,
+    val isSaved: Boolean = false, // Watch Later
+    val uploadDateFormatted: String = "3 days ago",
+    val timestamp: Long = System.currentTimeMillis(),
+    val tags: String = "#Localiiiy #Studio #Creators",
+    val resolution: String = "4K Ultra HD",
+    val chapters: String = "00:00 - Introduction\n05:15 - Core Story\n18:30 - Deep Dive\n35:00 - Community Q&A",
+    val isCreatorPick: Boolean = false,
+    val isTrending: Boolean = false,
+    val isExclusiveTier: Boolean = false,
+    val requiredTierName: String = "Free"
+) {
+}
+
+// --- Studio Creator Exclusive Content Tiers (Monthly Recurring Revenue - MRR) ---
+data class CreatorExclusiveTier(
+    val id: String,
+    val name: String,
+    val monthlyPriceUSD: Double,
+    val badgeSymbol: String,
+    val badgeColorHex: Long = 0xFFFFD700,
+    val description: String,
+    val perks: List<String>,
+    val activeConnectionsCount: Int = 0,
+    val isEnabled: Boolean = true
+)
+
+// --- Local Room Cache: User Activity ---
+@Entity(tableName = "user_activity_cache")
+data class UserActivityEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val activityType: String, // "LIKED_POST", "SAVED_POST", "WATCHED_STUDIO_VIDEO", "WAVED_NEIGHBOR", "CREATED_DRAFT", "PUBLISHED_STUDIO_VIDEO"
+    val targetId: String,
+    val targetTitle: String,
+    val targetPreviewUrl: String? = null,
+    val extraDetails: String? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+// --- Local Room Cache: Saved Posts ---
+@Entity(tableName = "saved_posts_cache")
+data class SavedPostEntity(
+    @PrimaryKey val postId: Long,
+    val username: String,
+    val userAvatar: String,
+    val userHandle: String = "",
+    val mediaUrl: String,
+    val mediaType: String = "IMAGE",
+    val caption: String,
+    val location: String? = null,
+    val landmark: String? = null,
+    val distanceKm: Double? = null,
+    val likesCount: Int = 0,
+    val collectionName: String = "All Saved",
+    val savedTimestamp: Long = System.currentTimeMillis()
+)
+
+// --- Local Room Cache: Localiiiy Studio Drafts ---
+@Entity(tableName = "studio_drafts_cache")
+data class StudioDraftEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val title: String,
+    val description: String = "",
+    val category: String = "Music",
+    val videoUri: String = "",
+    val thumbnailUri: String = "",
+    val durationSeconds: Int = 300, // Default 5 mins
+    val tags: String = "#Localiiiy #Studio",
+    val chapters: String = "00:00 - Introduction",
+    val resolution: String = "4K Ultra HD",
+    val isReadyToPublish: Boolean = false,
+    val lastEditedTimestamp: Long = System.currentTimeMillis()
+)
+
+
+@Entity(tableName = "pulse_cache")
+data class PulseCacheEntity(
+    @PrimaryKey val id: String,
+    val authorName: String = "",
+    val username: String = "",
+    val userAvatar: String = "",
+    val content: String = "",
+    val mediaUrl: String = "",
+    val landmark: String = "",
+    val location: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val distanceKm: Double = 1.2,
+    val timestamp: Long = System.currentTimeMillis(),
+    val likesCount: Int = 0,
+    val isLiked: Boolean = false,
+    val commentsCount: Int = 0,
+    val tags: String = ""
+)
+
+@Entity(tableName = "drafts")
+data class DraftClipEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val mediaUri: String,
+    val caption: String = "",
+    val soundTitle: String = "Original Audio • Localiiiy Vibes",
+    val soundArtist: String = "Locality Sound Lab",
+    val location: String = "Your Community",
+    val landmark: String = "Community Center",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    val filterName: String = "NORMAL",
+    val reachScope: String = "NEIGHBOR", // "NEIGHBOR", "CITY", "EARTH"
+    val tags: String = "#creator #clip #draft",
+    val draftType: String = "CLIP",
+    val filtersApplied: String? = null,
+    val coverThumbnailUri: String = "",
+    val playbackSpeed: Float = 1.0f,
+    val durationSeconds: Int = 15,
+    val isGhostMode: Boolean = false,
+    val lastEditedTimestamp: Long = System.currentTimeMillis(),
+    // Unified Draft Vault Cross-Routing
+    val routeToPulse: Boolean = true,
+    val routeToClips: Boolean = true,
+    val routeToMarketplace: Boolean = false,
+    val marketplacePriceUSD: Double? = null,
+    val marketplaceCondition: String = "Like New",
+    val safeHavenPickup: String = "Safe-Haven Hub • Civic Plaza"
+)
+
+@Entity(tableName = "merchant_bounties")
+data class MerchantBountyEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val businessName: String,
+    val businessAvatar: String,
+    val title: String,
+    val description: String,
+    val bountyRewardUSD: Double,
+    val landmark: String,
+    val distanceKm: Double,
+    val timeRemainingHours: Int = 24,
+    val isClaimed: Boolean = false,
+    val claimedByUsername: String? = null,
+    val timestamp: Long = System.currentTimeMillis()
+)
+

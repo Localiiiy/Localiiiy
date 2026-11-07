@@ -1,0 +1,310 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isValidString(text, maxLen) {
+      return text is string && text.size() > 0 && text.size() <= maxLen;
+    }
+    function isValidCoordinate(lat, lng) {
+      return lat is number && lat >= -90.0 && lat <= 90.0
+        && lng is number && lng >= -180.0 && lng <= 180.0;
+    }
+    function hasNoPrivilegedFields(data) {
+      return !data.keys().hasAny([
+        'isAdmin',
+        'isVerifiedBadge',
+        'verifiedNeighbor',
+        'isPremium',
+        'walletBalance',
+        'reputationScore',
+        'sparksCount'
+      ]);
+    }
+    function unchangedPrivilegedFields() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'isAdmin',
+        'isVerifiedBadge',
+        'verifiedNeighbor',
+        'isPremium',
+        'walletBalance',
+        'reputationScore',
+        'sparksCount'
+      ]);
+    }
+
+    // 1. User Profiles (Strict Owner Write + Anti-Tamper on Privileged/Financial Fields)
+    match /users/{userId} {
+      allow get: if isAuthenticated();
+      allow list: if isAuthenticated() && request.query.limit <= 50;
+      allow create: if isOwner(userId)
+        && isValidString(request.resource.data.displayName, 50)
+        && hasNoPrivilegedFields(request.resource.data);
+      allow update: if isOwner(userId)
+        && isValidString(request.resource.data.displayName, 50)
+        && unchangedPrivilegedFields();
+      allow delete: if isOwner(userId);
+
+      // 1b. User Connections Subcollection (Enforces "Connections" social graph)
+      match /connections/{connectionId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && isValidString(connectionId, 60);
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // 2. Hyperlocal Pulses & Short Video Clips (Bounded Counter Deltas & Coordinate Validation)
+    match /hyperlocal_updates/{pulseId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.authorUid == request.auth.uid
+        && isValidString(request.resource.data.content, 2000)
+        && isValidCoordinate(request.resource.data.latitude, request.resource.data.longitude)
+        && (!('likesCount' in request.resource.data) || (request.resource.data.likesCount is int && request.resource.data.likesCount >= 0 && request.resource.data.likesCount <= 1))
+        && (!('commentsCount' in request.resource.data) || (request.resource.data.commentsCount is int && request.resource.data.commentsCount == 0));
+      allow update: if isAuthenticated() && (
+        // Case A: Author updating their own pulse while keeping authorUid & counters immutable
+        (resource.data.authorUid == request.auth.uid
+          && request.resource.data.authorUid == resource.data.authorUid
+          && isValidString(request.resource.data.content, 2000)
+          && isValidCoordinate(request.resource.data.latitude, request.resource.data.longitude))
+        ||
+        // Case B: Neighbor liking or commenting (strictly bounded +/- 1 delta)
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'commentsCount', 'isLiked'])
+          && request.resource.data.authorUid == resource.data.authorUid
+          && request.resource.data.content == resource.data.content
+          && request.resource.data.likesCount is int
+          && request.resource.data.likesCount >= 0
+          && math.abs(request.resource.data.likesCount - resource.data.likesCount) <= 1
+          && request.resource.data.commentsCount is int
+          && request.resource.data.commentsCount >= 0
+          && math.abs(request.resource.data.commentsCount - resource.data.commentsCount) <= 1)
+      );
+      allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // 2b. Community Post Remarks Subcollection (Aligned with appendPostRemarkToFirestore)
+    match /posts/{postId}/remarks/{remarkId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.authorUid == request.auth.uid
+        && isValidString(request.resource.data.content, 2000)
+        && (!('likesCount' in request.resource.data) || request.resource.data.likesCount == 0);
+      allow update: if isAuthenticated() && (
+        (resource.data.authorUid == request.auth.uid && request.resource.data.authorUid == resource.data.authorUid)
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
+            && request.resource.data.likesCount is int
+            && request.resource.data.likesCount >= 0
+            && math.abs(request.resource.data.likesCount - resource.data.likesCount) <= 1)
+      );
+      allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // 3. Private Messaging (Strict Participant Gating)
+    match /direct_messages/{messageId} {
+      allow read: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.receiverId is string &&
+        request.resource.data.receiverId != request.auth.uid &&
+        isValidString(request.resource.data.text, 3000)
+      );
+      allow update: if false; // Messages are immutable
+      allow delete: if isAuthenticated() && resource.data.senderId == request.auth.uid;
+    }
+
+    // 4. Marketplace Listings (Positive Pricing & Seller Ownership)
+    match /market_items/{itemId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.sellerUid == request.auth.uid
+        && request.resource.data.price is number
+        && request.resource.data.price > 0
+        && request.resource.data.price <= 1000000
+        && isValidString(request.resource.data.title, 100);
+      allow update: if isAuthenticated()
+        && resource.data.sellerUid == request.auth.uid
+        && request.resource.data.sellerUid == resource.data.sellerUid
+        && request.resource.data.price is number
+        && request.resource.data.price > 0
+        && request.resource.data.price <= 1000000;
+      allow delete: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
+    }
+
+    // 4b. Username Reservation (Point-Lookup Only to Prevent User Enumeration; Atomic Create)
+    match /usernames/{username} {
+      allow get: if isAuthenticated();
+      allow list: if false; // Blocks mass scraping of registered handles
+      allow create: if isAuthenticated()
+        && request.resource.data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/usernames/$(username));
+      allow update: if false;
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+
+    // 5. Radar Beacons (Coarse Geohash Enforcement & Ghost Mode Deletion)
+    match /radar_beacons/{userId} {
+      allow get: if isAuthenticated();
+      allow list: if isAuthenticated() && request.query.limit <= 100;
+      allow create, update: if isOwner(userId)
+        && request.resource.data.isGhost == false
+        && isValidString(request.resource.data.coarseGeohash, 7)
+        && !request.resource.data.keys().hasAny(['exactLatitude', 'exactLongitude', 'rawGps']);
+      allow delete: if isOwner(userId);
+    }
+
+    // 6. Escrow Transactions (Server-Authoritative Writes Only)
+    match /escrow_transactions/{txId} {
+      allow read: if isAuthenticated() && (
+        resource.data.buyerUid == request.auth.uid ||
+        resource.data.sellerUid == request.auth.uid
+      );
+      allow write: if false; // Mutated only by trusted server
+    }
+
+    // 7. Creator & Community Wallets (Read-only for owner, server-authoritative mutations only)
+    match /wallets/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Tamper-proof: client cannot alter balances
+    }
+
+    // 8. Payout Withdrawal Requests (Idempotent creation, immutable once created)
+    match /payout_requests/{requestId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.amount is number
+        && request.resource.data.amount >= 1000.0
+        && request.resource.data.status == 'PENDING'
+        && isValidString(request.resource.data.idempotencyKey, 100);
+      allow update, delete: if false; // Server-only status transitions
+    }
+
+    // 9. Audit Ledger & Transaction Receipts (Immutable write-once log)
+    match /wallet_ledger/{ledgerId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Only server writes ledger entries
+    }
+
+    // 10. Media Fingerprints Catalog
+    match /content_fingerprints/{fingerprintId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerUid == request.auth.uid
+        && isValidString(request.resource.data.sha256, 64)
+        && isValidString(request.resource.data.pHash, 32);
+      allow update, delete: if isAuthenticated() && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // 11. Copyright Claims
+    match /copyright_claims/{claimId} {
+      allow read: if isAuthenticated() && (
+        resource.data.claimantUid == request.auth.uid ||
+        resource.data.uploaderUid == request.auth.uid
+      );
+      allow create: if isAuthenticated()
+        && request.resource.data.claimantUid == request.auth.uid
+        && isValidString(request.resource.data.targetContentId, 100)
+        && request.resource.data.status == 'PENDING_JUSTIFICATION';
+      allow update: if isAuthenticated() && (
+        resource.data.claimantUid == request.auth.uid ||
+        (resource.data.uploaderUid == request.auth.uid && request.time < resource.data.counterNotificationDeadline)
+      );
+      allow delete: if false;
+    }
+
+    // 12. Counter-Justifications
+    match /counter_justifications/{justificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.uploaderUid == request.auth.uid ||
+        resource.data.claimantUid == request.auth.uid
+      );
+      allow create: if isAuthenticated()
+        && request.resource.data.uploaderUid == request.auth.uid
+        && isValidString(request.resource.data.writtenStatement, 3000)
+        && request.resource.data.perjuryAffirmation == true;
+      allow update, delete: if false;
+    }
+
+    // 13. Copyright Strikes & Revenue Reroutes
+    match /copyright_strikes/{strikeId} {
+      allow read: if isAuthenticated() && (
+        resource.data.offenderUid == request.auth.uid ||
+        resource.data.claimantUid == request.auth.uid
+      );
+      allow write: if false;
+    }
+
+    match /revenue_reroutes/{rerouteId} {
+      allow read: if isAuthenticated() && (
+        resource.data.fromUploaderUid == request.auth.uid ||
+        resource.data.toCreatorUid == request.auth.uid
+      );
+      allow write: if false;
+    }
+
+    // 14. Immutable Cyberstalking & Harassment Cloud Evidence Vault (Append-Only)
+    match /cyberstalking_incidents/{incidentId} {
+      allow read: if isAuthenticated() && resource.data.complainantUid == request.auth.uid;
+      allow create: if isAuthenticated()
+        && request.resource.data.complainantUid == request.auth.uid
+        && isValidString(request.resource.data.digitalSignatureSha256, 128)
+        && request.resource.data.status == 'LOCKED_IMMUTABLE';
+      allow update, delete: if false;
+    }
+
+    // 15. Hyperlocal Flash Pin Drops, Deal Passports & Squad Goals
+    match /flash_pin_drops/{pinId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.creatorUid == request.auth.uid
+        && isValidString(request.resource.data.title, 120)
+        && request.resource.data.durationHours is int
+        && request.resource.data.durationHours >= 1
+        && request.resource.data.durationHours <= 24;
+      allow update, delete: if isAuthenticated() && resource.data.creatorUid == request.auth.uid;
+    }
+
+    match /deal_passports/{passportId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.curatorUid == request.auth.uid
+        && isValidString(request.resource.data.title, 120)
+        && request.resource.data.priceUSD is number
+        && request.resource.data.priceUSD > 0;
+      allow update, delete: if isAuthenticated() && resource.data.curatorUid == request.auth.uid;
+    }
+
+    match /squad_goals/{goalId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && request.resource.data.creatorUid == request.auth.uid
+        && isValidString(request.resource.data.title, 150)
+        && request.resource.data.targetAmountUSD is number
+        && request.resource.data.targetAmountUSD > 0
+        && request.resource.data.fundedAmountUSD == 0
+        && request.resource.data.backersCount == 0;
+      allow update: if isAuthenticated() && (
+        (resource.data.creatorUid == request.auth.uid
+          && request.resource.data.creatorUid == resource.data.creatorUid
+          && request.resource.data.fundedAmountUSD == resource.data.fundedAmountUSD)
+        ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fundedAmountUSD', 'backersCount'])
+          && request.resource.data.fundedAmountUSD is number
+          && request.resource.data.fundedAmountUSD > resource.data.fundedAmountUSD
+          && (request.resource.data.fundedAmountUSD - resource.data.fundedAmountUSD) <= 10000
+          && request.resource.data.backersCount == resource.data.backersCount + 1)
+      );
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background circular gradient: Midnight Navy (top-left) to Deep Cyan-Teal (bottom-right) -->
+    <radialGradient id="bgGrad" cx="30%" cy="25%" r="85%">
+      <stop offset="0%" stop-color="#0E2D52" />
+      <stop offset="45%" stop-color="#07182E" />
+      <stop offset="80%" stop-color="#023D4D" />
+      <stop offset="100%" stop-color="#015264" />
+    </radialGradient>
+
+    <!-- Radar arc gradient -->
+    <linearGradient id="arcGradLeft" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#00D0E8" />
+    </linearGradient>
+    <linearGradient id="arcGradRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF" />
+      <stop offset="100%" stop-color="#00D0E8" />
+    </linearGradient>
+
+    <!-- Pupil gradient -->
+    <linearGradient id="pupilGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00F8FF" />
+      <stop offset="100%" stop-color="#00E0F5" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Circular Background -->
+  <circle cx="256" cy="256" r="250" fill="url(#bgGrad)" stroke="#030A14" stroke-width="4" />
+
+  <!-- Radar Waves behind White Pin -->
+  <!-- Left Outer Arched Wave -->
+  <path d="M 140,135 C 92,168 68,198 75,210" fill="none" stroke="url(#arcGradLeft)" stroke-width="22" stroke-linecap="round" />
+  <!-- Left Inner Wave -->
+  <path d="M 132,216 C 122,230 118,240 122,246" fill="none" stroke="url(#arcGradLeft)" stroke-width="18" stroke-linecap="round" />
+
+  <!-- Right Outer Arched Wave -->
+  <path d="M 372,135 C 420,168 444,198 437,210" fill="none" stroke="url(#arcGradRight)" stroke-width="22" stroke-linecap="round" />
+  <!-- Right Inner Wave -->
+  <path d="M 380,216 C 390,230 394,240 390,246" fill="none" stroke="url(#arcGradRight)" stroke-width="18" stroke-linecap="round" />
+
+  <!-- Main White Location Pin -->
+  <path d="M 256,66 C 334,66 388,126 388,206 C 388,272 322,356 256,438 C 190,356 124,272 124,206 C 124,126 178,66 256,66 Z" fill="#FFFFFF" />
+
+  <!-- Inner Dark Eye Socket Cutout -->
+  <circle cx="256" cy="244" r="55" fill="#071E36" />
+
+  <!-- Cyan Pupil Dot at top of cutout -->
+  <circle cx="256" cy="214" r="25" fill="url(#pupilGrad)" />
+</svg>
