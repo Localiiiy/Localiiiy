@@ -1,36 +1,32 @@
-// Localiiiy Service Worker v1.0.2
-const CACHE_NAME = 'localiiiy-cache-v3';
+// Localiiiy Service Worker v2.4.0 (100% Android Parity & Instant Cache Purge)
+const CACHE_NAME = 'localiiiy-cache-v2.4.0-sync';
 const STATIC_ASSETS = [
   './',
   './index.html',
+  './app_logo_original.png',
   './manifest.json',
   './assets/icon-192.png',
   './assets/icon-512.png',
   './assets/icon-maskable-192.png',
-  './assets/icon-maskable-512.png',
-  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap'
+  './assets/icon-maskable-512.png'
 ];
 
-// Install Event: Precaches essential app shell assets
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Precaching Localiiiy App Shell');
-      return cache.addAll(STATIC_ASSETS).catch((err) => {
-        console.warn('[Service Worker] Pre-caching partial warning:', err);
-      });
-    }).then(() => self.skipWaiting())
+      return cache.addAll(STATIC_ASSETS).catch(() => {});
+    })
   );
 });
 
-// Activate Event: Cleanup outdated caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('[Service Worker] Clearing old cache:', name);
+            console.log('[SW v2.4.0] Purging stale cache:', name);
             return caches.delete(name);
           }
         })
@@ -39,70 +35,40 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event: Network-first with cache fallback for HTML, Cache-first for static assets
 self.addEventListener('fetch', (event) => {
   const request = event.request;
-
-  // Handle only GET requests
-  if (request.method !== 'GET') {
-    return;
-  }
+  if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-
-  // Exclude APK/AAB files and downloads from service worker intercept
-  if (url.pathname.endsWith('.apk') || url.pathname.endsWith('.aab') || url.pathname.endsWith('.zip') || url.pathname.includes('/downloads/')) {
+  if (url.pathname.endsWith('.apk') || url.pathname.endsWith('.aab') || url.pathname.includes('/downloads/')) {
     return;
   }
 
-  // For HTML documents / navigation: Network-first, fallback to cache
-  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+  // Always Network-First with cache-busting for HTML & root navigation so v1.2.0 is never served from cache
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html') || url.pathname.endsWith('.html') || url.pathname === '/') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-store' })
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return networkResponse;
         })
-        .catch(() => {
-          return caches.match(request).then((cachedResponse) => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            return caches.match('./index.html');
-          });
-        })
+        .catch(() => caches.match(request).then((res) => res || caches.match('./index.html')))
     );
     return;
   }
 
-  // For static assets (images, fonts, scripts): Cache-first with background network update
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch in background to keep cache fresh
-        fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
-          }
-        }).catch(() => {/* Ignore background fetch error when offline */});
-
-        return cachedResponse;
-      }
-
-      return fetch(request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+    fetch(request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
-
-        const responseClone = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
         return networkResponse;
-      }).catch((err) => {
-        console.warn('[Service Worker] Fetch failed for:', request.url, err);
-      });
-    })
+      })
+      .catch(() => caches.match(request))
   );
 });

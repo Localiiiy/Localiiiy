@@ -58,7 +58,7 @@ jobs:
         run: |
           APK_SHA=$(sha256sum Localiiiy.apk | awk '{print $1}')
           APK_SIZE=$(du -h Localiiiy.apk | awk '{print $1}')
-          VERSION="v1.2.0"
+          VERSION="v2.4.0"
           echo "$APK_SHA  Localiiiy.apk" > public/downloads/checksums.txt
           
           # Update index.html

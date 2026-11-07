@@ -94,21 +94,21 @@ jobs:
       - name: 🏷️ Publish / Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.2.0
-          name: "Localiiiy v1.2.0 — Official Android Release & Web Parity Sync"
+          tag_name: v2.4.0
+          name: "Localiiiy v2.4.0 — Official Android Release & 100% Web Parity Sync"
           body: |
-            ### 📱 Localiiiy Android Official Release (v1.2.0)
-            100% synchronized with live Web app deployment.
+            ### 📱 Localiiiy Android Official Release (v2.4.0)
+            100% synchronized with live Web app deployment (`https://localiiiy.web.app`).
 
             #### Features in this Build:
-            - **Live Spatial Radar**: Real GPS coordinates & geocoding anywhere in the world.
-            - **Mandatory Auth & Monetization Gate**: Secure registration, creator earnings category, and instant community access.
-            - **Safe-Haven Handshakes**: OTP escrow physical transactions with zero data tracking.
-            - **Hyperlocal Clips & Dual Reach**: Neighbor (5km), City (50km), and Earth (Global) filters.
+            - **Live Spatial Radar**: Real GPS coordinates (`roundCoord3` ~110m privacy grid) & geocoding anywhere in the world.
+            - **11-Section Registration & Auth Gate**: Dual OTP verification, Omnibus Legal Scroll, and Stealth Ghost Spectator Mode.
+            - **Safe-Haven Handshakes**: OTP escrow physical transactions verified by Police Precinct Green Zones.
+            - **Hyperlocal Clips, Market (12 Categories) & Dual Reach**: Neighbor (1–5km), City (50km), and Earth (Global) filters.
 
             #### Verify Package Integrity:
             - **File**: `Localiiiy.apk`
-            - **Version**: `v1.2.0 Stable`
+            - **Version**: `v2.4.0 Stable`
           draft: false
           prerelease: false
           files: |

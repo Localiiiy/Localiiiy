@@ -1472,6 +1472,13 @@ fun ProfileScreen(
         )
     }
 
+    var showSynchronizedWebAppDialog by remember { mutableStateOf(false) }
+    if (showSynchronizedWebAppDialog) {
+        com.example.ui.components.LocaliiiyWebAppDialog(
+            onDismiss = { showSynchronizedWebAppDialog = false }
+        )
+    }
+
     // 10. Download Localiiiy App (Web App & Google Drive APK)
     if (showDownloadAppDialog) {
         AlertDialog(
@@ -1501,7 +1508,7 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Option 1: Web App
+                    // Option 1: Web App (Opens 100% Synchronized v2.4.0 Web App Viewer with External Browser option)
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -1509,9 +1516,8 @@ fun ProfileScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.WEBAPP_BASE_URL))
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
+                                showDownloadAppDialog = false
+                                showSynchronizedWebAppDialog = true
                             }
                     ) {
                         Row(
@@ -1534,12 +1540,12 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "1. Official Web App",
+                                    text = "1. Official Web App (v2.4.0 Synced)",
                                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "https://localiiiy.web.app",
+                                    text = "https://localiiiy.web.app • 100% Android Parity",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.primary
                                 )

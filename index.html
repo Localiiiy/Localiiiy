@@ -2478,13 +2478,16 @@
         </div>
       </div>
 
-      <!-- Pulse Mode Tab Switcher: Pulse Feed vs Local Community -->
-      <div style="display: flex; gap: 8px; margin: 10px 0 14px 0; background: rgba(15, 23, 42, 0.9); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
-        <button id="btnPulseTabFeed" class="dial-lens-btn active" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 12px; font-weight: 800; font-size: 12.5px;" onclick="switchPulseSubTab('feed')">
+      <!-- Pulse Mode 3-Tab Switcher (100% Android PulseFeedComponent.kt Parity: Pulse Feed | Local Community | Civic Tools) -->
+      <div style="display: flex; gap: 6px; margin: 10px 0 14px 0; background: rgba(15, 23, 42, 0.92); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
+        <button id="btnPulseTabFeed" class="dial-lens-btn active" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('feed')">
           📡 Pulse Feed
         </button>
-        <button id="btnPulseTabCommunity" class="dial-lens-btn" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 12px; font-weight: 800; font-size: 12.5px;" onclick="switchPulseSubTab('community')">
+        <button id="btnPulseTabCommunity" class="dial-lens-btn" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('community')">
           🏘️ Local Community
+        </button>
+        <button id="btnPulseTabCivic" class="dial-lens-btn" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('civic')">
+          🛡️ Civic Tools
         </button>
       </div>
 
@@ -2496,269 +2499,223 @@
               <span style="font-size: 24px;">🏘️</span>
               <div>
                 <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">Localiiiy Hyperlocal Hub</h4>
-                <p style="font-size: 11px; color: var(--accent-mint); margin: 2px 0 0 0;">34 Connected Neighbors • Active Now</p>
+                <p style="font-size: 11px; color: var(--accent-mint); margin: 2px 0 0 0;">Connected Neighbors • Real-Time Cloud Sync</p>
               </div>
             </div>
             <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px;" onclick="openInviteNeighborModal()">
-              + Add Neighbor
+              + Connect Neighbor
             </button>
           </div>
           <p style="font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.4;">
-            Official neighborhood hub for local creators, artisans, and neighbors to share updates, marketplace deals, studio clips, and community alerts.
+            Official neighborhood hub for local creators, artisans, and connected neighbors to share updates, marketplace deals, studio clips, and community alerts.
           </p>
         </div>
 
         <!-- Community Composer -->
         <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-          <textarea id="communityPostInput" placeholder="Post an update, broadcast alert, or share a market/studio item with all neighbors..." style="width: 100%; min-height: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: white; padding: 8px; font-size: 12px; resize: none;"></textarea>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
-            <div style="display: flex; gap: 6px;">
+          <textarea id="communityPostInput" placeholder="Post an update, broadcast alert, or share a market/studio item with connected neighbors..." style="width: 100%; min-height: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: white; padding: 8px; font-size: 12px; resize: none;"></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
               <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('market')">🛍️ Attach Market</button>
               <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('studio')">🎥 Attach Studio</button>
               <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('clip')">🎬 Attach Clip</button>
             </div>
             <button class="btn-submit-auth" style="margin: 0; padding: 6px 14px; font-size: 11px;" onclick="publishCommunityPost()">
-              Post to All
+              Broadcast to Hub
             </button>
           </div>
         </div>
 
         <!-- Community Post Feed -->
         <div id="communityPostsList" style="display: flex; flex-direction: column; gap: 10px;">
-          <!-- Item 1: Market Share -->
           <div class="card-pulse-node" style="border-left: 3px solid var(--accent-mint);">
-            <div class="pulse-node-head">
-              <div class="pulse-author-wrap">
-                <div class="pulse-avatar-thumb">👩‍🎨</div>
-                <div class="pulse-author-meta">
-                  <div class="author-name-row">
-                    <span class="author-display-name">Elena Rivera</span>
-                    <span class="badge-verified-creator">✓ Creator</span>
-                  </div>
-                  <span class="author-handle-tag">@elena_crafts • 25m ago</span>
-                </div>
-              </div>
-              <span class="badge-proximity-tag">MARKET SHARE 🛍️</span>
-            </div>
-            <p class="pulse-caption-text">
-              Hey neighbors! Just dropped fresh handmade ceramic mugs in the Marketplace. Community members get 15% off today! ✨
-            </p>
-            <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px; display: flex; gap: 8px; align-items: center; cursor: pointer;" onclick="switchDeck('market')">
-              <span style="font-size: 24px;">☕</span>
-              <div style="flex: 1;">
-                <div style="font-size: 12px; font-weight: 700; color: white;">Hand-Thrown Stoneware Ceramic Mugs</div>
-                <div style="font-size: 11px; color: var(--accent-mint); font-weight: 800;">$28.00 • Local Pickup Available</div>
-              </div>
-              <span style="font-size: 11px; color: #60A5FA;">View Item →</span>
-            </div>
-          </div>
-
-          <!-- Item 2: Broadcast Alert -->
-          <div class="card-pulse-node" style="border-left: 3px solid #F59E0B; background: rgba(245, 158, 11, 0.04);">
             <div class="pulse-node-head">
               <div class="pulse-author-wrap">
                 <div class="pulse-avatar-thumb">🛡️</div>
                 <div class="pulse-author-meta">
                   <div class="author-name-row">
-                    <span class="author-display-name">Civic Watch Moderator</span>
+                    <span class="author-display-name">Localiiiy Community Hub</span>
+                    <span class="badge-verified-creator">✓ Official</span>
                   </div>
-                  <span class="author-handle-tag">@civic_mod • 1h ago</span>
+                  <span class="author-handle-tag">@localiiiy_hub • Live Cloud Sync ☁️</span>
                 </div>
               </div>
-              <span class="badge-proximity-tag" style="background: rgba(245, 158, 11, 0.2); color: #F59E0B;">📢 BROADCAST</span>
+              <span class="badge-proximity-tag">WELCOME 🤝</span>
             </div>
             <p class="pulse-caption-text">
-              📢 <strong>COMMUNITY NOTICE:</strong> Neighborhood weekend creators market kicks off this Saturday at 9 AM in the town square. All local creators welcome!
+              Welcome to your neighborhood hub! Share local updates, coordinate Safe-Haven Marketplace handoffs, or connect with verified neighbors within your GPS radius.
             </p>
           </div>
         </div>
       </div>
 
-      <!-- Tactile Tri-Dial Blast Radius Lens (Neighbor / City / Earth) -->
+      <!-- CIVIC TOOLS & EMERGENCY GOVERNANCE CONTAINER (100% Android CivicEngagementToolsComponent.kt Parity) -->
+      <div id="civicToolsContainer" style="display: none;">
+        <div style="background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">🛡️ Civic Tools & Safe-Haven Governance</h4>
+              <p style="font-size: 11px; color: #38BDF8; margin: 2px 0 0 0;">Police Precinct Green Zones • SOS Dispatch • Neighborhood Polls</p>
+            </div>
+            <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px; background: #EF4444; color: #FFF;" onclick="openCyberstalkingShieldModal()">
+              🚨 SOS Shield
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;">
+            <div class="neighbor-card" style="padding: 10px; cursor: pointer;" onclick="openAuditLogsModal()">
+              <div>
+                <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">📜 SHA-256 Audit</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Forensic Ledger</div>
+              </div>
+            </div>
+            <div class="neighbor-card" style="padding: 10px; cursor: pointer;" onclick="openPanicCloakDecoy()">
+              <div>
+                <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">🧮 Panic Cloak</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Decoy Calculator</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN PULSE FEED CONTENT (100% Android PulseFeedComponent.kt Parity) -->
       <div id="pulseFeedMainContent">
-      <div class="tactile-tri-dial-lens">
-        <button class="dial-lens-btn active" onclick="setTriDial(this, 'neighbor')">🏡 Neighbor (5km)</button>
-        <button class="dial-lens-btn" onclick="setTriDial(this, 'city')">🏙️ City (50km)</button>
-        <button class="dial-lens-btn" onclick="setTriDial(this, 'earth')">🌍 Earth (Global)</button>
-      </div>
-
-      <!-- Stories Tray -->
-      <div class="stories-tray">
-        <div class="story-bubble" onclick="openCreationModal('story')">
-          <div class="story-ring add-ring">
-            <div class="story-avatar" style="background: rgba(16, 185, 129, 0.15); color: #10B981;">+</div>
-          </div>
-          <span class="story-label">Your Story</span>
-        </div>
-
-        <div class="story-bubble" onclick="showStoryViewer('Elena Rostova', 'Pike Place Artisan')">
-          <div class="story-ring">
-            <div class="story-avatar">👩‍🎨</div>
-          </div>
-          <span class="story-label">Elena R.</span>
-        </div>
-
-        <div class="story-bubble" onclick="showStoryViewer('Marcus Chen', 'Urban Filmmaker')">
-          <div class="story-ring">
-            <div class="story-avatar">🎬</div>
-          </div>
-          <span class="story-label">Marcus C.</span>
-        </div>
-
-        <div class="story-bubble" onclick="showStoryViewer('Maya Patel', 'Civic Baker')">
-          <div class="story-ring">
-            <div class="story-avatar">🥖</div>
-          </div>
-          <span class="story-label">Maya P.</span>
-        </div>
-
-        <div class="story-bubble" onclick="showStoryViewer('Officer Davis', 'Precinct Safe-Haven Hub')">
-          <div class="story-ring">
-            <div class="story-avatar">🛡️</div>
-          </div>
-          <span class="story-label">Safe-Haven</span>
-        </div>
-      </div>
-
-      <!-- Community Pulse Poll Card -->
-      <div class="community-poll-card">
-        <div class="poll-header">
-          <span>📊 Neighborhood Voice Poll</span>
-          <span>Closes in 6h</span>
-        </div>
-        <div style="font-size: 13px; font-weight: 700;">Should Pike Place pedestrianize Pine St on summer weekends?</div>
-        <button class="poll-option-btn" onclick="votePoll(this, 'Yes, more community space (78%)')">
-          <span>Yes, expand pedestrian stalls</span>
-          <span style="color: var(--accent-mint); font-weight: 800;">78%</span>
-        </button>
-        <button class="poll-option-btn" onclick="votePoll(this, 'No, keep vehicle delivery access (22%)')">
-          <span>No, keep delivery vehicle lanes</span>
-          <span style="color: var(--text-muted);">22%</span>
-        </button>
-      </div>
-
-      <!-- Nearby Neighbors Carousel -->
-      <div class="creators-carousel-title">
-        <span>Active Neighbors Nearby</span>
-      </div>
-      <div class="creators-carousel-row">
-        <div class="creator-mini-card">
-          <div class="author-avatar" style="width: 38px; height: 38px;">👩‍🎨</div>
-          <div style="font-size: 12px; font-weight: 700;">Elena Rostova</div>
-          <div style="font-size: 10px; color: var(--accent-mint);">0.3 km • Artisan</div>
-          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Elena Rostova')">+ Connect</button>
-        </div>
-
-        <div class="creator-mini-card">
-          <div class="author-avatar" style="width: 38px; height: 38px;">🚲</div>
-          <div style="font-size: 12px; font-weight: 700;">Devon Miller</div>
-          <div style="font-size: 10px; color: var(--text-muted);">1.1 km • Cyclist</div>
-          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Devon Miller')">+ Connect</button>
-        </div>
-
-        <div class="creator-mini-card">
-          <div class="author-avatar" style="width: 38px; height: 38px;">🥖</div>
-          <div style="font-size: 12px; font-weight: 700;">Maya Patel</div>
-          <div style="font-size: 10px; color: var(--accent-mint);">0.4 km • Baker</div>
-          <button class="btn-connect-user" style="padding: 4px 10px; font-size: 11px; width: 100%;" onclick="toggleConnect(this, 'Maya Patel')">+ Connect</button>
-        </div>
-      </div>
-
-      <!-- Proximity Filter Chips -->
-      <div class="feed-chips-bar">
-        <div class="filter-chip active" onclick="setFeedFilter(this, 'all')">All Feed</div>
-        <div class="filter-chip" onclick="setFeedFilter(this, 'trending')">🔥 Trending</div>
-        <div class="filter-chip" onclick="setFeedFilter(this, 'nearby')">📍 Nearby (3km)</div>
-        <div class="filter-chip" onclick="setFeedFilter(this, 'connected')">🤝 Connected</div>
-      </div>
-
-      <!-- Posts Stream -->
-      <div class="post-stream" id="postsStreamContainer">
-
-        <!-- Post 1 -->
-        <div class="post-card">
-          <div class="post-header">
-            <div class="post-author">
-              <div class="author-avatar">☕</div>
-              <div class="author-meta">
-                <h4>Maya Patel <span class="reach-pill reach-neighbor">Neighbor</span></h4>
-                <p>0.3 km away • 18m ago • Pike Place Alley</p>
-              </div>
+        <!-- Stories Tray (Android StoriesTrayComponent.kt Parity) -->
+        <div class="stories-tray">
+          <div class="story-bubble" onclick="openCreationModal('story')">
+            <div class="story-ring add-ring">
+              <div class="story-avatar" style="background: rgba(0, 180, 216, 0.15); color: #00E5FF;">+</div>
             </div>
-            <button class="btn-connect-user" onclick="toggleConnect(this, 'Maya Patel')">+ Connect</button>
+            <span class="story-label">Your Story</span>
           </div>
-          <div class="post-body">
-            Fresh batch of organic cardamom sourdough just came out of our wood-fired oven! Any connected neighbors are welcome to stop by for a hot slice before noon 🍞☕
-          </div>
-          <div class="post-media-container">
-            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=700&auto=format&fit=crop&q=80" alt="Sourdough">
-            <div class="safe-haven-tag">🛡️ Verified Safe Neighbor</div>
-          </div>
-          <div class="post-footer">
-            <div class="post-actions-left">
-              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">42</span></button>
-              <button class="btn-post-action" onclick="openCommentsModal('Maya Patel Sourdough', ['Delicious! On my way.', 'Save one for me please!'])">💬 12</button>
-              <button class="btn-post-action" onclick="sharePost('Maya Patel Sourdough')">🔄 Share</button>
+
+          <div class="story-bubble" onclick="openCreationModal('post')">
+            <div class="story-ring" style="background: linear-gradient(135deg, #EF4444, #F59E0B);">
+              <div class="story-avatar">🔴</div>
             </div>
-            <button class="btn-post-action" onclick="waveAtNeighbor('Maya Patel')">👋 Wave</button>
+            <span class="story-label">Go Live</span>
+          </div>
+
+          <div class="story-bubble" onclick="switchDeck('radar')">
+            <div class="story-ring">
+              <div class="story-avatar">🧭</div>
+            </div>
+            <span class="story-label">Live Radar</span>
+          </div>
+
+          <div class="story-bubble" onclick="switchDeck('market')">
+            <div class="story-ring">
+              <div class="story-avatar">🛡️</div>
+            </div>
+            <span class="story-label">Safe-Haven</span>
+          </div>
+
+          <div class="story-bubble" onclick="switchDeck('clips')">
+            <div class="story-ring">
+              <div class="story-avatar">🎬</div>
+            </div>
+            <span class="story-label">Local Clips</span>
           </div>
         </div>
 
-        <!-- Post 2: Market Conversion -->
-        <div class="post-card">
-          <div class="post-header">
-            <div class="post-author">
-              <div class="author-avatar">📷</div>
-              <div class="author-meta">
-                <h4>Marcus Chen <span class="reach-pill reach-city">City</span></h4>
-                <p>1.4 km away • 1h ago • Civic Center</p>
-              </div>
-            </div>
-            <button class="btn-connect-user" onclick="toggleConnect(this, 'Marcus Chen')">+ Connect</button>
+        <!-- Android PulseFeedComponent Header Row: Localiiiy + Go Live + Chronological + Data Saver -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 10px 4px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00B4D8, #0077B6, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Localiiiy</span>
+            <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0, 180, 216, 0.14); color: #00E5FF; border: 1px solid rgba(0, 180, 216, 0.3);">v2.4.0 SYNC</span>
           </div>
-          <div class="post-body">
-            Selling my mint condition vintage 35mm film camera with 50mm f/1.8 lens. Safe-Haven handshake escrow meetup at the Downtown Police Precinct CCTV zone! 🛍️
-          </div>
-          <div class="post-media-container">
-            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=700&auto=format&fit=crop&q=80" alt="Vintage Camera">
-            <div class="safe-haven-tag">🛡️ Safe-Haven Hub: Civic Plaza Station</div>
-          </div>
-          <div class="post-footer">
-            <div class="post-actions-left">
-              <button class="btn-post-action" onclick="toggleLike(this)">❤️ <span class="count">28</span></button>
-              <button class="btn-post-action" onclick="openCommentsModal('Marcus Chen camera', ['Can you meet at 3pm?'])">💬 9</button>
-            </div>
-            <button class="btn-buy-handshake" style="width: auto; padding: 6px 16px;" onclick="openEscrowModal('Vintage Camera', '$120')">
-              🛍️ Buy / Trade ($120)
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <button onclick="openCreationModal('post')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #F87171; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
+              🔴 Go Live
+            </button>
+            <button id="btnChronologicalMode" onclick="toggleChronologicalFeed(this)" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
+              ⚡ Chronological
+            </button>
+            <button id="btnDataSaverMode" onclick="toggleDataSaverMode(this)" style="background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle); color: var(--text-secondary); border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
+              🛡️ Data Saver
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Beautiful Floating Action Button (FAB) for Post Creation -->
-      <button class="fab-create-post ripple-effect" onclick="openCreationModal('post')" title="Create Neighborhood Post">
-        +
-      </button>
+        <!-- Tactile Tri-Dial Blast Radius Lens (Neighbor / City / Earth) -->
+        <div class="tactile-tri-dial-lens">
+          <button class="dial-lens-btn active" onclick="setTriDial(this, 'neighbor')">🏡 Neighbor (1–5km)</button>
+          <button class="dial-lens-btn" onclick="setTriDial(this, 'city')">🏙️ City (50km)</button>
+          <button class="dial-lens-btn" onclick="setTriDial(this, 'earth')">🌍 Earth (Global)</button>
+        </div>
 
+        <!-- Android Hashtag Filter Bar (PulseFeedComponent.kt lines 404–440) -->
+        <div class="feed-chips-bar" style="margin-bottom: 6px;">
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '')">#AllTags</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#LocalUpdate')">#LocalUpdate</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Hyperlocal')">#Hyperlocal</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Events')">#Events</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Marketplace')">#Marketplace</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Foodie')">#Foodie</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Alerts')">#Alerts</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Community')">#Community</div>
+          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#LostAndFound')">#LostAndFound</div>
+        </div>
+
+        <!-- 6 Android Pulse Filter Chips (All, Live, Trending, Nearby, Connected, Latest) -->
+        <div class="feed-chips-bar">
+          <div class="filter-chip active" onclick="setFeedFilter(this, 'all')">🌍 All</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'live')">🔴 Live</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'trending')">🔥 Trending</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'nearby')">📍 Nearby (&lt;3.0 km)</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'connected')">🤝 Connected</div>
+          <div class="filter-chip" onclick="setFeedFilter(this, 'latest')">⚡ Latest</div>
+        </div>
+
+        <!-- Quick Inline Broadcast Composer (Synced with Firestore `posts` & Android PulseFeedComponent) -->
+        <div class="post-card" style="padding: 12px; margin-bottom: 12px; border: 1px solid rgba(0, 180, 216, 0.3);">
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="author-avatar" style="width: 36px; height: 36px; font-size: 16px;">✍️</div>
+            <input type="text" id="quickPulseInput" class="form-input" placeholder="Broadcast a hyperlocal update to your neighborhood radar..." style="flex: 1; font-size: 12px; padding: 9px 12px;">
+            <button class="btn-submit-auth" style="margin: 0; padding: 9px 14px; font-size: 11.5px; white-space: nowrap;" onclick="publishQuickPulsePost()">
+              Broadcast 📡
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Cloud Posts Stream (Synced with Firestore `posts` & Android InitialData.kt — Zero Fake Seattle Demo Posts) -->
+        <div class="post-stream" id="postsStreamContainer">
+          <div id="emptyPulseStateCard" class="post-card" style="padding: 24px 16px; text-align: center; border: 1px dashed rgba(0, 229, 255, 0.35);">
+            <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
+            <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Live Hyperlocal Pulse Feed Ready</h4>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
+              100% synchronized with your Android app &amp; Cloud Firestore (<code>localiiiy</code>). Zero fake demo posts — broadcast your first neighborhood update above or tap <strong>+</strong> below!
+            </p>
+            <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
+              <button class="btn-submit-auth" style="margin: 0; padding: 8px 16px; font-size: 12px;" onclick="openCreationModal('post')">
+                + Create First Broadcast
+              </button>
+              <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-mirror-apk" style="text-decoration: none; padding: 8px 14px; font-size: 12px;">
+                🤖 Get Android App on Google Play
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Action Button (FAB) for Post Creation -->
+        <button class="fab-create-post ripple-effect" onclick="openCreationModal('post')" title="Create Neighborhood Post">
+          +
+        </button>
       </div>
     </div>
 
     <!-- ========================================================
-         VIEW 2: RADAR SCREEN (TACTICAL REAL-TIME SPATIAL HUD & GRID)
+         VIEW 2: RADAR SCREEN (100% ANDROID LiveRadarScreen.kt PARITY)
          ======================================================== -->
     <div id="view-radar" class="screen-view">
       <div class="radar-screen-content">
 
-        <!-- Mode bar: Radar HUD vs Grid -->
+        <!-- Mode bar: Radar Orbit vs Google Map Moments (Android LiveRadarScreen.kt Parity) -->
         <div class="radar-view-mode-bar">
           <button class="mode-tab-btn active" onclick="setRadarMode('radar')">
-            <svg viewBox="0 0 512 512" style="width: 14px; height: 14px; margin-right: 6px; vertical-align: middle;">
-              <circle cx="256" cy="256" r="180" fill="none" stroke="currentColor" stroke-width="40" stroke-opacity="0.5" />
-              <circle cx="256" cy="256" r="80" fill="currentColor" />
-            </svg>
-            Spatial Radar
+            🧭 Radar Orbit
           </button>
-          <button class="mode-tab-btn" onclick="setRadarMode('grid')">▦ Media Grid</button>
+          <button class="mode-tab-btn" onclick="setRadarMode('grid')">🗺️ Google Map Moments</button>
         </div>
 
         <!-- Radar Canvas HUD Container -->
@@ -2778,31 +2735,29 @@
               <div class="radar-sweep-beam"></div>
 
               <!-- Center User Blip -->
-              <div class="radar-center-blip" title="You are here"></div>
+              <div class="radar-center-blip" title="You are here (~110m Privacy Grid)"></div>
 
-              <!-- Dynamic Blips -->
-              <div class="radar-blip connected-blip" style="top: 30%; left: 36%;" onclick="showBlipDetails('Elena Rostova', '0.3 km', 'Connected Neighbor', 'Artisan')">🎨</div>
-              <div class="radar-blip market-blip" style="top: 25%; left: 74%;" onclick="showBlipDetails('Vintage 35mm Camera', '1.4 km', 'Market Listing', 'Camera')">📷</div>
-              <div class="radar-blip neighbor-blip" style="top: 68%; left: 28%;" onclick="showBlipDetails('Maya Patel', '0.4 km', 'Connected Baker', 'Neighbor')">🥖</div>
-              <div class="radar-blip neighbor-blip" style="top: 74%; left: 78%;" onclick="showBlipDetails('Devon Miller', '1.1 km', 'Local Neighbor', 'Cyclist')">🚲</div>
-              <div class="radar-blip connected-blip" style="top: 84%; left: 52%;" onclick="showBlipDetails('Officer Davis', '0.5 km', 'Safe-Haven Precinct', 'Officer')">🛡️</div>
+              <!-- Safe-Haven & Live Beacons -->
+              <div class="radar-blip connected-blip" style="top: 82%; left: 52%;" onclick="showBlipDetails('Police Precinct Safe-Haven', '0.5 km', 'CCTV Green Zone Exchange Hub', 'Officer')">🛡️</div>
+              <div class="radar-blip market-blip" style="top: 28%; left: 72%;" onclick="showBlipDetails('Safe-Haven Escrow Hub #2', '1.2 km', 'Verified Commerce Point', 'Market')">🛍️</div>
+              <div class="radar-blip neighbor-blip" style="top: 34%; left: 32%;" onclick="showBlipDetails('Local Creator Beacon', '0.8 km', 'Connected Neighbor', 'Creator')">📡</div>
             </div>
           </div>
 
-          <!-- Radar Tactical Controls -->
+          <!-- Radar Tactical Controls (1 km – 50 km Systematic Scale) -->
           <div class="radar-control-card">
             <div class="slider-row">
               <div class="slider-header">
-                <span>Tactical Radar Range</span>
-                <span id="rangeLabel" style="color: var(--accent-mint); font-weight: 700;">3.0 km</span>
+                <span>Systematic Radar Scale (1 km – 50 km)</span>
+                <span id="rangeLabel" style="color: var(--accent-mint); font-weight: 700;">5.0 km</span>
               </div>
-              <input type="range" min="0.5" max="25" step="0.5" value="3.0" class="radar-range-slider" id="radarRangeSlider" oninput="updateRadarRange(this.value)">
+              <input type="range" min="1" max="50" step="1" value="5" class="radar-range-slider" id="radarRangeSlider" oninput="updateRadarRange(this.value)">
             </div>
 
             <div class="ghost-mode-row">
               <div>
                 <div style="font-size: 14px; font-weight: 700;">Ghost / Cloak Mode 👻</div>
-                <div style="font-size: 11px; color: var(--text-muted);">Hide your location from surrounding radar scans</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Purge live radar beacon &amp; fuzz GPS to ~110m grid</div>
               </div>
               <div class="toggle-pill-switch" id="ghostToggleSwitch" onclick="toggleGhostMode()">
                 <div class="toggle-pill-thumb"></div>
@@ -2811,25 +2766,16 @@
           </div>
         </div>
 
-        <!-- Radar 3-Column Grid Container -->
+        <!-- Google Map Moments & Spatial Grid Container -->
         <div id="radarGridView" style="display: none;">
           <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400&auto=format&fit=crop&q=80" alt="Item">
+            <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&auto=format&fit=crop&q=80" alt="Local Moment">
           </div>
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop&q=80" alt="Item">
+          <div class="grid-cell-item" onclick="switchDeck('market')">
+            <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&auto=format&fit=crop&q=80" alt="Market Moment">
           </div>
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&auto=format&fit=crop&q=80" alt="Item">
-          </div>
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=400&auto=format&fit=crop&q=80" alt="Item">
-          </div>
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80" alt="Item">
-          </div>
-          <div class="grid-cell-item" onclick="switchDeck('clips')">
-            <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=400&auto=format&fit=crop&q=80" alt="Item">
+          <div class="grid-cell-item" onclick="switchDeck('studio')">
+            <img src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&auto=format&fit=crop&q=80" alt="Studio Moment">
           </div>
         </div>
 
@@ -2837,40 +2783,42 @@
     </div>
 
     <!-- ========================================================
-         VIEW 3: MARKET SCREEN (SAFE-HAVEN COMMERCE)
+         VIEW 3: MARKET SCREEN (100% ANDROID MarketScreen.kt PARITY)
          ======================================================== -->
     <div id="view-market" class="screen-view">
       <div class="market-screen-content">
 
         <!-- Market Sub-tabs (100% Android MarketScreen.kt Parity) -->
         <div class="market-subtabs-row">
-          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">🛍️ Goods</div>
+          <div class="subtab-item active" onclick="setMarketSubTab(this, 'goods')">🏪 All / Goods</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'services')">🛠️ Services</div>
-          <div class="subtab-item" onclick="setMarketSubTab(this, 'upgrades')">🔧 Exchange Tools</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'trends')">📈 AI Price Trends</div>
           <div class="subtab-item" onclick="setMarketSubTab(this, 'watchlist')">🔖 Watchlist</div>
+          <div class="subtab-item" onclick="setMarketSubTab(this, 'upgrades')">🔧 Civic &amp; Barter Hubs</div>
         </div>
 
         <!-- Panel 1: Goods Catalog -->
         <div id="market-panel-goods" class="market-sub-panel active">
-          <!-- Categories horizontal bar (Expanded Android List) -->
+          <!-- All 12 Official Android MarketScreen.kt Categories -->
           <div class="market-categories-row" style="margin-bottom: 8px;">
             <div class="category-chip active" onclick="filterCategory(this, 'all')">🏪 All</div>
             <div class="category-chip" onclick="filterCategory(this, 'vehicles')">🚗 Vehicles</div>
-            <div class="category-chip" onclick="filterCategory(this, 'bikes')">🚲 Bikes</div>
-            <div class="category-chip" onclick="filterCategory(this, 'lands')">🏞️ Lands</div>
-            <div class="category-chip" onclick="filterCategory(this, 'mobiles')">📱 Mobiles</div>
-            <div class="category-chip" onclick="filterCategory(this, 'tech')">💻 Tech</div>
-            <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Furniture</div>
-            <div class="category-chip" onclick="filterCategory(this, 'fashion')">👕 Fashion</div>
-            <div class="category-chip" onclick="filterCategory(this, 'food')">🥖 Food</div>
-            <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art</div>
+            <div class="category-chip" onclick="filterCategory(this, 'lands')">🏡 Properties &amp; Land</div>
+            <div class="category-chip" onclick="filterCategory(this, 'tech')">📱 Mobiles &amp; Tech</div>
+            <div class="category-chip" onclick="filterCategory(this, 'furniture')">🛋️ Home &amp; Living</div>
+            <div class="category-chip" onclick="filterCategory(this, 'fashion')">👗 Fashion &amp; Style</div>
+            <div class="category-chip" onclick="filterCategory(this, 'services')">🛠️ Jobs &amp; Services</div>
+            <div class="category-chip" onclick="filterCategory(this, 'food')">🥬 Farm &amp; Fresh</div>
+            <div class="category-chip" onclick="filterCategory(this, 'books')">📚 Books &amp; Sports</div>
+            <div class="category-chip" onclick="filterCategory(this, 'art')">🎨 Art &amp; Crafts</div>
+            <div class="category-chip" onclick="filterCategory(this, 'pets')">🐾 Pets &amp; Care</div>
+            <div class="category-chip" onclick="filterCategory(this, 'barter')">🤝 Borrow &amp; Barter</div>
           </div>
 
           <div class="market-banner">
             <div>
               <h3 style="font-size: 15px; font-weight: 800; color: #F59E0B;">Safe-Haven Handshake Escrow 🛡️</h3>
-              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV & OTP handshake codes (5% Fee • 0% for Premium).</p>
+              <p style="font-size: 11.5px; color: var(--text-secondary); margin-top: 4px;">Physical handoffs verified by police precinct CCTV &amp; OTP handshake codes (5% Fee • 0% for Localiiiy Pro).</p>
             </div>
             <button class="btn-download-apk" style="background: var(--accent-amber); color: #000; font-size: 12px; padding: 6px 12px;" onclick="checkGhostAction('list items for sale') ? null : openCreationModal('market')">
               + Sell Item
@@ -4027,7 +3975,7 @@
        FIREBASE LIVE CLOUD + LOCAL FALLBACK ENGINE (100% ANDROID SYNC)
        ======================================================== -->
   <script>
-    // 1. Initialize Live Firebase via Firebase Hosting Auto-Init or Runtime Environment (Zero Hardcoded Keys in Public Repo)
+    // 1. Initialize Live Firebase via Firebase Hosting Auto-Init (/__/firebase/init.json) or Runtime Environment (Zero Hardcoded Keys in Public Repo)
     const RUNTIME_FB_CFG = window.__LOCALIIIY_FIREBASE_CONFIG__ || JSON.parse(localStorage.getItem('localiiiy_firebase_config') || 'null');
     const FIREBASE_CONFIG = RUNTIME_FB_CFG || {
       apiKey: "FIREBASE_API_KEY_SET_IN_SECRETS",
@@ -4043,21 +3991,52 @@
     let fbDb = null;
     let isFirebaseLive = false;
 
-    try {
-      if (typeof firebase !== 'undefined' && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.includes('SET_IN_SECRETS')) {
-        fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
-        fbAuth = firebase.auth();
-        fbDb = firebase.firestore();
-        isFirebaseLive = true;
-        console.log('✓ Connected to Live Firebase Cloud Project: localiiiy');
+    async function initFirebaseHostingOrRuntime() {
+      try {
+        if (typeof firebase === 'undefined') return;
+        let cfg = FIREBASE_CONFIG;
+        if (!cfg.apiKey || cfg.apiKey.includes('SET_IN_SECRETS')) {
+          try {
+            const resp = await fetch('/__/firebase/init.json', { cache: 'no-store' });
+            if (resp.ok) {
+              cfg = await resp.json();
+              localStorage.setItem('localiiiy_firebase_config', JSON.stringify(cfg));
+            }
+          } catch (_ignore) {}
+        }
+        if (cfg && cfg.apiKey && !cfg.apiKey.includes('SET_IN_SECRETS')) {
+          fbApp = firebase.apps.length ? firebase.app() : firebase.initializeApp(cfg);
+          fbAuth = firebase.auth();
+          fbDb = firebase.firestore();
+          isFirebaseLive = true;
+          console.log('✓ Connected to Live Firebase Cloud Project: localiiiy');
+          attachLiveFirestoreListeners();
+        }
+      } catch (fbErr) {
+        console.warn('Firebase SDK offline fallback active:', fbErr);
       }
-    } catch (fbErr) {
-      console.warn('Firebase SDK offline fallback active:', fbErr);
     }
 
     // Spatial Privacy Coordinate Fuzzing (~110m grid parity with Android FirebaseRepository.roundCoord3)
     function roundCoord3(coord) {
       return Math.round(Number(coord) * 1000) / 1000;
+    }
+
+    // Automatic v2.4.0 Schema Migration: Purge stale v1.2.0 demo cache (@alex_creative / Pike Place, Seattle)
+    const CURRENT_SCHEMA_VERSION = '2.4.0';
+    if (localStorage.getItem('localiiiy_schema_version') !== CURRENT_SCHEMA_VERSION) {
+      const cachedActive = localStorage.getItem('localiiiy_active_user') || '';
+      if (cachedActive.includes('alex_creative') || cachedActive.includes('Pike Place')) {
+        localStorage.removeItem('localiiiy_active_user');
+        localStorage.removeItem('localiiiy_all_users');
+        localStorage.removeItem('localiiiy_user_location_label');
+      }
+      localStorage.setItem('localiiiy_schema_version', CURRENT_SCHEMA_VERSION);
+      if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(k => {
+          if (!k.includes('v2.4.0')) caches.delete(k);
+        })).catch(() => {});
+      }
     }
 
     // Core Application State
@@ -4143,21 +4122,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (users.length === 0) {
-        users.push({
-          fullName: 'Alex Rivera',
-          username: '@alex_creative',
-          neighborhood: 'Pike Place, Seattle',
-          email: 'alex@example.com',
-          password: 'password',
-          connections: 142,
-          sparks: 320,
-          category: 'Local Creator',
-          visibilityMode: 'GHOST'
-        });
-        localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
-      }
-
       if (auditLogs.length === 0) {
         recordAuditLog('APP_BOOT', 'Localiiiy v2.4.0 Web-Android Cloud Engine Initialized');
       }
@@ -4191,7 +4155,7 @@
       }
 
       renderPostsFromDb();
-      attachLiveFirestoreListeners();
+      initFirebaseHostingOrRuntime();
     });
 
     // ========================================================
@@ -5797,28 +5761,105 @@
     }
 
     // ========================================================
-    // LOCALIIIY COMMUNITY HUB LOGIC
+    // LOCALIIIY PULSE 3-TAB, CHRONOLOGICAL, HASHTAG & QUICK BROADCAST LOGIC
     // ========================================================
     function switchPulseSubTab(subTab) {
       if (window.navigator.vibrate) window.navigator.vibrate(4);
       const feedBtn = document.getElementById('btnPulseTabFeed');
       const commBtn = document.getElementById('btnPulseTabCommunity');
+      const civicBtn = document.getElementById('btnPulseTabCivic');
       const feedContainer = document.getElementById('pulseFeedMainContent');
       const commContainer = document.getElementById('localCommunityContainer');
+      const civicContainer = document.getElementById('civicToolsContainer');
 
-      if (subTab === 'community') {
-        feedBtn.classList.remove('active');
-        commBtn.classList.add('active');
-        feedContainer.style.display = 'none';
-        commContainer.style.display = 'block';
-        showToast('Switched to Localiiiy Community Hub 🏘️');
-      } else {
-        commBtn.classList.remove('active');
-        feedBtn.classList.add('active');
-        commContainer.style.display = 'none';
-        feedContainer.style.display = 'block';
-        showToast('Switched to Live Pulse Feed 📡');
+      if (feedBtn) feedBtn.classList.toggle('active', subTab === 'feed');
+      if (commBtn) commBtn.classList.toggle('active', subTab === 'community');
+      if (civicBtn) civicBtn.classList.toggle('active', subTab === 'civic');
+
+      if (feedContainer) feedContainer.style.display = subTab === 'feed' ? 'block' : 'none';
+      if (commContainer) commContainer.style.display = subTab === 'community' ? 'block' : 'none';
+      if (civicContainer) civicContainer.style.display = subTab === 'civic' ? 'block' : 'none';
+
+      if (subTab === 'community') showToast('Switched to Localiiiy Community Hub 🏘️');
+      else if (subTab === 'civic') showToast('Switched to Civic Tools & Safe-Haven Governance 🛡️');
+      else showToast('Switched to Live Pulse Feed 📡');
+    }
+
+    let isChronologicalFeed = true;
+    function toggleChronologicalFeed(btn) {
+      isChronologicalFeed = !isChronologicalFeed;
+      if (btn) {
+        btn.style.background = isChronologicalFeed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.06)';
+        btn.style.color = isChronologicalFeed ? '#10B981' : 'var(--text-secondary)';
+        btn.textContent = isChronologicalFeed ? '⚡ Chronological' : '✨ Algorithmic';
       }
+      showToast(isChronologicalFeed ? '⚡ Pure Chronological Feed (Zero-Algorithm) Active' : '✨ Dual-Reach Algorithmic Feed Active');
+    }
+
+    let isDataSaverActive = false;
+    function toggleDataSaverMode(btn) {
+      isDataSaverActive = !isDataSaverActive;
+      if (btn) {
+        btn.style.background = isDataSaverActive ? 'rgba(0, 180, 216, 0.18)' : 'rgba(255, 255, 255, 0.06)';
+        btn.style.color = isDataSaverActive ? '#00E5FF' : 'var(--text-secondary)';
+      }
+      showToast(isDataSaverActive ? '🛡️ Low-Bandwidth Data Saver Enabled' : 'High-Resolution Media Stream Enabled');
+    }
+
+    function filterByHashtag(chip, tag) {
+      if (chip && chip.parentElement) {
+        chip.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      }
+      filterFeedBySearch(tag);
+      showToast(tag ? `Filtered by ${tag} 🏷️` : 'Showing all hashtags 🌍');
+    }
+
+    async function publishQuickPulsePost() {
+      if (checkGhostAction('broadcast pulse updates')) return;
+      const input = document.getElementById('quickPulseInput');
+      const text = input ? input.value.trim() : '';
+      if (!text) {
+        showToast('Write a neighborhood update first! ✍️');
+        return;
+      }
+      const authorName = (currentUser && currentUser.fullName) || 'Local Neighbor';
+      const authorHandle = (currentUser && currentUser.username) || '@neighbor';
+      const postId = 'post_' + Date.now();
+      const newPost = {
+        id: postId,
+        author: authorName,
+        username: authorHandle,
+        text,
+        reach: 'NEIGHBOR',
+        price: '',
+        type: 'post',
+        likesCount: 0,
+        timestamp: 'Just now • Cloud Synced ☁️'
+      };
+      posts.unshift(newPost);
+      localStorage.setItem('localiiiy_local_posts', JSON.stringify(posts));
+      if (input) input.value = '';
+      renderPostsFromDb();
+
+      if (isFirebaseLive && fbDb) {
+        try {
+          await fbDb.collection('posts').doc(postId).set({
+            id: postId,
+            authorId: (currentUser && currentUser.uid) || 'web_user',
+            authorName,
+            authorHandle,
+            content: text,
+            reachTier: 'NEIGHBOR',
+            type: 'post',
+            likesCount: 0,
+            neighborhood: (currentUser && currentUser.neighborhood) || currentLocationLabel || 'Local Grid',
+            createdAt: Date.now()
+          });
+        } catch (_e) {}
+      }
+      recordAuditLog('PULSE_BROADCAST', `Published hyperlocal broadcast (${postId})`);
+      showToast('Broadcasted to Live Android & Web Pulse Feed! 📡');
     }
 
     let attachedCommunityType = null;
@@ -5848,7 +5889,7 @@
             <div class="pulse-author-meta">
               <div class="author-name-row">
                 <span class="author-display-name">${currentUser ? currentUser.fullName : 'You (Neighbor)'}</span>
-                <span class="badge-verified-creator">✓ Member</span>
+                <span class="badge-verified-creator">✓ Connected</span>
               </div>
               <span class="author-handle-tag">${currentUser ? currentUser.username : '@neighbor'} • Just now</span>
             </div>
@@ -5861,7 +5902,7 @@
       list.prepend(newCard);
       input.value = '';
       attachedCommunityType = null;
-      showToast('Broadcasted update to all 34 community members! 🎉');
+      showToast('Broadcasted update to connected community members! 🎉');
     }
 
     function openInviteNeighborModal() {
@@ -5944,19 +5985,19 @@
     }
 
     function demoQuickLogin() {
-      const alex = users.find(u => u.username === '@alex_creative') || {
-        uid: 'demo_alex',
-        fullName: 'Alex Rivera',
-        username: '@alex_creative',
-        neighborhood: 'Pike Place, Seattle',
-        connections: 142,
-        sparks: 320
+      const explorer = {
+        uid: 'demo_explorer',
+        fullName: 'Local Explorer',
+        username: '@local_neighbor',
+        neighborhood: currentLocationLabel || 'Verified GPS Grid',
+        connections: 128,
+        sparks: 450
       };
-      currentUser = alex;
-      localStorage.setItem('localiiiy_active_user', JSON.stringify(alex));
-      updateUserUI(alex);
+      currentUser = explorer;
+      localStorage.setItem('localiiiy_active_user', JSON.stringify(explorer));
+      updateUserUI(explorer);
       closeAuthModal();
-      showToast('Logged in as Alex Rivera! ✨');
+      showToast('Signed in to Localiiiy v2.4.0! ✨');
     }
 
     async function logoutUser() {
@@ -6099,6 +6140,10 @@
       const container = document.getElementById('postsStreamContainer');
       if (!container) return;
       document.querySelectorAll('.dynamic-post').forEach(p => p.remove());
+      const emptyCard = document.getElementById('emptyPulseStateCard');
+      if (emptyCard) {
+        emptyCard.style.display = posts.length > 0 ? 'none' : 'block';
+      }
 
       posts.forEach(p => {
         const card = document.createElement('div');

@@ -16,8 +16,7 @@ import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -96,7 +95,14 @@ fun InformationSheet(onDismiss: () -> Unit) {
                         description = "Your unique personal space! Share your profile via QR Code, showcase your connections, and display your verified neighborhood.",
                         icon = "👤"
                     )
-                    4 -> Column(
+                    4 -> {
+                        var showSynchronizedWebAppDialog by remember { mutableStateOf(false) }
+                        if (showSynchronizedWebAppDialog) {
+                            LocaliiiyWebAppDialog(
+                                onDismiss = { showSynchronizedWebAppDialog = false }
+                            )
+                        }
+                        Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
@@ -119,7 +125,7 @@ fun InformationSheet(onDismiss: () -> Unit) {
                         )
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Option 1: Web App
+                        // Option 1: Web App (100% Synchronized v2.4.0 Web App Viewer)
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -127,17 +133,15 @@ fun InformationSheet(onDismiss: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(com.example.util.ShareHelper.WEBAPP_BASE_URL))
-                                    intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(intent)
+                                    showSynchronizedWebAppDialog = true
                                 }
                         ) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Language, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text("Official Web App", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
-                                    Text("https://localiiiy.web.app", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                                    Text("Official Web App (v2.4.0 Synced)", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                                    Text("https://localiiiy.web.app • 100% Android Parity", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                                 }
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                             }
@@ -168,6 +172,7 @@ fun InformationSheet(onDismiss: () -> Unit) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                             }
                         }
+                    }
                     }
                 }
             }
