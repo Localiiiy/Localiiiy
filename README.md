@@ -81,51 +81,8 @@ Localiiiy enforces an 11-step security and community verification flow across bo
 
 ---
 
-## 🛡️ Public Repository Security & Secret Hygiene (Anti-Cloning & Zero Leaked Keys)
-
-This repository is configured for **public open-source viewing** with **zero private API keys, signing certificates, or cloud credentials** committed to source control:
-
-- **No Hardcoded API Keys:** All `AIza...` keys, Maps keys, and private OAuth secrets are excluded from source code and loaded strictly via environment variables (`.env` / `BuildConfig`) or Firebase Hosting runtime auto-initialization.
-- **Sanitized Config Templates:**
-  - `.env.example` contains only placeholder keys (`MAPS_API_KEY_PLACEHOLDER`, `FIREBASE_API_KEY_PLACEHOLDER`).
-  - `app/google-services.example.json` provides a structural template without exposing live project numbers, app IDs, or API keys.
-- **Strict `.gitignore` Protection:** Automatically blocks `.env`, `local.properties`, `app/google-services.json`, `**/firebase_applet_config.xml`, `*.jks`, `*.keystore`, `*.pem`, `*.apk`, and `*.aab` from ever being committed.
-- **Zero Decompilable Binaries in Git:** Compiled `.apk` and `.aab` files are excluded from the repository tree so third parties cannot decompile pre-built binaries to extract keys.
-
----
-
-## 🏗️ Technical Architecture & Tech Stack
-
-- **Android Application (`/app`)**
-  - **Language & UI:** 100% Kotlin + Jetpack Compose (Material Design 3, Edge-to-Edge, Adaptive Layouts)
-  - **Target & Compile SDK:** Android 16 (`API 36`), `minSdk = 26`
-  - **Local Persistence:** Room Database (`v22`) with KSP2 (`ksp.useKSP2=true`)
-  - **Cloud Backend:** Firebase Authentication, Cloud Firestore (`firestore.rules` zero-trust security), Firebase Storage, Firebase AI Logic, and App Check
-  - **Media & Sensors:** Media3 ExoPlayer (`1.4.1`), CameraX (`1.5.0`), Google Play Services Location & Maps
-- **Progressive Web Application (`/public/index.html` & `/index.html`)**
-  - **Hosting:** Firebase Hosting (`localiiiy.web.app`) with Service Worker (`sw.js`) offline support
-  - **Legal Endpoints:** `/terms` (`public/terms.html`) & `/privacy` (`public/privacy.html`)
-
----
-
-## 🚀 Building from Source (For Authorized Developers)
-
-1. **Clone the Repository**
-   ```bash
-   git clone https://github.com/<your-username>/<your-repo-name>.git
-   cd <your-repo-name>
-   ```
-2. **Configure Local Environment Secrets (Never Commit These Files)**
-   - Copy `.env.example` to `.env` and supply your own `MAPS_API_KEY` and `FIREBASE_API_KEY` (or configure them in the **AI Studio Secrets Panel**).
-   - Copy `app/google-services.example.json` to `app/google-services.json` using your own Firebase project configuration.
-3. **Compile Debug APK**
-   ```bash
-   ./gradlew :app:assembleDebug
-   ```
-
----
-
 ## 📄 License & Brand Protection
 
 Copyright © 2026 **Localiiiy**. All Rights Reserved.  
 The **Localiiiy** name, logo (`app_logo_original.png`), UI/UX design system, and **Localiiiy Creator Copyright (LCC)** architecture are proprietary trademarks. Unauthorized commercial cloning, redistribution, or impersonation of the Localiiiy platform is strictly prohibited under our [24-Article Omnibus Legal Charter](https://localiiiy.web.app/terms).
+
