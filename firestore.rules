@@ -89,21 +89,44 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
     }
 
-    // 2b. Community Post Remarks Subcollection (Aligned with appendPostRemarkToFirestore)
-    match /posts/{postId}/remarks/{remarkId} {
+    // 2b. Community Posts & Remarks Subcollection (Aligned with Android & Web Sync)
+    match /posts/{postId} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated()
-        && request.resource.data.authorUid == request.auth.uid
-        && isValidString(request.resource.data.content, 2000)
-        && (!('likesCount' in request.resource.data) || request.resource.data.likesCount == 0);
-      allow update: if isAuthenticated() && (
-        (resource.data.authorUid == request.auth.uid && request.resource.data.authorUid == resource.data.authorUid)
-        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
-            && request.resource.data.likesCount is int
-            && request.resource.data.likesCount >= 0
-            && math.abs(request.resource.data.likesCount - resource.data.likesCount) <= 1)
-      );
+        && isValidString(request.resource.data.content, 3000);
+      allow update: if isAuthenticated();
+      allow delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || resource.data.authorUid == request.auth.uid);
+
+      match /remarks/{remarkId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated()
+          && request.resource.data.authorUid == request.auth.uid
+          && isValidString(request.resource.data.content, 2000)
+          && (!('likesCount' in request.resource.data) || request.resource.data.likesCount == 0);
+        allow update: if isAuthenticated() && (
+          (resource.data.authorUid == request.auth.uid && request.resource.data.authorUid == resource.data.authorUid)
+          || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount'])
+              && request.resource.data.likesCount is int
+              && request.resource.data.likesCount >= 0
+              && math.abs(request.resource.data.likesCount - resource.data.likesCount) <= 1)
+        );
+        allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+      }
+    }
+
+    // 2c. Hyperlocal Civic Tools Posts (All 15 Categories synced between Web & Android)
+    match /civic_posts/{civicId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated()
+        && isValidString(request.resource.data.title, 200);
+      allow update: if isAuthenticated();
       allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // 2d. Local Community Hubs & Posts
+    match /communities/{communityId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated();
     }
 
     // 3. Private Messaging (Strict Participant Gating)
@@ -140,14 +163,33 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.sellerUid == request.auth.uid;
     }
 
+    match /marketplace_items/{itemId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated()
+        && isValidString(request.resource.data.title, 150);
+      allow delete: if isAuthenticated();
+    }
+
+    match /clips/{clipId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated()
+        && isValidString(request.resource.data.caption, 1000);
+      allow delete: if isAuthenticated();
+    }
+
+    match /audit_logs/{logId} {
+      allow read, create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
     // 4b. Username Reservation (Point-Lookup Only to Prevent User Enumeration; Atomic Create)
     match /usernames/{username} {
-      allow get: if isAuthenticated();
+      allow get: if true; // Allows real-time handle check & @username login resolution without enumeration
       allow list: if false; // Blocks mass scraping of registered handles
       allow create: if isAuthenticated()
         && request.resource.data.uid == request.auth.uid
         && !exists(/databases/$(database)/documents/usernames/$(username));
-      allow update: if false;
+      allow update: if isAuthenticated() && resource.data.uid == request.auth.uid;
       allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
     }
 

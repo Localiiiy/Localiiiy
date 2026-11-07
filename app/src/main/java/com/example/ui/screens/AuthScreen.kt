@@ -2263,8 +2263,11 @@ fun AuthScreen(
                             statusSuccessMessage = null
 
                             if (currentMode == AuthScreenMode.LOGIN) {
-                                if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
-                                    emailError = "Please enter a valid email address."
+                                val rawInput = email.trim()
+                                val isEmailFormat = android.util.Patterns.EMAIL_ADDRESS.matcher(rawInput).matches()
+                                val isHandleFormat = rawInput.startsWith("@") || (!rawInput.contains("@") && rawInput.length >= 3)
+                                if (rawInput.isBlank() || (!isEmailFormat && !isHandleFormat)) {
+                                    emailError = "Please enter a valid email address or @username."
                                     return@Button
                                 }
                                 if (password.isBlank()) {
@@ -2274,22 +2277,69 @@ fun AuthScreen(
 
                                 isLoading = true
                                 coroutineScope.launch {
-                                    val result = FirebaseAuthService.signInWithEmail(email, password)
-                                    isLoading = false
-                                    when (result) {
-                                        is AuthResult.Success -> {
-                                            statusSuccessMessage = result.message
-                                            val uname = result.user.displayName ?: email.substringBefore("@")
-                                            onAuthSuccess(
-                                                result.user,
-                                                uname,
-                                                uname.replace("_", " ").replaceFirstChar { it.uppercase() },
-                                                "Capitol Hill, Seattle"
-                                            )
+                                    var resolvedEmail = rawInput
+                                    if (!isEmailFormat) {
+                                        val cleanHandle = rawInput.removePrefix("@").lowercase()
+                                        val lookedUpEmail = withContext(Dispatchers.IO) {
+                                            try {
+                                                val fs = FirebaseFirestore.getInstance()
+                                                val handleDoc = fs.collection("usernames").document(cleanHandle).get().await()
+                                                val directEmail = handleDoc.getString("email")
+                                                if (!directEmail.isNullOrBlank()) {
+                                                    directEmail
+                                                } else {
+                                                    val targetUid = handleDoc.getString("uid")
+                                                    if (!targetUid.isNullOrBlank()) {
+                                                        fs.collection("users").document(targetUid).get().await().getString("email")
+                                                    } else null
+                                                }
+                                            } catch (e: Exception) {
+                                                null
+                                            }
                                         }
-                                        is AuthResult.Error -> {
-                                            errorMessage = result.errorMessage
+                                        if (!lookedUpEmail.isNullOrBlank()) {
+                                            resolvedEmail = lookedUpEmail
+                                        } else {
+                                            isLoading = false
+                                            emailError = "Could not find registered @username '$rawInput'. Try signing in with your email."
+                                            return@launch
                                         }
+                                    }
+
+                                    val result = FirebaseAuthService.signInWithEmail(resolvedEmail, password)
+                                    if (result is AuthResult.Success) {
+                                        val profileMap = withContext(Dispatchers.IO) {
+                                            try {
+                                                val doc = FirebaseFirestore.getInstance()
+                                                    .collection("users")
+                                                    .document(result.user.uid)
+                                                    .get()
+                                                    .await()
+                                                doc.data
+                                            } catch (e: Exception) {
+                                                null
+                                            }
+                                        }
+                                        isLoading = false
+                                        statusSuccessMessage = result.message
+                                        val syncedUsername = (profileMap?.get("username") as? String)?.takeIf { it.isNotBlank() }
+                                            ?: result.user.displayName
+                                            ?: resolvedEmail.substringBefore("@")
+                                        val syncedFullName = (profileMap?.get("displayName") as? String)?.takeIf { it.isNotBlank() }
+                                            ?: (profileMap?.get("fullName") as? String)?.takeIf { it.isNotBlank() }
+                                            ?: result.user.displayName
+                                            ?: syncedUsername.replace("_", " ").replaceFirstChar { it.uppercase() }
+                                        val syncedNeighborhood = (profileMap?.get("neighborhood") as? String)?.takeIf { it.isNotBlank() }
+                                            ?: neighborhood.ifBlank { "Local GPS Grid" }
+                                        onAuthSuccess(
+                                            result.user,
+                                            syncedUsername,
+                                            syncedFullName,
+                                            syncedNeighborhood
+                                        )
+                                    } else if (result is AuthResult.Error) {
+                                        isLoading = false
+                                        errorMessage = result.errorMessage
                                     }
                                 }
                             } else {
@@ -2307,11 +2357,12 @@ fun AuthScreen(
                                             statusSuccessMessage = result.message
                                             PasswordSecurityHelper.savePassword(context, password)
 
-                                            // Atomically claim @username and create /users/{uid} in a Firestore transaction
+                                            // Atomically claim @username and create /users/{uid} in a Firestore transaction (Synced 100% with Web App)
                                             withContext(Dispatchers.IO) {
                                                 try {
                                                     val firestore = FirebaseFirestore.getInstance()
-                                                    val cleanHandle = username.trim().lowercase()
+                                                    val cleanHandle = username.trim().removePrefix("@").lowercase()
+                                                    val cleanEmail = email.trim().lowercase()
                                                     val usernameRef = firestore.collection("usernames").document(cleanHandle)
                                                     val userRef = firestore.collection("users").document(result.user.uid)
 
@@ -2324,16 +2375,26 @@ fun AuthScreen(
                                                             usernameRef,
                                                             mapOf(
                                                                 "uid" to result.user.uid,
+                                                                "username" to cleanHandle,
+                                                                "email" to cleanEmail,
                                                                 "createdAt" to System.currentTimeMillis()
                                                             )
                                                         )
                                                         transaction.set(
                                                             userRef,
                                                             mapOf(
+                                                                "uid" to result.user.uid,
                                                                 "displayName" to fullName.trim().take(50),
+                                                                "fullName" to fullName.trim().take(50),
                                                                 "username" to cleanHandle,
+                                                                "handle" to "@$cleanHandle",
+                                                                "email" to cleanEmail,
+                                                                "neighborhood" to neighborhood.trim().ifBlank { "Local GPS Grid" },
+                                                                "interests" to selectedInterests.toList(),
+                                                                "visibilityMode" to if (!showInNeighborhood || isTeenAccount) "GHOST" else "SHOW",
                                                                 "ageBracket" to if (isTeenAccount) "13_17_TEEN" else "18_PLUS",
                                                                 "isGhostDefault" to (!showInNeighborhood || isTeenAccount),
+                                                                "platform" to "android_web_synced",
                                                                 "createdAt" to System.currentTimeMillis()
                                                             )
                                                         )

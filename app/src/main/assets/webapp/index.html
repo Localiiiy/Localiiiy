@@ -2013,10 +2013,31 @@
   <div id="liveToast">Notification</div>
 
   <!-- ========================================================
+       GLOBAL OFFICIAL STORE BANNER POSITIONED ABOVE ALL PAGES & SECTIONS
+       (Google Play Store + Apple App Store: Available Soon + Explore All Features Prompt)
+       ======================================================== -->
+  <div id="globalTopStoreBar" style="position: relative; z-index: 10000; background: linear-gradient(90deg, #041E2B 0%, #063847 50%, #052E24 100%); border-bottom: 1px solid rgba(16, 185, 129, 0.45); padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
+    <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: #F8FAFC; line-height: 1.3;">
+      <span style="display: inline-flex; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981; flex-shrink: 0;"></span>
+      <span>For more features and the complete hyperlocal experience of <strong>Localiiiy</strong>, download the app from <strong>Google Play Store</strong> • <strong style="color: #FCD34D;">Apple App Store: Available Soon</strong></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);">
+        <svg width="12" height="12" viewBox="0 0 512 512"><path fill="#032417" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0zm363.7 282.8L104.6 459l220.7-224.7 85.4 48.5zm0-53.6l-85.4-55 60.1 60.1 25.3-5.1z"/></svg>
+        <span>Google Play Store ↗</span>
+      </a>
+      <span style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.45); color: #FCD34D; font-weight: 800; font-size: 10.5px; padding: 5px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px;">
+        <svg width="11" height="11" viewBox="0 0 170 170" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.93-14.3-5.99-9.13-10.76-19.6-14.3-31.42-3.54-11.82-5.31-23.08-5.31-33.78 0-14.28 3.59-26.04 10.76-35.27 7.18-9.24 16.2-13.96 27.06-14.18 5.43 0 11.19 1.41 17.27 4.23 6.08 2.83 10.15 4.35 12.21 4.56 1.74-.21 6.08-1.79 13.03-4.73 6.95-2.93 13.03-4.29 18.24-4.07 13.8.76 24.66 5.86 32.59 15.31-12.17 7.39-18.14 17.27-17.92 29.65.22 9.78 3.96 17.98 11.22 24.6 7.26 6.62 16.03 10.37 26.31 11.25-2.28 7.06-5.16 14.07-8.64 21.03zM119.22 33.02c0-7.82 2.82-15.15 8.47-21.99 5.65-6.84 12.71-10.86 21.19-12.03.22 1.09.33 2.17.33 3.26 0 7.82-3.04 15.31-9.12 22.48-6.08 7.17-13.36 11.19-21.84 12.06-.22-1.3-.33-2.55-.33-3.78z"/></svg>
+        <span>Apple App Store: Available Soon</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ========================================================
        MANDATORY AUTHENTICATION & ONBOARDING GATE
        (100% Parity with Android AuthScreen.kt v2.4.0)
        ======================================================== -->
-  <div id="mandatoryAuthGate">
+  <div id="mandatoryAuthGate" style="top: 40px;">
     <div class="auth-gate-box" style="max-width: 520px;">
       <!-- Top Bar Header matching Android AuthScreen TopAppBar -->
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 14px;">
@@ -2046,9 +2067,9 @@
       </div>
 
       <!-- Clean Official Store Badges Strip (Google Play Store + Apple App Store: Available Soon ONLY) -->
-      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0, 180, 216, 0.1)); border: 1px solid rgba(16, 185, 129, 0.32); border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;">
-          Download the app from Google Play Store
+      <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(0, 180, 216, 0.1)); border: 1px solid rgba(16, 185, 129, 0.32); border-radius: 14px; padding: 12px 14px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 12px; font-weight: 800; color: #FFFFFF; line-height: 1.35;">
+          Download the app from Google Play Store for more features &amp; full hyperlocal radar access
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
           <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11.5px; padding: 9px 12px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;">
@@ -2072,11 +2093,11 @@
       <div id="gateFeedbackBanner" style="display: none; padding: 10px 12px; border-radius: 10px; font-size: 12px; font-weight: 600; margin-bottom: 12px;"></div>
 
       <!-- ==================================================
-           GATE FORM 1: SIGN IN (100% Android AuthScreen Login)
+           GATE FORM 1: SIGN IN (100% Android AuthScreen Login — Bidirectional Web & Android Sync)
            ================================================== -->
       <form class="auth-form" id="gateLoginForm" onsubmit="handleGateLogin(event)">
         <div class="form-field">
-          <label>Email Address or @Username</label>
+          <label>Email Address or @Username (Synced across Web &amp; Android)</label>
           <input type="text" class="form-input" id="gateLoginEmail" placeholder="Enter your @username or email@domain.com" required>
         </div>
         <div class="form-field">
@@ -2328,7 +2349,7 @@
     </div>
   </div>
 
-  <!-- TOP APPBAR (100% MATCHING JETPACK COMPOSE LocaliiiyTopBar.kt — ZERO DUPLICATE STICKY BANNERS) -->
+  <!-- TOP APPBAR (100% MATCHING JETPACK COMPOSE LocaliiiyTopBar.kt) -->
   <header class="app-topbar">
     <div class="topbar-brand" onclick="switchDeck('pulse')">
       <div class="android-logo-badge" style="width: 32px; height: 32px;">
@@ -2384,6 +2405,20 @@
     <input type="text" id="globalSearchInput" class="form-input" placeholder="Search neighbors, @handles, posts, market items or landmarks..." oninput="filterFeedBySearch(this.value)" style="width: 100%; padding: 8px 12px; font-size: 12.5px;">
   </div>
 
+  <!-- Guest Spectator (Read-Only Mode) Banner — 100% Parity with Android FeedScreen.kt lines 88-143 -->
+  <div id="guestSpectatorTopBanner" style="display: none; margin: 8px 16px 0; padding: 10px 14px; border-radius: 14px; background: rgba(124, 58, 237, 0.14); border: 1px solid rgba(167, 139, 250, 0.45); align-items: center; justify-content: space-between; gap: 10px; z-index: 95;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#C4B5FD"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+      <div>
+        <div style="font-size: 12px; font-weight: 800; color: #DDD6FE;">Guest Spectator (Read-Only Mode)</div>
+        <div style="font-size: 10.5px; color: #CBD5E1;">Log in or register to post, comment, join Local Community, or connect</div>
+      </div>
+    </div>
+    <button type="button" onclick="reopenFullSignInGate()" style="background: #7C3AED; color: #FFFFFF; border: none; border-radius: 10px; padding: 6px 12px; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">
+      Sign In
+    </button>
+  </div>
+
   <!-- MAIN SCROLLABLE VIEWPORT -->
   <main id="appViewport">
 
@@ -2404,94 +2439,270 @@
         </button>
       </div>
 
-      <!-- LOCALIIIY COMMUNITY HUB CONTAINER -->
-      <div id="localCommunityContainer" style="display: none;">
-        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid var(--accent-mint); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 24px;">🏘️</span>
+      <!-- ========================================================
+           PULSE TAB 2: LOCAL COMMUNITY HUB (100% Android LocaliiiyCommunityHub.kt Parity)
+           ======================================================== -->
+      <div id="localCommunityContainer" style="display: none; padding: 0 16px 24px; max-width: 680px; margin: 0 auto;">
+        <!-- Horizontal Community Selector Row (4 Communities + New Hub) -->
+        <div class="feed-chips-bar" style="padding: 2px 0 10px;">
+          <button class="filter-chip active" onclick="selectCommunityHub(this, 'Localiiiy Hyperlocal Community', 'Official neighborhood hub for local creators, artisans, and connected neighbors to share updates, marketplace deals, and alerts.', 34)">🏘️ Localiiiy Hyperlocal Community • 34</button>
+          <button class="filter-chip" onclick="selectCommunityHub(this, 'Artisans & Makers Guild', 'Cooperative circle for local bakers, potters, filmmakers, and home micro-kitchens.', 19)">🎨 Artisans &amp; Makers Guild • 19</button>
+          <button class="filter-chip" onclick="selectCommunityHub(this, 'Neighborhood Safety & Civic Board', 'Verified Precinct CCTV Green Zone updates, lost pets, and mutual aid coordination.', 52)">🛡️ Safety &amp; Civic Board • 52</button>
+          <button class="filter-chip" onclick="selectCommunityHub(this, 'VIP Creator & Founders Circle', 'Priority Earth-reach creators, 55% RevShare partners, and verified community anchors.', 14)">👑 VIP Creator Circle • 14</button>
+          <button class="filter-chip" style="border-color: var(--primary-teal); color: var(--primary-teal);" onclick="if(!checkGhostAction('create a new Local Community hub')) showToast('✨ New Neighborhood Community Hub wizard opened!')">+ New Hub</button>
+        </div>
+
+        <!-- Active Community Banner Card -->
+        <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border: 1px solid var(--accent-mint); border-radius: 16px; padding: 14px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.16); border: 1px solid var(--accent-mint); display: flex; align-items: center; justify-content: center; font-size: 22px;">🏘️</div>
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">Localiiiy Hyperlocal Hub</h4>
-                <p style="font-size: 11px; color: var(--accent-mint); margin: 2px 0 0 0;">Connected Neighbors • Real-Time Cloud Sync</p>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <h4 id="activeCommunityTitle" style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">Localiiiy Hyperlocal Community</h4>
+                  <span style="font-size: 9.5px; font-weight: 800; padding: 2px 6px; border-radius: 999px; background: rgba(16, 185, 129, 0.2); color: #34D399;">✓ VERIFIED</span>
+                </div>
+                <p id="activeCommunityCount" style="font-size: 11px; color: var(--accent-mint); margin: 2px 0 0 0;">34 Connected Neighbors • 9 Online Now • Live Cloud Sync</p>
               </div>
             </div>
-            <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px;" onclick="openInviteNeighborModal()">
-              + Connect Neighbor
-            </button>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px;" onclick="if(!checkGhostAction('invite neighbors to Community')) openInviteNeighborModal()">
+                + Add Neighbor
+              </button>
+              <button class="btn-mirror-apk" style="font-size: 11px; padding: 6px 10px;" onclick="showToast('👥 34 Connected Members active in this hub')">
+                👥 Members
+              </button>
+            </div>
           </div>
-          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.4;">
+          <p id="activeCommunityDesc" style="font-size: 12px; color: var(--text-secondary); margin-top: 8px; line-height: 1.45;">
             Official neighborhood hub for local creators, artisans, and connected neighbors to share updates, marketplace deals, studio clips, and community alerts.
           </p>
+
+          <!-- 5 Community Sub-Tabs (Matching LocaliiiyCommunityHub.kt lines 318-358) -->
+          <div style="display: flex; gap: 6px; overflow-x: auto; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);">
+            <button class="filter-chip active" id="commSubTabFeed" onclick="switchCommunitySubTab('feed')" style="font-size: 11px; padding: 5px 11px;">📢 Feed &amp; Alerts</button>
+            <button class="filter-chip" id="commSubTabVoice" onclick="switchCommunitySubTab('voice')" style="font-size: 11px; padding: 5px 11px;">🎙️ Live Voice</button>
+            <button class="filter-chip" id="commSubTabPolls" onclick="switchCommunitySubTab('polls')" style="font-size: 11px; padding: 5px 11px;">📊 Polls &amp; Votes</button>
+            <button class="filter-chip" id="commSubTabVault" onclick="switchCommunitySubTab('vault')" style="font-size: 11px; padding: 5px 11px;">📁 Resource Vault</button>
+            <button class="filter-chip" id="commSubTabVip" onclick="switchCommunitySubTab('vip')" style="font-size: 11px; padding: 5px 11px;">👑 VIP Lounge</button>
+          </div>
         </div>
 
-        <!-- Community Composer -->
-        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-          <textarea id="communityPostInput" placeholder="Post an update, broadcast alert, or share a market/studio item with connected neighbors..." style="width: 100%; min-height: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: white; padding: 8px; font-size: 12px; resize: none;"></textarea>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-              <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('market')">🛍️ Attach Market</button>
-              <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('studio')">🎥 Attach Studio</button>
-              <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('clip')">🎬 Attach Clip</button>
+        <!-- Community Sub-Panel 1: Feed & Alerts -->
+        <div id="commPanel-feed">
+          <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+            <textarea id="communityPostInput" placeholder="Post an update, broadcast alert, or share a market/studio item with connected neighbors..." style="width: 100%; min-height: 60px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; color: white; padding: 8px; font-size: 12px; resize: none;"></textarea>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 6px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('market')">🛍️ Attach Market</button>
+                <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('studio')">🎥 Attach Studio</button>
+                <button class="btn-mirror-apk" style="font-size: 11px; padding: 4px 8px;" onclick="attachCommunityItem('clip')">🎬 Attach Clip</button>
+              </div>
+              <button class="btn-submit-auth" style="margin: 0; padding: 6px 14px; font-size: 11px;" onclick="publishCommunityPost()">
+                Broadcast to Hub
+              </button>
             </div>
-            <button class="btn-submit-auth" style="margin: 0; padding: 6px 14px; font-size: 11px;" onclick="publishCommunityPost()">
-              Broadcast to Hub
+          </div>
+
+          <div id="communityPostsList" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="post-card" style="padding: 14px; border-left: 3px solid var(--accent-mint);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <strong style="font-size: 13px; color: #FFFFFF;">🛡️ Localiiiy Community Hub • Official</strong>
+                <span class="reach-pill reach-neighbor">PINNED BULLETIN</span>
+              </div>
+              <p style="font-size: 12.5px; color: #E2E8F0; line-height: 1.5;">
+                Welcome to your neighborhood hub! Share local updates, coordinate Safe-Haven Marketplace handoffs, or connect with verified neighbors within your GPS radius.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Community Sub-Panel 2: Live Voice Lounge -->
+        <div id="commPanel-voice" style="display: none;">
+          <div class="post-card" style="padding: 16px; border: 1px solid rgba(16, 185, 129, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <div>
+                <span style="font-size: 10px; font-weight: 800; color: #10B981; text-transform: uppercase;">🔴 LIVE SPATIAL AUDIO TOWNHALL</span>
+                <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin-top: 2px;">Evening Neighborhood Check-In &amp; Safe-Haven Q&amp;A</h4>
+              </div>
+              <span style="font-size: 11px; font-weight: 800; color: #00E5FF;">9 Listening</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; text-align: center;">
+              <div style="background: rgba(16,185,129,0.1); border: 1px solid var(--accent-mint); border-radius: 12px; padding: 10px;">
+                <div style="font-size: 22px;">🎙️</div>
+                <div style="font-size: 11.5px; font-weight: 800; color: #FFF; margin-top: 4px;">Host Anchor</div>
+                <div style="font-size: 10px; color: #10B981;">Speaking...</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px;">
+                <div style="font-size: 22px;">🛡️</div>
+                <div style="font-size: 11.5px; font-weight: 800; color: #FFF; margin-top: 4px;">Precinct Liaison</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Co-Host</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 10px;">
+                <div style="font-size: 22px;">🙋</div>
+                <div style="font-size: 11.5px; font-weight: 800; color: #FFF; margin-top: 4px;">You</div>
+                <div style="font-size: 10px; color: #38BDF8;" id="voiceLoungeStatusText">Listener (Muted)</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-submit-auth" style="margin: 0; flex: 1; padding: 10px; font-size: 12px;" onclick="if(!checkGhostAction('join Live Voice Townhall')) { document.getElementById('voiceLoungeStatusText').textContent='Mic Active 🎙️'; showToast('🎙️ Microphone unmuted in Community Voice Room!'); }">🎙️ Toggle Mic</button>
+              <button class="btn-mirror-apk" style="flex: 1; justify-content: center; padding: 10px; font-size: 12px;" onclick="if(!checkGhostAction('raise hand in Live Voice')) showToast('✋ Hand raised! Host notified.')">✋ Raise Hand</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Community Sub-Panel 3: Polls & Votes -->
+        <div id="commPanel-polls" style="display: none;">
+          <div class="community-poll-card" style="margin: 0;">
+            <div class="poll-header">
+              <span>📊 Community Governance Poll</span>
+              <span>Ends in 14h</span>
+            </div>
+            <div style="font-size: 14px; font-weight: 800; color: #FFFFFF;">Where should this weekend's Pop-Up Artisan &amp; Barter Market be hosted?</div>
+            <button class="poll-option-btn" onclick="votePoll(this, 'Central Civic Plaza Green Zone')">
+              <span>1. Central Civic Plaza Green Zone (CCTV Spot #1)</span>
+              <span style="color: var(--accent-mint);">58%</span>
+            </button>
+            <button class="poll-option-btn" onclick="votePoll(this, 'Waterfront Community Park Pavilion')">
+              <span>2. Waterfront Community Park Pavilion</span>
+              <span style="color: var(--primary-teal);">29%</span>
+            </button>
+            <button class="poll-option-btn" onclick="votePoll(this, 'Metro Station North Courtyard')">
+              <span>3. Metro Station North Courtyard</span>
+              <span style="color: var(--accent-amber);">13%</span>
             </button>
           </div>
         </div>
 
-        <!-- Community Post Feed -->
-        <div id="communityPostsList" style="display: flex; flex-direction: column; gap: 10px;">
-          <div class="card-pulse-node" style="border-left: 3px solid var(--accent-mint);">
-            <div class="pulse-node-head">
-              <div class="pulse-author-wrap">
-                <div class="pulse-avatar-thumb">🛡️</div>
-                <div class="pulse-author-meta">
-                  <div class="author-name-row">
-                    <span class="author-display-name">Localiiiy Community Hub</span>
-                    <span class="badge-verified-creator">✓ Official</span>
-                  </div>
-                  <span class="author-handle-tag">@localiiiy_hub • Live Cloud Sync ☁️</span>
-                </div>
+        <!-- Community Sub-Panel 4: Resource Vault -->
+        <div id="commPanel-vault" style="display: none;">
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="neighbor-card" style="padding: 12px;">
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">🛡️ Verified Safe-Haven Precinct Handoff Map (PDF/GPS)</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">24/7 CCTV monitored exchange spots for zero-risk Marketplace handshakes</div>
               </div>
-              <span class="badge-proximity-tag">WELCOME 🤝</span>
+              <button class="btn-mirror-apk" onclick="switchDeck('radar')">View on Radar</button>
             </div>
-            <p class="pulse-caption-text">
-              Welcome to your neighborhood hub! Share local updates, coordinate Safe-Haven Marketplace handoffs, or connect with verified neighbors within your GPS radius.
+            <div class="neighbor-card" style="padding: 12px;">
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">🧰 Shared Neighborhood Tool &amp; Emergency Kit Registry</div>
+                <div style="font-size: 11px; color: var(--text-secondary);">Borrow ladders, drills, jump-starters &amp; first-aid kits from connected neighbors</div>
+              </div>
+              <button class="btn-mirror-apk" onclick="switchPulseSubTab('civic')">Open Civic Tools</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Community Sub-Panel 5: VIP Lounge -->
+        <div id="commPanel-vip" style="display: none;">
+          <div class="post-card" style="padding: 16px; border: 1px solid rgba(245, 158, 11, 0.45); background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(15, 23, 42, 0.95));">
+            <h4 style="font-size: 15px; font-weight: 800; color: #FCD34D;">👑 VIP Creator &amp; Founders Circle</h4>
+            <p style="font-size: 12px; color: #E2E8F0; margin-top: 4px; line-height: 1.5;">
+              Exclusive lounge for Verified Badge holders, 55% RevShare Studio filmmakers, and Top Neighborhood Anchors. Enjoy 0% Safe-Haven Escrow fees and +300% Earth Dual-Reach priority.
             </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- CIVIC TOOLS & EMERGENCY GOVERNANCE CONTAINER (100% Android CivicEngagementToolsComponent.kt Parity) -->
-      <div id="civicToolsContainer" style="display: none;">
-        <div style="background: linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 14px; padding: 14px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">🛡️ Civic Tools & Safe-Haven Governance</h4>
-              <p style="font-size: 11px; color: #38BDF8; margin: 2px 0 0 0;">Police Precinct Green Zones • SOS Dispatch • Neighborhood Polls</p>
-            </div>
-            <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px; background: #EF4444; color: #FFF;" onclick="openCyberstalkingShieldModal()">
-              🚨 SOS Shield
+            <button class="btn-submit-auth" style="margin-top: 10px; background: linear-gradient(135deg, #F59E0B, #EC4899); color: #FFF; padding: 9px 16px; font-size: 12px;" onclick="openPremiumUpgradeModal()">
+              ⚡ Unlock VIP Pro Pass (+250 Sparks)
             </button>
           </div>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;">
-            <div class="neighbor-card" style="padding: 10px; cursor: pointer;" onclick="openAuditLogsModal()">
-              <div>
-                <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">📜 SHA-256 Audit</div>
-                <div style="font-size: 10px; color: var(--text-muted);">Forensic Ledger</div>
-              </div>
-            </div>
-            <div class="neighbor-card" style="padding: 10px; cursor: pointer;" onclick="openPanicCloakDecoy()">
-              <div>
-                <div style="font-size: 12px; font-weight: 800; color: #FFFFFF;">🧮 Panic Cloak</div>
-                <div style="font-size: 10px; color: var(--text-muted);">Decoy Calculator</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
-      <!-- MAIN PULSE FEED CONTENT (100% Android PulseFeedComponent.kt Parity) -->
+      <!-- ========================================================
+           PULSE TAB 3: CIVIC TOOLS (100% Android PulseSandboxUpgradesScreen.kt Parity)
+           All 15 Structured Civic Categories + Radius Strip + AI Multi-Lingual Translator
+           ======================================================== -->
+      <div id="civicToolsContainer" style="display: none; padding: 0 16px 28px; max-width: 680px; margin: 0 auto;">
+        <!-- Civic Tools Header Row -->
+        <div style="background: linear-gradient(135deg, #0D1B2A 0%, #162436 100%); border: 1px solid rgba(0, 180, 216, 0.35); border-radius: 16px; padding: 14px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 style="font-size: 18px; font-weight: 900; color: #FFFFFF; margin: 0;">Civic Tools</h3>
+                <span style="background: rgba(0, 180, 216, 0.16); border: 1px solid #00B4D8; color: #00E5FF; font-size: 9.5px; font-weight: 900; padding: 2px 8px; border-radius: 6px;">HYPERLOCAL</span>
+              </div>
+              <p id="civicHeaderSubtext" style="font-size: 11px; color: #94A3B8; margin: 3px 0 0 0;">Ascending Proximity • Max 50 KM • Synced with Android Civic Engine</p>
+            </div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button class="btn-submit-auth" style="margin: 0; padding: 6px 11px; font-size: 11px; background: #EF4444; color: #FFF;" onclick="openCyberstalkingShieldModal()">🚨 SOS Shield</button>
+              <button class="btn-mirror-apk" style="font-size: 11px; padding: 6px 10px;" onclick="openAuditLogsModal()">📜 SHA-256 Audit</button>
+              <button class="btn-mirror-apk" style="font-size: 11px; padding: 6px 10px;" onclick="openPanicCloakDecoy()">🧮 Panic Cloak</button>
+            </div>
+          </div>
+
+          <!-- RADIUS Filter Strip (3 KM, 5 KM, 10 KM, 15 KM, 20 KM, 30 KM, 50 KM) -->
+          <div style="display: flex; align-items: center; gap: 6px; overflow-x: auto; margin-top: 12px; padding-bottom: 2px;">
+            <span style="font-size: 10px; font-weight: 900; color: #64748B; letter-spacing: 0.8px; margin-right: 2px;">RADIUS:</span>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 3)">3 KM</button>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 5)">5 KM</button>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 10)">10 KM</button>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 15)">15 KM</button>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 20)">20 KM</button>
+            <button class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 30)">30 KM</button>
+            <button class="filter-chip active" style="padding: 4px 10px; font-size: 11px;" onclick="setCivicRadiusFilter(this, 50)">50 KM</button>
+          </div>
+        </div>
+
+        <!-- ALL 15 STRUCTURED CIVIC TOOL CATEGORIES WITH INDIVIDUAL (+) CREATE BUTTONS -->
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 11px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px;">15 Neighborhood Civic Categories (Tap category to filter or + to post)</span>
+            <button type="button" onclick="openCivicToolPostModal(activeCivicCategory === 'All' ? 'Cab Share & Commute' : activeCivicCategory)" style="background: var(--accent-mint); color: #032417; border: none; border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 800; cursor: pointer;">+ New Civic Post</button>
+          </div>
+          <div id="civicCategoriesChipRow" style="display: flex; gap: 7px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;">
+            <!-- Populated dynamically with all 15 categories + individual (+) buttons -->
+          </div>
+        </div>
+
+        <!-- Collapsible AI Multi-Lingual Local Translator (PulseSandboxUpgradesScreen.kt lines 256-492) -->
+        <div style="background: #131D31; border: 1px solid rgba(0, 180, 216, 0.3); border-radius: 14px; padding: 12px 14px; margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleCivicAiTranslator()">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 18px;">🌐</span>
+              <div>
+                <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">AI Multi-Lingual Local Translator</div>
+                <div style="font-size: 10.5px; color: #94A3B8;">Translate neighborhood notices across all Indian regional &amp; global languages</div>
+              </div>
+            </div>
+            <span id="civicTranslatorToggleLabel" style="font-size: 11px; font-weight: 800; color: #00E5FF; background: rgba(0, 180, 216, 0.14); padding: 4px 10px; border-radius: 8px;">Expand ▼</span>
+          </div>
+          <div id="civicAiTranslatorBody" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-subtle);">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+              <select id="civicTranslateTargetLang" class="form-select" style="flex: 1; padding: 8px 10px; font-size: 12px;">
+                <option value="Hindi (हिन्दी)">Hindi (हिन्दी)</option>
+                <option value="Tamil (தமிழ்)">Tamil (தமிழ்)</option>
+                <option value="Telugu (తెలుగు)">Telugu (తెలుగు)</option>
+                <option value="Bengali (বাংলা)">Bengali (বাংলা)</option>
+                <option value="Marathi (मराठी)">Marathi (मराठी)</option>
+                <option value="Punjabi (पंजाबी)">Punjabi (पंजाबी)</option>
+                <option value="Gujarati (ગુજરાતી)">Gujarati (ગુજરાતી)</option>
+                <option value="Kannada (ಕನ್ನಡ)">Kannada (ಕನ್ನಡ)</option>
+                <option value="Malayalam (മലയാളം)">Malayalam (മലയാളം)</option>
+                <option value="Bhojpuri (भोजपुरी)">Bhojpuri (भोजपुरी)</option>
+                <option value="Odia (ଓଡ଼ିଆ)">Odia (ଓଡ଼ିଆ)</option>
+                <option value="Assamese (অসমীয়া)">Assamese (অসমীয়া)</option>
+                <option value="Urdu (اردو)">Urdu (اردو)</option>
+                <option value="English">English</option>
+                <option value="Spanish (Español)">Spanish (Español)</option>
+                <option value="French (Français)">French (Français)</option>
+                <option value="German (Deutsch)">German (Deutsch)</option>
+                <option value="Japanese (日本語)">Japanese (日本語)</option>
+              </select>
+              <button type="button" class="btn-mirror-apk" style="padding: 8px 12px; font-size: 12px;" onclick="simulateCivicVoiceDictation()">🎙️ Voice Mic</button>
+              <button type="button" class="btn-submit-auth" style="margin: 0; padding: 8px 14px; font-size: 12px;" onclick="runCivicAiTranslation()">Translate ✨</button>
+            </div>
+            <input type="text" id="civicTranslateInput" class="form-input" placeholder="Type or dictate any neighborhood bulletin, cab share, or emergency alert..." value="Need 2 neighbors for airport cab share tomorrow at 6:30 AM from main gate." style="width: 100%; padding: 8px 10px; font-size: 12px;">
+            <div id="civicTranslateOutput" style="display: none; margin-top: 8px; padding: 10px; border-radius: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); font-size: 12px; color: #A7F3D0;"></div>
+          </div>
+        </div>
+
+        <!-- Live Structured Civic Posts Stream -->
+        <div id="civicPostsFeedList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+
+      <!-- ========================================================
+           PULSE TAB 1: MAIN PULSE FEED CONTENT (100% Android PulseFeedComponent.kt Parity)
+           ======================================================== -->
       <div id="pulseFeedMainContent">
         <!-- Stories Tray (Android StoriesTrayComponent.kt Parity) -->
         <div class="stories-tray">
@@ -2502,7 +2713,7 @@
             <span class="story-label">Your Story</span>
           </div>
 
-          <div class="story-bubble" onclick="openCreationModal('post')">
+          <div class="story-bubble" onclick="openGoLiveBroadcastModal()">
             <div class="story-ring" style="background: linear-gradient(135deg, #EF4444, #F59E0B);">
               <div class="story-avatar">🔴</div>
             </div>
@@ -2523,22 +2734,22 @@
             <span class="story-label">Safe-Haven</span>
           </div>
 
-          <div class="story-bubble" onclick="switchDeck('clips')">
+          <div class="story-bubble" onclick="switchPulseSubTab('civic')">
             <div class="story-ring">
-              <div class="story-avatar">🎬</div>
+              <div class="story-avatar">🏛️</div>
             </div>
-            <span class="story-label">Local Clips</span>
+            <span class="story-label">Civic Tools</span>
           </div>
         </div>
 
         <!-- Android PulseFeedComponent Header Row: Localiiiy + Go Live + Chronological + Data Saver -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 10px 4px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 10px 16px; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00B4D8, #0077B6, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Localiiiy</span>
             <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0, 180, 216, 0.14); color: #00E5FF; border: 1px solid rgba(0, 180, 216, 0.3);">v2.4.0 SYNC</span>
           </div>
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <button onclick="openCreationModal('post')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #F87171; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
+            <button onclick="openGoLiveBroadcastModal()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #F87171; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
               🔴 Go Live
             </button>
             <button id="btnChronologicalMode" onclick="toggleChronologicalFeed(this)" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #10B981; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
@@ -2559,7 +2770,7 @@
 
         <!-- Android Hashtag Filter Bar (PulseFeedComponent.kt lines 404–440) -->
         <div class="feed-chips-bar" style="margin-bottom: 6px;">
-          <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '')">#AllTags</div>
+          <div class="filter-chip active" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '')">All Tags</div>
           <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#LocalUpdate')">#LocalUpdate</div>
           <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Hyperlocal')">#Hyperlocal</div>
           <div class="filter-chip" style="font-size: 11px; padding: 4px 10px;" onclick="filterByHashtag(this, '#Events')">#Events</div>
@@ -2580,8 +2791,20 @@
           <div class="filter-chip" onclick="setFeedFilter(this, 'latest')">⚡ Latest</div>
         </div>
 
+        <!-- Google Search Grounded Live Hyperlocal News Card (PulseFeedComponent.kt lines 444-525) -->
+        <div style="margin: 0 16px 12px; background: linear-gradient(135deg, rgba(13, 27, 42, 0.95), rgba(22, 36, 54, 0.95)); border: 1px solid rgba(0, 180, 216, 0.35); border-radius: 16px; padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 10px; font-weight: 800; color: #00E5FF; letter-spacing: 0.6px;">🌐 GOOGLE SEARCH GROUNDED • LIVE LOCAL BRIEFING</span>
+            <button type="button" onclick="refreshGroundedLocalNews()" style="background: rgba(0, 180, 216, 0.14); border: 1px solid rgba(0, 180, 216, 0.35); color: #00E5FF; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; cursor: pointer;">↻ Refresh</button>
+          </div>
+          <div id="groundedLocalNewsTitle" style="font-size: 13px; font-weight: 800; color: #FFFFFF;">Neighborhood Civic &amp; Transit Advisory Active in Your GPS Grid</div>
+          <p id="groundedLocalNewsBody" style="font-size: 11.5px; color: #CBD5E1; margin-top: 3px; line-height: 1.45;">
+            Safe-Haven Precinct Green Zones report smooth commuter flow and active evening community markets within your 5 km radius.
+          </p>
+        </div>
+
         <!-- Quick Inline Broadcast Composer (Synced with Firestore `posts` & Android PulseFeedComponent) -->
-        <div class="post-card" style="padding: 12px; margin-bottom: 12px; border: 1px solid rgba(0, 180, 216, 0.3);">
+        <div class="post-card" style="padding: 12px; margin: 0 16px 12px; border: 1px solid rgba(0, 180, 216, 0.3);">
           <div style="display: flex; gap: 10px; align-items: center;">
             <div class="author-avatar" style="width: 36px; height: 36px; font-size: 16px;">✍️</div>
             <input type="text" id="quickPulseInput" class="form-input" placeholder="Broadcast a hyperlocal update to your neighborhood radar..." style="flex: 1; font-size: 12px; padding: 9px 12px;">
@@ -2591,21 +2814,21 @@
           </div>
         </div>
 
-        <!-- Live Cloud Posts Stream (Synced with Firestore `posts` & Android InitialData.kt — Zero Fake Seattle Demo Posts) -->
+        <!-- Live Cloud Posts Stream (Synced with Firestore `posts` & Android InitialData.kt) -->
         <div class="post-stream" id="postsStreamContainer">
           <div id="emptyPulseStateCard" class="post-card" style="padding: 24px 16px; text-align: center; border: 1px dashed rgba(0, 229, 255, 0.35);">
             <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
             <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Live Hyperlocal Pulse Feed Ready</h4>
             <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
-              100% synchronized with your Android app &amp; Cloud Firestore (<code>localiiiy</code>). Zero fake demo posts — broadcast your first neighborhood update above or tap <strong>+</strong> below!
+              100% synchronized with your Android app &amp; Cloud Firestore (<code>localiiiy</code>). Broadcast your neighborhood update above, switch to <strong>Civic Tools</strong> (15 categories), or open <strong>Local Community</strong>!
             </p>
             <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
               <button class="btn-submit-auth" style="margin: 0; padding: 8px 16px; font-size: 12px;" onclick="openCreationModal('post')">
                 + Create First Broadcast
               </button>
-              <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-mirror-apk" style="text-decoration: none; padding: 8px 14px; font-size: 12px;">
-                🤖 Get Android App on Google Play
-              </a>
+              <button class="btn-mirror-apk" style="padding: 8px 14px; font-size: 12px;" onclick="switchPulseSubTab('civic')">
+                🛡️ Explore 15 Civic Tools
+              </button>
             </div>
           </div>
         </div>
@@ -2618,94 +2841,255 @@
     </div>
 
     <!-- ========================================================
-         VIEW 2: RADAR SCREEN (100% ANDROID LiveRadarScreen.kt PARITY)
+         VIEW 2: RADAR SCREEN (100% ANDROID ExploreScreen.kt + LiveRadarComponent.kt PARITY)
          ======================================================== -->
     <div id="view-radar" class="screen-view">
-      <div class="radar-screen-content">
+      <div class="radar-screen-content" style="align-items: stretch; gap: 10px; max-width: 660px;">
 
-        <!-- Mode bar: Radar Orbit vs Google Map Moments (Android LiveRadarScreen.kt Parity) -->
-        <div class="radar-view-mode-bar">
-          <button class="mode-tab-btn active" onclick="setRadarMode('radar')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="12" x2="18.5" y2="5.5"/></svg>
-            Radar Orbit
-          </button>
-          <button class="mode-tab-btn" onclick="setRadarMode('grid')" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-            Google Map Moments
+        <!-- ROW 1: Top Stealth Observer / Broadcast Status Pill Row (ExploreScreen.kt lines 155-238) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div id="radarTopLeftStatusBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.45); color: #10B981; font-size: 10.5px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+            <span id="radarStealthBadgeText">📡 LIVE RF BEACON</span>
+          </div>
+          <button type="button" id="radarTopRightGhostPill" onclick="toggleGhostMode()" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 180, 216, 0.4); color: #38BDF8; padding: 5px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
+            GHOST MODE: BROADCASTING ⓘ
           </button>
         </div>
 
-        <!-- Radar Canvas HUD Container -->
+        <!-- ROW 2: Search Bar + 3-Mode View Switcher (Radar | Map | Grid — ExploreScreen.kt lines 242-316) -->
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="text" id="radarNodeSearchInput" class="form-input" placeholder="Search neighbors, skills, Safe-Havens..." oninput="filterRadarNodesByQuery(this.value)" style="flex: 1; padding: 8px 12px; font-size: 12px;">
+          <div class="radar-view-mode-bar" style="flex-shrink: 0;">
+            <button class="mode-tab-btn active" id="btnRadarModeDish" onclick="setRadarMode('radar')" style="padding: 6px 11px; font-size: 11px;">Radar</button>
+            <button class="mode-tab-btn" id="btnRadarModeMap" onclick="setRadarMode('map')" style="padding: 6px 11px; font-size: 11px;">Map</button>
+            <button class="mode-tab-btn" id="btnRadarModeGrid" onclick="setRadarMode('grid')" style="padding: 6px 11px; font-size: 11px;">Grid</button>
+          </div>
+        </div>
+
+        <!-- ROW 3: Active Radar Perk Card (LiveRadarComponent.kt lines 476-529) -->
+        <div style="background: linear-gradient(90deg, rgba(16, 185, 129, 0.14) 0%, rgba(245, 158, 11, 0.12) 100%); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div>
+            <div style="font-size: 10px; font-weight: 900; color: #10B981; letter-spacing: 0.6px;" id="radarActivePerkHeader">⚡ ACTIVE RADAR PERK • 19h remaining</div>
+            <div style="font-size: 11.5px; font-weight: 700; color: #FFFFFF; margin-top: 1px;" id="radarActivePerkSub">Signal Aura Glow (+25%): Brightens your proximity nodes</div>
+          </div>
+          <span id="radarRfBoostActivePill" style="display: none; background: rgba(245, 158, 11, 0.2); border: 1px solid #F59E0B; color: #FCD34D; font-size: 10px; font-weight: 900; padding: 3px 8px; border-radius: 999px;">RF BOOST +10 KM ACTIVE</span>
+        </div>
+
+        <!-- RADAR DISH HUD CONTAINER (With Both Actionable Control Lines Above Canvas) -->
         <div id="radarHudContainer">
-          <div class="radar-hud-wrapper">
-            <div class="radar-dish">
+          <!-- ACTIONABLE CONTROL LINE 1 ABOVE RADAR (LiveRadarComponent.kt lines 536-676) -->
+          <div style="display: flex; gap: 6px; overflow-x: auto; padding: 2px 0 6px; scrollbar-width: none;">
+            <button type="button" class="filter-chip" id="btnRadar3dPitch" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadar3dTilt(this)">📐 2D TOP-DOWN</button>
+            <button type="button" class="filter-chip" style="font-size: 10.5px; padding: 5px 10px; border-color: rgba(16,185,129,0.45); color: #10B981; font-family: 'JetBrains Mono', monospace;" onclick="triggerRadarSonarPulse()">((•)) SONAR PULSE</button>
+            <button type="button" class="filter-chip" id="btnRadarBoost10km" style="font-size: 10.5px; padding: 5px 10px; border-color: rgba(245,158,11,0.45); color: #FCD34D; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadar10kmBoost(this)">🚀 +10km BOOST</button>
+            <button type="button" class="filter-chip" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="openCyberstalkingShieldModal()">🛡️ PRIVACY SHIELD</button>
+            <button type="button" class="filter-chip" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="openCreationModal('post')">📣 BROADCAST SIGNAL</button>
+            <button type="button" class="filter-chip" id="btnRadarNightHud" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadarNightHud(this)">🌙 NIGHT HUD</button>
+            <button type="button" class="filter-chip" id="btnRadarEcoScan" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadarEcoScan(this)">⚡ FULL POWER</button>
+          </div>
+
+          <!-- ACTIONABLE CONTROL LINE 2 ABOVE RADAR (LiveRadarComponent.kt lines 679-812) -->
+          <div style="display: flex; gap: 6px; overflow-x: auto; padding: 0 0 10px; scrollbar-width: none;">
+            <button type="button" class="filter-chip" id="btnRadarHeading" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="cycleRadarHeading(this)">🧭 HEADING: N 000°</button>
+            <button type="button" class="filter-chip" id="btnRadarInterval" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="cycleRadarInterval(this)">⏱️ INTERVAL: 3s</button>
+            <button type="button" class="filter-chip" id="btnRadarMapOverlay" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="cycleRadarMapOverlay(this)">🗺️ MAP: Grid</button>
+            <button type="button" class="filter-chip" id="btnRadarAlertPins" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadarAlertPins(this)">⚠️ ALERTS: 3 PINS</button>
+            <button type="button" class="filter-chip" id="btnRadarVerifiedOnly" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadarVerifiedOnly(this)">👥 ALL RESIDENTS</button>
+            <button type="button" class="filter-chip" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="showToast('📡 5 Active Proximity Nodes inside your current scan ring')">📡 5 NODES</button>
+            <button type="button" class="filter-chip" id="btnRadarKalman" style="font-size: 10.5px; padding: 5px 10px; font-family: 'JetBrains Mono', monospace;" onclick="toggleRadarKalmanFilter(this)">🎯 KALMAN: ON</button>
+          </div>
+
+          <!-- Circular Phosphor Green / Custom HUD Radar Display (LiveRadarComponent.kt lines 815-1160) -->
+          <div class="radar-hud-wrapper" style="margin: 4px auto 12px; perspective: 700px;">
+            <div class="radar-dish" id="radarDishElement" style="transition: transform 0.35s ease, border-color 0.3s ease, box-shadow 0.3s ease;">
+              <!-- Cardinal Degree Labels (▲ N 000°, S 180°, W 270°, E 090°) -->
+              <div style="position: absolute; top: 6px; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 800; color: #10B981; z-index: 30;">▲ N 000°</div>
+              <div style="position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; color: rgba(16, 185, 129, 0.75); z-index: 30;">S 180°</div>
+              <div style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; color: rgba(16, 185, 129, 0.75); z-index: 30;">W 270°</div>
+              <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 700; color: rgba(16, 185, 129, 0.75); z-index: 30;">E 090°</div>
+
               <!-- Crosshairs -->
               <div class="radar-crosshair-x"></div>
               <div class="radar-crosshair-y"></div>
 
-              <!-- Concentric rings -->
-              <div class="radar-ring ring-inner"></div>
-              <div class="radar-ring ring-mid"></div>
-              <div class="radar-ring ring-outer"></div>
+              <!-- 5 Concentric Range Rings with Distance Labels (0.6k, 1.2k, 1.8k, 2.4k, 3.0k) -->
+              <div class="radar-ring" style="width: 56px; height: 56px;"><span class="radar-ring-dist-label" style="position:absolute;top:-7px;left:52%;font-size:8px;color:rgba(16,185,129,0.7);font-family:monospace;">0.6k</span></div>
+              <div class="radar-ring" style="width: 112px; height: 112px;"><span class="radar-ring-dist-label" style="position:absolute;top:-7px;left:52%;font-size:8px;color:rgba(16,185,129,0.7);font-family:monospace;">1.2k</span></div>
+              <div class="radar-ring" style="width: 168px; height: 168px;"><span class="radar-ring-dist-label" style="position:absolute;top:-7px;left:52%;font-size:8px;color:rgba(16,185,129,0.7);font-family:monospace;">1.8k</span></div>
+              <div class="radar-ring" style="width: 224px; height: 224px;"><span class="radar-ring-dist-label" style="position:absolute;top:-7px;left:52%;font-size:8px;color:rgba(16,185,129,0.7);font-family:monospace;">2.4k</span></div>
+              <div class="radar-ring" style="width: 280px; height: 280px;"><span class="radar-ring-dist-label" style="position:absolute;top:-7px;left:52%;font-size:8px;color:rgba(16,185,129,0.7);font-family:monospace;">3.0k</span></div>
+
+              <!-- Expanding Sonar Shockwave Ring -->
+              <div id="radarSonarPulseWave" style="display: none; position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #00E5FF; transform: translate(-50%, -50%); pointer-events: none; z-index: 28;"></div>
 
               <!-- Rotating Scanning Beam -->
-              <div class="radar-sweep-beam"></div>
+              <div class="radar-sweep-beam" id="radarSweepBeam"></div>
 
               <!-- Center User Blip -->
               <div class="radar-center-blip" title="You are here (~110m Privacy Grid)"></div>
 
-              <!-- Safe-Haven & Live Beacons (Material 3 SVG Vector Icons) -->
-              <div class="radar-blip connected-blip" style="top: 80%; left: 52%;" onclick="showBlipDetails('Police Precinct Safe-Haven', '0.5 km', '24/7 CCTV Green Zone Exchange Hub', 'Officer')" title="Safe-Haven Precinct">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#10B981"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+              <!-- Safe-Haven & Live Beacons -->
+              <div class="radar-blip connected-blip" data-verified="true" data-label="Police Precinct Safe-Haven" style="top: 76%; left: 54%;" onclick="showBlipDetails('Police Precinct Safe-Haven', '0.5 km', '24/7 CCTV Green Zone Exchange Hub', 'Officer')" title="Safe-Haven Precinct">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#032417"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
               </div>
-              <div class="radar-blip market-blip" style="top: 28%; left: 72%;" onclick="showBlipDetails('Safe-Haven Escrow Hub #2', '1.2 km', 'Verified Commerce Point', 'Market')" title="Escrow Hub">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#F59E0B"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+              <div class="radar-blip market-blip" data-verified="true" data-label="Safe-Haven Escrow Hub #2" style="top: 28%; left: 72%;" onclick="showBlipDetails('Safe-Haven Escrow Hub #2', '1.2 km', 'Verified Commerce Point', 'Market')" title="Escrow Hub">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#261603"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
               </div>
-              <div class="radar-blip neighbor-blip" style="top: 34%; left: 32%;" onclick="showBlipDetails('Connected Neighbor Beacon', '0.8 km', 'Verified Community Node', 'Creator')" title="Neighbor Beacon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              <div class="radar-blip neighbor-blip" data-verified="true" data-label="Elena Rostova Artisan" style="top: 34%; left: 32%;" onclick="showBlipDetails('Elena Rostova', '0.3 km', 'Verified Community Creator', 'Creator')" title="Elena Rostova">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#041B26"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+              </div>
+              <div class="radar-blip connected-blip" data-verified="true" data-label="Central Clinic Safe Haven" style="top: 62%; left: 26%;" onclick="showBlipDetails('Central Clinic (Safe Haven)', '0.8 km', '24/7 Medical & Emergency Safe Zone', 'Clinic')" title="Central Clinic">
+                🏥
+              </div>
+              <div class="radar-blip market-blip" data-verified="false" data-label="Block Party Geofence" style="top: 22%; left: 48%;" onclick="showBlipDetails('Neighborhood Block Party', '0.3 km', '42 Neighbors Active • Live Geofence Event', 'Event')" title="Block Party">
+                🎉
+              </div>
+
+              <!-- Bottom Pulse Sync Pill Inside Radar Canvas -->
+              <div id="radarBottomSyncPill" style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); background: rgba(4, 24, 18, 0.9); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 999px; padding: 2px 9px; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 800; color: #10B981; white-space: nowrap; z-index: 30;">
+                • PULSE SYNC: 3KM • 1.2s
               </div>
             </div>
           </div>
 
-          <!-- Quick Range Selector Pills (Android LiveRadarScreen.kt Parity: 500m, 2km, 5km, 10km, 50km, Global) -->
-          <div style="display: flex; gap: 6px; overflow-x: auto; padding: 0 4px 10px 4px;">
-            <button class="filter-chip" onclick="updateRadarRange('0.5')">500m</button>
-            <button class="filter-chip" onclick="updateRadarRange('2')">2 km</button>
-            <button class="filter-chip active" onclick="updateRadarRange('5')">5 km</button>
-            <button class="filter-chip" onclick="updateRadarRange('10')">10 km</button>
-            <button class="filter-chip" onclick="updateRadarRange('50')">50 km</button>
-            <button class="filter-chip" onclick="updateRadarRange('Earth')">🌍 Global</button>
+          <!-- BELOW RADAR CARD 1: Radar Online / Turn OFF Power Card -->
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span id="radarPowerDot" style="width: 10px; height: 10px; border-radius: 50%; background: #10B981; box-shadow: 0 0 10px #10B981;"></span>
+              <div>
+                <div id="radarOnlineTitle" style="font-size: 13.5px; font-weight: 800; color: #FFFFFF;">Radar Online</div>
+                <div id="radarOnlineSub" style="font-size: 11px; color: var(--text-secondary);">Scanning within 3 km • 5 active proximity nodes</div>
+              </div>
+            </div>
+            <button type="button" id="btnToggleRadarPower" onclick="toggleRadarPowerState()" style="background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.4); color: #F87171; border-radius: 999px; padding: 6px 14px; font-size: 11px; font-weight: 800; cursor: pointer;">
+              Turn OFF
+            </button>
           </div>
 
-          <!-- Radar Tactical Controls (1 km – 50 km Systematic Scale) -->
-          <div class="radar-control-card">
+          <!-- BELOW RADAR CARD 2: PassiveSonarGhostBanner (RADAR BEACON: BROADCASTING + 3k / 5k / 10k Obfuscation) -->
+          <div style="background: var(--bg-card); border: 1px solid rgba(0, 180, 216, 0.3); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div id="beaconStatusHeading" style="font-size: 11px; font-weight: 900; color: #00E5FF; font-family: 'JetBrains Mono', monospace;">RADAR BEACON: BROADCASTING</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Spatial Obfuscation Ring (~110m Truncation Grid)</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="filter-chip active" style="padding: 4px 10px; font-size: 11px;" onclick="setBeaconObfuscationRadius(this, '3k')">3k</button>
+              <button type="button" class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setBeaconObfuscationRadius(this, '5k')">5k</button>
+              <button type="button" class="filter-chip" style="padding: 4px 10px; font-size: 11px;" onclick="setBeaconObfuscationRadius(this, '10k')">10k</button>
+            </div>
+          </div>
+
+          <!-- BELOW RADAR CARD 3: UnifiedRadarRangeSlider + Quick Range Pills -->
+          <div class="radar-control-card" style="margin-bottom: 10px;">
+            <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;">
+              <button class="filter-chip" onclick="updateRadarRange('0.5')">500m</button>
+              <button class="filter-chip" onclick="updateRadarRange('1')">1 km</button>
+              <button class="filter-chip active" onclick="updateRadarRange('3')">3 km</button>
+              <button class="filter-chip" onclick="updateRadarRange('5')">5 km</button>
+              <button class="filter-chip" onclick="updateRadarRange('10')">10 km</button>
+              <button class="filter-chip" onclick="updateRadarRange('25')">25 km</button>
+              <button class="filter-chip" onclick="updateRadarRange('50')">50 km</button>
+              <button class="filter-chip" onclick="updateRadarRange('Earth')">🌍 Global</button>
+            </div>
             <div class="slider-row">
               <div class="slider-header">
                 <span>Systematic Radar Scale (1 km – 50 km)</span>
-                <span id="rangeLabel" style="color: var(--accent-mint); font-weight: 700;">5.0 km</span>
+                <span id="rangeLabel" style="color: var(--accent-mint); font-weight: 700;">3.0 km</span>
               </div>
-              <input type="range" min="1" max="50" step="1" value="5" class="radar-range-slider" id="radarRangeSlider" oninput="updateRadarRange(this.value)">
+              <input type="range" min="1" max="50" step="1" value="3" class="radar-range-slider" id="radarRangeSlider" oninput="updateRadarRange(this.value)">
             </div>
 
+            <!-- HUD Theme Selector (PHOS, GOLD, CYAN, CRIM, AURA ✨ — LiveRadarComponent.kt lines 318-356) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
+              <span style="font-size: 11px; font-weight: 800; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;">HUD THEME:</span>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" class="filter-chip active" style="padding: 4px 9px; font-size: 10.5px;" onclick="setRadarHudPalette(this, '#10B981', 'PHOS')">🟢 PHOS</button>
+                <button type="button" class="filter-chip" style="padding: 4px 9px; font-size: 10.5px;" onclick="setRadarHudPalette(this, '#F59E0B', 'GOLD')">🟡 GOLD</button>
+                <button type="button" class="filter-chip" style="padding: 4px 9px; font-size: 10.5px;" onclick="setRadarHudPalette(this, '#00E5FF', 'CYAN')">🔵 CYAN</button>
+                <button type="button" class="filter-chip" style="padding: 4px 9px; font-size: 10.5px;" onclick="setRadarHudPalette(this, '#F43F5E', 'CRIM')">🔴 CRIM</button>
+                <button type="button" class="filter-chip" style="padding: 4px 9px; font-size: 10.5px;" onclick="setRadarHudPalette(this, '#C084FC', 'AURA')">✨ AURA</button>
+              </div>
+            </div>
+
+            <!-- Safe Haven & Event Geofence Markers (Central Clinic 0.8km & Block Party 300m) -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--border-subtle);">
+              <button type="button" class="btn-mirror-apk" style="flex: 1; justify-content: center; font-size: 11px; padding: 7px 10px;" onclick="showBlipDetails('Central Clinic (Safe Haven)', '0.8 km', '24/7 Emergency Medical & Safe-Haven Zone', 'Clinic')">
+                🏥 Central Clinic (0.8 km)
+              </button>
+              <button type="button" class="btn-mirror-apk" style="flex: 1; justify-content: center; font-size: 11px; padding: 7px 10px;" onclick="showBlipDetails('Neighborhood Block Party', '300m', '42 Neighbors Checked In • Live Event Geofence', 'Event')">
+                🎉 Block Party (300m • 42)
+              </button>
+            </div>
+
+            <!-- LIVE RADAR: PRECISE COORDINATES + Hide Pin + Ghost Toggle -->
             <div class="ghost-mode-row">
               <div>
-                <div style="font-size: 14px; font-weight: 700;">Ghost / Cloak Mode</div>
-                <div style="font-size: 11px; color: var(--text-muted);">Purge live radar beacon &amp; fuzz GPS to ~110m grid</div>
+                <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;">LIVE RADAR: PRECISE COORDINATES ⓘ</div>
+                <div style="font-size: 11px; color: var(--text-muted);" id="radarPinCoordStatus">Pin truncated to ~110m grid • Tap Hide Pin or Ghost Mode to cloak</div>
               </div>
-              <div class="toggle-pill-switch" id="ghostToggleSwitch" onclick="toggleGhostMode()">
-                <div class="toggle-pill-thumb"></div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="btn-mirror-apk" style="font-size: 10.5px; padding: 4px 10px;" onclick="toggleGhostMode()">Hide Pin</button>
+                <div class="toggle-pill-switch" id="ghostToggleSwitch" onclick="toggleGhostMode()">
+                  <div class="toggle-pill-thumb"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Local Landmark Hotspots Feed (ExploreScreen.kt Parity) -->
+          <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h4 style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin: 0;">📍 Local Landmark Hotspots</h4>
+              <span style="font-size: 10.5px; color: var(--accent-mint); font-weight: 700;">Live Spatial Telemetry</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <div class="neighbor-card" style="padding: 10px 12px; cursor: pointer;" onclick="showBlipDetails('Police Precinct Safe-Haven Spot #4', '0.5 km', '24/7 CCTV Monitored Handshake Escrow Zone', 'Officer')">
+                <div>
+                  <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;">🛡️ Police Precinct Safe-Haven Spot #4</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">0.5 km • 24/7 CCTV Verified Handshake Escrow Point</div>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: #10B981;">SAFE ZONE</span>
+              </div>
+              <div class="neighbor-card" style="padding: 10px 12px; cursor: pointer;" onclick="showBlipDetails('Artisan Market & Micro-Kitchen Plaza', '0.9 km', '14 Connected Creators Active', 'Market')">
+                <div>
+                  <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;">🥖 Artisan Market &amp; Micro-Kitchen Plaza</div>
+                  <div style="font-size: 11px; color: var(--text-secondary);">0.9 km • 14 Connected Neighbors Active Now</div>
+                </div>
+                <span style="font-size: 11px; font-weight: 800; color: #00E5FF;">14 ACTIVE</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Google Map Moments & Spatial Grid Container (Zero Fake Stock Images) -->
+        <!-- Google Map Interactive Spatial View (ExploreScreen.kt Map Tab) -->
+        <div id="radarMapView" style="display: none;">
+          <div class="post-card" style="padding: 18px; border: 1px solid rgba(0, 180, 216, 0.35);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <div>
+                <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">🗺️ Interactive Neighborhood Geofence Map</h4>
+                <p style="font-size: 11px; color: var(--text-secondary);">Showing Safe-Haven Precincts, Clinics, and Connected Beacons (~110m privacy grid)</p>
+              </div>
+              <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px;" onclick="openLocationPickerModal()">📍 Recenter GPS</button>
+            </div>
+            <div style="height: 240px; border-radius: 12px; background: radial-gradient(circle at 50% 50%, #0F2942 0%, #091526 100%); border: 1px solid var(--border-subtle); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+              <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(0, 180, 216, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 180, 216, 0.08) 1px, transparent 1px); background-size: 28px 28px;"></div>
+              <div style="position: relative; z-index: 2; text-align: center;">
+                <div style="font-size: 28px;">📍</div>
+                <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;" id="radarOriginLabel">Active Neighborhood Grid</div>
+                <div style="font-size: 10.5px; color: #10B981; margin-top: 2px;">3 Safe-Haven Zones • 5 Proximity Nodes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Map Moments & Spatial Grid Container -->
         <div id="radarGridView" style="display: none;">
           <div class="post-card" style="grid-column: 1 / -1; padding: 28px 18px; text-align: center; border: 1px dashed rgba(0, 229, 255, 0.35);">
             <svg width="36" height="36" viewBox="0 0 24 24" fill="#00E5FF" style="margin: 0 auto 10px;"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-            <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Live Google Map Moments Grid</h4>
+            <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">Live Spatial Moments Grid</h4>
             <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5;">
-              Synced with your Android app's spatial moments (`radar_beacons` &amp; `posts`). Share a geo-verified moment or Safe-Haven listing to pin it on your neighborhood map!
+              Synced with your Android app's spatial moments (<code>radar_beacons</code> &amp; <code>posts</code>). Share a geo-verified moment or Safe-Haven listing to pin it on your neighborhood map!
             </p>
             <button class="btn-submit-auth" style="margin-top: 12px; width: auto; padding: 8px 18px; font-size: 12px;" onclick="openCreationModal('post')">
               + Pin Neighborhood Moment
@@ -3691,27 +4075,104 @@
   </div>
 
   <!-- ========================================================
-       MODAL 11: GHOST MODE INTERACTIVE WRITE/SOCIAL GATE
+       MODAL 11: SIGN IN REQUIRED / GUEST SPECTATOR RESTRICTION DIALOG
+       (100% Synced with Android GhostRestrictionDialog.kt)
        ======================================================== -->
   <div class="modal-backdrop" id="ghostActionModalBackdrop">
-    <div class="modal-sheet-card" style="text-align: center; border: 1.2px solid rgba(0, 229, 255, 0.35); box-shadow: 0 0 25px var(--accent-mint-glow);">
+    <div class="modal-sheet-card" style="text-align: center; border: 1.5px solid rgba(56, 189, 248, 0.45); box-shadow: 0 0 28px rgba(0, 229, 255, 0.2); background: #0F172A;">
       <button class="modal-close-btn" onclick="closeGhostActionModal()">✕</button>
-      
-      <span style="font-size: 54px; filter: drop-shadow(0 0 10px rgba(0, 229, 255, 0.35));">👻</span>
-      <h3 style="font-size: 19px; font-weight: 800; margin-top: 14px; color: #FFFFFF; letter-spacing: -0.5px;">Ghost Mode Active</h3>
-      
-      <p style="font-size: 13px; color: #CBD5E1; line-height: 1.6; margin: 12px 0 20px;">
-        Please establish an active profile to <strong id="ghostActionDescription" style="color: var(--accent-mint);">[action]</strong> and participate in the community.
+
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(56, 189, 248, 0.12); border: 1.5px solid rgba(56, 189, 248, 0.45); display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+        <span style="font-size: 30px;">👻</span>
+      </div>
+
+      <h3 style="font-size: 19px; font-weight: 800; margin-top: 12px; color: #F8FAFC;">Sign In Required</h3>
+
+      <div style="display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 6px; background: rgba(56, 189, 248, 0.14); color: #38BDF8; font-size: 11px; font-weight: 800;">
+        Guest Spectator Mode
+      </div>
+
+      <p style="font-size: 13px; color: #CBD5E1; line-height: 1.5; margin: 12px 0 14px;">
+        Please log in or register to Localiiiy to <strong id="ghostActionDescription" style="color: #00E5FF;">interact with the neighborhood</strong>.
       </p>
 
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button class="btn-submit-auth ripple-effect" style="margin-top: 0; background: var(--accent-mint); color: #042417; font-weight: 800;" onclick="disableGhostModeFromModal()">
-          Disable Ghost Mode & Activate Profile 🌐
+      <div style="text-align: left; padding: 12px; border-radius: 12px; background: rgba(30, 41, 59, 0.75); border: 1px solid rgba(100, 116, 139, 0.35); margin-bottom: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="font-size: 11.5px; color: #94A3B8; line-height: 1.4;">✓ <strong>Allowed:</strong> Read-only viewing of public posts, clips, studio videos &amp; market items.</div>
+        <div style="font-size: 11.5px; color: #F87171; line-height: 1.4;">🔒 <strong>Restricted:</strong> Liking, Remarks, posting, uploading, Space IDs, Community, &amp; connection tiers.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-submit-auth ripple-effect" style="margin-top: 0; background: #00E5FF; color: #050811; font-weight: 900;" onclick="reopenFullSignInGate()">
+          👤 Log In or Register
         </button>
-        <button class="btn-post-action" style="justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); color: var(--text-muted);" onclick="closeGhostActionModal()">
-          Remain Cloaked ✕
+        <button class="btn-post-action" style="justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(56,189,248,0.3); color: #38BDF8; font-size: 11.5px;" onclick="disableGhostModeFromModal()">
+          🌐 If Already Signed In: Disable Ghost Cloak
+        </button>
+        <button class="btn-post-action" style="justify-content: center; background: transparent; border: none; color: #94A3B8; font-size: 12px; font-weight: 700;" onclick="closeGhostActionModal()">
+          Continue as Spectator (Read-Only)
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 11B: CIVIC TOOLS STRUCTURED POST CREATION MODAL
+       (Synced with Android PulseSandboxUpgradesScreen.kt)
+       ======================================================== -->
+  <div class="modal-backdrop" id="civicPostModalBackdrop">
+    <div class="modal-sheet-card" style="border: 1.5px solid rgba(0, 229, 255, 0.45); max-height: 86vh; overflow-y: auto;">
+      <button class="modal-close-btn" onclick="document.getElementById('civicPostModalBackdrop').classList.remove('open')">✕</button>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+        <span id="civicModalEmoji" style="font-size: 28px;">🚨</span>
+        <div>
+          <h3 id="civicModalTitle" style="font-size: 16px; font-weight: 900; color: #FFFFFF; margin: 0;">Create Civic Tool Broadcast</h3>
+          <span id="civicModalDesc" style="font-size: 11px; color: #38BDF8; font-weight: 700;">Verified Proximity Broadcast • Synced with Android &amp; Cloud Firestore</span>
+        </div>
+      </div>
+
+      <form class="auth-form" onsubmit="submitCivicToolPost(event)">
+        <div class="form-field">
+          <label id="civicField1Label">Headline / Alert Title *</label>
+          <input type="text" class="form-input" id="civicPostTitleInput" placeholder="e.g. Urgent O+ Blood Needed at District Hospital" required>
+        </div>
+        <div class="form-field">
+          <label id="civicField2Label">Location / Ward / Landmark *</label>
+          <input type="text" class="form-input" id="civicPostLocationInput" placeholder="e.g. Ward 4, Near Central Market" required>
+        </div>
+        <div class="form-field">
+          <label id="civicField3Label">Contact / Verification / Details *</label>
+          <textarea class="form-input" id="civicPostDetailsInput" rows="3" placeholder="Provide verified details, timings, or emergency instructions..." required></textarea>
+        </div>
+        <div class="form-field">
+          <label>Proximity Broadcast Radius (KM)</label>
+          <select class="form-select" id="civicPostRadiusSelect">
+            <option value="3">3 KM (Immediate Hyperlocal Ward)</option>
+            <option value="5">5 KM (Neighborhood Zone)</option>
+            <option value="10">10 KM (Town / Municipal Sector)</option>
+            <option value="20">20 KM (District Alert)</option>
+            <option value="50">50 KM (Max Regional Reach)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-submit-auth ripple-effect" style="background: linear-gradient(135deg, #00E5FF, #10B981); color: #041B26; font-weight: 900;">
+          📡 Publish Verified Civic Tool Broadcast
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODAL 11C: GO LIVE STREAM MODAL (Android PulseFeedComponent.kt)
+       ======================================================== -->
+  <div class="modal-backdrop" id="goLiveModalBackdrop">
+    <div class="modal-sheet-card" style="border: 1.5px solid rgba(239, 68, 68, 0.55); text-align: center;">
+      <button class="modal-close-btn" onclick="document.getElementById('goLiveModalBackdrop').classList.remove('open')">✕</button>
+      <div style="font-size: 38px;">🔴</div>
+      <h3 style="font-size: 18px; font-weight: 900; color: #FCA5A5; margin-top: 6px;">Start Hyperlocal Live Stream</h3>
+      <p style="font-size: 12px; color: #CBD5E1; margin: 6px 0 14px;">Broadcast live video &amp; spatial audio to neighbors within your selected radius.</p>
+      <input type="text" id="goLiveTitleInput" class="form-input" placeholder="What's happening live in your neighborhood?" style="margin-bottom: 10px;">
+      <button class="btn-submit-auth ripple-effect" style="background: linear-gradient(135deg, #EF4444, #F97316); color: #FFFFFF; font-weight: 900;" onclick="launchGoLiveStream()">
+        🔴 Go Live Now to Nearby Radar
+      </button>
     </div>
   </div>
 
@@ -3723,12 +4184,12 @@
       <button class="modal-close-btn" onclick="document.getElementById('premiumModalBackdrop').classList.remove('open')">✕</button>
       <div style="text-align: center; margin-bottom: 14px;">
         <span style="font-size: 40px;">👑</span>
-        <h3 style="font-size: 19px; font-weight: 800; color: #FDE68A; margin-top: 6px;">Localiiiy Pro & Verified Badge</h3>
+        <h3 style="font-size: 19px; font-weight: 800; color: #FDE68A; margin-top: 6px;">Localiiiy Pro &amp; Verified Badge</h3>
         <p style="font-size: 12px; color: #CBD5E1; margin-top: 4px;">Unlock Earth-wide priority reach, 0% Escrow Marketplace fees, and 4K Studio uploads.</p>
       </div>
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; font-size: 12px; color: #E2E8F0;">
         <div style="padding: 10px; border-radius: 10px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);">✓ <strong>Verified Gold Neighborhood Badge</strong> next to your @handle</div>
-        <div style="padding: 10px; border-radius: 10px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.25);">✓ <strong>Earth Dual-Reach Priority Boost</strong> (+300% Clip & Pulse impressions)</div>
+        <div style="padding: 10px; border-radius: 10px; background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.25);">✓ <strong>Earth Dual-Reach Priority Boost</strong> (+300% Clip &amp; Pulse impressions)</div>
         <div style="padding: 10px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25);">✓ <strong>Zero Safe-Haven Escrow Fees</strong> + Monthly +500 Sparks Grant</div>
       </div>
       <button class="btn-submit-auth ripple-effect" style="background: linear-gradient(135deg, #F59E0B, #EC4899); color: #FFFFFF;" onclick="activatePremiumTrial()">
@@ -3745,8 +4206,8 @@
       <button class="modal-close-btn" onclick="document.getElementById('cyberstalkingShieldModalBackdrop').classList.remove('open')">✕</button>
       <div style="text-align: center; margin-bottom: 14px;">
         <span style="font-size: 38px;">🛡️</span>
-        <h3 style="font-size: 18px; font-weight: 800; color: #6EE7B7; margin-top: 6px;">Cyberstalking Safety Shield & SOS</h3>
-        <p style="font-size: 11.5px; color: #CBD5E1; margin-top: 4px;">Synced with Android Security & Privacy Architecture</p>
+        <h3 style="font-size: 18px; font-weight: 800; color: #6EE7B7; margin-top: 6px;">Cyberstalking Safety Shield &amp; SOS</h3>
+        <p style="font-size: 11.5px; color: #CBD5E1; margin-top: 4px;">Synced with Android Security &amp; Privacy Architecture</p>
       </div>
       <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; font-size: 12px;">
         <div style="padding: 10px 12px; border-radius: 10px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #A7F3D0;">
@@ -3759,12 +4220,12 @@
         </div>
         <div style="padding: 10px 12px; border-radius: 10px; background: rgba(244,63,94,0.12); border: 1px solid rgba(244,63,94,0.35); color: #FECDD3;">
           <strong>3. Safe-Haven Police Precinct SOS:</strong><br>
-          Instant route & emergency dispatch to nearest 24/7 CCTV Police Safe-Haven Exchange Zone.
+          Instant route &amp; emergency dispatch to nearest 24/7 CCTV Police Safe-Haven Exchange Zone.
         </div>
       </div>
       <div style="display: flex; gap: 8px;">
         <button class="btn-submit-auth" style="margin-top: 0; flex: 1; background: #10B981; color: #042417;" onclick="enableGhostAndPurgeBeacon()">
-          👻 Instant Ghost Cloak & Purge Beacon
+          👻 Instant Ghost Cloak &amp; Purge Beacon
         </button>
         <button class="btn-submit-auth" style="margin-top: 0; flex: 1; background: #EF4444; color: #FFFFFF;" onclick="showToast('🚨 Emergency SOS Beacon locked to nearest Police Safe-Haven Precinct!');">
           🚨 Trigger Safe-Haven SOS
@@ -3813,7 +4274,7 @@
       <div style="text-align: center; margin-bottom: 12px;">
         <span style="font-size: 32px;">📜</span>
         <h3 style="font-size: 17px; font-weight: 800; color: #BAE6FD; margin-top: 4px;">SHA-256 Forensic Activity Audit Log</h3>
-        <p style="font-size: 11px; color: var(--text-muted);">Synced with Firestore <code>audit_logs</code> & Local Tamper-Evident Ledger</p>
+        <p style="font-size: 11px; color: var(--text-muted);">Synced with Firestore <code>audit_logs</code> &amp; Local Tamper-Evident Ledger</p>
       </div>
       <div id="auditLogsListContainer" style="max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 10.5px;"></div>
     </div>
@@ -3895,6 +4356,7 @@
     let posts = JSON.parse(localStorage.getItem('localiiiy_local_posts') || '[]');
     let marketItems = JSON.parse(localStorage.getItem('localiiiy_market_items') || '[]');
     let clipsList = JSON.parse(localStorage.getItem('localiiiy_clips_list') || '[]');
+    let civicPosts = JSON.parse(localStorage.getItem('localiiiy_civic_posts') || '[]');
     let auditLogs = JSON.parse(localStorage.getItem('localiiiy_audit_logs') || '[]');
     let creationType = 'post';
     let currentLocationLabel = localStorage.getItem('localiiiy_user_location_label') || '';
@@ -3934,7 +4396,7 @@
       }
     }
 
-    // Sync Live Posts, Marketplace Items & Clips from Cloud Firestore (`posts`, `marketplace_items`, `clips`)
+    // Sync Live Posts, Marketplace Items, Clips & Civic Posts from Cloud Firestore
     function attachLiveFirestoreListeners() {
       if (!isFirebaseLive || !fbDb) return;
 
@@ -4014,6 +4476,39 @@
           }
         }, () => {});
       } catch (_e) {}
+
+      // 4. Real-time `civic_posts` listener synced with Android PulseSandboxUpgradesScreen.kt
+      try {
+        fbDb.collection('civic_posts').orderBy('createdAt', 'desc').limit(30).onSnapshot((snapshot) => {
+          const cloudCivic = [];
+          snapshot.forEach((doc) => {
+            const d = doc.data();
+            if (d) {
+              cloudCivic.push({
+                id: doc.id,
+                catId: d.catId || 'BLOOD_SOS',
+                catLabel: d.catLabel || 'Blood SOS',
+                catEmoji: d.catEmoji || '🚨',
+                title: d.title || 'Verified Civic Broadcast',
+                location: d.location || 'Local Ward',
+                details: d.details || '',
+                radiusKm: Number(d.radiusKm) || 5,
+                distanceKm: Number(d.distanceKm) || 0.8,
+                authorName: d.authorName || 'Verified Neighbor',
+                authorHandle: d.authorHandle || '@neighbor',
+                timestamp: 'Live Cloud Sync ☁️'
+              });
+            }
+          });
+          if (cloudCivic.length > 0) {
+            const mergedIds = new Set(cloudCivic.map(c => String(c.id)));
+            const localOnly = civicPosts.filter(c => !mergedIds.has(String(c.id)));
+            civicPosts = [...cloudCivic, ...localOnly];
+            localStorage.setItem('localiiiy_civic_posts', JSON.stringify(civicPosts));
+            renderCivicPostsFeed();
+          }
+        }, () => {});
+      } catch (_e) {}
     }
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -4049,9 +4544,12 @@
         triggerGpsDetection(false);
       }
 
+      renderCivicCategoriesStrip();
+      renderCivicPostsFeed();
       renderPostsFromDb();
       renderMarketItemsFromDb();
       renderClipsFromDb();
+      syncRadarTopStatusHeader();
       initFirebaseHostingOrRuntime();
     });
 
@@ -4534,6 +5032,7 @@
           await fbDb.collection('usernames').doc(usernameClean).set({
             uid,
             username: usernameClean,
+            email,
             createdAt: Date.now()
           });
           await fbDb.collection('users').doc(uid).set({
@@ -4575,7 +5074,8 @@
         avatarEmoji,
         avatarDataUrl: selectedGateAvatarDataUrl,
         sparks: bonusSparks,
-        connections: referral ? 2 : 1
+        connections: referral ? 2 : 1,
+        isGuestSpectator: false
       };
 
       users.push(newUser);
@@ -4590,6 +5090,7 @@
 
       updateUserUI(newUser);
       applyUserLocationDisplay(neighborhood);
+      syncRadarTopStatusHeader();
       recordAuditLog('USER_REGISTER', `Registered ${username} (${visibilityMode} mode) synced to Firebase project localiiiy`);
 
       const gate = document.getElementById('mandatoryAuthGate');
@@ -4600,53 +5101,94 @@
       showToast(`Welcome to Localiiiy, ${fullName}! 🎉 (+${bonusSparks} Sparks)`);
     }
 
-    // Sign In with Live Firebase Auth + Firestore Profile Fetch + Local Fallback
+    // Sign In with Live Firebase Auth (@username OR Email) + Firestore Profile Fetch + Local Fallback
     async function handleGateLogin(e) {
       e.preventDefault();
-      const identifier = document.getElementById('gateLoginEmail')?.value.trim().toLowerCase() || '';
+      const rawIdentifier = document.getElementById('gateLoginEmail')?.value.trim().toLowerCase() || '';
       const pass = document.getElementById('gateLoginPassword')?.value || '';
 
-      if (isFirebaseLive && fbAuth && identifier.includes('@')) {
+      if (isFirebaseLive && fbAuth) {
         try {
-          const cred = await fbAuth.signInWithEmailAndPassword(identifier, pass);
-          if (cred && cred.user) {
-            let profileData = null;
-            if (fbDb) {
-              const doc = await fbDb.collection('users').doc(cred.user.uid).get();
-              if (doc.exists) profileData = doc.data();
+          let resolvedEmail = rawIdentifier;
+          let resolvedProfile = null;
+          const isEmailFormat = rawIdentifier.includes('@') && !rawIdentifier.startsWith('@') && rawIdentifier.split('@')[1]?.includes('.');
+
+          if (!isEmailFormat && fbDb) {
+            const cleanHandle = rawIdentifier.replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+            if (cleanHandle) {
+              const handleDoc = await fbDb.collection('usernames').doc(cleanHandle).get();
+              if (handleDoc.exists) {
+                const hd = handleDoc.data() || {};
+                if (hd.email) {
+                  resolvedEmail = hd.email;
+                } else if (hd.uid) {
+                  const uDoc = await fbDb.collection('users').doc(hd.uid).get();
+                  if (uDoc.exists) {
+                    resolvedProfile = uDoc.data();
+                    if (resolvedProfile && resolvedProfile.email) resolvedEmail = resolvedProfile.email;
+                  }
+                }
+              }
             }
-            const cloudUser = {
-              uid: cred.user.uid,
-              fullName: (profileData && (profileData.displayName || profileData.fullName)) || cred.user.displayName || identifier.split('@')[0],
-              username: (profileData && (profileData.handle || `@${profileData.username}`)) || `@${identifier.split('@')[0]}`,
-              neighborhood: (profileData && profileData.neighborhood) || 'Pike Place, Seattle',
-              email: identifier,
-              sparks: (profileData && profileData.sparks) || 250,
-              connections: (profileData && profileData.connectionsCount) || 142,
-              visibilityMode: (profileData && profileData.visibilityMode) || 'GHOST'
-            };
-            currentUser = cloudUser;
-            localStorage.setItem('localiiiy_active_user', JSON.stringify(cloudUser));
-            updateUserUI(cloudUser);
-            applyUserLocationDisplay(cloudUser.neighborhood);
-            recordAuditLog('USER_LOGIN_FIREBASE', `Authenticated ${cloudUser.username} via Firebase Auth`);
-            const gate = document.getElementById('mandatoryAuthGate');
-            if (gate) {
-              gate.classList.add('hidden');
-              setTimeout(() => gate.style.display = 'none', 400);
+          }
+
+          if (resolvedEmail && resolvedEmail.includes('@') && !resolvedEmail.startsWith('@')) {
+            const cred = await fbAuth.signInWithEmailAndPassword(resolvedEmail, pass);
+            if (cred && cred.user) {
+              let profileData = resolvedProfile;
+              if (!profileData && fbDb) {
+                const doc = await fbDb.collection('users').doc(cred.user.uid).get();
+                if (doc.exists) profileData = doc.data();
+              }
+              const cleanHandleFromDb = (profileData && (profileData.username || (profileData.handle || '').replace(/^@/, ''))) || resolvedEmail.split('@')[0];
+              const cloudUser = {
+                uid: cred.user.uid,
+                fullName: (profileData && (profileData.displayName || profileData.fullName)) || cred.user.displayName || cleanHandleFromDb,
+                username: `@${cleanHandleFromDb}`,
+                neighborhood: (profileData && profileData.neighborhood) || currentLocationLabel || 'Pike Place, Seattle',
+                email: resolvedEmail,
+                sparks: (profileData && profileData.sparks) || 250,
+                connections: (profileData && profileData.connectionsCount) || 142,
+                visibilityMode: (profileData && profileData.visibilityMode) || 'SHOW',
+                isGuestSpectator: false
+              };
+              isGhostMode = cloudUser.visibilityMode === 'GHOST';
+              const toggle = document.getElementById('ghostToggleSwitch');
+              if (toggle) toggle.classList.toggle('active', isGhostMode);
+
+              currentUser = cloudUser;
+              localStorage.setItem('localiiiy_active_user', JSON.stringify(cloudUser));
+              updateUserUI(cloudUser);
+              applyUserLocationDisplay(cloudUser.neighborhood);
+              syncRadarTopStatusHeader();
+              recordAuditLog('USER_LOGIN_FIREBASE', `Authenticated ${cloudUser.username} via Firebase Auth (Web<->Android Synced)`);
+              const gate = document.getElementById('mandatoryAuthGate');
+              if (gate) {
+                gate.classList.add('hidden');
+                setTimeout(() => gate.style.display = 'none', 400);
+              }
+              showToast(`Synced from Firebase Cloud! Welcome back, ${cloudUser.fullName} (${cloudUser.username}) ☁️`);
+              return;
             }
-            showToast(`Synced from Firebase Cloud! Welcome back, ${cloudUser.fullName} ☁️`);
-            return;
           }
         } catch (_cloudErr) {}
       }
 
-      const user = users.find(u => (u.email?.toLowerCase() === identifier || u.username?.toLowerCase() === identifier || u.username?.toLowerCase() === `@${identifier}`) && u.password === pass);
+      const cleanInput = rawIdentifier.replace(/^@/, '');
+      const user = users.find(u => (
+        u.email?.toLowerCase() === rawIdentifier ||
+        u.username?.toLowerCase() === rawIdentifier ||
+        u.username?.toLowerCase() === `@${cleanInput}`
+      ) && u.password === pass);
+
       if (user) {
+        user.isGuestSpectator = false;
+        isGhostMode = user.visibilityMode === 'GHOST';
         currentUser = user;
         localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
         if (user.neighborhood) applyUserLocationDisplay(user.neighborhood);
         updateUserUI(user);
+        syncRadarTopStatusHeader();
         recordAuditLog('USER_LOGIN', `Signed in as ${user.username}`);
         const gate = document.getElementById('mandatoryAuthGate');
         if (gate) {
@@ -4655,7 +5197,7 @@
         }
         showToast(`Welcome back, ${user.fullName}! 👋`);
       } else {
-        showToast('Invalid credentials. Please check your email/username and password.');
+        showToast('Invalid credentials. Please check your @username / email and password.');
       }
     }
 
@@ -4666,22 +5208,37 @@
           const provider = new firebase.auth.GoogleAuthProvider();
           const result = await fbAuth.signInWithPopup(provider);
           if (result && result.user) {
+            const cleanHandle = result.user.email ? result.user.email.split('@')[0].replace(/[^a-z0-9_]/gi, '').toLowerCase() : 'neighbor';
             const gUser = {
               uid: result.user.uid,
               fullName: result.user.displayName || 'Google Neighbor',
-              username: '@' + (result.user.email ? result.user.email.split('@')[0].replace(/[^a-z0-9_]/gi, '').toLowerCase() : 'neighbor'),
+              displayName: result.user.displayName || 'Google Neighbor',
+              username: `@${cleanHandle}`,
+              handle: `@${cleanHandle}`,
               neighborhood: currentLocationLabel || 'Pike Place, Seattle',
               email: result.user.email || '',
               connections: 128,
               sparks: 300,
-              visibilityMode: 'GHOST'
+              visibilityMode: 'SHOW',
+              isGuestSpectator: false
             };
             if (fbDb) {
-              await fbDb.collection('users').doc(gUser.uid).set(gUser, { merge: true });
+              await fbDb.collection('users').doc(gUser.uid).set({
+                ...gUser,
+                username: cleanHandle
+              }, { merge: true });
+              await fbDb.collection('usernames').doc(cleanHandle).set({
+                uid: gUser.uid,
+                username: cleanHandle,
+                email: gUser.email,
+                createdAt: Date.now()
+              }, { merge: true });
             }
+            isGhostMode = false;
             currentUser = gUser;
             localStorage.setItem('localiiiy_active_user', JSON.stringify(gUser));
             updateUserUI(gUser);
+            syncRadarTopStatusHeader();
             const gate = document.getElementById('mandatoryAuthGate');
             if (gate) {
               gate.classList.add('hidden');
@@ -4697,32 +5254,44 @@
       gateInstantDemoLogin();
     }
 
-    // Stealth Ghost Spectator Mode (Android AuthScreen.kt Parity)
+    // Stealth Ghost Spectator Mode (Android AuthScreen.kt & GhostRestrictionDialog.kt Parity)
     function enterGhostSpectatorMode() {
       isGhostMode = true;
       const ghostUser = {
         uid: 'ghost_spectator',
-        fullName: 'Ghost Spectator',
-        username: '@ghost_cloaked',
+        fullName: 'Guest Spectator',
+        username: '@guest_spectator',
         neighborhood: currentLocationLabel || 'Zero-GPS Cloaked Grid',
-        email: 'cloaked@localiiiy.local',
+        email: 'spectator@localiiiy.local',
         connections: 0,
-        sparks: 50,
-        visibilityMode: 'GHOST'
+        sparks: 0,
+        visibilityMode: 'GHOST',
+        isGuestSpectator: true
       };
       currentUser = ghostUser;
       localStorage.setItem('localiiiy_active_user', JSON.stringify(ghostUser));
       const toggle = document.getElementById('ghostToggleSwitch');
       if (toggle) toggle.classList.add('active');
       updateUserUI(ghostUser);
-      recordAuditLog('GHOST_SPECTATOR_ENTER', 'Entered Stealth Ghost Spectator Mode with Zero GPS Broadcast');
+      syncRadarTopStatusHeader();
+      recordAuditLog('GHOST_SPECTATOR_ENTER', 'Entered Guest Spectator Read-Only Mode with Zero GPS Broadcast');
 
       const gate = document.getElementById('mandatoryAuthGate');
       if (gate) {
         gate.classList.add('hidden');
         setTimeout(() => gate.style.display = 'none', 400);
       }
-      showToast('👻 Entered Stealth Ghost Spectator Mode • Zero GPS Footprint');
+      showToast('👻 Guest Spectator (Read-Only Mode) • Sign in anytime to post or connect');
+    }
+
+    function reopenFullSignInGate() {
+      closeGhostActionModal();
+      const gate = document.getElementById('mandatoryAuthGate');
+      if (gate) {
+        gate.style.display = 'flex';
+        gate.classList.remove('hidden');
+      }
+      switchGateTab('login');
     }
 
     function scrubSessionIdentity() {
@@ -4734,12 +5303,7 @@
     }
 
     function gateInstantDemoLogin() {
-      demoQuickLogin();
-      const gate = document.getElementById('mandatoryAuthGate');
-      if (gate) {
-        gate.classList.add('hidden');
-        setTimeout(() => gate.style.display = 'none', 400);
-      }
+      enterGhostSpectatorMode();
     }
 
     // Real Reverse Geocoding via OpenStreetMap Nominatim with BigDataCloud Fallback
@@ -5187,33 +5751,302 @@
       showToast(`Vote recorded: ${text} ✅`);
     }
 
+    // ========================================================
+    // TACTICAL RADAR HUD & LIVE RF BEACON ENGINE
+    // (100% Synced with Android ExploreScreen.kt + LiveRadarComponent.kt)
+    // ========================================================
+    let radarIs3dTilt = false;
+    let radar10kmBoostActive = true;
+    let radarNightHudActive = false;
+    let radarEcoScanActive = false;
+    let radarHeadingIdx = 0;
+    const RADAR_HEADINGS = ['🧭 HEADING: N 000°', '🧭 HEADING: E 090°', '🧭 HEADING: S 180°', '🧭 HEADING: W 270°'];
+    let radarIntervalIdx = 0;
+    const RADAR_INTERVALS = ['⏱️ INTERVAL: 3s', '⏱️ INTERVAL: 1.5s', '⏱️ INTERVAL: 5s', '⏱️ INTERVAL: 10s'];
+    let radarMapOverlayIdx = 0;
+    const RADAR_MAP_OVERLAYS = ['🗺️ MAP: Grid', '🗺️ MAP: Topo', '🗺️ MAP: Satellite', '🗺️ MAP: Stealth'];
+    let radarAlertPinsVisible = true;
+    let radarVerifiedOnly = false;
+    let radarKalmanActive = true;
+    let radarPowerOnline = true;
+    let radarBaseRangeKm = 3;
+
     function setRadarMode(mode) {
-      document.querySelectorAll('.radar-view-mode-bar .mode-tab-btn').forEach(b => b.classList.remove('active'));
+      ['btnRadarModeRadar', 'btnRadarModeMap', 'btnRadarModeGrid'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('active');
+      });
+      const hud = document.getElementById('radarHudContainer');
+      const mapV = document.getElementById('radarMapView');
+      const gridV = document.getElementById('radarGridView');
       if (mode === 'radar') {
-        document.querySelector('.radar-view-mode-bar button:nth-child(1)').classList.add('active');
-        document.getElementById('radarHudContainer').style.display = 'block';
-        document.getElementById('radarGridView').style.display = 'none';
+        document.getElementById('btnRadarModeRadar')?.classList.add('active');
+        if (hud) hud.style.display = 'block';
+        if (mapV) mapV.style.display = 'none';
+        if (gridV) gridV.style.display = 'none';
+      } else if (mode === 'map') {
+        document.getElementById('btnRadarModeMap')?.classList.add('active');
+        if (hud) hud.style.display = 'none';
+        if (mapV) mapV.style.display = 'block';
+        if (gridV) gridV.style.display = 'none';
       } else {
-        document.querySelector('.radar-view-mode-bar button:nth-child(2)').classList.add('active');
-        document.getElementById('radarHudContainer').style.display = 'none';
-        document.getElementById('radarGridView').style.display = 'grid';
+        document.getElementById('btnRadarModeGrid')?.classList.add('active');
+        if (hud) hud.style.display = 'none';
+        if (mapV) mapV.style.display = 'none';
+        if (gridV) gridV.style.display = 'grid';
       }
+      showToast(`Radar View Mode: ${mode.toUpperCase()} 📡`);
     }
 
     function updateRadarRange(val) {
-      document.getElementById('rangeLabel').textContent = `${val} km`;
+      radarBaseRangeKm = Number(val) || 3;
+      const effectiveKm = radar10kmBoostActive ? (radarBaseRangeKm + 10) : radarBaseRangeKm;
+      const lbl = document.getElementById('rangeLabel');
+      if (lbl) lbl.textContent = `${radarBaseRangeKm} km${radar10kmBoostActive ? ' (+10km Boost = ' + effectiveKm + 'km)' : ''}`;
+      const syncPill = document.getElementById('radarPulseSyncPill');
+      if (syncPill) syncPill.textContent = `• PULSE SYNC: ${effectiveKm}KM • 1.2s`;
+
+      for (let i = 1; i <= 5; i++) {
+        const ringLbl = document.getElementById(`radarRingLabel${i}`);
+        if (ringLbl) ringLbl.textContent = `${((effectiveKm / 5) * i).toFixed(1)}k`;
+      }
+    }
+
+    function syncRadarTopStatusHeader() {
+      const dot = document.getElementById('radarBeaconStatusDot');
+      const txt = document.getElementById('radarBeaconStatusText');
+      const btn = document.getElementById('radarTopGhostToggleBtn');
+      const specBanner = document.getElementById('guestSpectatorTopBanner');
+      const isSpectator = !currentUser || currentUser.isGuestSpectator || currentUser.uid === 'ghost_spectator';
+
+      if (specBanner) {
+        specBanner.style.display = isSpectator ? 'flex' : 'none';
+      }
+
+      if (isGhostMode || isSpectator) {
+        if (dot) { dot.style.background = '#38BDF8'; dot.style.boxShadow = '0 0 8px #38BDF8'; }
+        if (txt) { txt.textContent = '👻 STEALTH OBSERVER'; txt.style.color = '#38BDF8'; }
+        if (btn) {
+          btn.textContent = 'GHOST MODE: OBSERVING ⓘ';
+          btn.style.background = 'rgba(56,189,248,0.16)';
+          btn.style.borderColor = 'rgba(56,189,248,0.45)';
+          btn.style.color = '#38BDF8';
+        }
+      } else {
+        if (dot) { dot.style.background = '#10B981'; dot.style.boxShadow = '0 0 8px #10B981'; }
+        if (txt) { txt.textContent = '📡 LIVE RF BEACON'; txt.style.color = '#10B981'; }
+        if (btn) {
+          btn.textContent = 'GHOST MODE: BROADCASTING ⓘ';
+          btn.style.background = 'rgba(16,185,129,0.16)';
+          btn.style.borderColor = 'rgba(16,185,129,0.45)';
+          btn.style.color = '#10B981';
+        }
+      }
     }
 
     async function toggleGhostMode() {
+      if (currentUser && (currentUser.isGuestSpectator || currentUser.uid === 'ghost_spectator')) {
+        checkGhostAction('broadcast a live radar pin');
+        return;
+      }
       isGhostMode = !isGhostMode;
       const toggle = document.getElementById('ghostToggleSwitch');
       if (toggle) toggle.classList.toggle('active', isGhostMode);
+      syncRadarTopStatusHeader();
       if (isGhostMode && isFirebaseLive && fbDb && currentUser && currentUser.uid) {
         try {
           await fbDb.collection('radar_beacons').doc(currentUser.uid).delete();
         } catch (_e) {}
       }
-      showToast(isGhostMode ? 'Ghost Mode Active 👻 (Cloaked & Cloud Beacon Purged)' : 'Radar Visibility Enabled 🌐');
+      showToast(isGhostMode ? 'Ghost Mode Active 👻 (Cloaked & Cloud Beacon Purged)' : 'Radar RF Beacon Broadcasting 🌐');
+    }
+
+    function toggleRadar3dTilt(btn) {
+      radarIs3dTilt = !radarIs3dTilt;
+      const scope = document.getElementById('radarScopeCircle');
+      if (scope) {
+        scope.style.transform = radarIs3dTilt ? 'perspective(650px) rotateX(42deg) scale(0.96)' : 'none';
+      }
+      if (btn) {
+        btn.textContent = radarIs3dTilt ? '🧊 3D PITCH 45°' : '📐 2D TOP-DOWN';
+        btn.style.color = radarIs3dTilt ? '#00E5FF' : '#94A3B8';
+      }
+      showToast(radarIs3dTilt ? '3D Tactical Pitch 45° Engaged 🧊' : '2D Top-Down Orthographic View 📐');
+    }
+
+    function triggerRadarSonarPulse() {
+      const ring = document.getElementById('radarSonarShockwave');
+      if (ring) {
+        ring.style.display = 'block';
+        ring.style.width = '20px';
+        ring.style.height = '20px';
+        ring.style.opacity = '1';
+        RingAnimate: {
+          ring.animate([
+            { width: '20px', height: '20px', opacity: 0.95 },
+            { width: '310px', height: '310px', opacity: 0 }
+          ], { duration: 1100, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+        }
+        setTimeout(() => { ring.style.display = 'none'; }, 1150);
+      }
+      if (window.navigator.vibrate) window.navigator.vibrate(15);
+      showToast('((•)) Active Sonar Shockwave Emitted — 5 Nearby Nodes Verified');
+    }
+
+    function toggleRadar10kmBoost(btn) {
+      radar10kmBoostActive = !radar10kmBoostActive;
+      const badge = document.getElementById('radarRfBoostBadge');
+      if (badge) {
+        badge.textContent = radar10kmBoostActive ? 'RF BOOST +10 KM ACTIVE' : 'STANDARD RF GAIN';
+        badge.style.opacity = radar10kmBoostActive ? '1' : '0.5';
+      }
+      if (btn) {
+        btn.style.background = radar10kmBoostActive ? 'rgba(245,158,11,0.18)' : 'rgba(255,255,255,0.05)';
+        btn.style.color = radar10kmBoostActive ? '#FBBF24' : '#94A3B8';
+      }
+      updateRadarRange(radarBaseRangeKm);
+      showToast(radar10kmBoostActive ? '🚀 +10km High-Gain RF Boost Enabled!' : 'Standard 3km Hyperlocal Gain Restored');
+    }
+
+    function toggleRadarNightHud(btn) {
+      radarNightHudActive = !radarNightHudActive;
+      if (radarNightHudActive) {
+        setRadarHudPalette('CRIM', null);
+        if (btn) { btn.textContent = '🌙 NIGHT HUD: ON'; btn.style.color = '#F87171'; }
+        showToast('🌙 Red-Filtered Night Vision Tactical HUD Enabled');
+      } else {
+        setRadarHudPalette('PHOS', null);
+        if (btn) { btn.textContent = '🌙 NIGHT HUD'; btn.style.color = '#94A3B8'; }
+        showToast('🟢 Standard Phosphor HUD Restored');
+      }
+    }
+
+    function toggleRadarEcoScan(btn) {
+      radarEcoScanActive = !radarEcoScanActive;
+      const sweep = document.getElementById('radarSweepConeEl');
+      if (sweep) {
+        sweep.style.animationDuration = radarEcoScanActive ? '9s' : '4s';
+      }
+      if (btn) {
+        btn.textContent = radarEcoScanActive ? '🍃 ECO SCAN' : '⚡ FULL POWER';
+        btn.style.color = radarEcoScanActive ? '#38BDF8' : '#10B981';
+      }
+      showToast(radarEcoScanActive ? '🍃 Low-Power Eco Sweep (60% Battery Saved)' : '⚡ Full-Power 60Hz Tactical Sweep');
+    }
+
+    function cycleRadarHeading(btn) {
+      radarHeadingIdx = (radarHeadingIdx + 1) % RADAR_HEADINGS.length;
+      if (btn) btn.textContent = RADAR_HEADINGS[radarHeadingIdx];
+      showToast(RADAR_HEADINGS[radarHeadingIdx]);
+    }
+
+    function cycleRadarInterval(btn) {
+      radarIntervalIdx = (radarIntervalIdx + 1) % RADAR_INTERVALS.length;
+      if (btn) btn.textContent = RADAR_INTERVALS[radarIntervalIdx];
+      showToast(`Sweep Refresh ${RADAR_INTERVALS[radarIntervalIdx]}`);
+    }
+
+    function cycleRadarMapOverlay(btn) {
+      radarMapOverlayIdx = (radarMapOverlayIdx + 1) % RADAR_MAP_OVERLAYS.length;
+      if (btn) btn.textContent = RADAR_MAP_OVERLAYS[radarMapOverlayIdx];
+      showToast(RADAR_MAP_OVERLAYS[radarMapOverlayIdx]);
+    }
+
+    function toggleRadarAlertPins(btn) {
+      radarAlertPinsVisible = !radarAlertPinsVisible;
+      const geofence = document.getElementById('radarGeofenceMarkersRow');
+      if (geofence) geofence.style.display = radarAlertPinsVisible ? 'flex' : 'none';
+      if (btn) {
+        btn.textContent = radarAlertPinsVisible ? '⚠️ ALERTS: 3 PINS' : '⚠️ ALERTS: HIDDEN';
+        btn.style.opacity = radarAlertPinsVisible ? '1' : '0.5';
+      }
+      showToast(radarAlertPinsVisible ? '⚠️ Civic & Safe-Haven Alert Pins Visible' : 'Alert Pins Hidden');
+    }
+
+    function toggleRadarVerifiedOnly(btn) {
+      radarVerifiedOnly = !radarVerifiedOnly;
+      if (btn) {
+        btn.textContent = radarVerifiedOnly ? '✓ VERIFIED ONLY' : '👥 ALL RESIDENTS';
+        btn.style.color = radarVerifiedOnly ? '#10B981' : '#94A3B8';
+      }
+      showToast(radarVerifiedOnly ? 'Showing Verified Neighbors Only ✓' : 'Showing All Nearby Residents 👥');
+    }
+
+    function toggleRadarKalmanFilter(btn) {
+      radarKalmanActive = !radarKalmanActive;
+      if (btn) {
+        btn.textContent = radarKalmanActive ? '🎯 KALMAN: ON' : '🎯 KALMAN: RAW';
+        btn.style.color = radarKalmanActive ? '#10B981' : '#94A3B8';
+      }
+      showToast(radarKalmanActive ? '🎯 Kalman Telemetry Smoothing Active' : 'Raw Unfiltered GPS Telemetry');
+    }
+
+    function toggleRadarPowerState() {
+      radarPowerOnline = !radarPowerOnline;
+      const scope = document.getElementById('radarScopeCircle');
+      const title = document.getElementById('radarPowerStatusTitle');
+      const sub = document.getElementById('radarPowerStatusSub');
+      const btn = document.getElementById('btnRadarPowerToggle');
+      if (scope) scope.style.opacity = radarPowerOnline ? '1' : '0.28';
+      if (title) {
+        title.textContent = radarPowerOnline ? 'Radar Online' : 'Radar Offline (Standby)';
+        title.style.color = radarPowerOnline ? '#FFFFFF' : '#94A3B8';
+      }
+      if (sub) sub.textContent = radarPowerOnline ? 'Scanning live neighbors & landmarks' : 'RF transceiver powered down';
+      if (btn) {
+        btn.textContent = radarPowerOnline ? 'Turn OFF' : 'Turn ON';
+        btn.style.background = radarPowerOnline ? 'rgba(239,68,68,0.16)' : 'rgba(16,185,129,0.2)';
+        btn.style.color = radarPowerOnline ? '#F87171' : '#10B981';
+      }
+      showToast(radarPowerOnline ? '📡 Tactical Radar Powered ON' : '🔌 Tactical Radar Standby Mode');
+    }
+
+    function setBeaconObfuscationRadius(km, btn) {
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('button').forEach(b => {
+          b.style.background = 'rgba(255,255,255,0.06)';
+          b.style.color = '#94A3B8';
+        });
+        btn.style.background = '#10B981';
+        btn.style.color = '#042417';
+      }
+      showToast(`🛡️ Spatial Fuzzing Radius set to ${km}km obfuscation ring`);
+    }
+
+    function setRadarHudPalette(code, btn) {
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.hud-palette-btn').forEach(b => {
+          b.style.background = 'rgba(255,255,255,0.04)';
+          b.style.borderColor = 'rgba(255,255,255,0.12)';
+          b.style.color = '#94A3B8';
+        });
+      }
+      const palettes = {
+        PHOS: { border: 'rgba(16,185,129,0.45)', glow: 'rgba(16,185,129,0.22)', text: '#10B981' },
+        GOLD: { border: 'rgba(245,158,11,0.5)', glow: 'rgba(245,158,11,0.22)', text: '#FBBF24' },
+        CYAN: { border: 'rgba(0,229,255,0.5)', glow: 'rgba(0,229,255,0.22)', text: '#00E5FF' },
+        CRIM: { border: 'rgba(239,68,68,0.5)', glow: 'rgba(239,68,68,0.22)', text: '#F87171' },
+        AURA: { border: 'rgba(168,85,247,0.5)', glow: 'rgba(168,85,247,0.22)', text: '#C084FC' }
+      };
+      const p = palettes[code] || palettes.PHOS;
+      const scope = document.getElementById('radarScopeCircle');
+      if (scope) {
+        scope.style.borderColor = p.border;
+        scope.style.boxShadow = `0 0 35px ${p.glow}, inset 0 0 40px ${p.glow}`;
+      }
+      if (btn) {
+        btn.style.background = p.glow;
+        btn.style.borderColor = p.border;
+        btn.style.color = p.text;
+      }
+      showToast(`HUD Palette: ${code} 🎨`);
+    }
+
+    function filterRadarNodesByQuery(q) {
+      const clean = (q || '').toLowerCase().trim();
+      document.querySelectorAll('#view-radar .hotspot-card').forEach(card => {
+        card.style.display = (!clean || card.textContent.toLowerCase().includes(clean)) ? '' : 'none';
+      });
     }
 
     const BLIP_PROFILES = {
@@ -5226,7 +6059,7 @@
       'Marcus Vance': {
         avatar: '🎥',
         distance: '1.4 km away',
-        bio: 'Independent filmmaker and videographer. Documenting Seattle’s street artists and hidden culinary spots. Let\'s collaborate!',
+        bio: 'Independent filmmaker and videographer. Documenting street artists and hidden culinary spots. Let\'s collaborate!',
         connected: false
       },
       'Maya Patel': {
@@ -5244,17 +6077,14 @@
       'Officer Davis': {
         avatar: '🛡️',
         distance: '0.5 km away',
-        bio: 'Seattle Green Zone Safe-Haven coordinator. Ensuring safe-haven commercial swaps and neighborhood security.',
+        bio: 'Green Zone Safe-Haven coordinator. Ensuring safe-haven commercial swaps and neighborhood security.',
         connected: true
       }
     };
 
     function showBlipDetails(name, distance, type, _category) {
-      if (isGhostMode) {
-        showToast("Cloaked on radar. Exit Ghost Mode to interact! 👻");
-        return;
-      }
-      
+      if (checkGhostAction('inspect & connect with live radar blips')) return;
+
       const profile = BLIP_PROFILES[name] || {
         avatar: '👤',
         distance: distance + ' away',
@@ -5266,7 +6096,7 @@
       document.getElementById('blipName').textContent = name;
       document.getElementById('blipDistance').textContent = profile.distance;
       document.getElementById('blipBio').textContent = profile.bio;
-      
+
       const connectBtn = document.getElementById('blipConnectBtn');
       if (profile.connected) {
         connectBtn.textContent = '✓ Connected';
@@ -5279,7 +6109,7 @@
         connectBtn.style.color = '#041B26';
         connectBtn.classList.remove('connected');
       }
-      
+
       connectBtn.onclick = function() {
         toggleConnectBlip(this, name);
       };
@@ -5307,13 +6137,13 @@
 
     let clipAutoScrollActive = false;
     let clipSoundMuted = false;
-    
+
     function toggleClipAutoScroll(btn) {
       clipAutoScrollActive = !clipAutoScrollActive;
       btn.classList.toggle('active', clipAutoScrollActive);
       showToast(clipAutoScrollActive ? 'Auto-Scroll Enabled 🔁' : 'Manual Scroll Mode ☝️');
     }
-    
+
     function toggleClipSound(btn) {
       clipSoundMuted = !clipSoundMuted;
       btn.classList.toggle('active', !clipSoundMuted);
@@ -5337,9 +6167,12 @@
       }
     }
 
+    // Guest Spectator & Ghost Mode Restriction Gate (100% Synced with Android GhostRestrictionDialog.kt)
     function checkGhostAction(actionDescription) {
-      if (isGhostMode) {
-        document.getElementById('ghostActionDescription').textContent = actionDescription;
+      const isSpectator = !currentUser || currentUser.isGuestSpectator || currentUser.uid === 'ghost_spectator';
+      if (isSpectator || isGhostMode) {
+        const descEl = document.getElementById('ghostActionDescription');
+        if (descEl) descEl.textContent = actionDescription;
         document.getElementById('ghostActionModalBackdrop').classList.add('open');
         if (window.navigator.vibrate) window.navigator.vibrate([40, 40]);
         return true;
@@ -5350,10 +6183,15 @@
     function closeGhostActionModal() {
       document.getElementById('ghostActionModalBackdrop').classList.remove('open');
     }
-    
+
     function disableGhostModeFromModal() {
+      const isSpectator = !currentUser || currentUser.isGuestSpectator || currentUser.uid === 'ghost_spectator';
+      if (isSpectator) {
+        reopenFullSignInGate();
+        return;
+      }
       closeGhostActionModal();
-      toggleGhostMode();
+      if (isGhostMode) toggleGhostMode();
       showToast('Ghost Mode Cloaking disabled! Profile active. 🌐');
     }
 
@@ -5442,8 +6280,267 @@
     }
 
     // ========================================================
-    // LOCALIIIY PULSE 3-TAB, CHRONOLOGICAL, HASHTAG & QUICK BROADCAST LOGIC
+    // LOCALIIIY PULSE 3-TAB, LOCAL COMMUNITY HUB (5 SUB-TABS) &
+    // 15-CATEGORY CIVIC TOOLS + AI TRANSLATOR ENGINE
     // ========================================================
+    const CIVIC_CATEGORIES_15 = [
+      { id: 'BLOOD_SOS', label: 'Blood SOS', emoji: '🚨', desc: 'Critical medical blood & emergency responder alerts', f1: 'Blood Group & Units Required *', f2: 'Hospital / Medical Center *', f3: 'Attendant Contact & Doctor Verification *' },
+      { id: 'LOST_FOUND', label: 'Lost & Found', emoji: '🐾', desc: 'Missing pets, wallets, keys & ID recovery', f1: 'Lost / Found Item or Pet Name *', f2: 'Last Seen Street / Landmark *', f3: 'Distinguishing Marks & Reward / Contact *' },
+      { id: ' CIVIC_FIX', label: 'Civic Fix', emoji: '🚧', desc: 'Potholes, broken streetlights, water & drainage issues', f1: 'Infrastructure Issue Summary *', f2: 'Exact Ward / Road / Pole Number *', f3: 'Severity & Municipal Ticket Reference *' },
+      { id: 'RIDE_POOL', label: 'Ride Pool', emoji: '🚗', desc: 'Verified neighbor carpools & station commutes', f1: 'Route (Origin -> Destination) *', f2: 'Departure Time & Seats Available *', f3: 'Vehicle Model & Cost-Share Details *' },
+      { id: 'FOOD_RESCUE', label: 'Food Rescue', emoji: '🍲', desc: 'Zero-waste surplus bakery, restaurant & community meals', f1: 'Surplus Food / Meal Description *', f2: 'Pickup Counter / Landmark *', f3: 'Portions Available & Pickup Window *' },
+      { id: 'SKILL_SWAP', label: 'Skill Swap', emoji: '🤝', desc: 'Time-banked neighborhood tutoring, repairs & workshops', f1: 'Skill Offered <-> Skill Requested *', f2: 'Neighborhood Hub / Online Option *', f3: 'Session Duration & Experience Level *' },
+      { id: 'FLASH_DEAL', label: 'Flash Deal', emoji: '⚡', desc: 'Hyperlocal shop flash discounts & group-buy drops', f1: 'Store Name & Flash Offer *', f2: 'Shop Address / Market Lane *', f3: 'Discount Code & Expiry Countdown *' },
+      { id: 'RENT_TOOL', label: 'Rent Tool', emoji: '🛠️', desc: 'Borrow power drills, ladders, cameras & garden gear', f1: 'Tool / Equipment Name *', f2: 'Pickup Block / Safe-Haven Spot *', f3: 'Hourly/Daily Rate & Refundable Deposit *' },
+      { id: 'PLAY_MATCH', label: 'Play Match', emoji: '⚽', desc: 'Turf football, cricket, badminton & running squads', f1: 'Sport & Players Needed *', f2: 'Turf / Court / Park Name *', f3: 'Match Time & Skill Level *' },
+      { id: 'WORK_CAFE', label: 'Work Cafe', emoji: '☕', desc: 'Wi-Fi speed, power outlets & quiet co-working check-ins', f1: 'Cafe / Library Name & Wi-Fi Speed *', f2: 'Street / District Landmark *', f3: 'Plug Availability, Noise Level & Perks *' },
+      { id: 'YARD_SALE', label: 'Yard Sale', emoji: '📦', desc: 'Weekend garage sales, moving clearances & stoop swaps', f1: 'Yard / Moving Sale Headline *', f2: 'Block / Apartment Gate Landmark *', f3: 'Key Items & Timing Window *' },
+      { id: 'SAFE_WALK', label: 'Safe Walk', emoji: '🛡️', desc: 'Late-night companion walks & CCTV Safe-Haven escorts', f1: 'Walk Route (Start -> Destination) *', f2: 'Departure Time & Checkpoint *', f3: 'Group Size & Verification Preference *' },
+      { id: 'STREET_ART', label: 'Street Art', emoji: '🎸', desc: 'Live buskers, mural drops, indie screenings & open mics', f1: 'Performance / Mural Title *', f2: 'Plaza / Alleyway Spot *', f3: 'Artist Handle & Showtime *' },
+      { id: 'PLANT_SWAP', label: 'Plant Swap', emoji: '🌱', desc: 'Seedlings, monstera cuttings, compost & urban gardening', f1: 'Plant Cutting / Seed Variety *', f2: 'Garden / Balcony Pickup Area *', f3: 'Care Notes & Swap Preference *' },
+      { id: 'ELDER_CARE', label: 'Elder Care', emoji: '👵', desc: 'Pharmacy runs, tech help & wellness check-ins for seniors', f1: 'Assistance Needed / Offered *', f2: 'Senior Residence Ward / Block *', f3: 'Schedule & Verified Neighbor Contact *' }
+    ];
+
+    let activeCivicCategoryId = 'BLOOD_SOS';
+    let activeCivicRadiusKm = 3;
+
+    function renderCivicCategoriesStrip() {
+      const strip = document.getElementById('civicCategoriesStrip');
+      if (!strip) return;
+      strip.innerHTML = '';
+      CIVIC_CATEGORIES_15.forEach(cat => {
+        const cleanId = cat.id.trim();
+        const isSelected = cleanId === activeCivicCategoryId;
+        const pill = document.createElement('div');
+        pill.style.cssText = `display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:12px;cursor:pointer;flex-shrink:0;transition:all 0.2s;background:${isSelected ? 'rgba(0,229,255,0.16)' : 'rgba(255,255,255,0.05)'};border:1.2px solid ${isSelected ? '#00E5FF' : 'rgba(255,255,255,0.1)'};color:${isSelected ? '#FFFFFF' : '#94A3B8'};`;
+        pill.innerHTML = `
+          <span onclick="selectCivicCategory('${cleanId}')" style="font-size:12px;font-weight:800;">${cat.emoji} ${cat.label}</span>
+          <button type="button" onclick="event.stopPropagation();openCivicToolPostModal('${cleanId}')" title="Create ${cat.label} Broadcast" style="width:20px;height:20px;border-radius:50%;border:none;background:${isSelected ? '#00E5FF' : 'rgba(255,255,255,0.14)'};color:${isSelected ? '#041B26' : '#FFFFFF'};font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        `;
+        strip.appendChild(pill);
+      });
+    }
+
+    function selectCivicCategory(catId) {
+      activeCivicCategoryId = catId.trim();
+      const cat = CIVIC_CATEGORIES_15.find(c => c.id.trim() === activeCivicCategoryId) || CIVIC_CATEGORIES_15[0];
+      const titleEl = document.getElementById('activeCivicCategoryTitle');
+      const descEl = document.getElementById('activeCivicCategoryDesc');
+      const btnLbl = document.getElementById('activeCivicCreateBtnLabel');
+      if (titleEl) titleEl.textContent = `${cat.emoji} ${cat.label}`;
+      if (descEl) descEl.textContent = cat.desc;
+      if (btnLbl) btnLbl.textContent = cat.label;
+      renderCivicCategoriesStrip();
+      renderCivicPostsFeed();
+    }
+
+    function setCivicRadiusFilter(km, btn) {
+      activeCivicRadiusKm = Number(km) || 50;
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.civic-radius-pill').forEach(b => {
+          b.style.background = 'rgba(255,255,255,0.06)';
+          b.style.borderColor = 'rgba(255,255,255,0.12)';
+          b.style.color = '#94A3B8';
+          b.classList.remove('active');
+        });
+        btn.style.background = '#00E5FF';
+        btn.style.borderColor = '#00E5FF';
+        btn.style.color = '#041B26';
+        btn.classList.add('active');
+      }
+      renderCivicPostsFeed();
+      showToast(`Civic Proximity Filter: Within ${activeCivicRadiusKm} KM 📍`);
+    }
+
+    function openCivicToolPostModal(catId) {
+      if (checkGhostAction('publish a verified Civic Tool broadcast')) return;
+      if (catId) selectCivicCategory(catId);
+      const cat = CIVIC_CATEGORIES_15.find(c => c.id.trim() === activeCivicCategoryId) || CIVIC_CATEGORIES_15[0];
+      document.getElementById('civicModalEmoji').textContent = cat.emoji;
+      document.getElementById('civicModalTitle').textContent = `New ${cat.label} Broadcast`;
+      document.getElementById('civicModalDesc').textContent = cat.desc;
+      document.getElementById('civicField1Label').textContent = cat.f1;
+      document.getElementById('civicField2Label').textContent = cat.f2;
+      document.getElementById('civicField3Label').textContent = cat.f3;
+      document.getElementById('civicPostModalBackdrop').classList.add('open');
+    }
+
+    async function submitCivicToolPost(e) {
+      e.preventDefault();
+      if (checkGhostAction('publish a verified Civic Tool broadcast')) return;
+      const cat = CIVIC_CATEGORIES_15.find(c => c.id.trim() === activeCivicCategoryId) || CIVIC_CATEGORIES_15[0];
+      const title = document.getElementById('civicPostTitleInput').value.trim();
+      const location = document.getElementById('civicPostLocationInput').value.trim();
+      const details = document.getElementById('civicPostDetailsInput').value.trim();
+      const radiusKm = Number(document.getElementById('civicPostRadiusSelect').value) || 5;
+      const civicId = 'civic_' + Date.now();
+
+      const item = {
+        id: civicId,
+        catId: cat.id.trim(),
+        catLabel: cat.label,
+        catEmoji: cat.emoji,
+        title,
+        location,
+        details,
+        radiusKm,
+        distanceKm: 0.4,
+        authorName: (currentUser && currentUser.fullName) || 'Verified Neighbor',
+        authorHandle: (currentUser && currentUser.username) || '@neighbor',
+        timestamp: 'Just now • Verified Proximity ☁️'
+      };
+
+      civicPosts.unshift(item);
+      localStorage.setItem('localiiiy_civic_posts', JSON.stringify(civicPosts));
+      renderCivicPostsFeed();
+
+      if (isFirebaseLive && fbDb) {
+        try {
+          await fbDb.collection('civic_posts').doc(civicId).set({
+            ...item,
+            authorId: (currentUser && currentUser.uid) || 'web_user',
+            createdAt: Date.now()
+          });
+        } catch (_e) {}
+      }
+
+      document.getElementById('civicPostTitleInput').value = '';
+      document.getElementById('civicPostLocationInput').value = '';
+      document.getElementById('civicPostDetailsInput').value = '';
+      document.getElementById('civicPostModalBackdrop').classList.remove('open');
+      recordAuditLog('CIVIC_TOOL_POST', `Published ${cat.label} broadcast (${civicId})`);
+      showToast(`${cat.emoji} ${cat.label} broadcast published to ${radiusKm} KM radar!`);
+    }
+
+    function renderCivicPostsFeed() {
+      const feed = document.getElementById('civicToolsPostsFeed');
+      if (!feed) return;
+      const cat = CIVIC_CATEGORIES_15.find(c => c.id.trim() === activeCivicCategoryId) || CIVIC_CATEGORIES_15[0];
+      const filtered = civicPosts
+        .filter(p => (p.catId === cat.id.trim()) && ((Number(p.distanceKm) || 0.8) <= activeCivicRadiusKm))
+        .sort((a, b) => (Number(a.distanceKm) || 0.8) - (Number(b.distanceKm) || 0.8));
+
+      feed.innerHTML = '';
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding: 18px; border-radius: 14px; background: rgba(15,23,42,0.75); border: 1px dashed rgba(0,229,255,0.3); text-align: center;';
+        empty.innerHTML = `
+          <div style="font-size: 26px; margin-bottom: 6px;">${cat.emoji}</div>
+          <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">No active ${cat.label} broadcasts within ${activeCivicRadiusKm} KM</div>
+          <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">${cat.desc}. Sorted by Ascending Proximity (Max 50 KM).</div>
+          <button type="button" onclick="openCivicToolPostModal('${cat.id.trim()}')" style="margin-top: 10px; padding: 7px 14px; border-radius: 999px; border: none; background: #00E5FF; color: #041B26; font-size: 11.5px; font-weight: 900; cursor: pointer;">+ Post First ${cat.label} Alert</button>
+        `;
+        feed.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement('div');
+        card.style.cssText = 'padding: 14px; border-radius: 14px; background: rgba(15,23,42,0.9); border: 1px solid rgba(0,229,255,0.28); display: flex; flex-direction: column; gap: 6px;';
+        card.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span style="padding:3px 9px;border-radius:999px;background:rgba(0,229,255,0.14);color:#00E5FF;font-size:10.5px;font-weight:900;">${item.catEmoji} ${item.catLabel} • ${item.distanceKm || 0.4} KM AWAY</span>
+            <span style="font-size:10px;color:#94A3B8;font-weight:700;">Radius: ${item.radiusKm} KM</span>
+          </div>
+          <div style="font-size:14px;font-weight:800;color:#FFFFFF;">${item.title}</div>
+          <div style="font-size:11.5px;color:#10B981;font-weight:700;">📍 ${item.location}</div>
+          <div style="font-size:12px;color:#CBD5E1;line-height:1.45;">${item.details}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);">
+            <span style="font-size:11px;color:#94A3B8;">By <strong>${item.authorName}</strong> (${item.authorHandle}) • ${item.timestamp}</span>
+            <button type="button" onclick="openSimulatedEngagementChat('${item.authorName}', '${item.catLabel}', '${item.title.replace(/'/g, '')}')" style="padding:5px 12px;border-radius:999px;border:1px solid rgba(16,185,129,0.45);background:rgba(16,185,129,0.15);color:#10B981;font-size:11px;font-weight:800;cursor:pointer;">🤝 Respond</button>
+          </div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    function toggleCivicAiTranslator() {
+      const body = document.getElementById('civicAiTranslatorBody');
+      const chev = document.getElementById('civicTranslatorChevron');
+      if (!body) return;
+      const open = body.style.display === 'none';
+      body.style.display = open ? 'block' : 'none';
+      if (chev) chev.textContent = open ? '▲ Collapse' : '▼ Expand';
+    }
+
+    function simulateCivicVoiceDictation() {
+      const inp = document.getElementById('civicTranslateInput');
+      if (inp) {
+        inp.value = 'Emergency water pipeline repair underway near Ward 4 Market Square; please use alternate lane until 6 PM.';
+      }
+      showToast('🎙️ Voice Dictation Captured!');
+    }
+
+    function runCivicAiTranslation() {
+      const inp = document.getElementById('civicTranslateInput');
+      const lang = document.getElementById('civicTargetLangSelect')?.value || 'Hindi (हिन्दी)';
+      const out = document.getElementById('civicTranslateOutput');
+      const text = (inp && inp.value.trim()) || 'Neighbors, community health camp is open at Ward 4 Plaza from 9 AM to 4 PM.';
+      const sampleMap = {
+        'Hindi (हिन्दी)': `🇮🇳 [हिन्दी अनुवाद]: पड़ोसियों के लिए सूचना — "${text}" (सत्यापित स्थानीय प्रसारण • वार्ड 4)`,
+        'Konkani (कोंकणी)': `🌴 [कोंकणी अणकार]: शेजाऱ्यांनो लक्ष दियात — "${text}" (स्थानीय समुदाय सूचना)`,
+        'Marathi (मराठी)': `🚩 [मराठी भाषांतर]: सर्व शेजाऱ्यांसाठी महत्त्वाची सूचना — "${text}"`,
+        'Tamil (தமிழ்)': `🌺 [தமிழ் மொழிபெயர்ப்பு]: அன்புடைய அண்டை வீட்டாரே — "${text}"`,
+        'Telugu (తెలుగు)': `✨ [తెలుగు అనువాదం]: స్థానిక నివాసితులకు ముఖ్య గమనిక — "${text}"`,
+        'Bengali (বাংলা)': `🌿 [বাংলা অনুবাদ]: প্রতিবেশীদের জন্য জরুরি বার্তা — "${text}"`,
+        'Spanish (Español)': `🌎 [Traducción Español]: Aviso hiperlocal verificado para los vecinos — "${text}"`,
+        'French (Français)': `🇫🇷 [Traduction Française]: Alerte de proximité vérifiée — "${text}"`
+      };
+      if (out) {
+        out.style.display = 'block';
+        out.textContent = sampleMap[lang] || `[${lang}]: ${text}`;
+      }
+      showToast(`🗣️ Translated into ${lang}!`);
+    }
+
+    function selectCommunityHub(btn, title, meta) {
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.community-hub-pill').forEach(b => {
+          b.style.background = 'rgba(255,255,255,0.05)';
+          b.style.borderColor = 'rgba(255,255,255,0.12)';
+          b.style.color = '#CBD5E1';
+          b.classList.remove('active');
+        });
+        btn.style.background = 'rgba(16,185,129,0.18)';
+        btn.style.borderColor = '#10B981';
+        btn.style.color = '#10B981';
+        btn.classList.add('active');
+      }
+      const titleEl = document.getElementById('activeCommunityTitle');
+      const metaEl = document.getElementById('activeCommunityMeta');
+      if (titleEl) titleEl.textContent = title;
+      if (metaEl) metaEl.textContent = meta;
+      showToast(`Switched Community Hub: ${title}`);
+    }
+
+    function switchCommunitySubTab(tabId, btn) {
+      if (btn && btn.parentElement) {
+        btn.parentElement.querySelectorAll('.comm-subtab-btn').forEach(b => {
+          b.style.background = 'transparent';
+          b.style.color = '#94A3B8';
+          b.classList.remove('active');
+        });
+        btn.style.background = 'rgba(0,229,255,0.18)';
+        btn.style.color = '#00E5FF';
+        btn.classList.add('active');
+      }
+      ['feed', 'voice', 'polls', 'vault', 'vip'].forEach(id => {
+        const panel = document.getElementById(`commSubTab-${id}`);
+        if (panel) panel.style.display = id === tabId ? 'block' : 'none';
+      });
+    }
+
+    function openGoLiveModal() {
+      if (checkGhostAction('start a live neighborhood video stream')) return;
+      document.getElementById('goLiveModalBackdrop').classList.add('open');
+    }
+
+    function launchGoLiveStream() {
+      const title = document.getElementById('goLiveTitleInput')?.value.trim() || 'Live Neighborhood Walk & Check-In';
+      document.getElementById('goLiveModalBackdrop').classList.remove('open');
+      showToast(`🔴 LIVE NOW: "${title}" broadcasting to nearby neighbors!`);
+    }
+
     function switchPulseSubTab(subTab) {
       if (window.navigator.vibrate) window.navigator.vibrate(4);
       const feedBtn = document.getElementById('btnPulseTabFeed');
@@ -5461,8 +6558,12 @@
       if (commContainer) commContainer.style.display = subTab === 'community' ? 'block' : 'none';
       if (civicContainer) civicContainer.style.display = subTab === 'civic' ? 'block' : 'none';
 
-      if (subTab === 'community') showToast('Switched to Localiiiy Community Hub 🏘️');
-      else if (subTab === 'civic') showToast('Switched to Civic Tools & Safe-Haven Governance 🛡️');
+      if (subTab === 'community') showToast('Switched to Local Community Hub (5 Sub-Tabs) 🏘️');
+      else if (subTab === 'civic') {
+        renderCivicCategoriesStrip();
+        renderCivicPostsFeed();
+        showToast('Switched to Civic Tools (15 Hyperlocal Categories) 🚨');
+      }
       else showToast('Switched to Live Pulse Feed 📡');
     }
 
@@ -5545,6 +6646,7 @@
 
     let attachedCommunityType = null;
     function attachCommunityItem(type) {
+      if (checkGhostAction('attach items to community posts')) return;
       attachedCommunityType = type;
       if (type === 'market') showToast('Attached latest Marketplace listing to community post 🛍️');
       else if (type === 'studio') showToast('Attached 4K Studio episode to community post 🎥');
@@ -5552,6 +6654,7 @@
     }
 
     function publishCommunityPost() {
+      if (checkGhostAction('post to the Local Community Hub')) return;
       const input = document.getElementById('communityPostInput');
       const text = input.value.trim();
       if (!text) {
@@ -5587,10 +6690,11 @@
     }
 
     function openInviteNeighborModal() {
+      if (checkGhostAction('invite neighbors to a community hub')) return;
       showToast('Invite link copied! Share with nearby connected neighbors to add them to this hub 🔗');
     }
 
-    // Secondary Auth Modal
+    // Secondary Auth Modal (Also synced with Live Firebase Auth & Firestore)
     function openAuthModal(mode) {
       document.getElementById('authModalBackdrop').classList.add('open');
       switchAuthTab(mode);
@@ -5612,56 +6716,127 @@
       }
     }
 
-    function handleRegister(e) {
+    async function handleRegister(e) {
       e.preventDefault();
-      const fullName = document.getElementById('regFullName').value;
-      const usernameRaw = document.getElementById('regUsername').value;
-      const username = usernameRaw.startsWith('@') ? usernameRaw : `@${usernameRaw}`;
-      const neighborhood = document.getElementById('regNeighborhood').value;
-      const email = document.getElementById('regEmail').value;
+      const fullName = document.getElementById('regFullName').value.trim();
+      const usernameClean = document.getElementById('regUsername').value.trim().replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const username = `@${usernameClean}`;
+      const neighborhood = document.getElementById('regNeighborhood').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
       const password = document.getElementById('regPassword').value;
 
-      if (users.find(u => u.email === email || u.username === username)) {
-        showToast('Account already exists! Try signing in.');
-        return;
+      let uid = 'usr_' + Date.now();
+      if (isFirebaseLive && fbAuth && fbDb) {
+        try {
+          const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
+          if (cred && cred.user) uid = cred.user.uid;
+          await fbDb.collection('usernames').doc(usernameClean).set({
+            uid,
+            username: usernameClean,
+            email,
+            createdAt: Date.now()
+          });
+          await fbDb.collection('users').doc(uid).set({
+            uid,
+            displayName: fullName,
+            fullName,
+            username: usernameClean,
+            handle: username,
+            email,
+            neighborhood,
+            visibilityMode: 'SHOW',
+            sparks: 100,
+            connectionsCount: 1,
+            platform: 'web_android_synced',
+            createdAt: Date.now()
+          }, { merge: true });
+        } catch (_e) {}
       }
 
       const newUser = {
-        uid: 'usr_' + Date.now(),
+        uid,
         fullName,
         username,
         neighborhood,
         email,
         password,
         connections: 1,
-        sparks: 100
+        sparks: 100,
+        visibilityMode: 'SHOW',
+        isGuestSpectator: false
       };
 
+      isGhostMode = false;
       users.push(newUser);
       localStorage.setItem('localiiiy_all_users', JSON.stringify(users));
       currentUser = newUser;
       localStorage.setItem('localiiiy_active_user', JSON.stringify(newUser));
-      
+
       updateUserUI(newUser);
+      syncRadarTopStatusHeader();
       closeAuthModal();
-      showToast(`Welcome to Localiiiy, ${fullName}! 🚀 Account created.`);
+      showToast(`Welcome to Localiiiy, ${fullName}! 🚀 Synced with Android & Cloud.`);
     }
 
-    function handleLogin(e) {
+    async function handleLogin(e) {
       e.preventDefault();
-      const identifier = document.getElementById('loginEmail').value;
+      const rawIdentifier = document.getElementById('loginEmail').value.trim().toLowerCase();
       const pass = document.getElementById('loginPassword').value;
 
-      const user = users.find(u => (u.email === identifier || u.username === identifier) && u.password === pass);
+      if (isFirebaseLive && fbAuth) {
+        try {
+          let resolvedEmail = rawIdentifier;
+          const isEmailFormat = rawIdentifier.includes('@') && !rawIdentifier.startsWith('@') && rawIdentifier.split('@')[1]?.includes('.');
+          if (!isEmailFormat && fbDb) {
+            const cleanHandle = rawIdentifier.replace(/^@/, '').replace(/[^a-z0-9_]/g, '');
+            const hDoc = await fbDb.collection('usernames').doc(cleanHandle).get();
+            if (hDoc.exists && hDoc.data()?.email) resolvedEmail = hDoc.data().email;
+          }
+          const cred = await fbAuth.signInWithEmailAndPassword(resolvedEmail, pass);
+          if (cred && cred.user) {
+            let pData = null;
+            if (fbDb) {
+              const uDoc = await fbDb.collection('users').doc(cred.user.uid).get();
+              if (uDoc.exists) pData = uDoc.data();
+            }
+            const cleanH = (pData && (pData.username || (pData.handle || '').replace(/^@/, ''))) || resolvedEmail.split('@')[0];
+            const cUser = {
+              uid: cred.user.uid,
+              fullName: (pData && (pData.displayName || pData.fullName)) || cred.user.displayName || cleanH,
+              username: `@${cleanH}`,
+              neighborhood: (pData && pData.neighborhood) || currentLocationLabel || 'Pike Place, Seattle',
+              email: resolvedEmail,
+              connections: (pData && pData.connectionsCount) || 142,
+              sparks: (pData && pData.sparks) || 250,
+              visibilityMode: (pData && pData.visibilityMode) || 'SHOW',
+              isGuestSpectator: false
+            };
+            isGhostMode = cUser.visibilityMode === 'GHOST';
+            currentUser = cUser;
+            localStorage.setItem('localiiiy_active_user', JSON.stringify(cUser));
+            updateUserUI(cUser);
+            syncRadarTopStatusHeader();
+            closeAuthModal();
+            showToast(`Welcome back, ${cUser.fullName}! ☁️ Synced with Android & Cloud.`);
+            return;
+          }
+        } catch (_e) {}
+      }
+
+      const cleanInput = rawIdentifier.replace(/^@/, '');
+      const user = users.find(u => (u.email?.toLowerCase() === rawIdentifier || u.username?.toLowerCase() === rawIdentifier || u.username?.toLowerCase() === `@${cleanInput}`) && u.password === pass);
 
       if (user) {
+        user.isGuestSpectator = false;
+        isGhostMode = user.visibilityMode === 'GHOST';
         currentUser = user;
         localStorage.setItem('localiiiy_active_user', JSON.stringify(user));
         updateUserUI(user);
+        syncRadarTopStatusHeader();
         closeAuthModal();
         showToast(`Welcome back, ${user.fullName}! 👋 Logged in.`);
       } else {
-        showToast('Invalid credentials. Check your email/password.');
+        showToast('Invalid credentials. Check your @username / email and password.');
       }
     }
 
@@ -5711,7 +6886,13 @@
           profAvatar.textContent = user.avatarEmoji || initial;
         }
       }
-      
+
+      const specBanner = document.getElementById('guestSpectatorTopBanner');
+      if (specBanner) {
+        const isSpec = !user || user.isGuestSpectator || user.uid === 'ghost_spectator';
+        specBanner.style.display = isSpec ? 'flex' : 'none';
+      }
+
       const authBtn = document.getElementById('headerAuthBtn');
       if (authBtn) authBtn.onclick = () => switchDeck('profile');
     }

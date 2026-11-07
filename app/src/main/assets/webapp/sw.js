@@ -1,5 +1,5 @@
-// Localiiiy Service Worker v2.4.0 (100% Android Parity & Instant Cache Purge)
-const CACHE_NAME = 'localiiiy-cache-v2.4.0-android-100-parity';
+// Localiiiy Service Worker v2.4.0 (100% Android Parity: Civic Tools, Tactical Radar & Bidirectional Auth)
+const CACHE_NAME = 'localiiiy-cache-v2.4.0-civic-radar-auth-100-sync';
 const STATIC_ASSETS = [
   './',
   './index.html',
