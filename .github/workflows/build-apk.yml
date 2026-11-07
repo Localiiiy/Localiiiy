@@ -22,27 +22,34 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
-          cache: gradle
 
-      - name: Prepare Environment File
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Prepare Environment, Keystore & Firebase Config
         run: |
           if [ ! -f ".env" ]; then
             cp .env.example .env || touch .env
           fi
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x gradlew
+          if [ ! -f "app/google-services.json" ]; then
+            cp app/google-services.example.json app/google-services.json
+          fi
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -53,16 +60,18 @@ jobs:
       - name: Create or Update GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: "Localiiiy v1.0.0 — Official Android Release"
+          tag_name: v2.4.0
+          name: "Localiiiy v2.4.0 — Official Android Release & 100% Web Parity"
           body: |
-            ### 📱 Localiiiy Android Official APK Release
-            Welcome to Localiiiy v1.0.0!
+            ### 📱 Localiiiy Android Official APK Release (v2.4.0)
+            100% synchronized with the live Localiiiy Web App (`https://localiiiy.web.app`).
 
-            #### Download Instructions:
-            1. Download `Localiiiy-v1.0.apk` directly under **Assets** below.
-            2. Tap the downloaded file on your Android phone to install.
-            3. Enjoy live spatial radar, hyperlocal clips, and secure escrow marketplace!
+            #### Official Links:
+            - **Google Play Store**: https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live
+            - **Apple App Store**: Available Soon
+            - **Official Web App**: https://localiiiy.web.app
+            - **Privacy Policy**: [PRIVACY_POLICY.md](./PRIVACY_POLICY.md) | https://localiiiy.web.app/privacy
+            - **Terms of Service**: [TERMS_OF_SERVICE.md](./TERMS_OF_SERVICE.md) | https://localiiiy.web.app/terms
           draft: false
           prerelease: false
           files: app/build/outputs/apk/debug/app-debug.apk

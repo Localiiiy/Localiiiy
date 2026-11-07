@@ -3,16 +3,12 @@ name: Continuous APK-to-Web Parity & Mirror Sync
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'app/**'
-      - 'gradle/**'
-      - 'build.gradle.kts'
-      - 'public/**'
-      - 'index.html'
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build-and-sync-apk:
@@ -25,61 +21,64 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: ☕ Set up JDK 17
+      - name: ☕ Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
-          cache: gradle
 
       - name: 📱 Set up Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v3
 
-      - name: 🔐 Prepare Environment
+      - name: 🐘 Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: 🔐 Prepare Environment, Keystore & Firebase Template
         run: |
           if [ ! -f ".env" ]; then
             cp .env.example .env || touch .env
           fi
-          chmod +x gradlew clean_build.sh
+          if [ ! -f "app/google-services.json" ]; then
+            cp app/google-services.example.json app/google-services.json
+          fi
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
 
-      - name: 🔨 1. Compile Signed Android APK
+      - name: 🔨 1. Compile Android APK
         run: |
-          ./gradlew :app:assembleRelease --no-daemon --stacktrace
+          gradle :app:assembleDebug --no-daemon --stacktrace
 
       - name: 📦 2. Copy Fresh APK into Web Distribution Paths
         run: |
           mkdir -p public/downloads downloads
-          cp app/build/outputs/apk/release/app-release.apk public/downloads/Localiiiy.apk
-          cp app/build/outputs/apk/release/app-release.apk public/Localiiiy.apk
-          cp app/build/outputs/apk/release/app-release.apk downloads/Localiiiy.apk
-          cp app/build/outputs/apk/release/app-release.apk Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk public/downloads/Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk public/Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk downloads/Localiiiy.apk
+          cp app/build/outputs/apk/debug/app-debug.apk Localiiiy.apk
 
-      - name: 🏷️ 3. Update Release Metadata in Web App and metadata.json
+      - name: 🏷️ 3. Update Release Metadata in Web App
         run: |
           APK_SHA=$(sha256sum Localiiiy.apk | awk '{print $1}')
           APK_SIZE=$(du -h Localiiiy.apk | awk '{print $1}')
           VERSION="v2.4.0"
           echo "$APK_SHA  Localiiiy.apk" > public/downloads/checksums.txt
-          
-          # Update index.html
           sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" public/index.html || true
           sed -i "s/SHA-256: [a-f0-9]*/SHA-256: $APK_SHA/g" index.html || true
-          
-          # Update metadata.json using jq
-          if command -v jq > /dev/null; then
-            jq --arg v "$VERSION" --arg s "$APK_SHA" '. + {version: $v, apkSha256: $s}' metadata.json > metadata.json.tmp && mv metadata.json.tmp metadata.json
-          else
-            # Fallback if jq is not present
-            sed -i "s/\"name\"/\"version\": \"$VERSION\", \"apkSha256\": \"$APK_SHA\", \"name\"/" metadata.json
-          fi
-          
-          echo "Syncing metadata: Version $VERSION | Size $APK_SIZE | SHA256 $APK_SHA"
+          echo "Synced metadata: Version $VERSION | Size $APK_SIZE | SHA256 $APK_SHA"
 
-      - name: 🚀 4. Deploy to Firebase Hosting via GitHub Actions
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          channelId: live
-          projectId: localiiiy
+      - name: 🚀 4. Deploy to Firebase Hosting (if FIREBASE_SERVICE_ACCOUNT is configured)
+        continue-on-error: true
+        env:
+          FB_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -n "$FB_SA" ]; then
+            echo "$FB_SA" > /tmp/fb-sa.json
+            export GOOGLE_APPLICATION_CREDENTIALS="/tmp/fb-sa.json"
+            npx --yes firebase-tools deploy --only hosting --project localiiiy
+            rm -f /tmp/fb-sa.json
+          else
+            echo "FIREBASE_SERVICE_ACCOUNT secret not configured yet in this repo; skipping Firebase CLI deploy."
+          fi

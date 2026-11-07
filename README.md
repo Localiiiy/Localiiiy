@@ -18,15 +18,15 @@ It empowers verified neighbors to **Connect**, broadcast across a **Dual-Reach L
 
 ---
 
-## 📲 Official Downloads & Live Platform Links
+## 📲 Official Downloads, Legal Policies & Live Platform Links
 
-| Platform | Status | Direct Link |
+| Platform / Document | Status | Direct Link |
 | :--- | :--- | :--- |
 | 🤖 **Google Play Store (Android)** | **🟢 LIVE** | **[Download the app from Google Play Store](https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live)** |
 | 🍎 **Apple App Store (iOS / iPadOS)** | **⏳ AVAILABLE SOON** | **Available Soon on the Apple App Store** *(Priority launch alerts available on web)* |
 | 🌐 **Official Web Application (PWA)** | **🟢 LIVE (100% Android Synced)** | **[https://localiiiy.web.app](https://localiiiy.web.app)** |
-| 📜 **Omnibus Terms of Service** | **🟢 LIVE (24-Article Charter)** | **[https://localiiiy.web.app/terms](https://localiiiy.web.app/terms)** |
-| 🔒 **Global Privacy Policy** | **🟢 LIVE (GDPR / DPDP / CCPA)** | **[https://localiiiy.web.app/privacy](https://localiiiy.web.app/privacy)** |
+| 🔒 **Privacy Policy (GitHub & Web)** | **🟢 LIVE (GDPR / DPDP / Play Data Safety)** | **[GitHub Privacy Policy (`PRIVACY_POLICY.md`)](https://github.com/Localiiiy/Localiiiy/blob/main/PRIVACY_POLICY.md)** • **[Web Privacy Portal](https://localiiiy.web.app/privacy)** |
+| 📜 **Terms of Service (GitHub & Web)** | **🟢 LIVE (24-Article Omnibus Charter)** | **[GitHub Terms of Service (`TERMS_OF_SERVICE.md`)](https://github.com/Localiiiy/Localiiiy/blob/main/TERMS_OF_SERVICE.md)** • **[Web Terms Portal](https://localiiiy.web.app/terms)** |
 
 > **📲 Download the app from Google Play Store:**  
 > 👉 **[https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live](https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live)**  
