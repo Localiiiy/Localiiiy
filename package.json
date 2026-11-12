@@ -1,0 +1,14 @@
+{
+  "name": "localiiiy-web",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Localiiiy Hyperlocal Community & Radar Web App (Synced with Android v3.0.0)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "echo 'Static web assets ready in public/'",
+    "start": "node server.js"
+  }
+}
