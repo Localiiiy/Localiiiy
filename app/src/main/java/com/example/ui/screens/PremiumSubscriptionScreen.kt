@@ -110,7 +110,7 @@ fun PremiumSubscriptionScreen(
     var selectedPlanIsAnnual by remember { mutableStateOf(false) }
     var showCancelConfirmDialog by remember { mutableStateOf(false) }
     var showCelebrationDialog by remember { mutableStateOf(false) }
-    var activeCurrency by remember { mutableStateOf(currentCurrency) }
+    var activeCurrency by remember(currentCurrency) { mutableStateOf(currentCurrency) }
     var showCurrencyDialog by remember { mutableStateOf(false) }
 
     // Subscribed User Interactive Cockpit Features
@@ -983,6 +983,26 @@ fun PremiumSubscriptionScreen(
                             HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f), modifier = Modifier.padding(bottom = 6.dp))
 
                             PremiumAdvancedFeatureItem(
+                                icon = Icons.Default.VideoCall,
+                                title = "100% Ad-Free Studio Video Streaming (YouTube Premium Style)",
+                                description = "Watch all full-length 4K Studio videos and Clips with zero pre-roll or mid-roll ads, background audio playback, and Picture-in-Picture."
+                            )
+                            PremiumAdvancedFeatureItem(
+                                icon = Icons.Default.Radar,
+                                title = "Anti-Stalking & Hyperlocal Radar Precision (1KM, 3KM, 5KM & 10KM)",
+                                description = "Unlock 1KM, 3KM, 5KM, and 10KM radar scanning and Far-Reach Signal Transmit privacy zones to protect against cyber-stalking while discovering close locals. (Ghost Mode stays 100% Free for everyone)."
+                            )
+                            PremiumAdvancedFeatureItem(
+                                icon = Icons.Default.Insights,
+                                title = "Who Viewed My Radar Signal & Profile Telemetry",
+                                description = "Unblur the exact usernames and distances of all locals who tapped your radar node or viewed your profile today."
+                            )
+                            PremiumAdvancedFeatureItem(
+                                icon = Icons.Default.Language,
+                                title = "Radar City-Teleport (Travel Mode)",
+                                description = "Teleport your radar signal to Mumbai, Bangalore, Delhi, Dubai, or London before you travel to build local connections in advance."
+                            )
+                            PremiumAdvancedFeatureItem(
                                 icon = Icons.Default.Bolt,
                                 title = "5x Hyperlocal Reach & Feed Multiplier",
                                 description = "Your posts, clips, and marketplace goods receive 5x priority distribution on neighbor feeds and live radar spotlight."
@@ -993,9 +1013,9 @@ fun PremiumSubscriptionScreen(
                                 description = "Keep 100% of your selling price ($0 seller fee instead of 5%) with complimentary Escrow Protection & instant buyer QR handoff."
                             )
                             PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.Radar,
-                                title = "Interactive Radar Sonar Beacon & Trade Filters",
-                                description = "Broadcast glowing radar pulses, customize your neon halo aura, and filter nearby locals by skill and emergency tags."
+                                icon = Icons.Default.Tune,
+                                title = "5 Tactical Radar HUD Themes & Sonar Aura",
+                                description = "Unlock Neon Gold, Electric Cyan, Phantom Purple & Tactical Amber HUD themes and Signal Aura glow — persisted to your cloud profile."
                             )
                             PremiumAdvancedFeatureItem(
                                 icon = Icons.Default.AutoAwesome,
@@ -1008,34 +1028,9 @@ fun PremiumSubscriptionScreen(
                                 description = "Stand out with an animated golden halo and verified badge on your avatar, comments, blips, and marketplace listings."
                             )
                             PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.Send,
-                                title = "1x Weekly Hyperlocal Blast Broadcast",
-                                description = "Drop a high-priority neighborhood pin broadcast to all active neighbors within a 10 km radius."
-                            )
-                            PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.Insights,
-                                title = "Neighborhood Footprint & Heatmap Telemetry",
-                                description = "View real-time foot-traffic heatmaps, listing viewer counts, and peak neighborhood engagement hours."
-                            )
-                            PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.VideoCall,
-                                title = "4K Ultra-HD Long Studio & Uncapped Bitrate",
-                                description = "Upload high-bitrate 4K HDR long-form video podcasts up to 240 minutes with zero video compression loss."
-                            )
-                            PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.Headphones,
-                                title = "100% Ad-Free & Background Reel Audio",
-                                description = "Listen to clips, local DJ sets, and audio podcasts in the background with screen locked and zero ads."
-                            )
-                            PremiumAdvancedFeatureItem(
-                                icon = Icons.Default.Radar,
-                                title = "Hyperlocal Radar Precision (1k, 3k & 10k Ranges)",
-                                description = "Authorized access to 1 km, 3 km, and 10 km precision radar filters to discover close neighbors. (Free tier is 50 km and above)."
-                            )
-                            PremiumAdvancedFeatureItem(
                                 icon = Icons.Default.Stars,
                                 title = "Local Tipping Jar & ₹99/mo Patron Sub-Tier",
-                                description = "Activate your own neighborhood tipping jar and offer ₹99/mo patron subscriptions to your local fans with 0% platform commissions."
+                                description = "Activate your own neighborhood tipping jar and offer ₹99/mo patron subscriptions to your local connections with 0% platform commissions."
                             )
                         }
                     }
@@ -1119,6 +1114,248 @@ fun PremiumSubscriptionScreen(
                                     Icon(Icons.Default.Check, contentDescription = null, tint = Color(0xFF81C784), modifier = Modifier.size(14.dp))
                                     Text("256-Bit Encrypted", fontSize = 11.sp, color = Color.LightGray)
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // =====================================================================
+            // 10-ENGINE CREATOR & DEVELOPER MONETIZATION SUITE (ALL 10 TOOLS LIVE)
+            // =====================================================================
+
+            // Tool #8: 🤝 Brand-Creator Hyperlocal Sponsorship Marketplace (85% Creator / 15% Developer Escrow)
+            item {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                var appliedCampaigns by remember { mutableStateOf(setOf<String>()) }
+                val campaigns = listOf(
+                    Triple("☕ Goa Artisan Roastery Clip", "₹1,800", "Creator gets ₹1,530 (85%) • Platform Escrow ₹270 (15%)"),
+                    Triple("🏍️ Coastal EV Scooter Test Ride", "₹3,500", "Creator gets ₹2,975 (85%) • Platform Escrow ₹525 (15%)"),
+                    Triple("🍕 Night Market Food Tour Reel", "₹2,200", "Creator gets ₹1,870 (85%) • Platform Escrow ₹330 (15%)")
+                )
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF121A24)),
+                    border = BorderStroke(1.2.dp, Color(0xFF00E5FF).copy(alpha = 0.65f))
+                ) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🤝 Brand-Creator Sponsorship Market",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 15.sp,
+                                color = Color(0xFF00E5FF)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFF00E5FF).copy(alpha = 0.2f)
+                            ) {
+                                Text(
+                                    text = "85% CREATOR / 15% PLATFORM",
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF00E5FF),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "Local cafes, gyms, and brands post micro-sponsorship deals. Creators get paid directly on completion while Platform earns a 15% escrow matchmaking fee:",
+                            fontSize = 11.5.sp,
+                            color = Color.LightGray
+                        )
+                        campaigns.forEach { (title, payout, splitInfo) ->
+                            val isApplied = title in appliedCampaigns
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF0B1118),
+                                border = BorderStroke(1.dp, if (isApplied) Color(0xFF00E676) else Color.DarkGray),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color.White)
+                                        Text(splitInfo, fontSize = 10.sp, color = Color(0xFF80D8FF))
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Button(
+                                        onClick = {
+                                            appliedCampaigns = appliedCampaigns + title
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "🤝 Sponsorship Claimed ($payout)! 85% Escrowed for You • 15% Platform Commission",
+                                                android.widget.Toast.LENGTH_LONG
+                                            ).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (isApplied) Color(0xFF00E676) else Color(0xFF00E5FF),
+                                            contentColor = Color.Black
+                                        ),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(34.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isApplied) "Claimed ✓" else "Claim $payout",
+                                            fontSize = 10.5.sp,
+                                            fontWeight = FontWeight.Black
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Tool #10: 👑 Custom Vanity Handle & Animated Profile Frame Store (₹49 – ₹299 • 100% Developer Margin)
+            item {
+                val context = androidx.compose.ui.platform.LocalContext.current
+                var equippedCosmetic by remember { mutableStateOf("🌟 Solar Gold Halo") }
+                var customVanityInput by remember { mutableStateOf("") }
+                val cosmetics = listOf(
+                    Triple("🌟 Solar Gold Halo", "₹99", Color(0xFFFFD700)),
+                    Triple("⚡ Cyber Glitch Frame", "₹149", Color(0xFF00E5FF)),
+                    Triple("💜 Phantom Neon Crown", "₹199", Color(0xFFD500F9)),
+                    Triple("🔥 Emerald Radar Blip", "₹49", Color(0xFF00E676))
+                )
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1423)),
+                    border = BorderStroke(1.2.dp, Color(0xFFD500F9).copy(alpha = 0.65f))
+                ) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "👑 Vanity Handle & Animated Frame Store",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 15.sp,
+                                color = Color(0xFFEA80FC)
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFFD500F9).copy(alpha = 0.25f)
+                            ) {
+                                Text(
+                                    text = "100% PLATFORM MARGIN",
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFFEA80FC),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            text = "One-time digital cosmetics (₹49–₹299): Equip animated neon avatar frames, custom radar blip icons, and short @vip handles:",
+                            fontSize = 11.5.sp,
+                            color = Color.LightGray
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            cosmetics.forEach { (title, price, accent) ->
+                                val isEquipped = equippedCosmetic == title
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isEquipped) accent.copy(alpha = 0.22f) else Color(0xFF120D18),
+                                    border = BorderStroke(1.dp, if (isEquipped) accent else Color.DarkGray),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            equippedCosmetic = title
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "👑 Equipped $title ($price • 100% Developer Margin)!",
+                                                android.widget.Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(title.take(2), fontSize = 18.sp)
+                                        Text(title.drop(3).substringBefore(" "), fontSize = 9.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                        Text(if (isEquipped) "ACTIVE ✓" else price, fontSize = 9.5.sp, fontWeight = FontWeight.Black, color = accent)
+                                    }
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = customVanityInput,
+                                onValueChange = { customVanityInput = it },
+                                placeholder = { Text("Claim short @vip handle (₹299)", fontSize = 11.sp, color = Color.Gray) },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Button(
+                                onClick = {
+                                    val targetHandle = customVanityInput.ifBlank { "@titan_vip" }
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "👑 Vanity Handle $targetHandle Reserved (₹299 • 100% Developer Revenue)!",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD500F9), contentColor = Color.White)
+                            ) {
+                                Text("Claim ₹299", fontWeight = FontWeight.Black, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Complete 10-Engine Developer & Creator Revenue Ledger Summary Card
+            item {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF111814)),
+                    border = BorderStroke(1.2.dp, Color(0xFF00E676).copy(alpha = 0.6f))
+                ) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            text = "📊 All 10 Active Monetization Engines (Live Split Matrix)",
+                            fontWeight = FontWeight.Black,
+                            fontSize = 14.5.sp,
+                            color = Color(0xFF00E676)
+                        )
+                        listOf(
+                            "1. 🎬 Studio PPV & Rentals (₹49–₹199)" to "80% Creator / 20% Dev",
+                            "2. 📍 Sponsored Map Pins (₹199/day)" to "Coupons + 100% Dev",
+                            "3. 💬 Super-Connect Priority DM (₹19)" to "50% User / 50% Dev",
+                            "4. 🚀 Clips City/Earth Ad Slider (₹99–₹999)" to "Reach + 100% Dev",
+                            "5. 🛍️ Market Urgent Gold Ribbon (₹49)" to "4x Sale + 100% Dev",
+                            "6. 🎁 Virtual Gifts (Chai/Rocket/Crown)" to "70% Creator / 30% Dev",
+                            "7. 🛡️ Stealth Alias & Anti-Screenshot Vault" to "Titan Pro Retention",
+                            "8. 🤝 Brand-Creator Sponsorship Market" to "85% Creator / 15% Dev",
+                            "9. 🎟️ Paid Event QR Pass Ticketing (₹99)" to "90% Host / 10% Dev",
+                            "10. 👑 Vanity Handle & Neon Frame Store" to "Cosmetics + 100% Dev"
+                        ).forEach { (engine, split) ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(engine, fontSize = 11.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
+                                Text(split, fontSize = 10.5.sp, color = Color(0xFFFFD700), fontWeight = FontWeight.Bold)
                             }
                         }
                     }

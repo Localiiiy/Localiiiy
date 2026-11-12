@@ -54,6 +54,7 @@ import com.example.data.PostEntity
 import com.example.util.HotspotAlert
 import com.example.util.LocaliiiyLanguage
 import com.example.util.LocaliiiyCurrency
+import com.example.util.LocalAppCurrency
 import com.example.util.LocalizationHelper
 import com.example.util.LocalAppLanguage
 import com.example.util.LocaliiiyStringKey
@@ -92,19 +93,26 @@ fun configureAppCheck(context: Context, intent: android.content.Intent?) {
         if (FirebaseApp.getApps(context).isEmpty()) {
             FirebaseApp.initializeApp(context)
         }
+        if (FirebaseApp.getApps(context).isEmpty()) {
+            android.util.Log.i(APP_CHECK_TAG, "FirebaseApp not configured in this build; skipping App Check initialization.")
+            return
+        }
         if (BuildConfig.DEBUG) {
+            val persistenceKey = FirebaseApp.getInstance().persistenceKey
+            val prefs = context.getSharedPreferences(
+                "$DEBUG_STORE_PREFIX$persistenceKey",
+                Context.MODE_PRIVATE
+            )
             val debugToken = intent?.getStringExtra(DEBUG_TOKEN_EXTRA)
             if (!debugToken.isNullOrEmpty()) {
-                val persistenceKey = FirebaseApp.getInstance().persistenceKey
-                val prefs = context.getSharedPreferences(
-                    "$DEBUG_STORE_PREFIX$persistenceKey",
-                    Context.MODE_PRIVATE
-                )
                 prefs.edit()
                     .putString(DEBUG_SECRET_KEY, debugToken)
                     .commit()
+                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(true)
                 android.util.Log.d(APP_CHECK_TAG, "App Check debug secret configured successfully.")
             } else {
+                val existingToken = prefs.getString(DEBUG_SECRET_KEY, null)
+                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(!existingToken.isNullOrEmpty())
                 android.util.Log.w(APP_CHECK_TAG, "No debug token found in Intent extra.")
             }
             FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
@@ -119,15 +127,19 @@ fun configureAppCheck(context: Context, intent: android.content.Intent?) {
                     FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
                         RecaptchaAppCheckProviderFactory.getInstance(siteKey)
                     )
+                    com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(true)
                     android.util.Log.d(APP_CHECK_TAG, "RecaptchaAppCheckProviderFactory installed.")
                 } else {
+                    com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(false)
                     android.util.Log.e(APP_CHECK_TAG, "recaptcha_site_key resource string is blank.")
                 }
             } else {
+                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(false)
                 android.util.Log.e(APP_CHECK_TAG, "recaptcha_site_key string resource not found in package.")
             }
         }
     } catch (e: Exception) {
+        com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(false)
         android.util.Log.e(APP_CHECK_TAG, "Failed to initialize Firebase App Check", e)
     }
 }
@@ -152,23 +164,6 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         
         parseDeepLink(intent)
-        try {
-            if (FirebaseApp.getApps(this).isEmpty()) {
-                val apiKey = BuildConfig.FIREBASE_API_KEY
-                if (apiKey.isNotBlank()) {
-                    val options = FirebaseOptions.Builder()
-                        .setApplicationId("1:1018994361953:android:c515f741e9454ed8ad4c20")
-                        .setProjectId("localiiiy")
-                        .setStorageBucket("localiiiy.firebasestorage.app")
-                        .setApiKey(apiKey)
-                        .setGcmSenderId("1018994361953")
-                        .build()
-                    FirebaseApp.initializeApp(this, options)
-                }
-            }
-        } catch (e: Throwable) {
-            android.util.Log.w("MainActivity", "FirebaseApp init fallback: ${e.message}")
-        }
         enableEdgeToEdge()
         setContent {
             val viewModel: com.example.ui.LocaliiiyViewModel = viewModel()
@@ -384,6 +379,7 @@ fun LocaliiiyApp(
     val showStudioCreatorDashboard by viewModel.showStudioCreatorDashboard.collectAsStateWithLifecycle()
 
     val currentCurrency by viewModel.currentCurrency.collectAsStateWithLifecycle()
+    val isCurrencyManualOverride by viewModel.isCurrencyManualOverride.collectAsStateWithLifecycle()
     val currentLanguage by viewModel.currentLanguage.collectAsStateWithLifecycle()
     val showLanguageCurrencyDialog by viewModel.showLanguageCurrencyDialog.collectAsStateWithLifecycle()
     val showHelpSheet by viewModel.showHelpSheet.collectAsStateWithLifecycle()
@@ -391,6 +387,7 @@ fun LocaliiiyApp(
     val showDataAnalysis by viewModel.showDataAnalysis.collectAsStateWithLifecycle()
     val showMonetizationHub by viewModel.showMonetizationHub.collectAsStateWithLifecycle()
     val showBoostAdDialog by viewModel.showBoostAdDialog.collectAsStateWithLifecycle()
+    val showPremiumSubscriptionModal by viewModel.showPremiumSubscriptionModal.collectAsStateWithLifecycle()
     val showAtmosphericThemeBottomSheet by viewModel.showAtmosphericThemeBottomSheet.collectAsStateWithLifecycle()
     val creatorEarnings by viewModel.creatorEarnings.collectAsStateWithLifecycle()
     val payoutAccount by viewModel.payoutAccount.collectAsStateWithLifecycle()
@@ -499,13 +496,19 @@ fun LocaliiiyApp(
             "BLACK_HOLE" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF020205), Color(0xFF1E0B38), Color(0xFFFF6A00))))
             "MOON" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF0F172A), Color(0xFF334155), Color(0xFF38BDF8))))
             "GALAXY" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF070414), Color(0xFF4338CA), Color(0xFFD946EF))))
+            "AURORA" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF021016), Color(0xFF04262E), Color(0xFF063B32))))
+            "SUNSET" -> Modifier.background(Brush.linearGradient(listOf(Color(0xFF1A0510), Color(0xFF3E0A1D), Color(0xFF6B1528))))
             else -> Modifier.background(defaultBackground)
         }
     }
 
+    var isDockMinimized by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         CompositionLocalProvider(
-            LocalAppLanguage provides currentLanguage
+            LocalAppLanguage provides currentLanguage,
+            LocalAppCurrency provides currentCurrency,
+            LocalIsDockMinimized provides isDockMinimized
         ) {
             if (isLoggedOut) {
                 AuthScreen(
@@ -545,19 +548,98 @@ fun LocaliiiyApp(
             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
         }
 
+        var isStudioFullscreen by remember { mutableStateOf(false) }
+        val isStudioPlayerActive = currentTab == MainNavigationTab.STUDIO && activeStudioVideo != null
+        LaunchedEffect(isStudioPlayerActive) {
+            if (!isStudioPlayerActive) {
+                isStudioFullscreen = false
+            }
+        }
+
         Scaffold(
             containerColor = Color.Transparent,
             contentColor = MaterialTheme.colorScheme.onBackground,
-            snackbarHost = { SnackbarHost(snackbarHostState) },
+            contentWindowInsets = if (isStudioFullscreen || isStudioPlayerActive) WindowInsets(0, 0, 0, 0) else ScaffoldDefaults.contentWindowInsets,
+            snackbarHost = {
+                SnackbarHost(snackbarHostState) { data ->
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color.Transparent,
+                        shadowElevation = 10.dp,
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.2.dp,
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color(0xFF00E5FF),
+                                    Color(0xFF00FF87),
+                                    Color(0xFF7C4DFF)
+                                )
+                            )
+                        ),
+                        modifier = Modifier
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .background(
+                                    Brush.horizontalGradient(
+                                        listOf(
+                                           Color(0xFF06283D),
+                                            Color(0xFF0A3D62),
+                                            Color(0xFF1B1464)
+                                        )
+                                    )
+                                )
+                                .padding(horizontal = 14.dp, vertical = 11.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFF00E5FF).copy(alpha = 0.22f),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00E5FF)),
+                                modifier = Modifier.size(30.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.NotificationsActive,
+                                        contentDescription = null,
+                                        tint = Color(0xFF00E5FF),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = data.visuals.message,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            data.visuals.actionLabel?.let { actionLabel ->
+                                TextButton(onClick = { data.performAction() }) {
+                                    Text(
+                                        text = actionLabel,
+                                        color = Color(0xFF00FF87),
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             topBar = {
-                if (currentTab == MainNavigationTab.FEED) {
+                if (currentTab == MainNavigationTab.FEED && !isStudioFullscreen) {
                     Box(modifier = Modifier.zIndex(100f)) {
                         LocaliiiyTopBar(
                             hasUnreadNotifications = notifications.any { !it.isRead },
                             hasUnreadMessages = conversations.any { !it.isRead },
                             currentLocationLabel = currentLocation?.landmark ?: "Your Neighborhood",
                             isLocationEnabled = isLocationEnabled,
-                            isPrivateAccount = isPrivateAccount,
+                            isPrivateAccount = isPrivateAccount || privacySettings.isGhostMode || isGhostSpectator,
                             searchQuery = globalSearchQuery,
                             currentLanguage = currentLanguage,
                             currentCurrency = currentCurrency,
@@ -611,45 +693,50 @@ fun LocaliiiyApp(
                     }
                 }
             },
-        bottomBar = {
-            if (currentTab != MainNavigationTab.CREATE) {
-                DeckSwitcherBar(
-                    currentTab = currentTab,
-                    userAvatarUrl = userProfile.avatarUrl,
-                    currentLanguage = currentLanguage,
-                    onTabSelected = { tab ->
-                        if (isGhostSpectator && (tab == MainNavigationTab.CREATE || tab == MainNavigationTab.PROFILE)) {
-                            viewModel.promptLoginForAction(
-                                if (tab == MainNavigationTab.CREATE) "to create posts, clips, and stories"
-                                else "to access your personal Space and account settings"
-                            )
-                        } else {
-                            if (tab == MainNavigationTab.CREATE) {
-                                viewModel.setCreationMode(CreationMode.POST)
+            bottomBar = {
+                if (currentTab != MainNavigationTab.CREATE && !isStudioFullscreen && !isStudioPlayerActive) {
+                    DeckSwitcherBar(
+                        currentTab = currentTab,
+                        userAvatarUrl = userProfile.avatarUrl,
+                        currentLanguage = currentLanguage,
+                        activeThemeKey = privacySettings.appThemeBackground,
+                        isDockMinimized = isDockMinimized,
+                        onDockMinimizedChange = { isDockMinimized = it },
+                        onTabSelected = { tab ->
+                            if (isGhostSpectator && (tab == MainNavigationTab.CREATE || tab == MainNavigationTab.PROFILE)) {
+                                viewModel.promptLoginForAction(
+                                    if (tab == MainNavigationTab.CREATE) "to create posts, clips, and stories"
+                                    else "to access your personal Space and account settings"
+                                )
+                            } else {
+                                if (tab == MainNavigationTab.CREATE) {
+                                    viewModel.setCreationMode(CreationMode.POST)
+                                }
+                                viewModel.selectTab(tab)
                             }
-                            viewModel.selectTab(tab)
                         }
-                    }
-                )
-            }
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { innerPadding ->
-        Box(
+                    )
+                }
+            },
             modifier = Modifier.fillMaxSize()
-        ) {
-            // App Atmospheric Background flows full-screen including behind bottom bar
-            AppAtmosphereBackground(
-                themeKey = privacySettings.appThemeBackground,
-                customImageUri = privacySettings.customBackgroundImageUri,
-                modifier = Modifier.fillMaxSize()
-            )
-
+        ) { innerPadding ->
             Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                modifier = Modifier.fillMaxSize()
             ) {
+                // App Atmospheric Background flows full-screen including behind bottom bar
+                AppAtmosphereBackground(
+                    themeKey = privacySettings.appThemeBackground,
+                    customImageUri = privacySettings.customBackgroundImageUri,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = if (isStudioFullscreen || isStudioPlayerActive) 0.dp else innerPadding.calculateTopPadding()
+                        )
+                ) {
 
             when (currentTab) {
                 MainNavigationTab.FEED -> {
@@ -664,28 +751,40 @@ fun LocaliiiyApp(
                         otherUsers = otherUsers,
                         notifications = notifications,
                         selectedRadiusKm = nearbyRadiusKm,
-                        isLocationEnabled = isLocationEnabled,
-                        isPrivateAccount = isPrivateAccount,
+                        isLocationEnabled = isLocationEnabled && !isGhostSpectator,
+                        isPrivateAccount = isPrivateAccount || privacySettings.isGhostMode || isGhostSpectator,
                         isRefreshing = isRefreshingFeed,
                         onRefresh = { viewModel.refreshPulseFeed() },
                         onRadiusFilterChange = { radius -> viewModel.setNearbyRadiusFilter(radius) },
                         onLocationToggle = { enabled ->
-                            viewModel.setLocationEnabled(enabled)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(if (enabled) "Location Radar Enabled 📡" else "Location Radar Disabled (Off Grid) 🔒")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to enable live GPS radar broadcasting")
+                            } else {
+                                viewModel.setLocationEnabled(enabled)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(if (enabled) "Location Radar Enabled 📡" else "Location Radar Disabled (Off Grid) 🔒")
+                                }
                             }
                         },
                         onPrivateToggle = { isPrivate ->
-                            viewModel.setPrivateAccount(isPrivate)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(if (isPrivate) "Private Account (Ghost Mode) Enabled 👻" else "Public Visibility Enabled 🌐")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to exit Ghost Mode and broadcast publicly")
+                            } else {
+                                viewModel.setPrivateAccount(isPrivate)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(if (isPrivate) "Ghost Mode Enabled 👻 • RF Silent" else "Public Visibility Enabled 🌐")
+                                }
                             }
                         },
                         onOpenPrivacySettings = { viewModel.openPrivacySettings() },
                         onStoryClick = { story -> viewModel.openStory(story) },
                         onAddStoryClick = {
-                            viewModel.setCreationMode(CreationMode.STORY)
-                            viewModel.selectTab(MainNavigationTab.CREATE)
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to publish stories to your neighborhood Pulse")
+                            } else {
+                                viewModel.setCreationMode(CreationMode.STORY)
+                                viewModel.selectTab(MainNavigationTab.CREATE)
+                            }
                         },
                         onLikePost = { post -> viewModel.togglePostLike(post) },
                         onCommentPost = { post -> viewModel.openComments("POST", post.id) },
@@ -694,9 +793,13 @@ fun LocaliiiyApp(
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         onConnectUser = { user -> viewModel.toggleOtherUserConnect(user) },
                         onWaveAtNeighbor = { user ->
-                            viewModel.waveAtNeighbor(user)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Waved at ${user.username}! 👋 Proximity pulse sent.")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to wave at neighbors")
+                            } else {
+                                viewModel.waveAtNeighbor(user)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Waved at ${user.username}! 👋 Proximity pulse sent.")
+                                }
                             }
                         },
                         onMessageNeighbor = { user ->
@@ -741,7 +844,7 @@ fun LocaliiiyApp(
                         nearbyUsers = radarBlipUsers,
                         selectedRadiusKm = nearbyRadiusKm,
                         isLocationEnabled = isLocationEnabled,
-                        isPrivateAccount = isPrivateAccount,
+                        isPrivateAccount = isPrivateAccount || privacySettings.isGhostMode || isGhostSpectator,
                         privacySettings = privacySettings,
                         currentCurrency = currentCurrency,
                         currentLanguage = currentLanguage,
@@ -753,30 +856,57 @@ fun LocaliiiyApp(
                             }
                         },
                         onToggleHidePreciseLocation = { hide ->
-                            viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    if (hide) "Precise radar location hidden 🛡️ (Simulated as ${privacySettings.radarObfuscatedRange})"
-                                    else "Precise radar location visible 📡"
-                                )
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to configure live radar signal transmission")
+                            } else {
+                                viewModel.updatePrivacySettings(privacySettings.copy(hidePreciseLocationOnRadar = hide))
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(
+                                        if (hide) "📡 Signal Transmitting: Visible to other radars farther than ${privacySettings.radarObfuscatedRange}"
+                                        else "🟢 Signal Transmitting: Visible to all radars of other users"
+                                    )
+                                }
                             }
                         },
                         onSelectObfuscatedRange = { range ->
-                            viewModel.updatePrivacySettings(privacySettings.copy(radarObfuscatedRange = range))
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Live Radar range set to '$range' 🌌")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to configure live radar signal transmission")
+                            } else {
+                                viewModel.updatePrivacySettings(
+                                    privacySettings.copy(
+                                        hidePreciseLocationOnRadar = true,
+                                        radarObfuscatedRange = range
+                                    )
+                                )
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("📡 Signal Transmitting: Visible to other radars farther than $range")
+                                }
                             }
                         },
+                        onSelectHudTheme = { themeName ->
+                            viewModel.updateRadarHudTheme(themeName)
+                        },
+                        onUnlockPremiumClick = {
+                            viewModel.openPremiumSubscription()
+                        },
                         onLocationToggle = { enabled ->
-                            viewModel.setLocationEnabled(enabled)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(if (enabled) "Location Radar Enabled 📡" else "Location Radar Disabled (Off Grid) 🔒")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to enable live GPS radar broadcasting")
+                            } else {
+                                viewModel.setLocationEnabled(enabled)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(if (enabled) "Location Radar Enabled 📡" else "Location Radar Disabled (Off Grid) 🔒")
+                                }
                             }
                         },
                         onPrivateToggle = { isPrivate ->
-                            viewModel.setPrivateAccount(isPrivate)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(if (isPrivate) "Private Account (Ghost Mode) Enabled 👻" else "Public Visibility Enabled 🌐")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to exit Ghost Mode and broadcast on the live neighborhood radar")
+                            } else {
+                                viewModel.setPrivateAccount(isPrivate)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(if (isPrivate) "Ghost Mode Enabled 👻 • Transmitting & Receiving Disabled" else "Visible Mode Enabled 🌐 • Radar Transmitting")
+                                }
                             }
                         },
                         onOpenPrivacySettings = { viewModel.openPrivacySettings() },
@@ -793,9 +923,13 @@ fun LocaliiiyApp(
                         },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         onWaveAtUser = { user ->
-                            viewModel.waveAtNeighbor(user)
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Waved at ${user.username}! 👋")
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to wave at neighbors on Radar")
+                            } else {
+                                viewModel.waveAtNeighbor(user)
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar("Waved at ${user.username}! 👋")
+                                }
                             }
                         },
                         isRefreshing = isRefreshingExplore,
@@ -822,7 +956,9 @@ fun LocaliiiyApp(
                         onItemClick = { item -> viewModel.selectMarketplaceItem(item) },
                         onToggleSaveItem = { item -> viewModel.toggleMarketItemSaved(item) },
                         onOpenSellDialog = {
-                            if (isLoggedOut) {
+                            if (isGhostSpectator) {
+                                viewModel.promptLoginForAction("to list items for sale on Localiiiy Market")
+                            } else if (isLoggedOut) {
                                 viewModel.openAuthScreen(
                                     reason = "Authentication Required: Please sign in or register with Firebase to list marketplace items and protect local commerce.",
                                     initialMode = com.example.ui.screens.AuthScreenMode.LOGIN
@@ -898,7 +1034,8 @@ fun LocaliiiyApp(
                         onSearchQueryChange = { q -> viewModel.setStudioSearchQuery(q) },
                         onVideoClick = { video -> viewModel.openStudioVideo(video) },
                         onCloseVideo = {
-                            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            isStudioFullscreen = false
+                            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                             viewModel.closeStudioVideo()
                         },
                         onTogglePlayPause = { viewModel.toggleStudioPlayPause() },
@@ -941,7 +1078,10 @@ fun LocaliiiyApp(
                         onOpenLanguageCurrency = { viewModel.openLanguageCurrencyDialog() },
                         onUserProfileClick = { username -> viewModel.openUserProfile(username) },
                         isRefreshing = isRefreshingStudio,
-                        onRefresh = { viewModel.refreshStudio() }
+                        onRefresh = { viewModel.refreshStudio() },
+                        onFullscreenChange = { fs -> isStudioFullscreen = fs },
+                        isPremiumSubscribed = privacySettings.isPremiumConnected,
+                        onOpenPremium = { viewModel.openPremiumSubscription() }
                     )
                 }
 
@@ -1255,7 +1395,7 @@ fun LocaliiiyApp(
                         onOpenNotifications = { viewModel.openNotificationsSheet() },
                         isPremiumSubscribed = privacySettings.isPremiumConnected,
                         isGhostMode = privacySettings.isGhostMode,
-                        onOpenPremium = { viewModel.openPrivacySettings() },
+                        onOpenPremium = { viewModel.openPremiumSubscription() },
                         isRefreshing = isRefreshingProfile,
                         onRefresh = { viewModel.refreshProfile() },
                         onOpenAdvancedSandbox = { showAdvancedFeaturesScreen = true }
@@ -1449,6 +1589,35 @@ fun LocaliiiyApp(
         }
     }
 
+    // Direct Titan Pro Premium Subscription Screen Overlay (Reachable from Radar, Profile, and Settings)
+    if (showPremiumSubscriptionModal) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { viewModel.closePremiumSubscription() },
+            properties = androidx.compose.ui.window.DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            )
+        ) {
+            com.example.ui.screens.PremiumSubscriptionScreen(
+                isSubscribed = privacySettings.isPremiumConnected,
+                currentCurrency = currentCurrency,
+                onNavigateBack = { viewModel.closePremiumSubscription() },
+                onSubscribe = { isAnnual ->
+                    viewModel.connectToPremium(isAnnual)
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("👑 Titan Premium Activated! 1km–10km Radar, 50KM–Country Far-Reach & HUD Themes Unlocked!")
+                    }
+                },
+                onCancelSubscription = {
+                    viewModel.cancelPremiumSubscription()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Titan Premium subscription cancelled.")
+                    }
+                }
+            )
+        }
+    }
+
     // User Activity Log Screen Overlay (Transparency & Audit Trail)
     if (showUserActivityLog) {
         androidx.compose.ui.window.Dialog(
@@ -1521,31 +1690,33 @@ fun LocaliiiyApp(
         )
     }
 
-    // Advance Firebase Authentication Screen
+    // Advance Firebase Authentication Screen (Elevated above all top/bottom bars)
     if (showAuthScreen) {
-        AuthScreen(
-            initialMode = authInitialMode,
-            securityReason = authReason,
-            onDismiss = { viewModel.closeAuthScreen() },
-            onGhostSpectatorSuccess = {
-                viewModel.enterAsGhostSpectator()
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Stealth Spectator active 👻 • Zero GPS Footprint")
+        Box(modifier = Modifier.fillMaxSize().zIndex(5000f)) {
+            AuthScreen(
+                initialMode = authInitialMode,
+                securityReason = authReason,
+                onDismiss = { viewModel.closeAuthScreen() },
+                onGhostSpectatorSuccess = {
+                    viewModel.enterAsGhostSpectator()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Ghost Spectator (Read-Only Mode) active 👻")
+                    }
+                },
+                onScrubIdentity = {
+                    viewModel.resetSessionAndPurge()
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
+                    }
+                },
+                onAuthSuccess = { user, username, fullName, neighborhood ->
+                    viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Authenticated with Firebase as @$username! Content creation unlocked. 🔒✨")
+                    }
                 }
-            },
-            onScrubIdentity = {
-                viewModel.resetSessionAndPurge()
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
-                }
-            },
-            onAuthSuccess = { user, username, fullName, neighborhood ->
-                viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
-                coroutineScope.launch {
-                    snackbarHostState.showSnackbar("Authenticated with Firebase as @$username! Content creation unlocked. 🔒✨")
-                }
-            }
-        )
+            )
+        }
     }
 
     // Sign Up & Account Creation Dialog with Mandatory Legal Consent
@@ -1581,6 +1752,14 @@ fun LocaliiiyApp(
         GlobalLanguageCurrencyDialog(
             currentLanguage = currentLanguage,
             currentCurrency = currentCurrency,
+            detectedCountryName = currentLocation?.countryName?.ifBlank { privacySettings.radarCountryName } ?: privacySettings.radarCountryName,
+            isCurrencyManualOverride = isCurrencyManualOverride,
+            onResetCurrencyToLocationDefault = {
+                val autoCurr = viewModel.resetCurrencyToLocationDefault()
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar("Currency synced to location default: ${autoCurr.code} (${autoCurr.symbol}) 📍💱")
+                }
+            },
             onLanguageSelected = { lang ->
                 viewModel.setLanguage(lang)
                 LocalizationHelper.updateConfigurationLocale(context, lang)
@@ -1716,8 +1895,12 @@ fun LocaliiiyApp(
     ghostRestrictionPrompt?.let { _ ->
         JoinLocaliiiyBottomSheet(
             onDismiss = { viewModel.dismissGhostRestrictionPrompt() },
-            onLoginClick = { viewModel.openAuthFromSpectator() },
-            onCreateAccountClick = { viewModel.openAuthFromSpectator() }
+            onLoginClick = {
+                viewModel.openAuthFromSpectator(com.example.ui.screens.AuthScreenMode.LOGIN)
+            },
+            onCreateAccountClick = {
+                viewModel.openAuthFromSpectator(com.example.ui.screens.AuthScreenMode.REGISTER)
+            }
         )
     }
 

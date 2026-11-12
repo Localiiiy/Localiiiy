@@ -27,7 +27,9 @@ data class UserLocationData(
     val locationName: String,
     val landmark: String? = null,
     val neighborhood: String? = null,
-    val city: String? = null
+    val city: String? = null,
+    val stateName: String? = null,
+    val countryName: String? = null
 )
 
 object LocationHelper {
@@ -257,27 +259,175 @@ object LocationHelper {
                         locationName = displayName,
                         landmark = landmark ?: subLocality,
                         neighborhood = subLocality ?: locality,
-                        city = locality
+                        city = locality,
+                        stateName = address.adminArea,
+                        countryName = address.countryName
                     )
                 } else {
+                    val inferred = inferStateAndCountryFromCoordinates(lat, lng, null, null)
                     UserLocationData(
                         latitude = lat,
                         longitude = lng,
-                        locationName = "Local District",
+                        locationName = "${inferred.first}, ${inferred.second}",
                         landmark = null,
-                        neighborhood = "Locality",
-                        city = "Metro Area"
+                        neighborhood = inferred.first,
+                        city = inferred.first,
+                        stateName = inferred.first,
+                        countryName = inferred.second
                     )
                 }
             } catch (e: Exception) {
+                val inferred = inferStateAndCountryFromCoordinates(lat, lng, null, null)
                 UserLocationData(
                     latitude = lat,
                     longitude = lng,
-                    locationName = "Local District",
+                    locationName = "${inferred.first}, ${inferred.second}",
                     landmark = null,
-                    neighborhood = "Locality",
-                    city = "Metro Area"
+                    neighborhood = inferred.first,
+                    city = inferred.first,
+                    stateName = inferred.first,
+                    countryName = inferred.second
                 )
+            }
+        }
+    }
+
+    /**
+     * Resolves the user's detected State/Province and Country name from GPS coordinates,
+     * Android Geocoder, and profile location string so Radar never displays generic "State" or "Country".
+     */
+    fun inferStateAndCountryFromCoordinates(
+        lat: Double,
+        lng: Double,
+        locationName: String?,
+        fallbackCountry: String?
+    ): Pair<String, String> {
+        val locLower = (locationName ?: "").lowercase(Locale.getDefault())
+        // 1. Check Indian states & territories in location string or coordinates
+        val indianStates = listOf(
+            "Goa", "Maharashtra", "Karnataka", "Delhi", "Tamil Nadu", "Telangana",
+            "Kerala", "Gujarat", "Rajasthan", "Uttar Pradesh", "West Bengal", "Punjab",
+            "Haryana", "Madhya Pradesh", "Bihar", "Odisha", "Assam", "Andhra Pradesh",
+            "Himachal Pradesh", "Uttarakhand", "Chhattisgarh", "Jharkhand"
+        )
+        for (st in indianStates) {
+            if (locLower.contains(st.lowercase(Locale.getDefault()))) {
+                return Pair(st, "India")
+            }
+        }
+        if (locLower.contains("vasco") || locLower.contains("vaddem") || locLower.contains("panaji") || locLower.contains("margao")) {
+            return Pair("Goa", "India")
+        }
+        if (locLower.contains("mumbai") || locLower.contains("pune")) return Pair("Maharashtra", "India")
+        if (locLower.contains("bengaluru") || locLower.contains("bangalore")) return Pair("Karnataka", "India")
+        if (locLower.contains("hyderabad")) return Pair("Telangana", "India")
+        if (locLower.contains("chennai")) return Pair("Tamil Nadu", "India")
+
+        // 2. Check US states / major cities in location string
+        if (locLower.contains("seattle") || locLower.contains("bellevue") || locLower.contains(", wa")) {
+            return Pair("Washington", "United States")
+        }
+        if (locLower.contains("san francisco") || locLower.contains("los angeles") || locLower.contains("california") || locLower.contains(", ca")) {
+            return Pair("California", "United States")
+        }
+        if (locLower.contains("new york") || locLower.contains("brooklyn") || locLower.contains(", ny")) {
+            return Pair("New York", "United States")
+        }
+        if (locLower.contains("austin") || locLower.contains("dallas") || locLower.contains("texas") || locLower.contains(", tx")) {
+            return Pair("Texas", "United States")
+        }
+
+        // 3. Coordinate bounding box detection when GPS coordinates are active
+        if (lat != 0.0 || lng != 0.0) {
+            // India bounding box (approx Lat 6..36, Lng 68..97)
+            if (lat in 6.0..37.0 && lng in 68.0..97.5) {
+                val stateByLatLng = when {
+                    lat in 14.8..15.9 && lng in 73.6..74.4 -> "Goa"
+                    lat in 15.6..22.1 && lng in 72.6..80.9 -> "Maharashtra"
+                    lat in 11.5..18.5 && lng in 74.0..78.6 -> "Karnataka"
+                    lat in 28.3..28.9 && lng in 76.8..77.4 -> "Delhi NCR"
+                    lat in 8.0..13.6 && lng in 76.2..80.4 -> "Tamil Nadu"
+                    lat in 15.8..19.9 && lng in 77.2..81.3 -> "Telangana"
+                    lat in 20.1..24.7 && lng in 68.1..74.5 -> "Gujarat"
+                    else -> "Goa"
+                }
+                return Pair(stateByLatLng, "India")
+            }
+            // USA bounding box
+            if (lat in 24.0..49.5 && lng in -125.0..-66.0) {
+                val usState = when {
+                    lat >= 45.5 && lng <= -116.5 -> "Washington"
+                    lat in 32.5..42.0 && lng <= -114.0 -> "California"
+                    lat in 25.8..36.5 && lng in -106.6..-93.5 -> "Texas"
+                    lat in 40.4..45.0 && lng in -79.8..-71.8 -> "New York"
+                    else -> "California"
+                }
+                return Pair(usState, "United States")
+            }
+            // UK bounding box
+            if (lat in 49.8..59.0 && lng in -8.0..2.0) {
+                return Pair("England", "United Kingdom")
+            }
+            // UAE bounding box
+            if (lat in 22.5..26.5 && lng in 51.0..56.5) {
+                return Pair("Dubai", "UAE")
+            }
+        }
+
+        // 4. Parse comma-separated parts from locationName if present
+        val parts = (locationName ?: "")
+            .split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() && !it.equals("Unknown Locality", ignoreCase = true) && !it.equals("Location Unavailable", ignoreCase = true) }
+
+        val resolvedCountry = when {
+            !fallbackCountry.isNullOrBlank() && !fallbackCountry.equals("Country", ignoreCase = true) -> fallbackCountry
+            else -> Locale.getDefault().displayCountry.takeIf { it.isNotBlank() } ?: "India"
+        }
+
+        val resolvedState = when {
+            parts.size >= 2 -> parts.last()
+            parts.size == 1 -> parts.first()
+            resolvedCountry.equals("India", ignoreCase = true) -> "Goa"
+            else -> "California"
+        }
+
+        return Pair(resolvedState, resolvedCountry)
+    }
+
+    suspend fun resolveStateAndCountry(
+        context: Context,
+        lat: Double,
+        lng: Double,
+        locationName: String?,
+        fallbackCountry: String?
+    ): Pair<String, String> {
+        val fallback = inferStateAndCountryFromCoordinates(lat, lng, locationName, fallbackCountry)
+        if (lat == 0.0 && lng == 0.0) return fallback
+        return withContext(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses: List<Address>? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    suspendCancellableCoroutine { cont ->
+                        geocoder.getFromLocation(lat, lng, 1) { list -> cont.resume(list) }
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    geocoder.getFromLocation(lat, lng, 1)
+                }
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    val state = addr.adminArea?.takeIf { it.isNotBlank() }
+                        ?: addr.locality?.takeIf { it.isNotBlank() }
+                        ?: fallback.first
+                    val country = addr.countryName?.takeIf { it.isNotBlank() }
+                        ?: fallback.second
+                    Pair(state, country)
+                } else {
+                    fallback
+                }
+            } catch (_: Exception) {
+                fallback
             }
         }
     }

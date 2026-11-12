@@ -52,8 +52,8 @@ object AtmosphericThemeOptions {
             key = "BLACK_HOLE",
             name = "Black Hole",
             icon = "🕳️",
-            tag = "SINGULARITY",
-            description = "Ultra-deep void canvas with gravitational accretion plasma flare and lensing aura.",
+            tag = "SINGULARITY + SOLAR ICONS",
+            description = "Ultra-deep void canvas with accretion plasma flare and solar-amber task bar icons.",
             previewGradients = listOf(Color(0xFF020205), Color(0xFF1E0B38), Color(0xFFFF6A00)),
             badgeColor = Color(0xFFFF6A00)
         ),
@@ -61,8 +61,8 @@ object AtmosphericThemeOptions {
             key = "MOON",
             name = "Moon",
             icon = "🌕",
-            tag = "LUNAR SURFACE",
-            description = "Pristine lunar craters, luminous silver contrast, and serene moonbeam cyan accents.",
+            tag = "LUNAR + ICE CYAN ICONS",
+            description = "Pristine lunar craters, luminous silver contrast, and moonbeam-cyan task bar icons.",
             previewGradients = listOf(Color(0xFF0F172A), Color(0xFF334155), Color(0xFF38BDF8)),
             badgeColor = Color(0xFF38BDF8)
         ),
@@ -70,17 +70,35 @@ object AtmosphericThemeOptions {
             key = "GALAXY",
             name = "Galaxy",
             icon = "🌌",
-            tag = "DEEP COSMOS",
-            description = "Interstellar deep cosmic purple, stellar cyan orbits, and pulsar magenta stardust.",
+            tag = "COSMOS + PULSAR ICONS",
+            description = "Interstellar deep cosmic purple, stellar orbits, and pulsar-magenta task bar icons.",
             previewGradients = listOf(Color(0xFF070414), Color(0xFF4338CA), Color(0xFFD946EF)),
             badgeColor = Color(0xFFD946EF)
+        ),
+        AtmosphericThemeOption(
+            key = "AURORA",
+            name = "Aurora Borealis",
+            icon = "🟢",
+            tag = "BOREALIS + EMERALD ICONS",
+            description = "Northern lights emerald mist, glacial teal currents, and bio-luminescent task bar icons.",
+            previewGradients = listOf(Color(0xFF031A17), Color(0xFF064E3B), Color(0xFF00FF87)),
+            badgeColor = Color(0xFF00FF87)
+        ),
+        AtmosphericThemeOption(
+            key = "SUNSET",
+            name = "Solar Horizon",
+            icon = "🌅",
+            tag = "HORIZON + CORAL GOLD ICONS",
+            description = "Warm twilight crimson horizon with golden-amber and coral-rose task bar icons.",
+            previewGradients = listOf(Color(0xFF1F0812), Color(0xFF881337), Color(0xFFFFB300)),
+            badgeColor = Color(0xFFFFB300)
         ),
         AtmosphericThemeOption(
             key = "CUSTOM",
             name = "Custom",
             icon = "🖼️",
-            tag = "SELF IMAGE",
-            description = "Personal photo, selfie, camera picture, or curated high-res wallpaper backdrop.",
+            tag = "SELF IMAGE + NEON ICONS",
+            description = "Personal photo, selfie, camera picture, or curated wallpaper with multi-spectrum neon icons.",
             previewGradients = listOf(Color(0xFF00838F), Color(0xFF00B4D8), Color(0xFF0F172A)),
             badgeColor = LocaliiiyPrimaryTeal
         )

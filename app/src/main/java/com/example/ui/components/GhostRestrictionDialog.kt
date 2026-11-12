@@ -60,16 +60,16 @@ fun GhostRestrictionDialog(
         icon = {
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(68.dp)
                     .background(
                         brush = Brush.radialGradient(
-                            listOf(Color(0xFF00E5FF).copy(alpha = 0.25f), Color.Transparent)
+                            listOf(Color(0xFF00E5FF).copy(alpha = 0.28f), Color.Transparent)
                         ),
                         shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("👻", fontSize = 28.sp)
+                LocaliiiyAppLogoBadge(size = 56.dp)
             }
         },
         title = {
@@ -78,7 +78,7 @@ fun GhostRestrictionDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Sign In Required",
+                    text = "Join the Localiiiy",
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 20.sp
@@ -89,16 +89,22 @@ fun GhostRestrictionDialog(
                 Spacer(modifier = Modifier.height(4.dp))
                 Surface(
                     shape = RoundedCornerShape(100.dp),
-                    color = Color(0xFF00E5FF).copy(alpha = 0.12f),
-                    border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.4f))
+                    color = Color(0xFF00E5FF).copy(alpha = 0.14f),
+                    border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.45f))
                 ) {
-                    Text(
-                        text = "Guest Spectator Mode",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF00E5FF),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp)
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        LocaliiiyAppLogoBadge(size = 15.dp)
+                        Text(
+                            text = "Guest Spectator Mode • Sign In Required",
+                            fontSize = 10.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF00E5FF)
+                        )
+                    }
                 }
             }
         },

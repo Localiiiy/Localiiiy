@@ -134,24 +134,64 @@ fun FuzzyGeohashAuraRing(
 }
 
 /**
- * Section 3.2: Passive Sonar Ghost Mode HUD Indicator with Advanced Privacy and Scaled Broadcasting Visibility Settings
+ * Section 3.2: Signal Transmit & Far-Reach Privacy Selector
+ * - Switch OFF: User is transmitting position to all radars of other users (Nearby & Global).
+ * - Switch ON: User is transmitting position to distant radars only; reveals KM & State/Country options
+ *   (3KM, 5KM, 10KM, 50KM, 500KM, State, Country) so users who want local privacy can still gain attendance from afar.
  */
 @Composable
 fun PassiveSonarGhostBanner(
     isGhostActive: Boolean,
     onToggleGhost: () -> Unit,
-    broadcastingRadius: String = "3k",
+    broadcastingRadius: String = "3KM",
     onBroadcastingRadiusChange: (String) -> Unit = {},
+    detectedStateName: String = "Goa",
+    detectedCountryName: String = "India",
+    isPremium: Boolean = false,
+    isStealthGhostMode: Boolean = false,
+    onUnlockPremiumClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val distanceOptions = listOf("3k", "10k", "50k", "100k", "Country", "Earth")
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val stateLabel = detectedStateName.takeIf { it.isNotBlank() && !it.equals("State", ignoreCase = true) } ?: "Goa"
+    val countryLabel = detectedCountryName.takeIf { it.isNotBlank() && !it.equals("Country", ignoreCase = true) } ?: "India"
+
+    val normalizedSelection = remember(broadcastingRadius, stateLabel, countryLabel, isPremium) {
+        val raw = when (broadcastingRadius.uppercase()) {
+            "1K", "3K", "3KM" -> "3KM"
+            "5K", "5KM" -> "5KM"
+            "10K", "10KM" -> "10KM"
+            "50K", "50KM" -> "50KM"
+            "100K", "500K", "500KM" -> "500KM"
+            "STATE" -> stateLabel
+            "COUNTRY" -> countryLabel
+            else -> if (broadcastingRadius.equals(stateLabel, ignoreCase = true)) stateLabel
+            else if (broadcastingRadius.equals(countryLabel, ignoreCase = true)) countryLabel
+            else if (isPremium) "3KM" else "50KM"
+        }
+        if (!isPremium && (raw == "3KM" || raw == "5KM" || raw == "10KM" || raw == "500KM")) "50KM" else raw
+    }
+
+    // Exact KM & actual State/Country options requested by user
+    // 3KM, 5KM, 10KM (and 500KM) are locked in Titan Premium for anti-cyberstalking & hyperlocal privacy control
+    val distanceOptions = listOf("3KM", "5KM", "10KM", "50KM", "500KM", stateLabel, countryLabel)
+    val premiumOnlyOptions = setOf("3KM", "5KM", "10KM", "500KM")
+
+    val farReachDescription = remember(normalizedSelection, stateLabel, countryLabel) {
+        when (normalizedSelection) {
+            stateLabel -> "across $stateLabel (Statewide)"
+            countryLabel -> "across $countryLabel (Countrywide)"
+            else -> "farther than $normalizedSelection range"
+        }
+    }
 
     Surface(
         shape = RoundedCornerShape(14.dp),
-        color = if (isGhostActive) Color(0xFF03222B) else Color(0xFF021609),
+        color = if (isStealthGhostMode || isGhostActive) Color(0xFF04222C) else Color(0xFF021609),
         border = BorderStroke(
             1.2.dp,
-            if (isGhostActive) RadarCyanGlow.copy(alpha = 0.8f) else RadarPhosphor.copy(alpha = 0.5f)
+            if (isStealthGhostMode || isGhostActive) RadarCyanGlow.copy(alpha = 0.85f) else RadarPhosphor.copy(alpha = 0.55f)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -162,7 +202,7 @@ fun PassiveSonarGhostBanner(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onToggleGhost() },
+                    .clickable(enabled = !isStealthGhostMode) { onToggleGhost() },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -173,28 +213,36 @@ fun PassiveSonarGhostBanner(
                 ) {
                     Surface(
                         shape = CircleShape,
-                        color = if (isGhostActive) RadarCyanGlow.copy(alpha = 0.2f) else RadarPhosphor.copy(alpha = 0.15f),
-                        modifier = Modifier.size(28.dp)
+                        color = if (isStealthGhostMode || isGhostActive) RadarCyanGlow.copy(alpha = 0.2f) else RadarPhosphor.copy(alpha = 0.18f),
+                        modifier = Modifier.size(30.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                imageVector = if (isGhostActive) Icons.Default.VisibilityOff else Icons.Default.Sensors,
-                                contentDescription = "Ghost Sonar",
-                                tint = if (isGhostActive) RadarCyanGlow else RadarNeonGreen,
-                                modifier = Modifier.size(16.dp)
+                                imageVector = if (isStealthGhostMode) Icons.Default.VisibilityOff else if (isGhostActive) Icons.Default.Radar else Icons.Default.Sensors,
+                                contentDescription = "Signal Transmit",
+                                tint = if (isStealthGhostMode || isGhostActive) RadarCyanGlow else RadarNeonGreen,
+                                modifier = Modifier.size(17.dp)
                             )
                         }
                     }
                     Column {
                         Text(
-                            text = if (isGhostActive) "PASSIVE SONAR: CLOAKED 👻" else "RADAR BEACON: BROADCASTING 📡",
+                            text = when {
+                                isStealthGhostMode -> "👻 GHOST MODE: RF SILENT (NOT TRANSMITTING)"
+                                isGhostActive -> "SIGNAL TRANSMITTING: FAR-REACH ($normalizedSelection) 📡"
+                                else -> "SIGNAL TRANSMITTING: ALL RADARS 📡"
+                            },
                             fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isGhostActive) RadarCyanGlow else RadarPhosphor,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (isStealthGhostMode || isGhostActive) RadarCyanGlow else RadarPhosphor,
                             fontFamily = FontFamily.Monospace
                         )
                         Text(
-                            text = if (isGhostActive) "Observing frequency • Coordinates zeroed out" else "Active presence broadcasting",
+                            text = when {
+                                isStealthGhostMode -> "Ghost / Read-Only Mode active • Transmitting & receiving user details disabled"
+                                isGhostActive -> "Visible to other radars $farReachDescription • Hidden from close locals"
+                                else -> "Transmitting position to all radars • Turn ON to set far-reach KM privacy"
+                            },
                             fontSize = 9.5.sp,
                             color = Color.LightGray
                         )
@@ -202,95 +250,222 @@ fun PassiveSonarGhostBanner(
                 }
 
                 Switch(
-                    checked = isGhostActive,
-                    onCheckedChange = { onToggleGhost() },
+                    checked = isGhostActive && !isStealthGhostMode,
+                    onCheckedChange = { if (!isStealthGhostMode) onToggleGhost() },
+                    enabled = !isStealthGhostMode,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = RadarCyanGlow,
                         checkedTrackColor = Color(0xFF08414D),
                         uncheckedThumbColor = RadarPhosphor,
                         uncheckedTrackColor = Color(0xFF062B10)
                     ),
-                    modifier = Modifier.scale(0.8f)
+                    modifier = Modifier.scale(0.82f)
                 )
             }
 
-            // Advanced Visibility Settings for Non-Ghost users
-            if (!isGhostActive) {
-                Spacer(modifier = Modifier.height(10.dp))
-                HorizontalDivider(color = RadarPhosphor.copy(alpha = 0.15f))
-                Spacer(modifier = Modifier.height(8.dp))
+            // When switched ON: Reveal KM & State/Country Far-Reach Transmit Options
+            AnimatedVisibility(visible = isGhostActive && !isStealthGhostMode) {
+                Column {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    HorizontalDivider(color = RadarCyanGlow.copy(alpha = 0.2f))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "BROADCAST RANGE / VISIBILITY RADIUS",
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = RadarPhosphor.copy(alpha = 0.8f),
-                    fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-
-                // Distance Selector Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    distanceOptions.forEach { option ->
-                        val isSelected = option.equals(broadcastingRadius, ignoreCase = true)
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = if (isSelected) RadarPhosphor.copy(alpha = 0.25f) else Color.Transparent,
-                            border = BorderStroke(
-                                1.dp,
-                                if (isSelected) RadarPhosphor else Color.DarkGray
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .clickable { onBroadcastingRadiusChange(option) }
-                                .testTag("broadcast_option_$option")
-                        ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "TRANSMIT MY POSITION TO RADARS FARTHER THAN:",
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = RadarCyanGlow,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        if (!isPremium) {
                             Text(
-                                text = option,
-                                textAlign = TextAlign.Center,
-                                fontSize = 8.5.sp,
-                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
-                                color = if (isSelected) RadarNeonGreen else Color.LightGray,
-                                fontFamily = FontFamily.Monospace,
-                                modifier = Modifier.padding(vertical = 5.dp)
+                                text = "👑 Unlock 3KM, 5KM & 10KM",
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFFFD700),
+                                modifier = Modifier.clickable { onUnlockPremiumClick() }
                             )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                // Region Masking Information explaining safety status based on radius
-                val isFuzzy = broadcastingRadius in listOf("50k", "100k", "Country", "Earth")
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isFuzzy) Color(0xFF0F2026) else Color(0xFF071B0B),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                    // Distance Selector Row (3KM, 5KM, 10KM, 50KM, 500KM, State, Country)
                     Row(
-                        modifier = Modifier.padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Icon(
-                            imageVector = if (isFuzzy) Icons.Default.EnhancedEncryption else Icons.Default.GpsFixed,
-                            contentDescription = "Shielding status",
-                            tint = if (isFuzzy) RadarCyanGlow else RadarNeonGreen,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Text(
-                            text = if (isFuzzy) {
-                                "🔒 Secure Regional Mode: Your position is fuzzily broadcasted broadly as a randomized region of $broadcastingRadius instead of dropping a precise GPS pin, preventing bad actors from triangulating your home neighborhood while showing you as 'Active in Region'!"
-                            } else {
-                                "📍 Precise Mode: Your approximate neighborhood pin is visible inside $broadcastingRadius for immediate proximity connections."
-                            },
-                            fontSize = 8.5.sp,
-                            lineHeight = 12.sp,
-                            color = if (isFuzzy) RadarCyanGlow else Color.LightGray
-                        )
+                        distanceOptions.forEach { option ->
+                            val isSelected = option.equals(normalizedSelection, ignoreCase = true)
+                            val isLocked = option in premiumOnlyOptions && !isPremium
+                            Surface(
+                                shape = RoundedCornerShape(7.dp),
+                                color = when {
+                                    isSelected -> RadarCyanGlow.copy(alpha = 0.26f)
+                                    isLocked -> Color(0xFF1F1A08)
+                                    else -> Color(0xFF051821)
+                                },
+                                border = BorderStroke(
+                                    1.dp,
+                                    when {
+                                        isSelected -> RadarCyanGlow
+                                        isLocked -> Color(0xFFFFD700).copy(alpha = 0.55f)
+                                        else -> RadarPhosphor.copy(alpha = 0.35f)
+                                    }
+                                ),
+                                modifier = Modifier
+                                    .clickable {
+                                        HapticHelper.triggerHaptic(context, haptic, HapticFeedbackType.TextHandleMove)
+                                        if (isLocked) {
+                                            Toast.makeText(
+                                                context,
+                                                "👑 Titan Premium Feature: Unlock $option Far-Reach Transmit to gain attendance across $option!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                            onUnlockPremiumClick()
+                                        } else {
+                                            onBroadcastingRadiusChange(option)
+                                        }
+                                    }
+                                    .testTag("broadcast_option_$option")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Text(
+                                        text = option,
+                                        textAlign = TextAlign.Center,
+                                        fontSize = 8.8.sp,
+                                        fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                        color = when {
+                                            isSelected -> RadarCyanGlow
+                                            isLocked -> Color(0xFFFFD700)
+                                            else -> Color.White
+                                        },
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                    if (isLocked) {
+                                        Text(text = "👑", fontSize = 7.5.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Plain-English Far-Reach Privacy Explanation
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF071B24),
+                        border = BorderStroke(0.8.dp, RadarCyanGlow.copy(alpha = 0.35f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.VerifiedUser,
+                                contentDescription = "Far-Reach Privacy",
+                                tint = RadarCyanGlow,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "📡 Signal Transmitting: You are visible to other radars $farReachDescription. Your nearby street location stays private from close locals while you gain profile reach from farther away!",
+                                fontSize = 8.8.sp,
+                                lineHeight = 12.sp,
+                                color = Color(0xFFB2EBF2)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Tool #7: Cyber-Safety Stealth Alias & Anti-Screenshot Vault Add-On
+                    var stealthAliasIndex by remember { mutableIntStateOf(0) }
+                    var antiScreenshotVault by remember { mutableStateOf(true) }
+                    val stealthAliases = listOf("@Ghost_Falcon_77", "@Neon_Voyager_24", "@Konkan_Shadow_09", "@Apex_Phantom_88")
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF101828),
+                        border = BorderStroke(0.8.dp, Color(0xFFFFD700).copy(alpha = 0.55f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "🛡️ STEALTH ALIAS: ${if (isPremium) stealthAliases[stealthAliasIndex] else "${stealthAliases[stealthAliasIndex]} 👑"}",
+                                    fontSize = 8.8.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFFFFD700),
+                                    fontFamily = FontFamily.Monospace
+                                )
+                                Text(
+                                    text = if (antiScreenshotVault) "Anti-Screenshot DM Vault: ACTIVE • Masks real handle on radar" else "Tap to rotate alias & block DM screenshots",
+                                    fontSize = 8.sp,
+                                    color = Color.LightGray
+                                )
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFF1E293B),
+                                    border = BorderStroke(0.7.dp, RadarCyanGlow),
+                                    modifier = Modifier.clickable {
+                                        if (isPremium) {
+                                            stealthAliasIndex = (stealthAliasIndex + 1) % stealthAliases.size
+                                            Toast.makeText(context, "🛡️ Radar Stealth Alias rotated to ${stealthAliases[stealthAliasIndex]}", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "👑 Titan Safety Add-On: Unlock Rotatable Stealth Alias & Anti-Screenshot Vault!", Toast.LENGTH_SHORT).show()
+                                            onUnlockPremiumClick()
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Rotate 🔄",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = RadarCyanGlow,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = if (antiScreenshotVault && isPremium) Color(0xFF064E3B) else Color(0xFF332404),
+                                    border = BorderStroke(0.7.dp, Color(0xFFFFD700)),
+                                    modifier = Modifier.clickable {
+                                        if (isPremium) {
+                                            antiScreenshotVault = !antiScreenshotVault
+                                        } else {
+                                            onUnlockPremiumClick()
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = if (isPremium && antiScreenshotVault) "Vault ON" else "👑 Vault",
+                                        fontSize = 8.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFD700),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -560,6 +735,9 @@ fun UnifiedRadarRangeSlider(
     currentRadiusKm: Double,
     onRadiusChange: (Double) -> Unit,
     isPremium: Boolean,
+    detectedStateName: String = "Goa",
+    detectedCountryName: String = "India",
+    onUnlockPremiumClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -575,14 +753,18 @@ fun UnifiedRadarRangeSlider(
     val maxLog = kotlin.math.log10(maxKm)
     val currentLog = kotlin.math.log10(roundedKm).toFloat()
 
+    val stateLabel = detectedStateName.takeIf { it.isNotBlank() && !it.equals("State", ignoreCase = true) } ?: "Goa"
+    val countryLabel = detectedCountryName.takeIf { it.isNotBlank() && !it.equals("Country", ignoreCase = true) } ?: "India"
+
     val presets = listOf(
         Pair("1k", 1.0),
         Pair("3k", 3.0),
+        Pair("5k", 5.0),
         Pair("10k", 10.0),
         Pair("50k", 50.0),
-        Pair("State", 500.0),
-        Pair("Country", 3000.0),
-        Pair("Global", 20000.0)
+        Pair(stateLabel, 500.0),
+        Pair(countryLabel, 3000.0),
+        Pair("Earth 🌍", 20000.0)
     )
     
     Surface(
@@ -663,7 +845,8 @@ fun UnifiedRadarRangeSlider(
                             .clickable {
                                 HapticHelper.triggerHaptic(context, haptic, androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                 if (isLocked) {
-                                    Toast.makeText(context, "🔒 Premium Feature: 1k, 3k & 10k Hyperlocal Range requires Premium (₹299/mo). 50k & above are free for all!", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, "👑 Titan Premium Anti-Stalking & Precision Lock: Unlock 1KM, 3KM, 5KM & 10KM Radar Scanning!", Toast.LENGTH_SHORT).show()
+                                    onUnlockPremiumClick()
                                 } else {
                                     onRadiusChange(value)
                                 }
@@ -1259,6 +1442,60 @@ fun DirectRadarChatDispatchSheet(
                         color = Color.Black,
                         fontFamily = FontFamily.Monospace
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Tool #3: 💬 Super-Connect / Priority DM Icebreaker (₹19 / $0.29 • 50% Creator / 50% Developer Split)
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF281E05),
+                border = BorderStroke(1.dp, Color(0xFFFFD700)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        Toast.makeText(
+                            context,
+                            "⚡ Super-Connect Priority DM sent to @${targetUser.username}! (₹9.50 credited to @${targetUser.username} • ₹9.50 Platform)",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        onSendQuickGreeting("👑 [SUPER-CONNECT PRIORITY DM • ₹19]: $quickMessage")
+                        onClose()
+                    }
+                    .testTag("radar_super_connect_priority_dm")
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "💬 SEND ₹19 SUPER-CONNECT PRIORITY ICEBREAKER",
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFFFFD700),
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = "Pins to top of @${targetUser.username}'s inbox • 50% paid to user / 50% Platform",
+                            fontSize = 8.sp,
+                            color = Color(0xFFFFE082)
+                        )
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFFFFD700)
+                    ) {
+                        Text(
+                            text = "₹19 SEND ⚡",
+                            fontSize = 8.5.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.Black,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }

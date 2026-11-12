@@ -104,39 +104,77 @@ fun LocaliiiyTopBar(
                         )
                     }
 
-                    if (isLocationEnabled && !currentLocationLabel.isNullOrBlank()) {
+                    val showGhostLabel = isPrivateAccount
+                    val showAddressLabel = !showGhostLabel && isLocationEnabled && !currentLocationLabel.isNullOrBlank()
+                    if (showGhostLabel || showAddressLabel) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(3.dp),
-                            modifier = Modifier.padding(top = 1.dp)
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .padding(top = 1.dp)
+                                .clickable(onClick = onLocationClick)
+                                .testTag("top_bar_short_address_label")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Location",
-                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = if (showGhostLabel) "Ghost Mode" else "Location",
+                                tint = if (showGhostLabel) Color(0xFFA78BFA) else MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(11.dp)
                             )
                             Text(
-                                text = currentLocationLabel,
+                                text = if (showGhostLabel) "Ghost Mode" else currentLocationLabel.orEmpty(),
                                 fontSize = 10.5.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1
+                                fontWeight = FontWeight.Bold,
+                                color = if (showGhostLabel) Color(0xFFC4B5FD) else LocaliiiyAccentMint,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
                 }
 
-                // Fixed Action Icons: Fully visible without scrolling; message button guaranteed accessible!
+                // Fixed Action Icons: Fully visible without scrolling; message & language/currency buttons guaranteed accessible!
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
+                    // Worldwide Language & Location Currency Pill Button
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
+                        modifier = Modifier
+                            .height(30.dp)
+                            .clip(RoundedCornerShape(100.dp))
+                            .clickable(onClick = onLanguageCurrencyClick)
+                            .testTag("top_bar_language_currency_button")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Public,
+                                contentDescription = "Language and Currency",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "${currentLanguage.code.uppercase()}•${currentCurrency.symbol}",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1
+                            )
+                        }
+                    }
+
                     // Search Toggle Button
                     IconButton(
                         onClick = { isSearchExpanded = !isSearchExpanded },
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(34.dp)
                             .clip(CircleShape)
                             .testTag("top_bar_search_toggle")
                     ) {
@@ -144,7 +182,7 @@ fun LocaliiiyTopBar(
                             imageVector = if (isSearchExpanded) Icons.Default.Close else Icons.Default.Search,
                             contentDescription = "Search",
                             tint = if (isSearchExpanded || searchQuery.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(19.dp)
                         )
                     }
 
@@ -152,7 +190,7 @@ fun LocaliiiyTopBar(
                     IconButton(
                         onClick = onThemeClick,
                         modifier = Modifier
-                            .size(36.dp)
+                            .size(34.dp)
                             .clip(CircleShape)
                             .testTag("top_bar_theme_button")
                     ) {
@@ -160,7 +198,7 @@ fun LocaliiiyTopBar(
                             imageVector = Icons.Outlined.Palette,
                             contentDescription = "Space & Atmospheric Themes",
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(19.dp)
                         )
                     }
 

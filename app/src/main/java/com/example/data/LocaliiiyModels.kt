@@ -268,8 +268,13 @@ data class PrivacySettingsEntity(
     val hideInNeighborhood: Boolean = false,
     // Live Radar Precise Location & Distance Obfuscation
     val hidePreciseLocationOnRadar: Boolean = false,
-    val radarObfuscatedRange: String = "3k", // "3k", "10K", "100k", "500K", "Country", "Earth", "Galaxy"
-    val radarCountryName: String = "United States",
+    val radarObfuscatedRange: String = "3KM", // "3KM", "5KM", "10KM", "50KM", "500KM", State, Country
+    val radarCountryName: String = "India",
+    // Persisted Radar Range & HUD Theme (Synced to Firestore & Room)
+    val preferredRadarRadiusKm: Double = 50.0,
+    val preferredRadarHudTheme: String = "PHOSPHOR_GREEN",
+    val preferredRadarAuraIndex: Int = 0,
+    val preferredRadarTagline: String = "⚡ Open for Collabs",
     // App Background & Atmosphere
     val appThemeBackground: String = "DEFAULT", // "DEFAULT", "BLACK_HOLE", "MOON", "GALAXY", "CUSTOM"
     val customBackgroundImageUri: String = "",

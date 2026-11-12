@@ -27,8 +27,8 @@ android {
         applicationId = "com.aistudio.localiiiy.live"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "2.4.0"
+        versionCode = 30
+        versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -60,12 +60,16 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
         debug {
             signingConfig = signingConfigs.getByName("debugConfig")
@@ -119,6 +123,11 @@ val syncWebAssets by tasks.registering {
         if (publicIndex.exists()) {
             publicIndex.copyTo(File(publicDir, "404.html"), overwrite = true)
             publicIndex.copyTo(File(rootDir, "404.html"), overwrite = true)
+        }
+        val releaseAab = project.file("build/outputs/bundle/release/app-release.aab")
+        if (releaseAab.exists()) {
+            releaseAab.copyTo(File(rootDir, "Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab"), overwrite = true)
+            releaseAab.copyTo(File(publicDir, "Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab"), overwrite = true)
         }
     }
 }

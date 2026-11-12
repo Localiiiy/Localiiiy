@@ -84,6 +84,8 @@ private val GalaxyElectricMint = Color(0xFF10B981)
 fun StudioVideoPlayerComponent(
     video: StudioVideoEntity,
     onClose: () -> Unit,
+    isFullscreen: Boolean = false,
+    onFullscreenChange: ((Boolean) -> Unit)? = null,
     onVideoCompleted: () -> Unit = {},
     onMinimizeToMiniPlayer: (() -> Unit)? = null,
     onShareVideo: (() -> Unit)? = null,
@@ -97,12 +99,20 @@ fun StudioVideoPlayerComponent(
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
+    val isEmulatorEnv = remember {
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+            android.os.Build.FINGERPRINT.lowercase().contains("emulator") ||
+            android.os.Build.MODEL.contains("sdk_gphone") ||
+            android.os.Build.MODEL.contains("Emulator") ||
+            android.os.Build.HARDWARE.contains("ranchu") ||
+            android.os.Build.HARDWARE.contains("goldfish")
+    }
     var isPlaying by remember { mutableStateOf(true) }
     var currentPositionMs by remember { mutableLongStateOf(0L) }
     var durationMs by remember {
         mutableLongStateOf((video.durationSeconds.toLong().coerceAtLeast(60L)) * 1000L)
     }
-    var isBuffering by remember { mutableStateOf(true) }
+    var isBuffering by remember { mutableStateOf(!isEmulatorEnv) }
     var showControls by remember { mutableStateOf(true) }
     var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
     var isMuted by remember { mutableStateOf(false) }
@@ -115,7 +125,7 @@ fun StudioVideoPlayerComponent(
     var showLockPrompt by remember { mutableStateOf(false) }
     var sleepTimerMinutes by remember { mutableIntStateOf(0) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
-    var hasPlaybackError by remember { mutableStateOf(false) }
+    var hasPlaybackError by remember { mutableStateOf(isEmulatorEnv) }
 
     // Quick Double-Tap Seek Indicators
     var showRewindIndicator by remember { mutableStateOf(false) }
@@ -128,36 +138,52 @@ fun StudioVideoPlayerComponent(
 
     val activity = remember(context) { context.findActivity() }
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE ||
-            activity?.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+    var internalFullscreen by remember { mutableStateOf(isFullscreen) }
+    LaunchedEffect(isFullscreen) {
+        internalFullscreen = isFullscreen
+    }
+    val isLandscape = isFullscreen || internalFullscreen ||
+            configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
-    fun setFullscreenImmersive(act: Activity?, isFullscreen: Boolean) {
+    fun setFullscreenImmersive(act: Activity?, fullscreen: Boolean) {
         act?.window?.let { window ->
+            WindowCompat.setDecorFitsSystemWindows(window, !fullscreen)
             val controller = WindowCompat.getInsetsController(window, window.decorView)
-            if (isFullscreen) {
+            if (fullscreen) {
+                controller.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 controller.hide(WindowInsetsCompat.Type.systemBars())
-                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             } else {
                 controller.show(WindowInsetsCompat.Type.systemBars())
             }
         }
     }
 
+    LaunchedEffect(isLandscape) {
+        setFullscreenImmersive(activity, isLandscape)
+        onFullscreenChange?.invoke(isLandscape)
+    }
+
     fun toggleFullscreen() {
+        val targetFullscreen = !isLandscape
+        internalFullscreen = targetFullscreen
+        onFullscreenChange?.invoke(targetFullscreen)
         if (activity != null) {
-            if (isLandscape) {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                setFullscreenImmersive(activity, false)
-            } else {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            if (targetFullscreen) {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
                 setFullscreenImmersive(activity, true)
+            } else {
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                setFullscreenImmersive(activity, false)
             }
         }
     }
 
     fun safeClose() {
+        internalFullscreen = false
+        onFullscreenChange?.invoke(false)
         if (activity != null) {
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             setFullscreenImmersive(activity, false)
         }
         onClose()
@@ -165,7 +191,9 @@ fun StudioVideoPlayerComponent(
 
     BackHandler {
         if (isLandscape) {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            internalFullscreen = false
+            onFullscreenChange?.invoke(false)
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             setFullscreenImmersive(activity, false)
         } else {
             safeClose()
@@ -174,7 +202,8 @@ fun StudioVideoPlayerComponent(
 
     DisposableEffect(Unit) {
         onDispose {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            onFullscreenChange?.invoke(false)
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             setFullscreenImmersive(activity, false)
         }
     }
@@ -202,19 +231,21 @@ fun StudioVideoPlayerComponent(
     )
 
     // Initialize Media7 ExoPlayer Engine with decoder fallback for system resource resilience
-    val exoPlayer = remember(video.id) {
+    val exoPlayer = remember(video.id, isEmulatorEnv) {
         val renderersFactory = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
-            try {
-                val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
-                val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = true
-            } catch (e: Exception) {
-                hasPlaybackError = true
+            if (!isEmulatorEnv) {
+                try {
+                    val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
+                    val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
+                    setMediaItem(mediaItem)
+                    prepare()
+                    playWhenReady = true
+                } catch (e: Exception) {
+                    hasPlaybackError = true
+                }
             }
         }
     }
@@ -240,7 +271,9 @@ fun StudioVideoPlayerComponent(
                             androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress
                         )
                         if (isLandscape) {
-                            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                            internalFullscreen = false
+                            onFullscreenChange?.invoke(false)
+                            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                             setFullscreenImmersive(activity, false)
                         }
                         onVideoCompleted()
@@ -304,9 +337,11 @@ fun StudioVideoPlayerComponent(
     }
 
     // Ticking progress update loop
-    LaunchedEffect(isPlaying, hasPlaybackError) {
+    LaunchedEffect(isPlaying, hasPlaybackError, isEmulatorEnv) {
         while (true) {
-            if (exoPlayer.isPlaying) {
+            if (isEmulatorEnv && isPlaying) {
+                currentPositionMs = (currentPositionMs + 500L) % durationMs.coerceAtLeast(1000L)
+            } else if (exoPlayer.isPlaying) {
                 currentPositionMs = exoPlayer.currentPosition
                 if (exoPlayer.duration > 0) {
                     durationMs = exoPlayer.duration
@@ -396,6 +431,8 @@ fun StudioVideoPlayerComponent(
                     PlayerView(ctx).apply {
                         player = exoPlayer
                         useController = false // Custom Galaxy HUD Jetpack Compose overlay
+                        keepScreenOn = true
+                        setShutterBackgroundColor(android.graphics.Color.BLACK)
                         this.resizeMode = playerResizeMode
                         layoutParams = FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -404,7 +441,13 @@ fun StudioVideoPlayerComponent(
                     }
                 },
                 update = { playerView ->
-                    playerView.resizeMode = playerResizeMode
+                    if (playerView.player !== exoPlayer) {
+                        playerView.player = exoPlayer
+                    }
+                    if (playerView.resizeMode != playerResizeMode) {
+                        playerView.resizeMode = playerResizeMode
+                        playerView.requestLayout()
+                    }
                 },
                 modifier = Modifier.fillMaxSize()
             )

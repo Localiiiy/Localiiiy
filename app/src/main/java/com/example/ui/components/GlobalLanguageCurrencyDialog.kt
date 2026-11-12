@@ -37,12 +37,26 @@ fun GlobalLanguageCurrencyDialog(
     currentCurrency: LocaliiiyCurrency,
     onLanguageSelected: (LocaliiiyLanguage) -> Unit,
     onCurrencySelected: (LocaliiiyCurrency) -> Unit,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    detectedCountryName: String? = "India",
+    isCurrencyManualOverride: Boolean = false,
+    onResetCurrencyToLocationDefault: (() -> Unit)? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0 = Languages, 1 = Currencies
     var selectedRegion by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
     val testAmountUSD = 100.0
+
+    val resolvedCountry = remember(detectedCountryName) {
+        if (!detectedCountryName.isNullOrBlank() && !detectedCountryName.equals("Country", ignoreCase = true)) {
+            detectedCountryName
+        } else {
+            "India"
+        }
+    }
+    val locationDefaultCurrency = remember(resolvedCountry) {
+        CurrencyHelper.detectCurrencyForLocation(resolvedCountry)
+    }
 
     val totalLangCount = remember { LocaliiiyLanguage.entries.size }
     val totalCurrCount = remember { LocaliiiyCurrency.entries.size }
@@ -83,7 +97,7 @@ fun GlobalLanguageCurrencyDialog(
                         )
                     }
                     Text(
-                        text = "100% Worldwide Language & Currency Support (195+ Countries)",
+                        text = "Auto-Synced by Location ($resolvedCountry) + Manual Choice",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -100,13 +114,13 @@ fun GlobalLanguageCurrencyDialog(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Active Configuration & Live Converter
+            // Active Configuration & Live Converter + Location Default Currency Sync
             Surface(
                 shape = RoundedCornerShape(14.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.3f)),
+                border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.35f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
@@ -119,9 +133,9 @@ fun GlobalLanguageCurrencyDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "ACTIVE GLOBAL CONFIGURATION",
+                                text = if (isCurrencyManualOverride) "MANUAL CURRENCY & LANGUAGE" else "📍 AUTO-SYNCED TO ${resolvedCountry.uppercase()}",
                                 fontSize = 9.5.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = LocaliiiyPrimaryTeal,
@@ -136,7 +150,7 @@ fun GlobalLanguageCurrencyDialog(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "${currentCurrency.flag} ${currentCurrency.code} (${currentCurrency.symbol}) • 1 USD = ${currentCurrency.rateToUSD} ${currentCurrency.code}",
+                                text = "${currentCurrency.flag} ${currentCurrency.code} (${currentCurrency.symbol}) • ${currentCurrency.currencyName}",
                                 fontSize = 11.5.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 2,
@@ -164,6 +178,57 @@ fun GlobalLanguageCurrencyDialog(
                                     color = LocaliiiyPrimaryTeal
                                 )
                             }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Location Country Auto-Default Pill
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "📍 $resolvedCountry Default: ${locationDefaultCurrency.flag} ${locationDefaultCurrency.code} (${locationDefaultCurrency.symbol})",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (!isCurrencyManualOverride && currentCurrency == locationDefaultCurrency) {
+                                Color(0xFF10B981).copy(alpha = 0.2f)
+                            } else {
+                                LocaliiiyPrimaryTeal
+                            },
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(100.dp))
+                                .clickable {
+                                    if (onResetCurrencyToLocationDefault != null) {
+                                        onResetCurrencyToLocationDefault()
+                                    } else {
+                                        onCurrencySelected(locationDefaultCurrency)
+                                    }
+                                }
+                                .testTag("btn_reset_location_currency")
+                        ) {
+                            Text(
+                                text = if (!isCurrencyManualOverride && currentCurrency == locationDefaultCurrency) {
+                                    "✓ Location Default Active"
+                                } else {
+                                    "📍 Use $resolvedCountry Default (${locationDefaultCurrency.symbol})"
+                                },
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (!isCurrencyManualOverride && currentCurrency == locationDefaultCurrency) {
+                                    Color(0xFF10B981)
+                                } else {
+                                    Color.White
+                                },
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
                         }
                     }
                 }

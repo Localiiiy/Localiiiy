@@ -87,6 +87,20 @@ object AppAtmospherePresets {
             previewColors = listOf(Color(0xFF09061A), Color(0xFF4338CA), Color(0xFFD946EF))
         ),
         AtmospherePreset(
+            key = "AURORA",
+            name = "Aurora Borealis",
+            icon = "🟢",
+            subtitle = "Bioluminescent emerald & arctic teal northern lights",
+            previewColors = listOf(Color(0xFF041C24), Color(0xFF064E3B), Color(0xFF00E676))
+        ),
+        AtmospherePreset(
+            key = "SUNSET",
+            name = "Solar Flare Sunset",
+            icon = "🌅",
+            subtitle = "Warm crimson horizon, amber gold & twilight violet",
+            previewColors = listOf(Color(0xFF1F0812), Color(0xFF881337), Color(0xFFFF6D00))
+        ),
+        AtmospherePreset(
             key = "CUSTOM",
             name = "Custom (Self Image)",
             icon = "🖼️",
@@ -133,6 +147,12 @@ fun AppAtmosphereBackground(
             }
             "GALAXY" -> {
                 GalaxyAtmosphereCanvas()
+            }
+            "AURORA" -> {
+                AuroraAtmosphereCanvas()
+            }
+            "SUNSET" -> {
+                SunsetAtmosphereCanvas()
             }
             "CUSTOM" -> {
                 CustomAtmosphereCanvas(imageUri = customImageUri)
@@ -333,6 +353,86 @@ private fun GalaxyAtmosphereCanvas() {
                 ),
                 center = Offset(size.width * 0.5f, size.height * 0.5f),
                 radius = size.width * 0.8f
+            )
+        }
+    }
+}
+
+@Composable
+private fun AuroraAtmosphereCanvas() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF021016),
+                        Color(0xFF04262E),
+                        Color(0xFF063B32),
+                        Color(0xFF02141A)
+                    )
+                )
+            )
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF00E676).copy(alpha = 0.25f),
+                        Color(0xFF00E5FF).copy(alpha = 0.18f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.35f, size.height * 0.25f),
+                    radius = size.width * 0.75f
+                ),
+                center = Offset(size.width * 0.35f, size.height * 0.25f),
+                radius = size.width * 0.75f
+            )
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFF1DE9B6).copy(alpha = 0.2f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.75f, size.height * 0.65f),
+                    radius = size.width * 0.65f
+                ),
+                center = Offset(size.width * 0.75f, size.height * 0.65f),
+                radius = size.width * 0.65f
+            )
+        }
+    }
+}
+
+@Composable
+private fun SunsetAtmosphereCanvas() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF1A0510),
+                        Color(0xFF3E0A1D),
+                        Color(0xFF6B1528),
+                        Color(0xFF12040A)
+                    )
+                )
+            )
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color(0xFFFF6D00).copy(alpha = 0.30f),
+                        Color(0xFFFF1744).copy(alpha = 0.22f),
+                        Color.Transparent
+                    ),
+                    center = Offset(size.width * 0.5f, size.height * 0.3f),
+                    radius = size.width * 0.75f
+                ),
+                center = Offset(size.width * 0.5f, size.height * 0.3f),
+                radius = size.width * 0.75f
             )
         }
     }

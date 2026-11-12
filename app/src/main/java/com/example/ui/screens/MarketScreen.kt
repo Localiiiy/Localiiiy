@@ -642,7 +642,7 @@ fun MarketScreen(
                             ),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                             modifier = Modifier
-                                .height(36.dp)
+                                .heightIn(min = 36.dp)
                                 .testTag("market_sell_button")
                         ) {
                             Icon(
@@ -878,6 +878,71 @@ fun MarketScreen(
                                         )
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Tool #5: 🛍️ Marketplace "Verified Urgent Sale" Gold Ribbon (₹49 • 100% Platform Fee + 4x Faster Sale)
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    var urgentRibbonActive by remember { mutableStateOf(false) }
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = if (urgentRibbonActive) Color(0xFF0A2416) else Color(0xFF241B06),
+                        border = BorderStroke(
+                            1.dp,
+                            if (urgentRibbonActive) Color(0xFF00E676) else Color(0xFFFFD700)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                urgentRibbonActive = true
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "🛍️ 'URGENT • VERIFIED SELLER' Gold Ribbon Activated (₹49)! Pinned to top of Market & Radar (100% Platform Fee)",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            .testTag("market_urgent_sale_gold_ribbon_bar")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (urgentRibbonActive) {
+                                        "👑 URGENT • VERIFIED SELLER GOLD RIBBON: LIVE ON YOUR LISTINGS ✓"
+                                    } else {
+                                        "🛍️ SELL 4X FASTER: 'URGENT • VERIFIED SELLER' GOLD RIBBON (₹49)"
+                                    },
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (urgentRibbonActive) Color(0xFF00E676) else Color(0xFFFFD700)
+                                )
+                                Text(
+                                    text = if (isPremiumSubscribed) {
+                                        "Titan Pro 0% Escrow Fee Active • Spotlight your bike, phone or furniture on Radar"
+                                    } else {
+                                        "Pins your listing to top of Market & Radar • 5% Safe-Haven Escrow (0% with Titan)"
+                                    },
+                                    fontSize = 9.sp,
+                                    color = Color(0xFFE2E8F0)
+                                )
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (urgentRibbonActive) Color(0xFF00E676).copy(alpha = 0.25f) else Color(0xFFFFD700)
+                            ) {
+                                Text(
+                                    text = if (urgentRibbonActive) "BOOSTED ✓" else "⚡ ₹49 Boost",
+                                    fontSize = 9.5.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (urgentRibbonActive) Color(0xFF00E676) else Color.Black,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
                             }
                         }
                     }

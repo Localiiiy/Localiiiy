@@ -45,6 +45,7 @@ import com.example.data.UserProfileEntity
 import com.example.ui.components.GoogleMapMomentsComponent
 import com.example.ui.components.ImageWithFilter
 import com.example.ui.components.LiveRadarComponent
+import com.example.ui.components.LocaliiiyAppLogoBadge
 import com.example.ui.components.LocaliiiySearchBar
 import com.example.ui.components.MasterGhostModeTooltip
 import com.example.ui.components.EnergeticPulseBadge
@@ -62,6 +63,7 @@ import com.example.util.LocaliiiyLanguage
 import com.example.util.LocaliiiyStringKey
 import com.example.util.LocalizationHelper
 import com.example.util.LocationHelper
+import androidx.compose.ui.platform.LocalContext
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
@@ -99,11 +101,14 @@ fun ExploreScreen(
     privacySettings: PrivacySettingsEntity? = null,
     onToggleHidePreciseLocation: ((Boolean) -> Unit)? = null,
     onSelectObfuscatedRange: ((String) -> Unit)? = null,
+    onSelectHudTheme: (String) -> Unit = {},
+    onUnlockPremiumClick: () -> Unit = {},
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
     activeRadarPerk: com.example.data.RadarVisibilityPerk? = null,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val locationPermissionsState = rememberMultiplePermissionsState(
         permissions = listOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -113,10 +118,38 @@ fun ExploreScreen(
     var bypassPermissionForPreview by remember { mutableStateOf(false) }
 
     var searchQuery by remember { mutableStateOf("") }
-    var ghostMode by remember { mutableStateOf(false) }
-    var localRadiusKm by remember(selectedRadiusKm) { mutableStateOf(selectedRadiusKm ?: 3.0) }
+    var ghostMode by remember(isPrivateAccount, privacySettings?.isGhostMode, privacySettings?.isPrivateAccount) {
+        mutableStateOf(isPrivateAccount || (privacySettings?.isGhostMode == true) || (privacySettings?.isPrivateAccount == true))
+    }
+    var localRadiusKm by remember(selectedRadiusKm, privacySettings?.preferredRadarRadiusKm) {
+        mutableStateOf(selectedRadiusKm ?: privacySettings?.preferredRadarRadiusKm ?: 50.0)
+    }
     var exploreViewMode by remember { mutableStateOf(ExploreViewMode.RADAR) }
     var selectedDetailPost by remember { mutableStateOf<PostEntity?>(null) }
+
+    // Resolve Detected State & Country Name via Google Maps / Android Geocoder + Profile Coordinates
+    val initialDetectedGeo = remember(userProfile.latitude, userProfile.longitude, userProfile.locationName, privacySettings?.radarCountryName) {
+        LocationHelper.inferStateAndCountryFromCoordinates(
+            lat = userProfile.latitude,
+            lng = userProfile.longitude,
+            locationName = userProfile.locationName,
+            fallbackCountry = privacySettings?.radarCountryName
+        )
+    }
+    var detectedStateName by remember(initialDetectedGeo) { mutableStateOf(initialDetectedGeo.first) }
+    var detectedCountryName by remember(initialDetectedGeo) { mutableStateOf(initialDetectedGeo.second) }
+
+    LaunchedEffect(userProfile.latitude, userProfile.longitude, userProfile.locationName) {
+        val resolved = LocationHelper.resolveStateAndCountry(
+            context = context,
+            lat = userProfile.latitude,
+            lng = userProfile.longitude,
+            locationName = userProfile.locationName,
+            fallbackCountry = privacySettings?.radarCountryName
+        )
+        detectedStateName = resolved.first
+        detectedCountryName = resolved.second
+    }
 
     // Filter posts by query or dynamic radar distance scale
     val filteredPosts = remember(posts, searchQuery, localRadiusKm, isLocationEnabled) {
@@ -139,45 +172,261 @@ fun ExploreScreen(
             .statusBarsPadding()
             .testTag("explore_screen_container")
     ) {
-
-        // Global Observer Incognito Toggle with Hover & Tap Tooltip
+        // =====================================================================
+        // 1. LOCALIIIY RADAR BRAND HEADER (Clean Single-Line Header Like Market, Studio & Clips)
+        // =====================================================================
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(horizontal = 14.dp, vertical = 6.dp)
+                .testTag("localiiiy_radar_brand_header"),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            EnergeticPulseBadge(
-                text = if (ghostMode) "STEALTH OBSERVER" else "LIVE RF BEACON",
-                color = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66)
-            )
-
-            MasterGhostModeTooltip {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LocaliiiyAppLogoBadge(size = 30.dp)
+                Text(
+                    text = "Localiiiy",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        fontSize = 20.sp,
+                        letterSpacing = (-0.5).sp
+                    ),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    maxLines = 1
+                )
                 Surface(
-                    shape = RoundedCornerShape(100.dp),
-                    color = if (ghostMode) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
-                    border = BorderStroke(1.dp, if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66).copy(alpha = 0.5f)),
-                    modifier = Modifier
-                        .clickable { ghostMode = !ghostMode }
-                        .testTag("toggle_explore_ghost_mode")
+                    color = Color(0xFF00E5FF),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = "RADAR",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color(0xFF021019),
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            // Detected State & Country GPS Badge (Shows "Ghost Mode" when Ghost/Spectator Mode is active)
+            Surface(
+                shape = RoundedCornerShape(100.dp),
+                color = if (ghostMode) Color(0xFF0A2436) else Color(0xFF042214),
+                border = BorderStroke(
+                    1.dp,
+                    if (ghostMode) Color(0xFF00E5FF).copy(alpha = 0.75f) else Color(0xFF00FF66).copy(alpha = 0.6f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = if (ghostMode) Icons.Default.VisibilityOff else Icons.Default.LocationOn,
+                        contentDescription = if (ghostMode) "Ghost Mode" else "Detected State and Country",
+                        tint = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Text(
+                        text = if (ghostMode) "Ghost Mode" else "$detectedStateName, $detectedCountryName",
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66),
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+
+        // =====================================================================
+        // 1.5 DEDICATED PLAIN-ENGLISH RADAR STATUS LINE DIRECTLY BELOW LOCALIIIY RADAR
+        // Explains Online / Offline / Ghost Mode, user visibility, and active KM scan range
+        // =====================================================================
+        val formattedSelectedRange = remember(localRadiusKm, detectedStateName, detectedCountryName) {
+            when {
+                localRadiusKm >= 15000.0 -> "Earth (Global)"
+                localRadiusKm >= 2500.0 -> "$detectedCountryName (Countrywide)"
+                localRadiusKm >= 300.0 -> "$detectedStateName (Statewide)"
+                localRadiusKm >= 10.0 -> "${localRadiusKm.toInt()} km"
+                else -> "${String.format("%.0f", localRadiusKm)} km"
+            }
+        }
+        val visibleUsersInRangeCount = remember(nearbyUsers, localRadiusKm, isLocationEnabled, ghostMode) {
+            if (!isLocationEnabled || ghostMode) 0 else nearbyUsers.count { it.distanceKm <= localRadiusKm }
+        }
+        val visibleMarketInRangeCount = remember(marketplaceItems, localRadiusKm, isLocationEnabled) {
+            if (!isLocationEnabled) 0 else marketplaceItems.count { (it.distanceKm ?: 1.5) <= localRadiusKm }
+        }
+        val isObfuscatedFar = privacySettings?.hidePreciseLocationOnRadar == true
+        val rawTransmitRange = privacySettings?.radarObfuscatedRange ?: "3KM"
+        val broadcastRangeLabel = remember(rawTransmitRange, detectedStateName, detectedCountryName) {
+            when (rawTransmitRange.uppercase()) {
+                "1K", "3K", "3KM" -> "farther than 3KM range"
+                "5K", "5KM" -> "farther than 5KM range"
+                "10K", "10KM" -> "farther than 10KM range"
+                "50K", "50KM" -> "farther than 50KM range"
+                "100K", "500K", "500KM" -> "farther than 500KM range"
+                "STATE" -> "across $detectedStateName (Statewide)"
+                "COUNTRY" -> "across $detectedCountryName (Countrywide)"
+                else -> if (rawTransmitRange.equals(detectedStateName, ignoreCase = true)) {
+                    "across $detectedStateName (Statewide)"
+                } else if (rawTransmitRange.equals(detectedCountryName, ignoreCase = true)) {
+                    "across $detectedCountryName (Countrywide)"
+                } else {
+                    "farther than $rawTransmitRange range"
+                }
+            }
+        }
+        val plainEnglishRadarMessage = remember(
+            isLocationEnabled,
+            ghostMode,
+            isObfuscatedFar,
+            broadcastRangeLabel,
+            formattedSelectedRange,
+            visibleUsersInRangeCount,
+            visibleMarketInRangeCount
+        ) {
+            when {
+                ghostMode ->
+                    "👻 Ghost Mode Active: You are silent & cloaked — not transmitting or receiving other users' radar details."
+                !isLocationEnabled ->
+                    "🔴 Signal Offline: You are not transmitting on any radar of other users. Turn on ONLINE to scan your area."
+                isObfuscatedFar ->
+                    "📡 Signal Transmitting: You are visible to other radars $broadcastRangeLabel (hidden from nearby locals) • Scanning $visibleUsersInRangeCount users & $visibleMarketInRangeCount listings within $formattedSelectedRange."
+                else ->
+                    "🟢 Signal Transmitting: You are visible to all radars of other users • Scanning $visibleUsersInRangeCount users & $visibleMarketInRangeCount listings within $formattedSelectedRange."
+            }
+        }
+
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = when {
+                !isLocationEnabled -> Color(0xFF2B1115)
+                ghostMode -> Color(0xFF0A1E2E)
+                else -> Color(0xFF062315)
+            },
+            border = BorderStroke(
+                1.dp,
+                when {
+                    !isLocationEnabled -> Color(0xFFFF5252).copy(alpha = 0.7f)
+                    ghostMode -> Color(0xFF00E5FF).copy(alpha = 0.7f)
+                    else -> Color(0xFF00FF66).copy(alpha = 0.65f)
+                }
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 3.dp)
+                .testTag("radar_plain_english_status_banner")
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Dedicated Status & Range Summary Line
+                Text(
+                    text = plainEnglishRadarMessage,
+                    fontSize = 10.5.sp,
+                    lineHeight = 13.5.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+
+                // Dedicated Quick Controls Line: ONLINE/OFFLINE + GHOST MODE + RANGE PILL
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = if (ghostMode) Icons.Default.VisibilityOff else Icons.Default.CellTower,
-                            contentDescription = "Ghost Mode",
-                            tint = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        // Online / Offline Power Button
+                        Surface(
+                            shape = RoundedCornerShape(100.dp),
+                            color = if (isLocationEnabled) Color(0xFF093B1E) else Color(0xFF471515),
+                            border = BorderStroke(1.dp, if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252)),
+                            modifier = Modifier
+                                .clickable { onLocationToggle(!isLocationEnabled) }
+                                .testTag("header_radar_power_toggle")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Sensors,
+                                    contentDescription = "Radar Power",
+                                    tint = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252),
+                                    modifier = Modifier.size(12.dp)
+                                )
+                                Text(
+                                    text = if (isLocationEnabled) "ONLINE" else "OFFLINE",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (isLocationEnabled) Color(0xFF00FF41) else Color(0xFFFF5252),
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        // Ghost Mode Toggle
+                        MasterGhostModeTooltip {
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (ghostMode) Color(0xFF0D2D44) else Color(0xFF0B2B1C),
+                                border = BorderStroke(1.dp, if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66).copy(alpha = 0.55f)),
+                                modifier = Modifier
+                                    .clickable {
+                                        val nextGhost = !ghostMode
+                                        ghostMode = nextGhost
+                                        onPrivateToggle(nextGhost)
+                                    }
+                                    .testTag("toggle_explore_ghost_mode")
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (ghostMode) Icons.Default.VisibilityOff else Icons.Default.CellTower,
+                                        contentDescription = "Ghost Mode",
+                                        tint = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66),
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = if (ghostMode) "GHOST MODE ON" else "VISIBLE MODE",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = if (ghostMode) Color(0xFF00E5FF) else Color(0xFF00FF66),
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Active Selected Scan Range Badge
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = Color(0xFF061A26),
+                        border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.6f))
+                    ) {
                         Text(
-                            text = if (ghostMode) "GHOST MODE: OBSERVING ⓘ" else "BROADCASTING ⓘ",
+                            text = "SCAN: $formattedSelectedRange",
                             fontSize = 9.sp,
-                            fontWeight = FontWeight.Black,
-                            color = if (ghostMode) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF00E5FF),
+                            maxLines = 1,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp)
                         )
                     }
                 }
@@ -200,7 +449,7 @@ fun ExploreScreen(
                 testTag = "explore_search_field"
             )
 
-            // Switch between Live Radar view and Grid View
+            // Switch between Live Radar view, Map View, and Grid View
             Surface(
                 shape = RoundedCornerShape(100.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
@@ -229,7 +478,7 @@ fun ExploreScreen(
                         )
                     }
 
-                    // Map View Button (Google Maps SDK)
+                    // Map View Button (Google Maps SDK + Satellite/Hybrid/Terrain/Standard)
                     IconButton(
                         onClick = { exploreViewMode = ExploreViewMode.MAP },
                         modifier = Modifier
@@ -281,9 +530,12 @@ fun ExploreScreen(
                     GoogleMapMomentsComponent(
                         posts = filteredPosts,
                         userProfile = userProfile,
-                        nearbyUsers = nearbyUsers,
+                        nearbyUsers = if (ghostMode) emptyList() else nearbyUsers,
                         selectedRadiusKm = localRadiusKm,
                         marketplaceItems = marketplaceItems,
+                        clips = clips,
+                        detectedStateName = if (ghostMode) "Ghost Mode" else detectedStateName,
+                        detectedCountryName = if (ghostMode) "" else detectedCountryName,
                         onRadiusChange = { radius ->
                             localRadiusKm = radius
                             onRadiusFilterChange(radius)
@@ -291,7 +543,7 @@ fun ExploreScreen(
                         onPostClick = { post -> selectedDetailPost = post },
                         onLikePost = onLikePost,
                         onUserProfileClick = onUserProfileClick,
-                        onMarketItemClick = { /* open market item */ },
+                        onMarketItemClick = { item -> onUserProfileClick(item.sellerUsername) },
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -302,23 +554,33 @@ fun ExploreScreen(
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
                     ) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
 
                         LiveRadarComponent(
                             userProfile = userProfile,
-                            nearbyUsers = nearbyUsers,
+                            nearbyUsers = if (ghostMode) emptyList() else nearbyUsers,
                             nearbyPosts = filteredPosts,
                             nearbyClips = clips,
                             nearbyMarketItems = marketplaceItems,
                             selectedRadiusKm = localRadiusKm,
-                            isLocationEnabled = isLocationEnabled,
+                            isLocationEnabled = isLocationEnabled && !ghostMode,
                             isPrivateAccount = isPrivateAccount || ghostMode,
-                            hidePreciseLocationOnRadar = (privacySettings?.hidePreciseLocationOnRadar ?: false) || ghostMode,
-                            radarObfuscatedRange = privacySettings?.radarObfuscatedRange ?: "3k",
-                            radarCountryName = privacySettings?.radarCountryName ?: "United States",
+                            hidePreciseLocationOnRadar = privacySettings?.hidePreciseLocationOnRadar ?: false,
+                            radarObfuscatedRange = privacySettings?.radarObfuscatedRange ?: "3KM",
+                            radarCountryName = detectedCountryName,
+                            detectedStateName = detectedStateName,
                             isPremiumSubscribed = privacySettings?.isPremiumConnected ?: false,
-                            onToggleHidePreciseLocation = onToggleHidePreciseLocation,
-                            onSelectObfuscatedRange = onSelectObfuscatedRange,
+                            selectedHudThemeName = privacySettings?.preferredRadarHudTheme ?: "PHOSPHOR_GREEN",
+                            onSelectHudTheme = onSelectHudTheme,
+                            onUnlockPremiumClick = onUnlockPremiumClick,
+                            onToggleHidePreciseLocation = { hide ->
+                                if (hide) ghostMode = false
+                                onToggleHidePreciseLocation?.invoke(hide)
+                            },
+                            onSelectObfuscatedRange = { range ->
+                                ghostMode = false
+                                onSelectObfuscatedRange?.invoke(range)
+                            },
                             isRefreshing = isRefreshing,
                             onRadiusChange = { radius ->
                                 localRadiusKm = radius

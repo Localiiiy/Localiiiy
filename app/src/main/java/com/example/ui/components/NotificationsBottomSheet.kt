@@ -317,165 +317,218 @@ fun NotificationsBottomSheet(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 14.dp),
                     contentPadding = PaddingValues(vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(notifications, key = { it.id }) { notification ->
                         val isConnected = connectedUsers.contains(notification.username) || notification.isConnectedBack
                         val isProximityAlert = notification.actionType == "PROXIMITY_ALERT"
+                        val isInvite = notification.actionType == "COMMUNITY_INVITE" || notification.actionType == "COMMUNITY_REQUEST"
+                        val isConnectAction = notification.actionType == "CONNECT"
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(if (isProximityAlert) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f) else Color.Transparent)
-                                .padding(if (isProximityAlert) 6.dp else 0.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                        val accentColor = when {
+                            isProximityAlert -> Color(0xFF00E5FF)
+                            isInvite -> Color(0xFF00FF87)
+                            isConnectAction -> Color(0xFFA855F7)
+                            notification.content.contains("like", ignoreCase = true) -> Color(0xFFFF4D6D)
+                            else -> Color(0xFFFFB703)
+                        }
+                        val cardGradient = when {
+                            isProximityAlert -> listOf(Color(0xFF052438), Color(0xFF083344))
+                            isInvite -> listOf(Color(0xFF05291E), Color(0xFF0A3A2A))
+                            isConnectAction -> listOf(Color(0xFF1E1035), Color(0xFF2B164C))
+                            notification.content.contains("like", ignoreCase = true) -> listOf(Color(0xFF2D0F1E), Color(0xFF3D1428))
+                            else -> listOf(Color(0xFF1E220A), Color(0xFF2B2D10))
+                        }
+                        val categoryBadgeLabel = when {
+                            isProximityAlert -> "📡 5KM RADAR ALERT"
+                            isInvite -> "🌟 COMMUNITY INVITE"
+                            isConnectAction -> "🤝 NEW CONNECTION"
+                            notification.content.contains("like", ignoreCase = true) -> "❤️ PULSE REACTION"
+                            else -> "💬 NEIGHBOR ACTIVITY"
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color.Transparent,
+                            border = BorderStroke(1.2.dp, accentColor.copy(alpha = 0.65f)),
+                            shadowElevation = 4.dp,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(cardGradient))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(notification.userAvatar)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = notification.username,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(CircleShape)
-                                )
-
-                                Spacer(modifier = Modifier.width(12.dp))
-
-                                val notifText = buildAnnotatedString {
-                                    withStyle(
-                                        SpanStyle(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Box(contentAlignment = Alignment.BottomEnd) {
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(notification.userAvatar)
+                                                .crossfade(true)
+                                                .build(),
+                                            contentDescription = notification.username,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .size(46.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF0B1520))
                                         )
-                                    ) {
-                                        append("${notification.username} ")
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = accentColor,
+                                            modifier = Modifier.size(16.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = when {
+                                                        isProximityAlert -> Icons.Default.Radar
+                                                        isConnectAction -> Icons.Default.PersonAdd
+                                                        else -> Icons.Default.NotificationsActive
+                                                    },
+                                                    contentDescription = null,
+                                                    tint = Color(0xFF041019),
+                                                    modifier = Modifier.size(10.dp)
+                                                )
+                                            }
+                                        }
                                     }
-                                    withStyle(
-                                        SpanStyle(
-                                            fontSize = 13.sp,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    ) {
-                                        append(notification.content)
+
+                                    Spacer(modifier = Modifier.width(12.dp))
+
+                                    val notifText = buildAnnotatedString {
+                                        withStyle(
+                                            SpanStyle(
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 13.sp,
+                                                color = Color.White
+                                            )
+                                        ) {
+                                            append("@${notification.username} ")
+                                        }
+                                        withStyle(
+                                            SpanStyle(
+                                                fontSize = 12.5.sp,
+                                                color = Color(0xFFE2E8F0)
+                                            )
+                                        ) {
+                                            append(notification.content)
+                                        }
+                                        withStyle(
+                                            SpanStyle(
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = accentColor
+                                            )
+                                        ) {
+                                            append(" • ${formatRelativeTime(notification.timestamp)}")
+                                        }
                                     }
-                                    withStyle(
-                                        SpanStyle(
-                                            fontSize = 11.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+
+                                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = accentColor.copy(alpha = 0.2f),
+                                            border = BorderStroke(0.7.dp, accentColor.copy(alpha = 0.7f))
+                                        ) {
+                                            Text(
+                                                text = categoryBadgeLabel,
+                                                fontSize = 8.5.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = accentColor,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.5.dp)
+                                            )
+                                        }
+                                        Text(
+                                            text = notifText,
+                                            style = MaterialTheme.typography.bodySmall
                                         )
-                                    ) {
-                                        append("  ${formatRelativeTime(notification.timestamp)}")
                                     }
                                 }
 
-                                Column {
-                                    if (isProximityAlert) {
-                                        Surface(
-                                            shape = RoundedCornerShape(4.dp),
-                                            color = Color(0xFF00C896).copy(alpha = 0.2f),
-                                            modifier = Modifier.padding(bottom = 2.dp)
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                if (isInvite) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                        Button(
+                                            onClick = {
+                                                onAcceptCommunityInvite(notification.id, "Localiiiy Community")
+                                                onDismiss()
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00FF87)),
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(30.dp)
                                         ) {
                                             Text(
-                                                text = "📍 5KM PROXIMITY ALERT",
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = Color(0xFF00875A),
-                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                                text = "Accept",
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    fontSize = 10.5.sp,
+                                                    fontWeight = FontWeight.ExtraBold
+                                                ),
+                                                color = Color(0xFF02160C)
+                                            )
+                                        }
+
+                                        OutlinedButton(
+                                            onClick = { onDeclineCommunityInvite(notification.id) },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.45f)),
+                                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(30.dp)
+                                        ) {
+                                            Text(
+                                                text = "Decline",
+                                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp)
                                             )
                                         }
                                     }
-                                    Text(
-                                        text = notifText,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                            }
-
-                            if (notification.actionType == "COMMUNITY_INVITE" || notification.actionType == "COMMUNITY_REQUEST") {
-                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                } else if (isConnectAction) {
                                     Button(
                                         onClick = {
-                                            onAcceptCommunityInvite(notification.id, "Localiiiy Community")
-                                            onDismiss()
+                                            connectedUsers = if (isConnected) {
+                                                connectedUsers - notification.username
+                                            } else {
+                                                connectedUsers + notification.username
+                                            }
                                         },
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
-                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                        modifier = Modifier.height(28.dp)
-                                    ) {
-                                        Text(
-                                            text = "Accept",
-                                            style = MaterialTheme.typography.labelSmall.copy(
-                                                fontSize = 10.5.sp,
-                                                fontWeight = FontWeight.Bold
-                                            ),
-                                            color = Color.Black
-                                        )
-                                    }
-
-                                    OutlinedButton(
-                                        onClick = { onDeclineCommunityInvite(notification.id) },
-                                        shape = RoundedCornerShape(8.dp),
-                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray),
-                                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                        modifier = Modifier.height(28.dp)
-                                    ) {
-                                        Text(
-                                            text = "Decline",
-                                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.5.sp)
-                                        )
-                                    }
-                                }
-                            } else if (notification.actionType == "CONNECT") {
-                                Button(
-                                    onClick = {
-                                        connectedUsers = if (isConnected) {
-                                            connectedUsers - notification.username
-                                        } else {
-                                            connectedUsers + notification.username
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(8.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (isConnected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primary
-                                    ),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
-                                    modifier = Modifier.height(30.dp)
-                                ) {
-                                    Text(
-                                        text = if (isConnected) "Connected" else "Connect",
-                                        style = MaterialTheme.typography.labelSmall.copy(
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.SemiBold
+                                        shape = RoundedCornerShape(10.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (isConnected) Color(0xFF0D2B22) else accentColor
                                         ),
-                                        color = if (isConnected) MaterialTheme.colorScheme.onSurfaceVariant else Color.White
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isConnected) "Connected" else "Connect",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.ExtraBold
+                                            ),
+                                            color = if (isConnected) Color(0xFF00FF87) else Color(0xFF0B0516)
+                                        )
+                                    }
+                                } else if (!notification.mediaPreviewUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(notification.mediaPreviewUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Post preview",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(46.dp)
+                                            .clip(RoundedCornerShape(10.dp))
                                     )
                                 }
-                            } else if (!notification.mediaPreviewUrl.isNullOrBlank()) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(notification.mediaPreviewUrl)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "Post preview",
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .clip(RoundedCornerShape(6.dp))
-                                )
                             }
                         }
                     }

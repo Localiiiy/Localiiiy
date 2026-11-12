@@ -38,7 +38,7 @@ fun AuthRequiredGatingView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Glowing Security Shield Emblem
+        // Official Localiiiy App Logo Hero Emblem
         Box(
             modifier = Modifier
                 .size(110.dp)
@@ -50,19 +50,7 @@ fun AuthRequiredGatingView(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(76.dp)
-                    .background(LocaliiiyPrimaryTeal, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LockPerson,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
+            LocaliiiyAppLogoBadge(size = 76.dp)
         }
 
         Spacer(modifier = Modifier.height(20.dp))

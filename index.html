@@ -1423,22 +1423,40 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 3px;
+      gap: 2px;
       cursor: pointer;
       font-family: inherit;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .deck-pill-btn.active {
-      background: rgba(16, 185, 129, 0.18);
+      background: transparent;
       color: #A7F3D0;
-      font-weight: 800;
+      font-weight: 900;
+      font-size: 11.5px;
+    }
+    .deck-pill-btn span {
+      text-decoration: none;
+      font-size: 9.5px !important;
+      transition: font-size 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .deck-pill-btn.active span {
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-decoration-thickness: 2px;
+      font-weight: 900 !important;
+      font-size: 11.5px !important;
     }
     .deck-pill-btn svg {
-      width: 20px;
-      height: 20px;
+      width: 19px !important;
+      height: 19px !important;
       fill: currentColor;
+      transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), height 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .deck-pill-btn.active svg {
+      width: 25px !important;
+      height: 25px !important;
     }
 
     /* Floating Creation (+) Center Node */
@@ -2019,25 +2037,27 @@
   <div id="globalTopStoreBar" style="position: relative; z-index: 10000; background: linear-gradient(90deg, #041E2B 0%, #063847 50%, #052E24 100%); border-bottom: 1px solid rgba(16, 185, 129, 0.45); padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
     <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: #F8FAFC; line-height: 1.3;">
       <span style="display: inline-flex; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981; flex-shrink: 0;"></span>
-      <span>For more features and the complete hyperlocal experience of <strong>Localiiiy</strong>, download the app from <strong>Google Play Store</strong> • <strong style="color: #FCD34D;">Apple App Store: Available Soon</strong></span>
+      <span><strong>Localiiiy v3.0.0 (Build 30)</strong> • DEX-Optimized Release, Enlarged Active Task Bar &amp; 5+ Local Pulse Newsroom Live</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(90deg, #00E5FF, #10B981); color: #032417; font-weight: 900; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(0, 229, 255, 0.4);">
+        <span>📦 Download .AAB (v3.0.0)</span>
+      </a>
       <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);">
         <svg width="12" height="12" viewBox="0 0 512 512"><path fill="#032417" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0zm363.7 282.8L104.6 459l220.7-224.7 85.4 48.5zm0-53.6l-85.4-55 60.1 60.1 25.3-5.1z"/></svg>
         <span>Google Play Store ↗</span>
       </a>
-      <span style="background: rgba(245, 158, 11, 0.16); border: 1px solid rgba(245, 158, 11, 0.45); color: #FCD34D; font-weight: 800; font-size: 10.5px; padding: 5px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px;">
-        <svg width="11" height="11" viewBox="0 0 170 170" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.69-3.04-7.67-7.81-11.93-14.3-5.99-9.13-10.76-19.6-14.3-31.42-3.54-11.82-5.31-23.08-5.31-33.78 0-14.28 3.59-26.04 10.76-35.27 7.18-9.24 16.2-13.96 27.06-14.18 5.43 0 11.19 1.41 17.27 4.23 6.08 2.83 10.15 4.35 12.21 4.56 1.74-.21 6.08-1.79 13.03-4.73 6.95-2.93 13.03-4.29 18.24-4.07 13.8.76 24.66 5.86 32.59 15.31-12.17 7.39-18.14 17.27-17.92 29.65.22 9.78 3.96 17.98 11.22 24.6 7.26 6.62 16.03 10.37 26.31 11.25-2.28 7.06-5.16 14.07-8.64 21.03zM119.22 33.02c0-7.82 2.82-15.15 8.47-21.99 5.65-6.84 12.71-10.86 21.19-12.03.22 1.09.33 2.17.33 3.26 0 7.82-3.04 15.31-9.12 22.48-6.08 7.17-13.36 11.19-21.84 12.06-.22-1.3-.33-2.55-.33-3.78z"/></svg>
-        <span>Apple App Store: Available Soon</span>
-      </span>
+      <button type="button" onclick="reopenFullSignInGate()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); color: #F8FAFC; font-weight: 800; font-size: 10.5px; padding: 4px 10px; border-radius: 999px; cursor: pointer;">
+        🔐 Sign In / Register
+      </button>
     </div>
   </div>
 
   <!-- ========================================================
        MANDATORY AUTHENTICATION & ONBOARDING GATE
-       (100% Parity with Android AuthScreen.kt v2.4.0)
+       (100% Parity with Android AuthScreen.kt v2.6.0)
        ======================================================== -->
-  <div id="mandatoryAuthGate" style="top: 40px;">
+  <div id="mandatoryAuthGate" class="hidden" style="top: 40px; display: none;">
     <div class="auth-gate-box" style="max-width: 520px;">
       <!-- Top Bar Header matching Android AuthScreen TopAppBar -->
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 14px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 14px;">
@@ -2313,16 +2333,27 @@
             </div>
             <button type="button" onclick="unlockOmnibusCharter()" style="background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-mint); color: var(--accent-mint); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 999px; cursor: pointer;">Unlock</button>
           </div>
-          <div class="omnibus-scroll-box" id="gateOmnibusScrollBox" onscroll="checkOmnibusScroll(this)">
-            <strong style="color: var(--primary-teal);">LOCALIIIY MASTER OMNIBUS LEGAL AGREEMENT, DEVELOPER SAFE-HARBOR, 18+ RADAR LOCK, COPYRIGHT (LCC SHA-256 + pHash), DUAL-REACH (0 KM TO EARTH) &amp; PRIVACY CHARTER (v2.4.0 • 36 ARTICLES)</strong><br><br>
-            <strong>Articles 1–4 &amp; 26 (13+ Registration &amp; Strict 18+ Radar Lock):</strong> Users must be 13+ years old. Tactical Radar (`LiveRadarScreen` / live beacon broadcasting &amp; nearby stranger radar sweeps) is TOTALLY RESTRICTED and LOCKED for anyone below 18 years of age (`18+ Verified Adults Only`). Minors aged 13–17 are permanently locked in Master Ghost Mode.<br>
-            <strong>Articles 5–9 &amp; 25 (Developer &amp; Owner Absolute Non-Liability Safe-Harbor):</strong> Because Localiiiy gives 100% of privacy controls directly to the user's own choice (Radar ON/OFF, Location ON/OFF, Ghost Mode ON/OFF, ~110m `roundCoord3` + 1km–500km obfuscation, Hide Profile/Phone/Email toggles, Safe-Haven OTP Escrow) AND provides downloadable SHA-256 Forensic Activity Audit Logs (`/safety_logs/` &amp; `audit_logs`) for direct submission to Cyber Crime authorities, the Developer and Owner of Localiiiy is NOT responsible or liable for any user actions, offline meetups, cybercrime, or financial fraud.<br>
-            <strong>Articles 10–14 (Safe-Haven Handshake Escrow &amp; 5% Market Waiver):</strong> Marketplace exchanges use 6-digit OTP handshake verification at Police Precinct CCTV Green Zones (5% standard fee; 0% on Pro).<br>
-            <strong>Articles 15–19 &amp; 27 (Localiiiy Creator Copyright LCC SHA-256 + pHash Engine):</strong> Every upload is stamped with `SHA-256(Creator_UID | @username | Media_Bytes | pHash | UTC_Timestamp | Salt)` (`LCC-XXXXXX-2026` + 64-hex digest), 100% revenue rerouting on theft, 3-Strike ban, 55% Creator Ad RevShare, and $1,000 USD Equivalent Payout Charter.<br>
-            <strong>Articles 20–24 &amp; 28–36 (15 Civic Tools, Community Hub, Anti-Cyberstalking NDA, Web ↔ Android Sync &amp; Right to Erasure):</strong> Cyberstalking and false SOS hoaxes are strictly prohibited. Full cloud + local account deletion is available anytime in Space or at <code>/delete-account</code>. Official Helpdesk: <code>Localiiiy.Helpdesk@gmail.com</code>.<br><br>
-            <strong style="color: var(--accent-mint);">--- END OF ALL 36 MASTER ARTICLES ---</strong>
+          <div class="omnibus-scroll-box" id="gateOmnibusScrollBox" onscroll="checkOmnibusScroll(this)" style="max-height: 150px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong style="color: var(--primary-teal); font-size: 11px;">LOCALIIIY 36-ARTICLE CHARTER HEADINGS (QUICK READ)</strong>
+              <button type="button" id="btnToggleOmnibusFullText" onclick="toggleOmnibusReadMore()" style="background: rgba(0, 229, 255, 0.14); border: 1px solid #00E5FF; color: #00E5FF; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; cursor: pointer;">Read More ▼</button>
+            </div>
+            <div id="omnibusHeadingsSummary" style="font-size: 11px; line-height: 1.45; color: #E2E8F0;">
+              • <strong>Ch. 1 (Art. 1–4 &amp; 26):</strong> 13+ Minimum Age &amp; Strict 18+ Adult Lock on Live Radar<br>
+              • <strong>Ch. 2 (Art. 5–9 &amp; 25):</strong> Developer &amp; Owner Safe-Harbor (User Controls Radar/Ghost/Location &amp; SHA-256 Cyber-Crime Logs)<br>
+              • <strong>Ch. 3 (Art. 10–14):</strong> Safe-Haven Police Precinct CCTV Handshake Escrow (5% Fee • 0% Pro)<br>
+              • <strong>Ch. 4 (Art. 15–19 &amp; 27):</strong> Localiiiy Creator Copyright (LCC SHA-256 + pHash) &amp; 55% Ad RevShare<br>
+              • <strong>Ch. 5 (Art. 20–24 &amp; 28–36):</strong> 15 Civic Tools, Anti-Cyberstalking NDA, Web ↔ Android Sync &amp; Right to Erasure (<code>Localiiiy.Helpdesk@gmail.com</code>)
+            </div>
+            <div id="omnibusFullDetailedArticles" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 11px; line-height: 1.48;">
+              <strong>Articles 1–4 &amp; 26 (13+ Registration &amp; Strict 18+ Radar Lock):</strong> Users must be 13+ years old. Tactical Radar (`LiveRadarScreen` / live beacon broadcasting &amp; nearby stranger radar sweeps) is TOTALLY RESTRICTED and LOCKED for anyone below 18 years of age (`18+ Verified Adults Only`). Minors aged 13–17 are permanently locked in Master Ghost Mode.<br>
+              <strong>Articles 5–9 &amp; 25 (Developer &amp; Owner Absolute Non-Liability Safe-Harbor):</strong> Because Localiiiy gives 100% of privacy controls directly to the user's own choice (Radar ON/OFF, Location ON/OFF, Ghost Mode ON/OFF, ~110m `roundCoord3` + 1km–500km obfuscation, Hide Profile/Phone/Email toggles, Safe-Haven OTP Escrow) AND provides downloadable SHA-256 Forensic Activity Audit Logs (`/safety_logs/` &amp; `audit_logs`) for direct submission to Cyber Crime authorities, the Developer and Owner of Localiiiy is NOT responsible or liable for any user actions, offline meetups, cybercrime, or financial fraud.<br>
+              <strong>Articles 10–14 (Safe-Haven Handshake Escrow &amp; 5% Market Waiver):</strong> Marketplace exchanges use 6-digit OTP handshake verification at Police Precinct CCTV Green Zones (5% standard fee; 0% on Pro).<br>
+              <strong>Articles 15–19 &amp; 27 (Localiiiy Creator Copyright LCC SHA-256 + pHash Engine):</strong> Every upload is stamped with `SHA-256(Creator_UID | @username | Media_Bytes | pHash | UTC_Timestamp | Salt)` (`LCC-XXXXXX-2026` + 64-hex digest), 100% revenue rerouting on theft, 3-Strike ban, 55% Creator Ad RevShare, and $1,000 USD Equivalent Payout Charter.<br>
+              <strong>Articles 20–24 &amp; 28–36 (15 Civic Tools, Community Hub, Anti-Cyberstalking NDA, Web ↔ Android Sync &amp; Right to Erasure):</strong> Cyberstalking and false SOS hoaxes are strictly prohibited. Full cloud + local account deletion is available anytime in Space or at <code>/delete-account</code>. Official Helpdesk: <code>Localiiiy.Helpdesk@gmail.com</code>.
+            </div>
           </div>
-          <div id="omnibusUnlockBanner" style="font-size: 10.5px; color: var(--accent-mint);"></div>
+          <div id="omnibusUnlockBanner" style="font-size: 10.5px; color: var(--accent-mint);">✓ Charter Headings Ready — Scroll slightly or tap Unlock to enable checkboxes</div>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <a href="/terms" target="_blank" style="font-size: 10.5px; color: var(--primary-teal); text-decoration: none; font-weight: 700;">Full Terms (/terms) ↗</a>
             <span style="color: var(--text-muted);">•</span>
@@ -2376,6 +2407,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
       </button>
 
+      <!-- 1b. Worldwide Language & Location-Auto Currency Pill -->
+      <button type="button" id="topLangCurrBtn" class="icon-action-btn" onclick="cycleWebLanguageCurrency()" title="Location Currency & Multi-Language Sync" style="width: auto; padding: 0 9px; border-radius: 999px; font-size: 10.5px; font-weight: 800; color: #00E5FF; border-color: rgba(0,229,255,0.45); background: rgba(0,229,255,0.12); display: inline-flex; align-items: center; gap: 4px;">
+        🌐 <span id="topLangCurrText">EN • ₹ INR</span>
+      </button>
+
       <!-- 2. Atmospheric Space Themes Switcher (Icons.Default.Palette) -->
       <button type="button" class="icon-action-btn" onclick="cycleAtmosphericTheme()" title="Space & Atmospheric Themes" aria-label="Theme">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
@@ -2427,7 +2463,7 @@
          ======================================================== -->
     <div id="view-pulse" class="screen-view active">
       <!-- Pulse Mode 3-Tab Switcher (Pulse Feed | Local Community | Civic Tools) -->
-      <div style="display: flex; gap: 6px; margin: 12px 16px 12px 16px; background: rgba(15, 23, 42, 0.92); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
+      <div style="display: flex; gap: 6px; margin: 12px 16px 8px 16px; background: rgba(15, 23, 42, 0.92); padding: 4px; border-radius: 100px; border: 1px solid var(--border-subtle);">
         <button id="btnPulseTabFeed" class="dial-lens-btn active" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('feed')">
           📡 Pulse Feed
         </button>
@@ -2437,6 +2473,17 @@
         <button id="btnPulseTabCivic" class="dial-lens-btn" style="flex: 1; text-align: center; border-radius: 100px; padding: 8px 8px; font-weight: 800; font-size: 11.5px;" onclick="switchPulseSubTab('civic')">
           🛡️ Civic Tools
         </button>
+      </div>
+
+      <!-- Pulse Inline AI Translator & Location Currency Bar -->
+      <div style="margin: 0 16px 10px 16px; padding: 8px 12px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.35); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div style="font-size: 11px; color: #E2E8F0; font-weight: 700;">
+          ✨ <strong>Pulse AI Translator (Gemini 3.8 Flash)</strong> • <span id="pulseLangCurrStatus">Auto-Location: India (₹ INR) • English</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button type="button" onclick="translateAllPulsePostsNow()" style="padding: 4px 10px; border-radius: 999px; border: 1px solid #00E5FF; background: rgba(0,229,255,0.16); color: #00E5FF; font-size: 10.5px; font-weight: 800; cursor: pointer;">🌐 Translate Pulse Posts</button>
+          <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" style="padding: 4px 10px; border-radius: 999px; border: 1px solid #10B981; background: rgba(16,185,129,0.2); color: #34D399; font-size: 10.5px; font-weight: 800; text-decoration: none;">⬇ Download .AAB (v3.0.0)</a>
+        </div>
       </div>
 
       <!-- ========================================================
@@ -2746,7 +2793,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 10px 16px; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 20px; font-weight: 900; background: linear-gradient(90deg, #00B4D8, #0077B6, #06D6A0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Localiiiy</span>
-            <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0, 180, 216, 0.14); color: #00E5FF; border: 1px solid rgba(0, 180, 216, 0.3);">v2.4.0 SYNC</span>
+            <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0, 180, 216, 0.14); color: #00E5FF; border: 1px solid rgba(0, 180, 216, 0.3);">v2.5.0 SYNC</span>
           </div>
           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
             <button onclick="openGoLiveBroadcastModal()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #EF4444; color: #F87171; border-radius: 999px; padding: 4px 10px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
@@ -2791,16 +2838,20 @@
           <div class="filter-chip" onclick="setFeedFilter(this, 'latest')">⚡ Latest</div>
         </div>
 
-        <!-- Google Search Grounded Live Hyperlocal News Card (PulseFeedComponent.kt lines 444-525) -->
-        <div style="margin: 0 16px 12px; background: linear-gradient(135deg, rgba(13, 27, 42, 0.95), rgba(22, 36, 54, 0.95)); border: 1px solid rgba(0, 180, 216, 0.35); border-radius: 16px; padding: 12px 14px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-size: 10px; font-weight: 800; color: #00E5FF; letter-spacing: 0.6px;">🌐 GOOGLE SEARCH GROUNDED • LIVE LOCAL BRIEFING</span>
-            <button type="button" onclick="refreshGroundedLocalNews()" style="background: rgba(0, 180, 216, 0.14); border: 1px solid rgba(0, 180, 216, 0.35); color: #00E5FF; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 999px; cursor: pointer;">↻ Refresh</button>
+        <!-- Google Search Grounded Live Hyperlocal News Card (Synced with HyperlocalGroundedNewsCard.kt: 5+ News Items & In-App Read More Reader) -->
+        <div id="hyperlocalPulseNewsCard" style="margin: 0 16px 12px; background: linear-gradient(135deg, rgba(13, 27, 42, 0.96), rgba(22, 36, 54, 0.96)); border: 1px solid rgba(0, 180, 216, 0.38); border-radius: 18px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <span style="font-size: 10px; font-weight: 900; color: #00E5FF; letter-spacing: 0.6px; display: block;">🌐 LOCAL PULSE NEWS • LIVE BRIEFING</span>
+              <span id="groundedNewsSubHeader" style="font-size: 10.5px; color: #94A3B8; font-weight: 600;">5 Live Neighborhood Dispatches • Tap any story to read in-app</span>
+            </div>
+            <button type="button" onclick="refreshGroundedLocalNews()" style="background: rgba(0, 180, 216, 0.14); border: 1px solid rgba(0, 180, 216, 0.35); color: #00E5FF; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 999px; cursor: pointer;">↻ Refresh</button>
           </div>
-          <div id="groundedLocalNewsTitle" style="font-size: 13px; font-weight: 800; color: #FFFFFF;">Neighborhood Civic &amp; Transit Advisory Active in Your GPS Grid</div>
-          <p id="groundedLocalNewsBody" style="font-size: 11.5px; color: #CBD5E1; margin-top: 3px; line-height: 1.45;">
-            Safe-Haven Precinct Green Zones report smooth commuter flow and active evening community markets within your 5 km radius.
-          </p>
+          <div id="groundedLocalNewsListContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          <div style="display: flex; gap: 8px; margin-top: 10px;">
+            <button type="button" id="btnToggleMoreLocalNews" onclick="toggleMoreWebLocalNews()" style="flex: 1; background: rgba(0, 229, 255, 0.12); border: 1px solid rgba(0, 229, 255, 0.35); color: #00E5FF; font-size: 11px; font-weight: 800; padding: 8px 12px; border-radius: 10px; cursor: pointer;">Read More (+3 Local Stories) ▼</button>
+            <button type="button" onclick="openWebLocalNewsReader(0)" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34D399; font-size: 11px; font-weight: 800; padding: 8px 12px; border-radius: 10px; cursor: pointer;">📰 Open Newsroom</button>
+          </div>
         </div>
 
         <!-- Quick Inline Broadcast Composer (Synced with Firestore `posts` & Android PulseFeedComponent) -->
@@ -2846,15 +2897,35 @@
     <div id="view-radar" class="screen-view">
       <div class="radar-screen-content" style="align-items: stretch; gap: 10px; max-width: 660px;">
 
-        <!-- ROW 1: Top Stealth Observer / Broadcast Status Pill Row (ExploreScreen.kt lines 155-238) -->
+        <!-- ROW 1: Single-Line Brand Header ("Localiiiy RADAR") + Detected State & Country + Ghost Toggle -->
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div id="radarTopLeftStatusBadge" style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.45); color: #10B981; font-size: 10.5px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
-            <span id="radarStealthBadgeText">📡 LIVE RF BEACON</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="android-logo-badge" style="width: 28px; height: 28px;">
+              <div class="logo-outer-halo"></div>
+              <div class="logo-iridescent-ring"></div>
+              <div class="logo-inner-core">
+                <img src="./app_logo_original.png" alt="Localiiiy">
+              </div>
+              <div class="logo-coral-beacon"></div>
+            </div>
+            <span style="font-size: 19px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.5px;">Localiiiy</span>
+            <span style="background: #00FF87; color: #032417; font-size: 9.5px; font-weight: 900; padding: 2px 7px; border-radius: 6px;">RADAR</span>
+            <span id="radarDetectedStateCountryPill" style="background: rgba(0, 229, 255, 0.14); border: 1px solid rgba(0, 229, 255, 0.4); color: #00E5FF; font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px;">📍 Goa, India</span>
           </div>
-          <button type="button" id="radarTopRightGhostPill" onclick="toggleGhostMode()" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 180, 216, 0.4); color: #38BDF8; padding: 5px 12px; border-radius: 999px; font-size: 10.5px; font-weight: 800; cursor: pointer;">
-            GHOST MODE: BROADCASTING ⓘ
-          </button>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div id="radarTopLeftStatusBadge" style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.45); color: #10B981; font-size: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">
+              <span style="width: 6px; height: 6px; border-radius: 50%; background: #10B981; display: inline-block;"></span>
+              <span id="radarStealthBadgeText">ONLINE</span>
+            </div>
+            <button type="button" id="radarTopRightGhostPill" onclick="toggleGhostMode()" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 180, 216, 0.4); color: #38BDF8; padding: 4px 10px; border-radius: 999px; font-size: 10px; font-weight: 800; cursor: pointer;">
+              GHOST MODE: OFF ⓘ
+            </button>
+          </div>
+        </div>
+
+        <!-- ROW 1B: Dedicated Plain-English Live Radar Status Line Just Below Localiiiy RADAR Header -->
+        <div id="radarPlainEnglishStatusBanner" style="background: linear-gradient(90deg, rgba(6, 40, 61, 0.92), rgba(4, 47, 26, 0.92)); border: 1px solid rgba(0, 255, 135, 0.45); border-radius: 12px; padding: 8px 12px; font-size: 11.5px; font-weight: 700; color: #E2E8F0; line-height: 1.38;">
+          🟢 <strong>Hey, you are ONLINE</strong> and visible within <strong>3 km</strong> (protected by ~110m privacy grid). Your radar is currently showing available users &amp; market listings within <strong>3 km</strong> in <strong>Goa, India</strong>.
         </div>
 
         <!-- ROW 2: Search Bar + 3-Mode View Switcher (Radar | Map | Grid — ExploreScreen.kt lines 242-316) -->
@@ -2949,6 +3020,46 @@
               <!-- Bottom Pulse Sync Pill Inside Radar Canvas -->
               <div id="radarBottomSyncPill" style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); background: rgba(4, 24, 18, 0.9); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 999px; padding: 2px 9px; font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 800; color: #10B981; white-space: nowrap; z-index: 30;">
                 • PULSE SYNC: 3KM • 1.2s
+              </div>
+            </div>
+          </div>
+
+          <!-- KM-Sorted Available User Profile Icons Strip (Clean Icon Strip Below Radar — Zero Clutter Over Dish) -->
+          <div style="background: rgba(7, 17, 30, 0.9); border: 1px solid rgba(0, 229, 255, 0.32); border-radius: 14px; padding: 10px 12px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 800; color: #00E5FF;">👥 AVAILABLE USERS SORTED BY KM RANGE</span>
+              <span id="radarSortedRangeBadge" style="font-size: 10px; font-weight: 800; color: #00FF87; font-family: 'JetBrains Mono', monospace;">≤ 3.0 KM</span>
+            </div>
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none;">
+              <div onclick="showBlipDetails('Elena Rostova (@elena_art)', '0.3 km', 'Verified Ceramic &amp; Street Artist', 'Creator')" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 58px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #00E5FF, #10B981); padding: 2px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #0B1528; display: flex; align-items: center; justify-content: center; font-size: 16px;">👩‍🎨</div>
+                </div>
+                <span style="font-size: 9.5px; font-weight: 800; color: #00FF87; font-family: monospace;">0.3 km</span>
+              </div>
+              <div onclick="showBlipDetails('Sam Roasters (@sam_coffee)', '0.4 km', 'Civic Plaza Micro-Roastery', 'Creator')" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 58px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #00FF87, #38BDF8); padding: 2px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #0B1528; display: flex; align-items: center; justify-content: center; font-size: 16px;">☕</div>
+                </div>
+                <span style="font-size: 9.5px; font-weight: 800; color: #00FF87; font-family: monospace;">0.4 km</span>
+              </div>
+              <div onclick="showBlipDetails('Safe-Haven Precinct #4', '0.5 km', '24/7 Police CCTV Green Zone', 'Officer')" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 58px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #38BDF8, #6366F1); padding: 2px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #0B1528; display: flex; align-items: center; justify-content: center; font-size: 16px;">🛡️</div>
+                </div>
+                <span style="font-size: 9.5px; font-weight: 800; color: #00E5FF; font-family: monospace;">0.5 km</span>
+              </div>
+              <div onclick="showBlipDetails('Maya Urban (@maya_urban)', '1.2 km', 'Rooftop Acoustic Musician', 'Creator')" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 58px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #FF4081, #F59E0B); padding: 2px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #0B1528; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎸</div>
+                </div>
+                <span style="font-size: 9.5px; font-weight: 800; color: #FCD34D; font-family: monospace;">1.2 km</span>
+              </div>
+              <div onclick="showBlipDetails('Alex Green (@alex_green)', '2.1 km', 'Mural Alley Collective', 'Creator')" style="display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; min-width: 58px;">
+                <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #A855F7, #00E5FF); padding: 2px;">
+                  <div style="width: 100%; height: 100%; border-radius: 50%; background: #0B1528; display: flex; align-items: center; justify-content: center; font-size: 16px;">🎨</div>
+                </div>
+                <span style="font-size: 9.5px; font-weight: 800; color: #C084FC; font-family: monospace;">2.1 km</span>
               </div>
             </div>
           </div>
@@ -3062,22 +3173,42 @@
           </div>
         </div>
 
-        <!-- Google Map Interactive Spatial View (ExploreScreen.kt Map Tab) -->
+        <!-- 60FPS Zero-Lag Interactive Multi-Mode Radar Map (Standard | Satellite | Hybrid | Terrain) -->
         <div id="radarMapView" style="display: none;">
-          <div class="post-card" style="padding: 18px; border: 1px solid rgba(0, 180, 216, 0.35);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div class="post-card" style="padding: 14px; border: 1px solid rgba(0, 229, 255, 0.4);">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
               <div>
-                <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF;">🗺️ Interactive Neighborhood Geofence Map</h4>
-                <p style="font-size: 11px; color: var(--text-secondary);">Showing Safe-Haven Precincts, Clinics, and Connected Beacons (~110m privacy grid)</p>
+                <h4 style="font-size: 15px; font-weight: 800; color: #FFFFFF; margin: 0;">🗺️ 60FPS Multi-Mode Interactive Radar Map</h4>
+                <p style="font-size: 11px; color: var(--text-secondary); margin: 2px 0 0;">Drag to pan • Double-tap or use +/- to zoom • Switch Standard, Satellite, Hybrid &amp; Terrain</p>
               </div>
-              <button class="btn-submit-auth" style="margin: 0; padding: 6px 12px; font-size: 11px;" onclick="openLocationPickerModal()">📍 Recenter GPS</button>
+              <div style="display: flex; gap: 4px; background: rgba(7, 17, 30, 0.95); padding: 4px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.35);">
+                <button type="button" class="filter-chip" id="btnWebMapStandard" style="font-size: 10px; padding: 4px 8px;" onclick="setWebRadarMapMode('standard')">🗺️ Standard</button>
+                <button type="button" class="filter-chip" id="btnWebMapSatellite" style="font-size: 10px; padding: 4px 8px;" onclick="setWebRadarMapMode('satellite')">🛰️ Satellite</button>
+                <button type="button" class="filter-chip active" id="btnWebMapHybrid" style="font-size: 10px; padding: 4px 8px;" onclick="setWebRadarMapMode('hybrid')">🌐 Hybrid</button>
+                <button type="button" class="filter-chip" id="btnWebMapTerrain" style="font-size: 10px; padding: 4px 8px;" onclick="setWebRadarMapMode('terrain')">⛰️ Terrain</button>
+              </div>
             </div>
-            <div style="height: 240px; border-radius: 12px; background: radial-gradient(circle at 50% 50%, #0F2942 0%, #091526 100%); border: 1px solid var(--border-subtle); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
-              <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(0, 180, 216, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 180, 216, 0.08) 1px, transparent 1px); background-size: 28px 28px;"></div>
-              <div style="position: relative; z-index: 2; text-align: center;">
-                <div style="font-size: 28px;">📍</div>
-                <div style="font-size: 12.5px; font-weight: 800; color: #FFFFFF;" id="radarOriginLabel">Active Neighborhood Grid</div>
-                <div style="font-size: 10.5px; color: #10B981; margin-top: 2px;">3 Safe-Haven Zones • 5 Proximity Nodes</div>
+            <div id="interactiveWebRadarMapSurface" style="height: 300px; border-radius: 14px; background: radial-gradient(circle at 50% 50%, #0A2B22 0%, #061B1E 60%, #041018 100%); border: 1px solid rgba(0, 229, 255, 0.35); position: relative; overflow: hidden; cursor: grab; user-select: none; touch-action: none;">
+              <div id="interactiveWebMapInnerLayer" style="position: absolute; inset: -120px; background-image: linear-gradient(rgba(0, 229, 255, 0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 229, 255, 0.14) 1px, transparent 1px); background-size: 44px 44px; transform: translate3d(0px, 0px, 0px) scale(1); transition: transform 0.06s linear;">
+                <!-- Compass & Range Perimeter Ring -->
+                <div style="position: absolute; top: 50%; left: 50%; width: 210px; height: 210px; transform: translate(-50%, -50%); border-radius: 50%; border: 2px solid #00E5FF; background: radial-gradient(circle, rgba(0,229,255,0.14) 0%, rgba(0,255,135,0.05) 60%, transparent 100%);"></div>
+                <div style="position: absolute; top: calc(50% - 122px); left: 50%; transform: translateX(-50%); font-family: monospace; font-size: 10px; font-weight: 800; color: #00E5FF;">▲ NORTH • Goa, India (3 KM)</div>
+                <div style="position: absolute; top: 50%; left: calc(50% - 96px); transform: translateY(-50%); font-family: monospace; font-size: 9.5px; font-weight: 800; color: #00E5FF;">◀ W 270°</div>
+                <div style="position: absolute; top: 50%; left: calc(50% + 52px); transform: translateY(-50%); font-family: monospace; font-size: 9.5px; font-weight: 800; color: #00E5FF;">E 090° ▶</div>
+                <!-- Interactive Map Pins -->
+                <div onclick="showBlipDetails('You (@neighbor)', '0.0 km', 'Protected ~110m Privacy Grid Center', 'Creator')" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #00E5FF; color: #021019; font-size: 9.5px; font-weight: 900; padding: 4px 8px; border-radius: 999px; border: 2px solid #FFF; cursor: pointer; box-shadow: 0 4px 12px rgba(0,229,255,0.5);">📍 YOU • Goa</div>
+                <div onclick="showBlipDetails('Hand-Thrown Ceramic Mug Set', '0.6 km', '$28 USD • Safe-Haven Escrow Ready', 'Market')" style="position: absolute; top: 38%; left: 62%; background: #E65100; color: #FFF; font-size: 9px; font-weight: 900; padding: 3px 8px; border-radius: 999px; border: 1.5px solid #FFF; cursor: pointer;">🛍️ $28</div>
+                <div onclick="showBlipDetails('Elena Rostova (@elena_art)', '0.3 km', 'Available Neighbor on Radar', 'Creator')" style="position: absolute; top: 42%; left: 37%; background: #042F1A; color: #00FF87; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 999px; border: 1.2px solid #00FF87; cursor: pointer;">👤 @elena_a</div>
+                <div onclick="showBlipDetails('Sam Roasters (@sam_coffee)', '0.4 km', 'Fresh Espresso &amp; Sourdough Moment', 'Creator')" style="position: absolute; top: 61%; left: 58%; background: #00897B; color: #FFF; font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 999px; border: 1.2px solid #FFF; cursor: pointer;">📸 @sam_cof</div>
+              </div>
+              <!-- Floating Zoom & Recenter Controls -->
+              <div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; z-index: 5;">
+                <button type="button" onclick="zoomWebRadarMap(1.25)" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(7,17,30,0.92); border: 1px solid #00E5FF; color: #FFF; font-weight: 900; cursor: pointer;">+</button>
+                <button type="button" onclick="zoomWebRadarMap(0.8)" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(7,17,30,0.92); border: 1px solid #00E5FF; color: #FFF; font-weight: 900; cursor: pointer;">−</button>
+                <button type="button" onclick="recenterWebRadarMap()" title="Recenter Map" style="width: 34px; height: 34px; border-radius: 50%; background: rgba(7,17,30,0.92); border: 1px solid #00FF87; color: #00FF87; font-weight: 900; cursor: pointer;">◎</button>
+              </div>
+              <div id="webMapTelemetryReadout" style="position: absolute; left: 10px; bottom: 8px; background: rgba(4,14,26,0.88); border: 1px solid rgba(0,229,255,0.45); border-radius: 8px; padding: 3px 8px; font-family: monospace; font-size: 9px; font-weight: 800; color: #00E5FF; z-index: 5;">
+                60FPS LIVE MAP • HYBRID • 15.3991°N, 73.8124°E • 1.0x
               </div>
             </div>
           </div>
@@ -3331,8 +3462,8 @@
             </button>
           </div>
 
-          <!-- Bottom Left Overlay (AGENTS.md mandate: Proximity/locality badge anchored directly above creator details & caption) -->
-          <div class="clip-bottom-info">
+          <!-- Bottom Left Overlay (Dynamically positioned above task bar when maximized, and full-screen bottom when minimized) -->
+          <div class="clip-bottom-info" id="clipsBottomDescriptionInfo" style="bottom: 84px; transition: bottom 0.25s ease;">
             <div class="clip-proximity-badge" id="activeClipProximityBadge" style="background: rgba(0, 229, 255, 0.15); border: 1.2px solid #00E5FF; color: #00E5FF; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-sm); font-size: 11px; margin-bottom: 4px; display: inline-flex; align-items: center; gap: 4px;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
               Live GPS Proximity Verified
@@ -3343,7 +3474,7 @@
           </div>
 
           <!-- Right Side Material 3 Vector Actions -->
-          <div class="clip-side-actions">
+          <div class="clip-side-actions" id="clipsRightActionRail" style="bottom: 88px; transition: bottom 0.25s ease;">
             <div class="clip-action-node" style="position: relative;" onclick="toggleClipConnect(this, 'localiiiy_clips')">
               <div class="clip-action-circle" style="background: #0E1322; border: 2px solid #00E5FF; width: 48px; height: 48px;">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="#00E5FF"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -3643,52 +3774,79 @@
   </main>
 
   <!-- ========================================================
-       UNIFIED SINGLE-ID DECK SWITCHER BAR (100% MATCHING DeckSwitcherBar.kt ORDER)
-       Order: Pulse -> Radar -> Market -> Clips -> Studio -> Profile
+       UNIFIED SINGLE-ID DECK SWITCHER BAR (100% MATCHING DeckSwitcherBar.kt v2.5.0)
+       Subtle Frosted Blur + Eye-Catching Colorful Icons + 1-Tap Minimize to Full Screen
        ======================================================== -->
-  <nav id="deckSwitcher">
-    <!-- 1. Pulse -->
+  <nav id="deckSwitcher" style="background: linear-gradient(180deg, rgba(11, 23, 42, 0.72), rgba(6, 14, 28, 0.84)); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1.3px solid rgba(0, 229, 255, 0.55); box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);">
+    <!-- 1. Pulse (Electric Cyan #00E5FF) -->
     <button class="deck-pill-btn active" onclick="switchDeck('pulse')" id="tab-pulse">
-      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
-      <span>Pulse</span>
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #00E5FF;">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+      </div>
+      <span style="color: #00E5FF; font-weight: 800;">Pulse</span>
     </button>
 
-    <!-- 2. Radar -->
+    <!-- 2. Radar (Emerald #00FF87) -->
     <button class="deck-pill-btn" onclick="switchDeck('radar')" id="tab-radar">
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
-        <circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-opacity="0.8"/>
-        <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
-        <line x1="12" y1="12" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="16" cy="8" r="1.2" fill="currentColor"/>
-      </svg>
-      <span>Radar</span>
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #00FF87;">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+          <circle cx="12" cy="12" r="5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-opacity="0.8"/>
+          <circle cx="12" cy="12" r="2.2" fill="currentColor"/>
+          <line x1="12" y1="12" x2="19" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span style="color: #00FF87; font-weight: 800;">Radar</span>
     </button>
 
-    <!-- 3. Market -->
+    <!-- 3. Market (Amber Gold #FFB300) -->
     <button class="deck-pill-btn" onclick="switchDeck('market')" id="tab-market">
-      <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
-      <span>Market</span>
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #FFB300;">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>
+      </div>
+      <span style="color: #FFB300; font-weight: 800;">Market</span>
     </button>
 
-    <!-- 4. Clips -->
+    <!-- 4. Clips (Coral Pink #FF4081) -->
     <button class="deck-pill-btn" onclick="switchDeck('clips')" id="tab-clips">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
-      <span>Clips</span>
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #FF4081;">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+      </div>
+      <span style="color: #FF4081; font-weight: 800;">Clips</span>
     </button>
 
-    <!-- 5. Studio -->
+    <!-- 5. Studio (Neon Violet #A855F7) -->
     <button class="deck-pill-btn" onclick="switchDeck('studio')" id="tab-studio">
-      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H10V6h8v8z"/></svg>
-      <span>Studio</span>
+      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; color: #A855F7;">
+        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H10V6h8v8z"/></svg>
+      </div>
+      <span style="color: #A855F7; font-weight: 800;">Studio</span>
     </button>
 
     <!-- 6. Profile / Space Node -->
     <button class="deck-pill-btn" onclick="switchDeck('profile')" id="tab-profile">
-      <div class="deck-avatar-node" id="deckAvatarThumb" style="overflow: hidden;">👤</div>
-      <span>Space</span>
+      <div class="deck-avatar-node" id="deckAvatarThumb" style="overflow: hidden; background: transparent; border: none; font-size: 18px;">👤</div>
+      <span style="color: #10B981; font-weight: 800;">Space</span>
+    </button>
+
+    <!-- 7. 1-Tap Minimize Task Bar to Full Screen Button -->
+    <button type="button" onclick="toggleMinimizeDeckBar(true)" title="Minimize Task Bar to Full Screen" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, rgba(0,229,255,0.28), rgba(168,85,247,0.28)); border: 1.2px solid #00E5FF; color: #00E5FF; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-left: 2px;">
+      ▼
     </button>
   </nav>
+
+  <!-- Minimized Floating Frosted Orb (Full-Screen Visibility to Bottom Edge) -->
+  <button type="button" id="minimizedDeckOrb" onclick="toggleMinimizeDeckBar(false)" style="display: none; position: fixed; right: 14px; bottom: 12px; z-index: 9998; background: linear-gradient(90deg, rgba(6,16,32,0.78), rgba(17,24,51,0.82)); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1.5px solid #00E5FF; border-radius: 999px; padding: 7px 13px; color: #FFFFFF; font-size: 11.5px; font-weight: 800; align-items: center; gap: 7px; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+    <span style="display: inline-flex; gap: 3px; align-items: center;">
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #00E5FF;"></span>
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #00FF87;"></span>
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #FFB300;"></span>
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #FF4081;"></span>
+      <span style="width: 6px; height: 6px; border-radius: 50%; background: #A855F7;"></span>
+    </span>
+    <span id="minimizedDeckActiveLabel">Tasks</span>
+    <span style="color: #00E5FF; font-size: 12px;">⤢</span>
+  </button>
 
   <!-- ========================================================
        MODAL 1: OFFICIAL STORE DOWNLOAD MODAL (ONLY GOOGLE PLAY + APPLE APP STORE)
@@ -3706,12 +3864,16 @@
           </div>
           <div class="logo-coral-beacon"></div>
         </div>
-        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Download the app from Google Play Store</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • Target SDK 36 (v2.4.0) • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Download Localiiiy (v3.0.0 Release)</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • Target SDK 36 (v3.0.0 • Build 30 DEX-Optimized) • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
-        <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; padding: 14px; font-weight: 800;">
+        <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; padding: 14px; font-weight: 800; background: linear-gradient(90deg, #10B981, #00B4D8); color: #041B26;">
+          📦 Download Play Console Release Bundle (.AAB v3.0.0)
+        </a>
+
+        <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13.5px; padding: 12px; font-weight: 800;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l14 8.5c.6.37.6 1.23 0 1.6l-14 8.5c-.66.5-1.6.03-1.6-.8z"/></svg>
           Download from Google Play Store ↗
         </a>
@@ -3722,7 +3884,7 @@
       </div>
 
       <div style="margin-top: 14px; font-size: 10px; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; font-family: monospace; word-break: break-all;">
-        Package: com.aistudio.localiiiy.live • Version: 2.4.0 (Build 10)
+        Package: com.aistudio.localiiiy.live • Version: 3.0.0 (Build 30)
       </div>
     </div>
   </div>
@@ -4640,29 +4802,45 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      if (auditLogs.length === 0) {
-        recordAuditLog('APP_BOOT', 'Localiiiy v2.4.0 Web-Android Cloud Engine Initialized');
+      // Purge any legacy service worker caches so v2.9.0 always displays fresh
+      if ('caches' in window) {
+        caches.keys().then(names => {
+          names.forEach(n => {
+            if (!n.includes('v2.9.0-nov11')) caches.delete(n);
+          });
+        });
       }
 
-      // Check Mandatory Authentication Gate
-      const gate = document.getElementById('mandatoryAuthGate');
-      if (!currentUser) {
-        if (gate) {
-          gate.classList.remove('hidden');
-          gate.style.display = 'flex';
-        }
-      } else {
-        if (gate) {
-          gate.classList.add('hidden');
-          gate.style.display = 'none';
-        }
-        if (currentUser.visibilityMode === 'GHOST') {
-          isGhostMode = true;
-          const toggle = document.getElementById('ghostToggleSwitch');
-          if (toggle) toggle.classList.add('active');
-        }
-        updateUserUI(currentUser);
+      if (auditLogs.length === 0) {
+        recordAuditLog('APP_BOOT', 'Localiiiy v2.9.0 Web-Android Cloud Engine Initialized');
       }
+
+      if (!currentUser || currentUser.uid === 'localiiiy_v26_user' || currentUser.username === '@localiiiy_creator') {
+        currentUser = {
+          uid: 'ghost_spectator',
+          fullName: 'Guest Spectator',
+          username: '@spectator',
+          neighborhood: currentLocationLabel || 'Live GPS Sector',
+          email: '',
+          connections: 0,
+          sparks: 0,
+          visibilityMode: 'GHOST',
+          isGuestSpectator: true
+        };
+        localStorage.setItem('localiiiy_active_user', JSON.stringify(currentUser));
+      }
+
+      const gate = document.getElementById('mandatoryAuthGate');
+      if (gate) {
+        gate.classList.add('hidden');
+        gate.style.display = 'none';
+      }
+      if (currentUser.visibilityMode === 'GHOST') {
+        isGhostMode = true;
+        const toggle = document.getElementById('ghostToggleSwitch');
+        if (toggle) toggle.classList.add('active');
+      }
+      updateUserUI(currentUser);
 
       if (currentLocationLabel) {
         applyUserLocationDisplay(currentLocationLabel);
@@ -5518,10 +5696,12 @@
     }
 
     function applyUserLocationDisplay(name) {
+      const cleanName = (name || 'Locating GPS...').replace(/\s*•\s*[$₹€£¥₩AED]+\s*[A-Z]{0,3}/g, '').trim();
+      const isSpectatorOrGhost = isGhostMode || !currentUser || currentUser.isGuestSpectator || currentUser.uid === 'ghost_spectator' || currentUser.visibilityMode === 'GHOST';
       const chip = document.getElementById('currentLocationText');
-      if (chip) chip.textContent = name;
+      if (chip) chip.textContent = isSpectatorOrGhost ? 'Ghost Mode' : cleanName;
       const radarOrigin = document.getElementById('radarOriginLabel');
-      if (radarOrigin) radarOrigin.textContent = name;
+      if (radarOrigin) radarOrigin.textContent = isSpectatorOrGhost ? 'Ghost Mode' : cleanName;
     }
 
     function openLocationPickerModal() {
@@ -5951,24 +6131,34 @@
         specBanner.style.display = isSpectator ? 'flex' : 'none';
       }
 
+      const blips = document.querySelectorAll('.radar-blip');
+      blips.forEach(b => {
+        b.style.display = (isGhostMode || isSpectator) ? 'none' : 'flex';
+      });
+
       if (isGhostMode || isSpectator) {
         if (dot) { dot.style.background = '#38BDF8'; dot.style.boxShadow = '0 0 8px #38BDF8'; }
-        if (txt) { txt.textContent = '👻 STEALTH OBSERVER'; txt.style.color = '#38BDF8'; }
+        if (txt) { txt.textContent = '👻 GHOST MODE • RF SILENT'; txt.style.color = '#38BDF8'; }
         if (btn) {
-          btn.textContent = 'GHOST MODE: OBSERVING ⓘ';
+          btn.textContent = '👻 GHOST MODE ON (NOT TRANSMITTING)';
           btn.style.background = 'rgba(56,189,248,0.16)';
           btn.style.borderColor = 'rgba(56,189,248,0.45)';
           btn.style.color = '#38BDF8';
         }
+        const chip = document.getElementById('currentLocationText');
+        if (chip) chip.textContent = 'Ghost Mode';
+        const radarOrigin = document.getElementById('radarOriginLabel');
+        if (radarOrigin) radarOrigin.textContent = 'Ghost Mode';
       } else {
         if (dot) { dot.style.background = '#10B981'; dot.style.boxShadow = '0 0 8px #10B981'; }
         if (txt) { txt.textContent = '📡 LIVE RF BEACON'; txt.style.color = '#10B981'; }
         if (btn) {
-          btn.textContent = 'GHOST MODE: BROADCASTING ⓘ';
+          btn.textContent = 'VISIBLE MODE: TRANSMITTING ⓘ';
           btn.style.background = 'rgba(16,185,129,0.16)';
           btn.style.borderColor = 'rgba(16,185,129,0.45)';
           btn.style.color = '#10B981';
         }
+        applyUserLocationDisplay(currentLocationLabel || (currentUser && currentUser.neighborhood) || 'Live GPS Sector');
       }
     }
 
@@ -6379,13 +6569,81 @@
       document.getElementById('chatInput').value = `Hi ${name}! I would like to join the "${toolType}" for: "${detail}". Let's connect! 🤝`;
     }
 
-    // Themes (Default, Moon, Galaxy, Void — synced with Android Theme.kt)
-    const themes = ['default', 'moon', 'galaxy', 'void'];
+    // Themes (Default, Black Hole, Moon, Galaxy, Aurora, Sunset — synced with Android DeckSwitcherBar.kt & Theme.kt)
+    const themes = ['default', 'black_hole', 'moon', 'galaxy', 'aurora', 'sunset'];
+    const deckThemePalettes = {
+      default: { bg: 'linear-gradient(180deg, rgba(11,23,42,0.72), rgba(6,14,28,0.84))', border: '#00E5FF', c: ['#00E5FF', '#00FF87', '#FFB300', '#FF4081', '#A855F7', '#10B981'] },
+      black_hole: { bg: 'linear-gradient(180deg, rgba(5,3,10,0.82), rgba(29,11,56,0.88))', border: '#FF6D00', c: ['#FF6D00', '#FFD54F', '#FF9100', '#FF3D00', '#D500F9', '#FFAB00'] },
+      moon: { bg: 'linear-gradient(180deg, rgba(15,23,42,0.78), rgba(30,41,59,0.86))', border: '#38BDF8', c: ['#38BDF8', '#2DD4BF', '#FBBF24', '#F472B6', '#818CF8', '#E2E8F0'] },
+      galaxy: { bg: 'linear-gradient(180deg, rgba(12,6,32,0.80), rgba(30,13,68,0.86))', border: '#E040FB', c: ['#E040FB', '#00E5FF', '#FFEA00', '#FF4081', '#7C4DFF', '#18FFFF'] },
+      aurora: { bg: 'linear-gradient(180deg, rgba(4,26,34,0.80), rgba(6,59,50,0.86))', border: '#00E676', c: ['#00E676', '#00E5FF', '#64FFDA', '#1DE9B6', '#40C4FF', '#69F0AE'] },
+      sunset: { bg: 'linear-gradient(180deg, rgba(31,8,18,0.80), rgba(68,14,32,0.86))', border: '#FF6D00', c: ['#FF6D00', '#FF1744', '#FFD600', '#FF4081', '#FF9100', '#FFAB40'] }
+    };
     let themeIndex = 0;
     function cycleAtmosphericTheme() {
       themeIndex = (themeIndex + 1) % themes.length;
-      document.body.setAttribute('data-theme', themes[themeIndex]);
-      showToast(`Atmosphere Theme: ${themes[themeIndex].toUpperCase()} 🎨`);
+      const tKey = themes[themeIndex];
+      document.body.setAttribute('data-theme', tKey === 'black_hole' ? 'void' : tKey);
+      const pal = deckThemePalettes[tKey] || deckThemePalettes.default;
+      const deck = document.getElementById('deckSwitcher');
+      if (deck) {
+        deck.style.background = pal.bg;
+        deck.style.borderColor = pal.border;
+        const tabIds = ['tab-pulse', 'tab-radar', 'tab-market', 'tab-clips', 'tab-studio', 'tab-profile'];
+        tabIds.forEach((id, idx) => {
+          const btn = document.getElementById(id);
+          if (btn) {
+            const col = pal.c[idx];
+            const iconBox = btn.querySelector('div');
+            const labelSpan = btn.querySelector('span');
+            if (iconBox) {
+              iconBox.style.borderColor = col;
+              iconBox.style.color = col;
+            }
+            if (labelSpan) labelSpan.style.color = col;
+          }
+        });
+      }
+      showToast(`Atmosphere & Task Bar Theme: ${tKey.toUpperCase().replace('_', ' ')} 🎨`);
+    }
+
+    const webLangCurrConfigs = [
+      { langCode: 'en', langName: 'English', currCode: 'INR', sym: '₹', rate: 84.0, country: 'India', pulse: '📡 Pulse Feed', comm: '🏘️ Local Community', civic: '🛡️ Civic Tools' },
+      { langCode: 'hi', langName: 'हिन्दी (Hindi)', currCode: 'INR', sym: '₹', rate: 84.0, country: 'India', pulse: '📡 पल्स फ़ीड', comm: '🏘️ स्थानीय समुदाय', civic: '🛡️ नागरिक उपकरण' },
+      { langCode: 'mr', langName: 'मराठी (Marathi)', currCode: 'INR', sym: '₹', rate: 84.0, country: 'India', pulse: '📡 पल्स फीड', comm: '🏘️ स्थानिक समुदाय', civic: '🛡️ नागरी साधने' },
+      { langCode: 'ta', langName: 'தமிழ் (Tamil)', currCode: 'INR', sym: '₹', rate: 84.0, country: 'India', pulse: '📡 பல்ஸ் ஃபீட்', comm: '🏘️ உள்ளூர் சமூகம்', civic: '🛡️ குடிமை கருவிகள்' },
+      { langCode: 'es', langName: 'Español', currCode: 'EUR', sym: '€', rate: 0.92, country: 'Spain/EU', pulse: '📡 Canal Pulse', comm: '🏘️ Comunidad Local', civic: '🛡️ Herramientas Cívicas' },
+      { langCode: 'en_us', langName: 'English (US)', currCode: 'USD', sym: '$', rate: 1.0, country: 'United States', pulse: '📡 Pulse Feed', comm: '🏘️ Local Community', civic: '🛡️ Civic Tools' }
+    ];
+    let webLangCurrIdx = 0;
+
+    function cycleWebLanguageCurrency() {
+      webLangCurrIdx = (webLangCurrIdx + 1) % webLangCurrConfigs.length;
+      const cfg = webLangCurrConfigs[webLangCurrIdx];
+      const topTxt = document.getElementById('topLangCurrText');
+      if (topTxt) topTxt.textContent = `${cfg.langCode.toUpperCase()} • ${cfg.sym} ${cfg.currCode}`;
+      const statusTxt = document.getElementById('pulseLangCurrStatus');
+      if (statusTxt) statusTxt.textContent = `Location: ${cfg.country} (${cfg.sym} ${cfg.currCode}) • ${cfg.langName}`;
+      const bFeed = document.getElementById('btnPulseTabFeed');
+      const bComm = document.getElementById('btnPulseTabCommunity');
+      const bCivic = document.getElementById('btnPulseTabCivic');
+      if (bFeed) bFeed.textContent = cfg.pulse;
+      if (bComm) bComm.textContent = cfg.comm;
+      if (bCivic) bCivic.textContent = cfg.civic;
+      if (cfg.langCode !== 'en' && cfg.langCode !== 'en_us') {
+        translateAllPulsePostsNow(cfg.langName);
+      }
+      showToast(`🌐 Synced: ${cfg.langName} • Currency: ${cfg.sym} ${cfg.currCode}`);
+    }
+
+    function translateAllPulsePostsNow(targetLangLabel) {
+      const cfg = webLangCurrConfigs[webLangCurrIdx];
+      const lang = targetLangLabel || cfg.langName || 'हिन्दी (Hindi)';
+      document.querySelectorAll('.feed-card p').forEach(p => {
+        if (!p.dataset.origText) p.dataset.origText = p.textContent;
+        p.innerHTML = `<span style="color:#00E5FF;font-weight:800;">✨ [AI Translated • ${lang}]:</span> ${p.dataset.origText}`;
+      });
+      showToast(`✨ Pulse posts translated to ${lang} via Gemini AI!`);
     }
 
     // ========================================================
@@ -7460,12 +7718,284 @@
       if (progressFill) progressFill.classList.remove('active');
     }
 
+    function toggleMinimizeDeckBar(minimize) {
+      const deck = document.getElementById('deckSwitcher');
+      const orb = document.getElementById('minimizedDeckOrb');
+      const clipsInfo = document.getElementById('clipsBottomDescriptionInfo');
+      const clipsRail = document.getElementById('clipsRightActionRail');
+      if (deck && orb) {
+        deck.style.display = minimize ? 'none' : 'flex';
+        orb.style.display = minimize ? 'inline-flex' : 'none';
+      }
+      if (clipsInfo) {
+        clipsInfo.style.bottom = minimize ? '18px' : '84px';
+      }
+      if (clipsRail) {
+        clipsRail.style.bottom = minimize ? '24px' : '88px';
+      }
+    }
+
+    function toggleOmnibusReadMore() {
+      const fullBox = document.getElementById('omnibusFullDetailedArticles');
+      const btn = document.getElementById('btnToggleOmnibusFullText');
+      if (!fullBox || !btn) return;
+      const isHidden = fullBox.style.display === 'none';
+      fullBox.style.display = isHidden ? 'block' : 'none';
+      btn.textContent = isHidden ? 'Show Headings Only ▲' : 'Read More ▼';
+      unlockOmnibusCharter();
+    }
+
+    let webMapZoom = 1.0;
+    let webMapPanX = 0;
+    let webMapPanY = 0;
+    let webMapMode = 'HYBRID';
+
+    function setWebRadarMapMode(mode) {
+      webMapMode = mode.toUpperCase();
+      const surface = document.getElementById('interactiveWebRadarMapSurface');
+      const readout = document.getElementById('webMapTelemetryReadout');
+      ['standard', 'satellite', 'hybrid', 'terrain'].forEach(m => {
+        const b = document.getElementById('btnWebMap' + m.charAt(0).toUpperCase() + m.slice(1));
+        if (b) b.classList.toggle('active', m === mode);
+      });
+      if (surface) {
+        if (mode === 'standard') {
+          surface.style.background = 'linear-gradient(180deg, #172334, #0C1522)';
+        } else if (mode === 'satellite') {
+          surface.style.background = 'radial-gradient(circle at 50% 50%, #0D2E1C 0%, #04120E 100%)';
+        } else if (mode === 'terrain') {
+          surface.style.background = 'linear-gradient(180deg, #222B1E, #11170E)';
+        } else {
+          surface.style.background = 'radial-gradient(circle at 50% 50%, #0A2B22 0%, #061B1E 60%, #041018 100%)';
+        }
+      }
+      if (readout) {
+        readout.textContent = `60FPS LIVE MAP • ${webMapMode} • 15.3991°N, 73.8124°E • ${webMapZoom.toFixed(1)}x`;
+      }
+    }
+
+    function applyWebMapTransform() {
+      const inner = document.getElementById('interactiveWebMapInnerLayer');
+      const readout = document.getElementById('webMapTelemetryReadout');
+      if (inner) {
+        inner.style.transform = `translate3d(${webMapPanX}px, ${webMapPanY}px, 0px) scale(${webMapZoom})`;
+      }
+      if (readout) {
+        const lat = (15.3991 - webMapPanY / 18000).toFixed(4);
+        const lng = (73.8124 - webMapPanX / 18000).toFixed(4);
+        readout.textContent = `60FPS LIVE MAP • ${webMapMode} • ${lat}°N, ${lng}°E • ${webMapZoom.toFixed(1)}x`;
+      }
+    }
+
+    function zoomWebRadarMap(factor) {
+      webMapZoom = Math.min(3.0, Math.max(0.6, webMapZoom * factor));
+      applyWebMapTransform();
+    }
+
+    function recenterWebRadarMap() {
+      webMapZoom = 1.0;
+      webMapPanX = 0;
+      webMapPanY = 0;
+      applyWebMapTransform();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const mapSurf = document.getElementById('interactiveWebRadarMapSurface');
+      if (mapSurf) {
+        let dragging = false;
+        let startX = 0, startY = 0;
+        mapSurf.addEventListener('pointerdown', (e) => {
+          dragging = true;
+          startX = e.clientX - webMapPanX;
+          startY = e.clientY - webMapPanY;
+          mapSurf.style.cursor = 'grabbing';
+        });
+        window.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          webMapPanX = Math.max(-180, Math.min(180, e.clientX - startX));
+          webMapPanY = Math.max(-180, Math.min(180, e.clientY - startY));
+          applyWebMapTransform();
+        });
+        window.addEventListener('pointerup', () => {
+          dragging = false;
+          if (mapSurf) mapSurf.style.cursor = 'grab';
+        });
+        mapSurf.addEventListener('dblclick', () => zoomWebRadarMap(1.35));
+      }
+    });
+
     function showToast(msg) {
       const toast = document.getElementById('liveToast');
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2600);
     }
+
+    let webShowAllLocalNews = false;
+    const webGroundedLocalNewsDispatches = [
+      {
+        category: 'TRANSIT & ROADS',
+        badgeColor: '#00E5FF',
+        timeAgo: '8m ago',
+        source: 'Municipal Traffic Grid',
+        title: 'Arterial Corridor Signal Synchronization Cuts Peak Commute Wait by 18%',
+        summary: 'Adaptive AI intersection timing is now active across primary commuter corridors and Safe-Haven connectors within your 5 km sector.',
+        fullArticle: 'Municipal traffic engineers have completed phase two of the adaptive corridor signal synchronization across the primary commuter ring. Commuters traveling during morning and evening rush windows are experiencing an 18% reduction in intersection idle times.\n\nPedestrian crosswalk intervals near community markets and school zones have been extended by 6 seconds, while dedicated cycling and micro-mobility lanes remain clear and monitored by precinct sensors.',
+        keyPoints: ['18% faster arterial signal progression during peak hours', 'Extended pedestrian crossing windows at neighborhood junctions', 'Real-time corridor telemetry integrated into Localiiiy Radar']
+      },
+      {
+        category: 'CIVIC & SAFETY',
+        badgeColor: '#10B981',
+        timeAgo: '19m ago',
+        source: 'Safe-Haven Precinct Desk',
+        title: 'Safe-Haven Green Zones Report 100% Verified Peer-to-Peer Market Exchanges',
+        summary: 'Well-lit community exchange plazas and 24/7 monitored civic kiosks continue to support safe local pickups across the neighborhood.',
+        fullArticle: 'Neighborhood Safe-Haven Green Zones recorded zero incidents across all local peer-to-peer marketplace handoffs this week. High-visibility lighting upgrades and community steward patrols are active until 23:00 daily.\n\nResidents buying or selling items on Localiiiy Market are encouraged to select designated Safe-Haven pins for instant verification and zero-commission neighborhood pickup.',
+        keyPoints: ['24/7 illuminated Safe-Haven exchange plazas operational', 'Zero incidents across verified neighborhood Market handoffs', 'Direct SOS & Precinct check-in available in one tap']
+      },
+      {
+        category: 'WEATHER & AIR',
+        badgeColor: '#38BDF8',
+        timeAgo: '31m ago',
+        source: 'Micro-Climate Telemetry',
+        title: 'Clear Evening Skies & Optimal AQI Across Your 5 KM Micro-Climate Grid',
+        summary: 'Barometric sensors indicate mild coastal breezes, AQI 38 (Good), and high visibility for outdoor evening markets and creators.',
+        fullArticle: 'Hyperlocal environmental sensors positioned across your 5 km sector report an Air Quality Index (AQI) of 38, classified as Good. Evening temperatures are forecast to remain comfortable with light 11 km/h breezes.\n\nOutdoor community screenings, evening joggers, and rooftop studio creators can expect clear skies with zero precipitation probability through midnight.',
+        keyPoints: ['Air Quality Index steady at 38 (Clean / Good)', 'Zero rain probability over the next 12 hours', 'Favorable lighting and wind conditions for outdoor creators']
+      },
+      {
+        category: 'LOCAL ECONOMY',
+        badgeColor: '#F59E0B',
+        timeAgo: '44m ago',
+        source: 'Neighborhood Commerce Guild',
+        title: 'Evening Night-Market & Independent Artisans Expand Weekend Pop-Up Hours',
+        summary: 'Over 35 verified neighborhood bakers, ceramicists, and tech repair studios are hosting zero-fee local pop-ups this weekend.',
+        fullArticle: 'Independent merchants and home artisans across the district have announced extended weekend pop-up hours from 17:00 to 22:30. Shoppers connecting directly through Localiiiy Market receive priority reserve holds and zero platform middleman fees.\n\nFeatured booths include fresh small-batch sourdough bakeries, custom electronics repair tables, and sustainable neighborhood fashion swaps.',
+        keyPoints: ['35+ verified local makers participating this weekend', '100% zero-middleman direct neighborhood transactions', 'Live inventory drops synced to the Localiiiy Market tab']
+      },
+      {
+        category: 'COMMUNITY EVENTS',
+        badgeColor: '#A855F7',
+        timeAgo: '1h ago',
+        source: 'Civic Commons Board',
+        title: 'Open-Air Acoustic & Short-Film Showcase Scheduled at Central Amphitheater',
+        summary: 'Local musicians and independent filmmakers from Studio & Clips will screen hyperlocal works starting at 19:30.',
+        fullArticle: 'The neighborhood amphitheater is hosting a free open-air acoustic session and short-film showcase featuring creators discovered on Localiiiy Clips and Studio. Entry is open to all connected neighbors.\n\nBring a reusable cup for complimentary herbal tea hosted by local roasters. Seating opens at 19:00 with live captions and audio loops available for accessibility.',
+        keyPoints: ['Free community entry starting at 19:00', 'Showcasing neighborhood filmmakers and acoustic artists', 'Accessible seating and live audio loop support provided']
+      },
+      {
+        category: 'UTILITIES & INFRASTRUCTURE',
+        badgeColor: '#EC4899',
+        timeAgo: '1h 25m ago',
+        source: 'Municipal Grid Ops',
+        title: 'Fiber-Optic & Solar Micro-Grid Maintenance Completed Ahead of Schedule',
+        summary: 'Public Wi-Fi nodes and solar smart-benches in municipal parks are now operating at 1 Gbps symmetrical throughput.',
+        fullArticle: 'Engineering crews finalized scheduled maintenance on the neighborhood solar micro-grid and public Wi-Fi mesh two hours ahead of schedule. Solar charging benches in community parks are back at 100% capacity.',
+        keyPoints: ['1 Gbps symmetrical community Wi-Fi nodes active', 'Solar smart-benches restored to full charging output', 'No planned utility interruptions for the next 14 days']
+      },
+      {
+        category: 'HEALTH & WELLNESS',
+        badgeColor: '#14B8A6',
+        timeAgo: '2h ago',
+        source: 'District Wellness Network',
+        title: 'Morning Run Club & Community Yoga Add Sunrise Sessions at Waterfront Park',
+        summary: 'Certified neighborhood coaches are leading free 06:30 mobility and mindfulness circles open to all skill levels.',
+        fullArticle: 'The District Wellness Network has added two new sunrise sessions for neighbors looking to connect before work. Both the 5 km paced run group and the restorative yoga circle meet at the Waterfront Pavilion at 06:30.',
+        keyPoints: ['Free 06:30 sunrise sessions every Tuesday, Thursday, and Saturday', 'Beginner-friendly pacing and mats available to borrow', 'Connect with neighbors directly via the Pulse event card']
+      },
+      {
+        category: 'DIGITAL COMMONS',
+        badgeColor: '#6366F1',
+        timeAgo: '2h 40m ago',
+        source: 'Localiiiy Trust Council',
+        title: 'Decentralized Neighborhood Verification Reaches 99.4% Authentic Signal Rating',
+        summary: 'Community-driven moderation and real-time GPS horizon controls keep your local feed free of bots and synthetic spam.',
+        fullArticle: 'The Localiiiy Trust Council published its monthly transparency digest confirming a 99.4% authentic human signal rating across local sectors. Dual-reach controls and Ghost Mode privacy protections remain free for all residents.',
+        keyPoints: ['99.4% verified authentic neighborhood signal', 'Ghost Mode stealth browsing remains 100% free for all users', 'Zero third-party ad tracking inside neighborhood feeds']
+      }
+    ];
+
+    function renderWebGroundedLocalNews() {
+      const container = document.getElementById('groundedLocalNewsListContainer');
+      const btnMore = document.getElementById('btnToggleMoreLocalNews');
+      const subHeader = document.getElementById('groundedNewsSubHeader');
+      if (!container) return;
+      const visibleCount = webShowAllLocalNews ? webGroundedLocalNewsDispatches.length : 5;
+      const items = webGroundedLocalNewsDispatches.slice(0, visibleCount);
+      if (subHeader) {
+        subHeader.textContent = `${visibleCount} of ${webGroundedLocalNewsDispatches.length} Live Neighborhood Dispatches • Tap any story to read in-app`;
+      }
+      if (btnMore) {
+        btnMore.textContent = webShowAllLocalNews
+          ? 'Show Top 5 News ▲'
+          : `Read More (+${webGroundedLocalNewsDispatches.length - 5} Local Stories) ▼`;
+      }
+      container.innerHTML = items.map((item, idx) => `
+        <div onclick="openWebLocalNewsReader(${idx})" style="background: rgba(15, 23, 42, 0.78); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s ease;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 9.5px; font-weight: 900; color: ${item.badgeColor}; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 999px;">${item.category}</span>
+            <span style="font-size: 9.5px; color: #94A3B8; font-weight: 600;">${item.source} • ${item.timeAgo}</span>
+          </div>
+          <div style="font-size: 12.5px; font-weight: 800; color: #F8FAFC; line-height: 1.35;">${item.title}</div>
+          <div style="font-size: 11px; color: #CBD5E1; margin-top: 3px; line-height: 1.4;">${item.summary}</div>
+          <div style="font-size: 10px; font-weight: 800; color: #00E5FF; margin-top: 5px;">Read Full Story In-App →</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleMoreWebLocalNews() {
+      webShowAllLocalNews = !webShowAllLocalNews;
+      renderWebGroundedLocalNews();
+    }
+
+    function refreshGroundedLocalNews() {
+      webGroundedLocalNewsDispatches.push(webGroundedLocalNewsDispatches.shift());
+      renderWebGroundedLocalNews();
+      showToast('Local Pulse Newsroom refreshed with live sector dispatches! 🌐');
+    }
+
+    function openWebLocalNewsReader(index) {
+      const item = webGroundedLocalNewsDispatches[index] || webGroundedLocalNewsDispatches[0];
+      let modal = document.getElementById('webLocalNewsReaderModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'webLocalNewsReaderModal';
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,0.88);backdrop-filter:blur(10px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+        document.body.appendChild(modal);
+      }
+      modal.style.display = 'flex';
+      modal.innerHTML = `
+        <div style="background:#0F172A;border:1px solid rgba(0,229,255,0.4);border-radius:20px;max-width:520px;width:100%;max-height:86vh;overflow-y:auto;padding:20px;color:#F8FAFC;box-shadow:0 20px 50px rgba(0,0,0,0.7);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <span style="font-size:10px;font-weight:900;color:${item.badgeColor};background:rgba(255,255,255,0.08);padding:4px 10px;border-radius:999px;">${item.category} • IN-APP NEWSROOM</span>
+            <button type="button" onclick="document.getElementById('webLocalNewsReaderModal').style.display='none'" style="background:rgba(255,255,255,0.1);border:none;color:#FFF;width:30px;height:30px;border-radius:50%;cursor:pointer;font-weight:900;">✕</button>
+          </div>
+          <h3 style="font-size:17px;font-weight:900;line-height:1.35;margin:0 0 8px;">${item.title}</h3>
+          <div style="font-size:11px;color:#94A3B8;margin-bottom:14px;">Source: <strong style="color:#E2E8F0;">${item.source}</strong> • Published ${item.timeAgo}</div>
+          <div style="background:rgba(0,229,255,0.07);border-left:3px solid #00E5FF;padding:10px 12px;border-radius:8px;margin-bottom:14px;">
+            <div style="font-size:10.5px;font-weight:800;color:#00E5FF;margin-bottom:4px;">KEY NEIGHBORHOOD TAKEAWAYS</div>
+            <ul style="margin:0;padding-left:16px;font-size:11.5px;color:#E2E8F0;line-height:1.5;">
+              ${item.keyPoints.map(kp => `<li>${kp}</li>`).join('')}
+            </ul>
+          </div>
+          <div style="font-size:13px;color:#CBD5E1;line-height:1.65;white-space:pre-line;margin-bottom:16px;">${item.fullArticle}</div>
+          <div style="border-top:1px solid rgba(148,163,184,0.2);padding-top:12px;">
+            <div style="font-size:11px;font-weight:800;color:#94A3B8;margin-bottom:8px;">MORE LOCAL STORIES IN THIS BRIEFING</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${webGroundedLocalNewsDispatches.map((other, idx) => idx === index ? '' : `
+                <button type="button" onclick="openWebLocalNewsReader(${idx})" style="text-align:left;background:rgba(30,41,59,0.7);border:1px solid rgba(148,163,184,0.2);color:#F8FAFC;padding:8px 10px;border-radius:10px;font-size:11.5px;font-weight:700;cursor:pointer;">
+                  <span style="color:${other.badgeColor};font-weight:900;">[${other.category}]</span> ${other.title}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderWebGroundedLocalNews();
+    });
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

@@ -342,7 +342,13 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val authPrefs = application.getSharedPreferences("localiiiy_auth_session", android.content.Context.MODE_PRIVATE)
 
-    private val _isLoggedOut = MutableStateFlow(!authPrefs.getBoolean("is_user_authenticated", false))
+    private val _isGhostSpectator = MutableStateFlow(authPrefs.getBoolean("is_ghost_spectator", false))
+    val isGhostSpectator: StateFlow<Boolean> = _isGhostSpectator.asStateFlow()
+
+    private val _isLoggedOutInit: Boolean =
+        !authPrefs.getBoolean("is_user_authenticated", false) && !authPrefs.getBoolean("is_ghost_spectator", false)
+
+    private val _isLoggedOut = MutableStateFlow(_isLoggedOutInit)
     val isLoggedOut: StateFlow<Boolean> = _isLoggedOut.asStateFlow()
 
     private val _showAuthScreen = MutableStateFlow(false)
@@ -374,8 +380,17 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         fullName: String,
         neighborhood: String
     ) {
+        authPrefs.edit()
+            .putBoolean("is_user_authenticated", true)
+            .putBoolean("is_ghost_spectator", false)
+            .putString("auth_username", username)
+            .apply()
+        _isGhostSpectator.value = false
+        _isLoggedOut.value = false
+        _showAuthScreen.value = false
+        _authReason.value = null
+        _ghostRestrictionPrompt.value = null
         viewModelScope.launch(Dispatchers.IO) {
-            authPrefs.edit().putBoolean("is_user_authenticated", true).putString("auth_username", username).apply()
             val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
             val updated = current.copy(
                 username = username.ifBlank { current.username },
@@ -384,17 +399,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 isVerified = true
             )
             repository.updateProfile(updated)
-            _isGhostSpectator.value = false
-            _isLoggedOut.value = false
-            _showAuthScreen.value = false
-            _authReason.value = null
         }
     }
 
     // --- Ghost Spectator (No Login Mode) State & Access Control ---
-    private val _isGhostSpectator = MutableStateFlow(false)
-    val isGhostSpectator: StateFlow<Boolean> = _isGhostSpectator.asStateFlow()
-
     private val _ghostRestrictionPrompt = MutableStateFlow<String?>(null)
     val ghostRestrictionPrompt: StateFlow<String?> = _ghostRestrictionPrompt.asStateFlow()
 
@@ -406,14 +414,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         _ghostRestrictionPrompt.value = null
     }
 
-    fun openAuthFromSpectator() {
+    fun openAuthFromSpectator(
+        initialMode: com.example.ui.screens.AuthScreenMode = com.example.ui.screens.AuthScreenMode.LOGIN
+    ) {
         _ghostRestrictionPrompt.value = null
+        _authInitialMode.value = initialMode
         _showAuthScreen.value = true
         _authReason.value = "Sign in or register with Localiiiy to unlock full community and creator features"
     }
 
-    fun exitGhostSpectatorToAuth() {
+    fun exitGhostSpectatorToAuth(
+        initialMode: com.example.ui.screens.AuthScreenMode = com.example.ui.screens.AuthScreenMode.LOGIN
+    ) {
+        authPrefs.edit().putBoolean("is_ghost_spectator", false).apply()
         _isGhostSpectator.value = false
+        _authInitialMode.value = initialMode
         _showAuthScreen.value = true
         _authReason.value = "Create an account or sign in to Localiiiy"
     }
@@ -433,7 +448,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                     "24-Hour Early Studio Premieres",
                     "Direct Space Wall Shoutout"
                 ),
-                activeConnectionsCount = 142,
+                activeConnectionsCount = 0,
                 isEnabled = true
             ),
             CreatorExclusiveTier(
@@ -449,7 +464,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                     "Director's Cut & Behind-The-Scenes",
                     "Monthly Live Q&A Stream in Space"
                 ),
-                activeConnectionsCount = 86,
+                activeConnectionsCount = 0,
                 isEnabled = true
             ),
             CreatorExclusiveTier(
@@ -466,14 +481,14 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                     "1-on-1 Studio Collaboration Chat",
                     "Exclusive Space VIP Discord/Telegram Group"
                 ),
-                activeConnectionsCount = 38,
+                activeConnectionsCount = 0,
                 isEnabled = true
             )
         )
     )
     val creatorExclusiveTiers: StateFlow<List<CreatorExclusiveTier>> = _creatorExclusiveTiers.asStateFlow()
 
-    private val _connectedTierIds = MutableStateFlow<Set<String>>(setOf("tier_bronze"))
+    private val _connectedTierIds = MutableStateFlow<Set<String>>(emptySet())
     val connectedTierIds: StateFlow<Set<String>> = _connectedTierIds.asStateFlow()
 
     fun updateCreatorTier(updatedTier: CreatorExclusiveTier) {
@@ -514,26 +529,41 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun enterAsGhostSpectator(
         spectatorAlias: String = "Spectator-${(100..999).random()}",
-        anchorNeighborhood: String = "Coarse Local Anchor"
+        anchorNeighborhood: String = "Ghost Mode"
     ) {
+        authPrefs.edit()
+            .putBoolean("is_ghost_spectator", true)
+            .putBoolean("is_user_authenticated", false)
+            .apply()
         _isGhostSpectator.value = true
+        _isPrivateAccount.value = true
+        _isLocationEnabled.value = false
+        _showMeOnRadar.value = false
+        _isLoggedOut.value = false
+        _showAuthScreen.value = false
+        _authReason.value = null
+        _ghostRestrictionPrompt.value = null
         viewModelScope.launch(Dispatchers.IO) {
+            val currentPrivacy = repository.privacySettings.firstOrNull() ?: InitialData.defaultPrivacySettings
+            repository.savePrivacySettings(
+                currentPrivacy.copy(
+                    isPrivateAccount = true,
+                    isGhostMode = true,
+                    isLocationRadarEnabled = false,
+                    allowNearbyDiscovery = false
+                )
+            )
             val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
             val updated = current.copy(
                 username = spectatorAlias,
                 fullName = "Ghost Spectator",
-                bio = "Anonymous neighborhood explorer 👻 • Zero GPS Footprint",
-                neighborhood = anchorNeighborhood,
-                locationName = anchorNeighborhood,
+                bio = "Anonymous neighborhood explorer 👻 • Read-Only Mode",
+                neighborhood = "Ghost Mode",
+                locationName = "Ghost Mode",
                 category = "Stealth Spectator",
                 isVerified = false
             )
             repository.updateProfile(updated)
-            _isPrivateAccount.value = true
-            _isLocationEnabled.value = false
-            _isLoggedOut.value = false
-            _showAuthScreen.value = false
-            _authReason.value = null
         }
     }
 
@@ -625,15 +655,16 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     private val _nearbyRadiusKm = MutableStateFlow<Double?>(null)
     val nearbyRadiusKm: StateFlow<Double?> = _nearbyRadiusKm.asStateFlow()
 
-    // Prompt 4: Live Presence Gated Blip Users (renders ONLY if app in foreground, not in ghost mode, and showMeOnRadar)
+    // Prompt 4: Live Presence Gated Blip Users (renders ONLY if app in foreground, not in ghost/spectator mode, and showMeOnRadar)
     val radarBlipUsers: StateFlow<List<OtherUserEntity>> = combine(
         repository.otherUsers,
         _blockedUsernames,
         _isAppInForeground,
         _isPrivateAccount,
-        _showMeOnRadar
-    ) { users, blocked, inForeground, isGhost, showRadar ->
-        if (!inForeground || isGhost || !showRadar) {
+        _isGhostSpectator
+    ) { users, blocked, inForeground, isGhost, isSpectator ->
+        val showRadar = _showMeOnRadar.value && _isLocationEnabled.value && !privacySettings.value.isGhostMode
+        if (!inForeground || isGhost || isSpectator || !showRadar) {
             emptyList()
         } else {
             users.filter { it.username !in blocked }
@@ -672,8 +703,18 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     val autoDetectedLocation: StateFlow<UserLocationData?> = _autoDetectedLocation.asStateFlow()
 
     // --- Worldwide Currency & Multi-Language Localization State ---
-    private val _currentCurrency = MutableStateFlow(LocaliiiyCurrency.USD)
+    private val _currentCurrency = MutableStateFlow(
+        CurrencyHelper.detectCurrencyForLocation(
+            countryName = InitialData.defaultPrivacySettings.radarCountryName,
+            locationName = InitialData.defaultProfile.locationName,
+            lat = InitialData.defaultProfile.latitude,
+            lng = InitialData.defaultProfile.longitude
+        )
+    )
     val currentCurrency: StateFlow<LocaliiiyCurrency> = _currentCurrency.asStateFlow()
+
+    private val _isCurrencyManualOverride = MutableStateFlow(false)
+    val isCurrencyManualOverride: StateFlow<Boolean> = _isCurrencyManualOverride.asStateFlow()
 
     private val _currentLanguage = MutableStateFlow(LocaliiiyLanguage.EN)
     val currentLanguage: StateFlow<LocaliiiyLanguage> = _currentLanguage.asStateFlow()
@@ -728,6 +769,17 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     private val _showBoostAdDialog = MutableStateFlow(false)
     val showBoostAdDialog: StateFlow<Boolean> = _showBoostAdDialog.asStateFlow()
 
+    private val _showPremiumSubscriptionModal = MutableStateFlow(false)
+    val showPremiumSubscriptionModal: StateFlow<Boolean> = _showPremiumSubscriptionModal.asStateFlow()
+
+    fun openPremiumSubscription() {
+        _showPremiumSubscriptionModal.value = true
+    }
+
+    fun closePremiumSubscription() {
+        _showPremiumSubscriptionModal.value = false
+    }
+
     // --- Gamified Daily Check-in & Radar Visibility Perks ---
     private val _dailyCheckInState = MutableStateFlow(DailyCheckInState())
     val dailyCheckInState: StateFlow<DailyCheckInState> = _dailyCheckInState.asStateFlow()
@@ -737,12 +789,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     val referralState: StateFlow<NeighborReferralState> = _referralState.asStateFlow()
 
     init {
-        if (!authPrefs.getBoolean("preview_reset_v22", false)) {
+        val needsProductionCleanV30 = !authPrefs.getBoolean("production_clean_v30_live", false)
+        if (needsProductionCleanV30) {
+            val hasFirebaseUser = try {
+                com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
+            } catch (_: Throwable) {
+                false
+            }
+            val wasSpectator = authPrefs.getBoolean("is_ghost_spectator", false)
             authPrefs.edit()
-                .clear()
-                .putBoolean("preview_reset_v22", true)
+                .putBoolean("production_clean_v30_live", true)
+                .putBoolean("is_user_authenticated", hasFirebaseUser)
+                .putBoolean("is_ghost_spectator", wasSpectator)
                 .apply()
-            _isLoggedOut.value = true
+            _isGhostSpectator.value = wasSpectator
+            _isLoggedOut.value = !hasFirebaseUser && !wasSpectator
         }
         // Load saved language and currency
         try {
@@ -754,49 +815,130 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                     LocalizationHelper.updateConfigurationLocale(getApplication(), loadedLang)
                 }
             }
+            val isManualCurr = authPrefs.getBoolean("currency_manual_override", false)
+            _isCurrencyManualOverride.value = isManualCurr
             val savedCurrencyCode = authPrefs.getString("saved_currency_code", null)
-            if (savedCurrencyCode != null) {
+            if (isManualCurr && savedCurrencyCode != null) {
                 val loadedCurr = LocaliiiyCurrency.values().firstOrNull { it.code.equals(savedCurrencyCode, ignoreCase = true) }
                 if (loadedCurr != null) {
                     _currentCurrency.value = loadedCurr
                 }
+            } else {
+                _currentCurrency.value = CurrencyHelper.detectCurrencyForLocation(
+                    countryName = privacySettings.value.radarCountryName.ifBlank { "India" },
+                    locationName = userProfile.value.locationName.ifBlank { "Goa, India" },
+                    lat = if (userProfile.value.latitude != 0.0) userProfile.value.latitude else 15.3991,
+                    lng = if (userProfile.value.longitude != 0.0) userProfile.value.longitude else 73.8124
+                )
             }
         } catch (_: Exception) {}
 
-        // Initial DB population & location detection
+        // Initial DB population & demo data purge for production release
         viewModelScope.launch(Dispatchers.IO) {
             val dao = database.localiiiyDao()
-            if (dao.getPostById(1) == null) {
-                dao.insertOrUpdateProfile(InitialData.defaultProfile)
-                dao.insertStories(InitialData.starterStories)
-                dao.insertPosts(InitialData.starterPosts)
-                dao.insertClips(InitialData.starterClips)
-                dao.insertOtherUsers(InitialData.starterOtherUsers)
-                dao.insertComments(InitialData.starterComments)
-                dao.insertNotifications(InitialData.starterNotifications)
-                dao.insertConversations(InitialData.starterConversations)
-                dao.insertChatMessages(InitialData.starterChatMessages)
-                dao.insertOrUpdatePrivacySettings(InitialData.defaultPrivacySettings)
+            if (needsProductionCleanV30) {
+                val currentProfile = repository.userProfile.firstOrNull()
+                if (currentProfile == null || currentProfile.username == "localiiiy_creator") {
+                    dao.insertOrUpdateProfile(InitialData.defaultProfile)
+                }
             }
-            // Delete all demo accounts as requested for production release
             dao.clearDemoUsers()
             dao.clearDemoPosts()
             dao.clearDemoClips()
+            dao.clearDemoMarketplaceItems()
             dao.clearMockNotifications()
-
-            // Ensure demo session is purged if previously stored
-            val savedUser = authPrefs.getString("auth_username", "")
-            if (savedUser?.startsWith("demo_") == true || savedUser == "new_neighbor" || savedUser?.startsWith("guest_") == true) {
-                authPrefs.edit().putBoolean("is_user_authenticated", false).remove("auth_username").apply()
-                _isLoggedOut.value = true
-            }
         }
         viewModelScope.launch {
             repository.privacySettings.collect { settings ->
                 if (settings != null) {
-                    _isLocationEnabled.value = settings.isLocationRadarEnabled
-                    _isPrivateAccount.value = settings.isPrivateAccount
+                    if (_isGhostSpectator.value) {
+                        _isPrivateAccount.value = true
+                        _isLocationEnabled.value = false
+                        _showMeOnRadar.value = false
+                    } else {
+                        val ghostActive = settings.isPrivateAccount || settings.isGhostMode
+                        _isPrivateAccount.value = ghostActive
+                        _isLocationEnabled.value = settings.isLocationRadarEnabled
+                        _showMeOnRadar.value = !ghostActive && settings.isLocationRadarEnabled
+                    }
+                    if (settings.preferredRadarRadiusKm > 0.0) {
+                        val effectiveKm = if (settings.preferredRadarRadiusKm <= 10.0 && !settings.isPremiumConnected) {
+                            50.0
+                        } else {
+                            settings.preferredRadarRadiusKm
+                        }
+                        _radarRadiusKm.value = effectiveKm.toFloat()
+                        _nearbyRadiusKm.value = effectiveKm
+                    }
+                    if (!_isCurrencyManualOverride.value && settings.radarCountryName.isNotBlank()) {
+                        _currentCurrency.value = CurrencyHelper.detectCurrencyForLocation(
+                            countryName = settings.radarCountryName,
+                            locationName = userProfile.value.locationName,
+                            lat = userProfile.value.latitude,
+                            lng = userProfile.value.longitude
+                        )
+                    }
                 }
+            }
+        }
+        // Restore persisted Radar Range & HUD Theme from SharedPreferences and Cloud Firestore
+        viewModelScope.launch(Dispatchers.IO) {
+            val savedRadius = authPrefs.getFloat("persisted_radar_radius_km", -1f)
+            val savedHudTheme = authPrefs.getString("persisted_radar_hud_theme", null)
+            val savedFarReachActive = authPrefs.getBoolean("persisted_radar_far_reach_active", false)
+            val savedFarReachRange = authPrefs.getString("persisted_radar_far_reach_range", null)
+            val savedPremium = authPrefs.getBoolean("persisted_is_premium_connected", false)
+
+            if (savedRadius > 0f || savedHudTheme != null || savedFarReachRange != null || savedPremium) {
+                val current = privacySettings.value
+                val nextPremium = savedPremium || current.isPremiumConnected
+                val nextRadius = if (savedRadius > 0f) savedRadius.toDouble() else current.preferredRadarRadiusKm
+                val adjustedRadius = if (nextRadius <= 10.0 && !nextPremium) 50.0 else nextRadius
+                _radarRadiusKm.value = adjustedRadius.toFloat()
+                _nearbyRadiusKm.value = adjustedRadius
+                repository.savePrivacySettings(
+                    current.copy(
+                        preferredRadarRadiusKm = adjustedRadius,
+                        preferredRadarHudTheme = savedHudTheme ?: current.preferredRadarHudTheme,
+                        hidePreciseLocationOnRadar = savedFarReachActive,
+                        radarObfuscatedRange = savedFarReachRange ?: current.radarObfuscatedRange,
+                        isPremiumConnected = nextPremium
+                    )
+                )
+            }
+
+            // Fetch remote Cloud Firestore preferences to restore across devices/sessions
+            val remotePrefs = com.example.data.firestore.fetchRadarPreferencesFromFirestore(
+                fallbackProfileKey = userProfile.value.username.ifBlank { "localiiiy_creator" }
+            )
+            if (remotePrefs != null) {
+                val current = privacySettings.value
+                val nextPremium = remotePrefs.isPremiumConnected || current.isPremiumConnected
+                val adjustedRadius = if (remotePrefs.preferredRadarRadiusKm <= 10.0 && !nextPremium) {
+                    50.0
+                } else {
+                    remotePrefs.preferredRadarRadiusKm
+                }
+                _radarRadiusKm.value = adjustedRadius.toFloat()
+                _nearbyRadiusKm.value = adjustedRadius
+                authPrefs.edit()
+                    .putFloat("persisted_radar_radius_km", adjustedRadius.toFloat())
+                    .putString("persisted_radar_hud_theme", remotePrefs.preferredRadarHudTheme)
+                    .putBoolean("persisted_radar_far_reach_active", remotePrefs.isFarReachTransmitActive)
+                    .putString("persisted_radar_far_reach_range", remotePrefs.farReachTransmitRange)
+                    .putBoolean("persisted_is_premium_connected", nextPremium)
+                    .apply()
+                repository.savePrivacySettings(
+                    current.copy(
+                        preferredRadarRadiusKm = adjustedRadius,
+                        preferredRadarHudTheme = remotePrefs.preferredRadarHudTheme,
+                        hidePreciseLocationOnRadar = remotePrefs.isFarReachTransmitActive,
+                        radarObfuscatedRange = remotePrefs.farReachTransmitRange,
+                        isPremiumConnected = nextPremium,
+                        preferredRadarAuraIndex = remotePrefs.preferredRadarAuraIndex,
+                        preferredRadarTagline = remotePrefs.preferredRadarTagline
+                    )
+                )
             }
         }
         // Sync Firestore to Room
@@ -840,6 +982,17 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 _currentLocation.value = loc
                 _autoDetectedLocation.value = loc
 
+                // Automatically sync currency to the user's detected country unless manually overridden
+                if (!_isCurrencyManualOverride.value) {
+                    val countryCurr = CurrencyHelper.detectCurrencyForLocation(
+                        countryName = loc.countryName ?: privacySettings.value.radarCountryName,
+                        locationName = loc.locationName,
+                        lat = loc.latitude,
+                        lng = loc.longitude
+                    )
+                    _currentCurrency.value = countryCurr
+                }
+
                 val (hotspot, alert) = HotspotManager.checkHotspotEntry(loc.latitude, loc.longitude, allPosts.value, lastAlertedHotspotId)
                 if (hotspot != null && alert != null) {
                     lastAlertedHotspotId = hotspot.id
@@ -868,6 +1021,15 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 )
                 _currentLocation.value = newLoc
                 _autoDetectedLocation.value = newLoc
+
+                if (!_isCurrencyManualOverride.value) {
+                    _currentCurrency.value = CurrencyHelper.detectCurrencyForLocation(
+                        countryName = newLoc.countryName ?: privacySettings.value.radarCountryName,
+                        locationName = newLoc.locationName,
+                        lat = newLoc.latitude,
+                        lng = newLoc.longitude
+                    )
+                }
             } catch (_: Exception) {
             } finally {
                 _isDetectingLocation.value = false
@@ -881,6 +1043,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         _nearbyRadiusKm.value = adjustedRadius
         if (adjustedRadius != null) {
             _radarRadiusKm.value = adjustedRadius.toFloat()
+            persistRadarRangeAndTheme(
+                radiusKm = adjustedRadius,
+                hudTheme = privacySettings.value.preferredRadarHudTheme
+            )
         }
     }
 
@@ -889,6 +1055,49 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         val adjustedRadius = if (radiusKm <= 10f && !isPremium) 50f else radiusKm
         _radarRadiusKm.value = adjustedRadius
         _nearbyRadiusKm.value = adjustedRadius.toDouble()
+        persistRadarRangeAndTheme(
+            radiusKm = adjustedRadius.toDouble(),
+            hudTheme = privacySettings.value.preferredRadarHudTheme
+        )
+    }
+
+    fun updateRadarHudTheme(hudThemeName: String) {
+        persistRadarRangeAndTheme(
+            radiusKm = _nearbyRadiusKm.value ?: privacySettings.value.preferredRadarRadiusKm,
+            hudTheme = hudThemeName
+        )
+    }
+
+    private fun persistRadarRangeAndTheme(
+        radiusKm: Double,
+        hudTheme: String,
+        overrideSettings: PrivacySettingsEntity? = null
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val base = overrideSettings ?: privacySettings.value
+            val updated = base.copy(
+                preferredRadarRadiusKm = radiusKm,
+                preferredRadarHudTheme = hudTheme
+            )
+            authPrefs.edit()
+                .putFloat("persisted_radar_radius_km", radiusKm.toFloat())
+                .putString("persisted_radar_hud_theme", hudTheme)
+                .putBoolean("persisted_radar_far_reach_active", updated.hidePreciseLocationOnRadar)
+                .putString("persisted_radar_far_reach_range", updated.radarObfuscatedRange)
+                .putBoolean("persisted_is_premium_connected", updated.isPremiumConnected)
+                .apply()
+            repository.savePrivacySettings(updated)
+            com.example.data.firestore.saveRadarPreferencesToFirestore(
+                fallbackProfileKey = userProfile.value.username.ifBlank { "localiiiy_creator" },
+                preferredRadarRadiusKm = radiusKm,
+                preferredRadarHudTheme = hudTheme,
+                isFarReachTransmitActive = updated.hidePreciseLocationOnRadar,
+                farReachTransmitRange = updated.radarObfuscatedRange,
+                isPremiumConnected = updated.isPremiumConnected,
+                preferredRadarAuraIndex = updated.preferredRadarAuraIndex,
+                preferredRadarTagline = updated.preferredRadarTagline
+            )
+        }
     }
 
     fun updateCreatorSupportSettings(settings: com.example.data.CreatorSupportSettings) {
@@ -938,9 +1147,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun setPrivateAccount(isPrivate: Boolean) {
+        if (_isGhostSpectator.value && !isPrivate) {
+            promptLoginForAction("to exit Ghost Mode and broadcast on the live neighborhood radar")
+            return
+        }
         _isPrivateAccount.value = isPrivate
+        _showMeOnRadar.value = !isPrivate && _isLocationEnabled.value
         viewModelScope.launch(Dispatchers.IO) {
             repository.updatePrivateAccount(isPrivate)
+            val current = repository.privacySettings.firstOrNull() ?: InitialData.defaultPrivacySettings
+            repository.savePrivacySettings(
+                current.copy(
+                    isPrivateAccount = isPrivate,
+                    isGhostMode = isPrivate
+                )
+            )
             if (isPrivate) {
                 // Immediately purge active radar beacon from Firestore when Ghost Mode is enabled
                 try {
@@ -1076,9 +1297,11 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     fun updatePrivacySettings(settings: PrivacySettingsEntity) {
         _isLocationEnabled.value = settings.isLocationRadarEnabled
         _isPrivateAccount.value = settings.isPrivateAccount
-        viewModelScope.launch {
-            repository.savePrivacySettings(settings)
-        }
+        persistRadarRangeAndTheme(
+            radiusKm = settings.preferredRadarRadiusKm,
+            hudTheme = settings.preferredRadarHudTheme,
+            overrideSettings = settings
+        )
     }
 
     val isPremiumUser: StateFlow<Boolean> = privacySettings
@@ -1090,24 +1313,45 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             val current = privacySettings.value
             val durationDays = if (isAnnual) 365L else 30L
             val defaultPlanName = if (isAnnual) "Premium Annual (₹2,799/yr / $27.99)" else "Premium Monthly (₹299/mo / $2.99)"
+            val unlockedRadius = if (current.preferredRadarRadiusKm >= 50.0) 3.0 else current.preferredRadarRadiusKm
+            val unlockedHudTheme = if (current.preferredRadarHudTheme == "PHOSPHOR_GREEN") "NEON_GOLD" else current.preferredRadarHudTheme
+            _radarRadiusKm.value = unlockedRadius.toFloat()
+            _nearbyRadiusKm.value = unlockedRadius
             val updated = current.copy(
                 isPremiumConnected = true,
                 premiumPlanName = customPlanName ?: defaultPlanName,
                 premiumExpiryTimestamp = System.currentTimeMillis() + (durationDays * 24 * 60 * 60 * 1000),
-                isHyperlocalBoostActive = true
+                isHyperlocalBoostActive = true,
+                preferredRadarRadiusKm = unlockedRadius,
+                preferredRadarHudTheme = unlockedHudTheme
             )
-            repository.savePrivacySettings(updated)
+            repository.updateProfile(userProfile.value.copy(isVerified = true))
+            persistRadarRangeAndTheme(
+                radiusKm = unlockedRadius,
+                hudTheme = unlockedHudTheme,
+                overrideSettings = updated
+            )
         }
     }
 
     fun cancelPremiumSubscription() {
         viewModelScope.launch(Dispatchers.IO) {
             val current = privacySettings.value
+            val fallbackRadius = if (current.preferredRadarRadiusKm <= 10.0) 50.0 else current.preferredRadarRadiusKm
+            _radarRadiusKm.value = fallbackRadius.toFloat()
+            _nearbyRadiusKm.value = fallbackRadius
             val updated = current.copy(
                 isPremiumConnected = false,
-                isHyperlocalBoostActive = false
+                isHyperlocalBoostActive = false,
+                preferredRadarRadiusKm = fallbackRadius,
+                preferredRadarHudTheme = "PHOSPHOR_GREEN"
             )
-            repository.savePrivacySettings(updated)
+            repository.updateProfile(userProfile.value.copy(isVerified = false))
+            persistRadarRangeAndTheme(
+                radiusKm = fallbackRadius,
+                hudTheme = "PHOSPHOR_GREEN",
+                overrideSettings = updated
+            )
         }
     }
 
@@ -1426,6 +1670,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun startChatWithUser(user: OtherUserEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to start direct conversations with neighbors")
+            return
+        }
         viewModelScope.launch {
             val convId = repository.createOrGetConversation(
                 contactUsername = user.username,
@@ -1838,6 +2086,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun openSellItemDialog() {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to list items for sale on Localiiiy Market")
+            return
+        }
         _showSellItemDialog.value = true
     }
 
@@ -1846,6 +2098,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleMarketItemSaved(item: MarketplaceItemEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to save and bookmark marketplace listings")
+            return
+        }
         viewModelScope.launch {
             repository.toggleMarketItemSaved(item.id, item.isSaved)
             if (_selectedMarketplaceItem.value?.id == item.id) {
@@ -1855,6 +2111,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleMarketItemAvailability(item: MarketplaceItemEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to manage marketplace listings")
+            return
+        }
         viewModelScope.launch {
             repository.updateMarketItemAvailability(item.id, !item.isAvailable)
             if (_selectedMarketplaceItem.value?.id == item.id) {
@@ -2062,6 +2322,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun startChatForMarketItem(item: MarketplaceItemEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to message sellers on Localiiiy Market")
+            return
+        }
         viewModelScope.launch {
             val convId = repository.createOrGetConversation(
                 contactUsername = item.sellerUsername,
@@ -2250,13 +2514,21 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun logoutUser() {
-        authPrefs.edit().putBoolean("is_user_authenticated", false).apply()
+        authPrefs.edit()
+            .putBoolean("is_user_authenticated", false)
+            .putBoolean("is_ghost_spectator", false)
+            .apply()
         com.example.auth.FirebaseAuthService.signOut()
+        _isGhostSpectator.value = false
         _isLoggedOut.value = true
     }
 
     fun loginUser() {
-        authPrefs.edit().putBoolean("is_user_authenticated", true).apply()
+        authPrefs.edit()
+            .putBoolean("is_user_authenticated", true)
+            .putBoolean("is_ghost_spectator", false)
+            .apply()
+        _isGhostSpectator.value = false
         _isLoggedOut.value = false
     }
 
@@ -2307,6 +2579,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun openStudioUploadSheet() {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to upload 4K videos to Localiiiy Studio")
+            return
+        }
         _isStudioUploadSheetOpen.value = true
     }
 
@@ -2315,10 +2591,18 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleStudioCreatorDashboard() {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to access the Studio Creator Dashboard")
+            return
+        }
         _showStudioCreatorDashboard.value = !_showStudioCreatorDashboard.value
     }
 
     fun toggleStudioVideoLike(video: StudioVideoEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to like Studio videos")
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.toggleStudioVideoLike(video.id, video.isLiked)
             _activeStudioVideo.value?.let { current ->
@@ -2335,6 +2619,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleStudioVideoSave(video: StudioVideoEntity) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to save Studio videos")
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.toggleStudioVideoSave(video.id, video.isSaved)
             _activeStudioVideo.value?.let { current ->
@@ -2346,6 +2634,10 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun toggleStudioCreatorConnect(creatorUsername: String) {
+        if (_isGhostSpectator.value) {
+            promptLoginForAction("to connect with Studio creators")
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             val currentConnected = allStudioVideos.value.firstOrNull { it.creatorUsername == creatorUsername }?.isConnected ?: false
             repository.toggleStudioCreatorConnect(creatorUsername, currentConnected)
@@ -2712,11 +3004,34 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     // --- Worldwide Currency & Multi-Language Functions ---
-    fun setCurrency(currency: LocaliiiyCurrency) {
+    fun setCurrency(currency: LocaliiiyCurrency, isManual: Boolean = true) {
         _currentCurrency.value = currency
+        _isCurrencyManualOverride.value = isManual
         try {
-            authPrefs.edit().putString("saved_currency_code", currency.code).apply()
+            authPrefs.edit()
+                .putString("saved_currency_code", currency.code)
+                .putBoolean("currency_manual_override", isManual)
+                .apply()
         } catch (_: Exception) {}
+    }
+
+    fun resetCurrencyToLocationDefault(): LocaliiiyCurrency {
+        _isCurrencyManualOverride.value = false
+        val loc = _currentLocation.value ?: _autoDetectedLocation.value
+        val detected = CurrencyHelper.detectCurrencyForLocation(
+            countryName = loc?.countryName ?: privacySettings.value.radarCountryName,
+            locationName = loc?.locationName ?: userProfile.value.locationName,
+            lat = loc?.latitude ?: userProfile.value.latitude,
+            lng = loc?.longitude ?: userProfile.value.longitude
+        )
+        _currentCurrency.value = detected
+        try {
+            authPrefs.edit()
+                .remove("currency_manual_override")
+                .putString("saved_currency_code", detected.code)
+                .apply()
+        } catch (_: Exception) {}
+        return detected
     }
 
     fun setLanguage(language: LocaliiiyLanguage) {

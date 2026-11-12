@@ -81,14 +81,14 @@ fun JoinLocaliiiyBottomSheet(
                 }
             }
 
-            // Glowing App Brand Icon Emblem
+            // Official Localiiiy App Logo Hero Emblem
             Box(
                 modifier = Modifier
-                    .size(76.dp)
+                    .size(84.dp)
                     .background(
                         brush = Brush.radialGradient(
                             listOf(
-                                LocaliiiyPrimaryTeal.copy(alpha = 0.3f),
+                                LocaliiiyPrimaryTeal.copy(alpha = 0.35f),
                                 Color.Transparent
                             )
                         ),
@@ -96,21 +96,7 @@ fun JoinLocaliiiyBottomSheet(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = LocaliiiyPrimaryTeal,
-                    border = BorderStroke(2.dp, LocaliiiyAccentMint),
-                    modifier = Modifier.size(54.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-                }
+                LocaliiiyAppLogoBadge(size = 64.dp)
             }
 
             Spacer(modifier = Modifier.height(14.dp))

@@ -216,112 +216,155 @@ fun DirectMessagesBottomSheet(
                 }
                 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 4.dp)
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(visibleConversations, key = { it.conversationId }) { conv ->
-                        Row(
+                        val cardBorderColor = when {
+                            !conv.isRead -> Color(0xFF00E5FF)
+                            conv.isGroup -> Color(0xFFA855F7)
+                            else -> Color(0xFF00FF87).copy(alpha = 0.55f)
+                        }
+                        val cardBgGradient = when {
+                            !conv.isRead -> listOf(Color(0xFF06253A), Color(0xFF0B384E))
+                            conv.isGroup -> listOf(Color(0xFF1A1033), Color(0xFF251645))
+                            else -> listOf(Color(0xFF072118), Color(0xFF0D2E22))
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color.Transparent,
+                            border = BorderStroke(1.1.dp, cardBorderColor),
+                            shadowElevation = 3.dp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onSelectConversation(conv) }
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(conv.contactAvatar)
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = conv.contactUsername,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(52.dp)
-                                        .clip(CircleShape)
-                                )
-                                if (conv.isOnline) {
-                                    Box(
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(cardBgGradient))
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(conv.contactAvatar)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = conv.contactUsername,
+                                        contentScale = ContentScale.Crop,
                                         modifier = Modifier
-                                            .size(13.dp)
-                                            .align(Alignment.BottomEnd)
+                                            .size(50.dp)
                                             .clip(CircleShape)
-                                            .background(Color(0xFF388E3C))
                                     )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(12.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                val isContactVerified = otherUsers.find { it.username == conv.contactUsername }?.isVerified == true
-                                val displayContactName = if (conv.isGroup || userProfile.isVerified || isContactVerified) {
-                                    conv.contactUsername
-                                } else {
-                                    val hash = kotlin.math.abs(conv.contactUsername.hashCode()).toString(16).padStart(4, '0').take(4)
-                                    "user_$hash"
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = displayContactName,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = if (!conv.isRead) FontWeight.Bold else FontWeight.SemiBold,
-                                            fontSize = 14.sp
-                                        ),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    if (isContactVerified) {
-                                        Spacer(modifier = Modifier.width(3.dp))
-                                        Text(text = "✓", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                                    if (conv.isOnline) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(13.dp)
+                                                .align(Alignment.BottomEnd)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFF00FF66))
+                                        )
                                     }
-                                    if (conv.isGroup) {
-                                        Spacer(modifier = Modifier.width(4.dp))
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    val isContactVerified = otherUsers.find { it.username == conv.contactUsername }?.isVerified == true
+                                    val displayContactName = if (conv.isGroup || userProfile.isVerified || isContactVerified) {
+                                        conv.contactUsername
+                                    } else {
+                                        val hash = kotlin.math.abs(conv.contactUsername.hashCode()).toString(16).padStart(4, '0').take(4)
+                                        "user_$hash"
+                                    }
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            text = displayContactName,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 14.sp
+                                            ),
+                                            color = Color.White
+                                        )
+                                        if (isContactVerified) {
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text(text = "✓", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                                        }
+                                        if (conv.isGroup) {
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Surface(
+                                                shape = RoundedCornerShape(100.dp),
+                                                color = Color(0xFFA855F7).copy(alpha = 0.25f),
+                                                border = BorderStroke(0.7.dp, Color(0xFFC084FC))
+                                            ) {
+                                                Text(
+                                                    text = "GROUP (${conv.groupMembersCount})",
+                                                    fontSize = 8.5.sp,
+                                                    fontWeight = FontWeight.Black,
+                                                    color = Color(0xFFE9D5FF),
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(2.dp))
+
+                                    // Last message with vibrant tint
+                                    Text(
+                                        text = (if (conv.isFromMe) "You: " else "") + conv.lastMessage,
+                                        style = MaterialTheme.typography.bodySmall.copy(
+                                            fontWeight = if (!conv.isRead) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 12.sp
+                                        ),
+                                        color = if (!conv.isRead) Color(0xFFE0F7FA) else Color(0xFFCBD5E1),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+
+                                    if (conv.distanceKm != null || conv.landmark != null) {
+                                        val dist = LocationHelper.formatDistanceLabel(conv.distanceKm)
+                                        Text(
+                                            text = "📍 $dist • ${conv.landmark ?: "Locality"}",
+                                            fontSize = 10.sp,
+                                            color = Color(0xFF00E5FF),
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        text = formatRelativeTime(conv.timestamp),
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold
+                                        ),
+                                        color = cardBorderColor
+                                    )
+                                    if (!conv.isRead) {
+                                        Spacer(modifier = Modifier.height(4.dp))
                                         Surface(
                                             shape = RoundedCornerShape(100.dp),
-                                            color = MaterialTheme.colorScheme.surfaceVariant
+                                            color = Color(0xFF00E5FF)
                                         ) {
                                             Text(
-                                                text = "GROUP (${conv.groupMembersCount})",
-                                                fontSize = 9.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                                text = "NEW",
+                                                fontSize = 8.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color(0xFF021019),
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.5.dp)
                                             )
                                         }
                                     }
                                 }
-
-                                Spacer(modifier = Modifier.height(2.dp))
-
-                                // Last message with locality label
-                                Text(
-                                    text = (if (conv.isFromMe) "You: " else "") + conv.lastMessage,
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontWeight = if (!conv.isRead) FontWeight.SemiBold else FontWeight.Normal,
-                                        fontSize = 12.sp
-                                    ),
-                                    color = if (!conv.isRead) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-
-                                if (conv.distanceKm != null || conv.landmark != null) {
-                                    val dist = LocationHelper.formatDistanceLabel(conv.distanceKm)
-                                    Text(
-                                        text = "📍 $dist • ${conv.landmark ?: "Locality"}",
-                                        fontSize = 10.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                }
                             }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Text(
-                                text = formatRelativeTime(conv.timestamp),
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
                         }
                     }
                 }
@@ -643,6 +686,13 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
                 Spacer(modifier = Modifier.width(6.dp))
             }
 
+            val bubbleGradient = if (isCurrentUser) {
+                listOf(Color(0xFF00796B), Color(0xFF004D40))
+            } else {
+                listOf(Color(0xFF0F2537), Color(0xFF1A365D))
+            }
+            val bubbleBorderColor = if (isCurrentUser) Color(0xFF00FF87).copy(alpha = 0.65f) else Color(0xFF00E5FF).copy(alpha = 0.55f)
+
             Surface(
                 shape = RoundedCornerShape(
                     topStart = 16.dp,
@@ -650,10 +700,15 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
                     bottomStart = if (isCurrentUser) 16.dp else 4.dp,
                     bottomEnd = if (isCurrentUser) 4.dp else 16.dp
                 ),
-                color = if (isCurrentUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                color = Color.Transparent,
+                border = BorderStroke(1.dp, bubbleBorderColor),
                 modifier = Modifier.widthIn(max = 280.dp)
             ) {
-                Column(modifier = Modifier.padding(10.dp)) {
+                Column(
+                    modifier = Modifier
+                        .background(androidx.compose.ui.graphics.Brush.horizontalGradient(bubbleGradient))
+                        .padding(10.dp)
+                ) {
                     // If this message shares a post or clip preview
                     if (!message.sharedMediaUrl.isNullOrBlank()) {
                         Box(
@@ -678,7 +733,7 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
                             Text(
                                 text = message.sharedCaption,
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp),
-                                color = if (isCurrentUser) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = Color(0xFFE0F7FA),
                                 maxLines = 2
                             )
                         }
@@ -687,8 +742,11 @@ fun ChatBubbleItem(message: ChatMessageEntity, isCurrentUser: Boolean) {
 
                     Text(
                         text = message.text,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp),
-                        color = if (isCurrentUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = Color.White
                     )
                 }
             }

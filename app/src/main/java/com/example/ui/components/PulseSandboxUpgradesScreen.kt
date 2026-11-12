@@ -491,15 +491,35 @@ fun PulseSandboxUpgradesScreen(
                                     return@Button
                                 }
                                 isTranslating = true
+                                val langCode = when {
+                                    selectedTargetLanguage.contains("Hindi", ignoreCase = true) -> "hi"
+                                    selectedTargetLanguage.contains("Tamil", ignoreCase = true) -> "ta"
+                                    selectedTargetLanguage.contains("Telugu", ignoreCase = true) -> "te"
+                                    selectedTargetLanguage.contains("Bengali", ignoreCase = true) -> "bn"
+                                    selectedTargetLanguage.contains("Marathi", ignoreCase = true) -> "mr"
+                                    selectedTargetLanguage.contains("Punjabi", ignoreCase = true) -> "pa"
+                                    selectedTargetLanguage.contains("Gujarati", ignoreCase = true) -> "gu"
+                                    selectedTargetLanguage.contains("Kannada", ignoreCase = true) -> "kn"
+                                    selectedTargetLanguage.contains("Malayalam", ignoreCase = true) -> "ml"
+                                    selectedTargetLanguage.contains("Bhojpuri", ignoreCase = true) -> "hi"
+                                    selectedTargetLanguage.contains("Odia", ignoreCase = true) -> "or"
+                                    selectedTargetLanguage.contains("Urdu", ignoreCase = true) -> "ur"
+                                    selectedTargetLanguage.contains("Spanish", ignoreCase = true) -> "es"
+                                    selectedTargetLanguage.contains("French", ignoreCase = true) -> "fr"
+                                    selectedTargetLanguage.contains("German", ignoreCase = true) -> "de"
+                                    selectedTargetLanguage.contains("Japanese", ignoreCase = true) -> "ja"
+                                    selectedTargetLanguage.contains("English", ignoreCase = true) -> "en"
+                                    else -> "hi"
+                                }
                                 coroutineScope.launch {
                                     try {
-                                        val prompt = "Translate the community bulletin below into $selectedTargetLanguage with natural colloquial neighborhood phrasing. Return ONLY the translation:\n\n$translatorSourceText"
-                                        val res = GeminiResilienceManager.executeGeminiCallWithFallback(prompt, enableGrounding = false)
-                                        translatedResultText = res.text.ifBlank {
-                                            "आज हमारे शांत जिला ब्लॉक में समुदाय सूचना: सभी पड़ोसी आमंत्रित हैं!"
-                                        }
+                                        translatedResultText = AiTranslationEngine.translateWithAi(
+                                            text = translatorSourceText,
+                                            targetLangCode = langCode,
+                                            targetLangName = selectedTargetLanguage
+                                        )
                                     } catch (e: Exception) {
-                                        translatedResultText = "सूचना: हमारे स्थानीय पड़ोसियों के लिए आवश्यक संदेश।"
+                                        translatedResultText = AiTranslationEngine.translate(translatorSourceText, langCode)
                                     } finally {
                                         isTranslating = false
                                     }

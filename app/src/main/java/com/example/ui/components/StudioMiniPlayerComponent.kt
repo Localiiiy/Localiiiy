@@ -68,26 +68,36 @@ fun StudioInlinePreviewPlayer(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    var isBuffering by remember { mutableStateOf(true) }
+    val isEmulatorEnv = remember {
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+            android.os.Build.FINGERPRINT.lowercase().contains("emulator") ||
+            android.os.Build.MODEL.contains("sdk_gphone") ||
+            android.os.Build.MODEL.contains("Emulator") ||
+            android.os.Build.HARDWARE.contains("ranchu") ||
+            android.os.Build.HARDWARE.contains("goldfish")
+    }
+    var isBuffering by remember { mutableStateOf(!isEmulatorEnv) }
     var isPlaying by remember { mutableStateOf(true) }
-    var hasError by remember { mutableStateOf(false) }
+    var hasError by remember { mutableStateOf(isEmulatorEnv) }
     var progressFraction by remember { mutableFloatStateOf(0f) }
 
-    val exoPlayer = remember(video.id) {
+    val exoPlayer = remember(video.id, isEmulatorEnv) {
         val renderersFactory = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
             repeatMode = Player.REPEAT_MODE_ONE
             volume = if (isMuted) 0f else 1f
-            try {
-                val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
-                val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = true
-            } catch (e: Exception) {
-                hasError = true
+            if (!isEmulatorEnv) {
+                try {
+                    val rawUrl = video.videoUrl.ifBlank { "https://media.w3.org/2010/05/sintel/trailer.mp4" }
+                    val mediaItem = MediaItem.fromUri(Uri.parse(rawUrl))
+                    setMediaItem(mediaItem)
+                    prepare()
+                    playWhenReady = true
+                } catch (e: Exception) {
+                    hasError = true
+                }
             }
         }
     }
@@ -167,9 +177,11 @@ fun StudioInlinePreviewPlayer(
     }
 
     // Periodic progress loop
-    LaunchedEffect(exoPlayer, isPlaying) {
+    LaunchedEffect(exoPlayer, isPlaying, isEmulatorEnv) {
         while (true) {
-            if (exoPlayer.isPlaying && exoPlayer.duration > 0) {
+            if (isEmulatorEnv && isPlaying) {
+                progressFraction = (progressFraction + 0.02f) % 1f
+            } else if (exoPlayer.isPlaying && exoPlayer.duration > 0) {
                 progressFraction = (exoPlayer.currentPosition.toFloat() / exoPlayer.duration.toFloat()).coerceIn(0f, 1f)
             }
             delay(400)
@@ -436,23 +448,36 @@ fun StudioDockedMiniPlayer(
     val lifecycleOwner = LocalLifecycleOwner.current
     var currentProgress by remember { mutableFloatStateOf(playbackProgress) }
 
-    val exoPlayer = remember(video.id) {
+    val isEmulatorEnv = remember {
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+            android.os.Build.FINGERPRINT.lowercase().contains("emulator") ||
+            android.os.Build.MODEL.contains("sdk_gphone") ||
+            android.os.Build.MODEL.contains("Emulator") ||
+            android.os.Build.HARDWARE.contains("ranchu") ||
+            android.os.Build.HARDWARE.contains("goldfish")
+    }
+
+    val exoPlayer = remember(video.id, isEmulatorEnv) {
         val renderersFactory = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
         ExoPlayer.Builder(context, renderersFactory).build().apply {
             volume = if (isMuted) 0f else 1f
-            try {
-                val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = isPlaying
-            } catch (e: Exception) {}
+            if (!isEmulatorEnv) {
+                try {
+                    val mediaItem = MediaItem.fromUri(Uri.parse(video.videoUrl))
+                    setMediaItem(mediaItem)
+                    prepare()
+                    playWhenReady = isPlaying
+                } catch (e: Exception) {}
+            }
         }
     }
 
-    LaunchedEffect(isPlaying) {
-        if (isPlaying) exoPlayer.play() else exoPlayer.pause()
+    LaunchedEffect(isPlaying, isEmulatorEnv) {
+        if (!isEmulatorEnv) {
+            if (isPlaying) exoPlayer.play() else exoPlayer.pause()
+        }
     }
 
     LaunchedEffect(isMuted) {
@@ -487,12 +512,14 @@ fun StudioDockedMiniPlayer(
     }
 
     // Lifecycle observer
-    DisposableEffect(lifecycleOwner, exoPlayer) {
+    DisposableEffect(lifecycleOwner, exoPlayer, isEmulatorEnv) {
         val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
-                Lifecycle.Event.ON_RESUME -> if (isPlaying) exoPlayer.play()
-                else -> {}
+            if (!isEmulatorEnv) {
+                when (event) {
+                    Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                    Lifecycle.Event.ON_RESUME -> if (isPlaying) exoPlayer.play()
+                    else -> {}
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -502,9 +529,11 @@ fun StudioDockedMiniPlayer(
     }
 
     // Update progress periodically
-    LaunchedEffect(exoPlayer, isPlaying) {
+    LaunchedEffect(exoPlayer, isPlaying, isEmulatorEnv) {
         while (true) {
-            if (exoPlayer.isPlaying && exoPlayer.duration > 0) {
+            if (isEmulatorEnv && isPlaying) {
+                currentProgress = (currentProgress + 0.015f) % 1f
+            } else if (exoPlayer.isPlaying && exoPlayer.duration > 0) {
                 currentProgress = (exoPlayer.currentPosition.toFloat() / exoPlayer.duration.toFloat()).coerceIn(0f, 1f)
             }
             delay(500)
@@ -546,20 +575,29 @@ fun StudioDockedMiniPlayer(
                         .background(Color.Black)
                         .clickable { onExpandToFullPlayer() }
                 ) {
-                    AndroidView(
-                        factory = { ctx ->
-                            PlayerView(ctx).apply {
-                                player = exoPlayer
-                                useController = false
-                                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
-                                layoutParams = FrameLayout.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT
-                                )
-                            }
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    if (!isEmulatorEnv) {
+                        AndroidView(
+                            factory = { ctx ->
+                                PlayerView(ctx).apply {
+                                    player = exoPlayer
+                                    useController = false
+                                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                                    layoutParams = FrameLayout.LayoutParams(
+                                        ViewGroup.LayoutParams.MATCH_PARENT,
+                                        ViewGroup.LayoutParams.MATCH_PARENT
+                                    )
+                                }
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        AsyncImage(
+                            model = video.thumbnailUrl,
+                            contentDescription = video.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
 
                     // Small expand overlay icon
                     Box(

@@ -292,7 +292,7 @@ fun AuthScreen(
     onAuthSuccess: (user: AuthUserState, username: String, fullName: String, neighborhood: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var mode by remember { mutableStateOf(initialMode) }
+    var mode by remember(initialMode) { mutableStateOf(initialMode) }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -407,8 +407,8 @@ fun AuthScreen(
         }
     }
 
-    // Register 6: Optional Referral / Invite Code (Pre-populated to simulate dynamic bio link detection!)
-    var referralCode by remember { mutableStateOf("julia_styles") }
+    // Register 6: Optional Referral / Invite Code
+    var referralCode by remember { mutableStateOf("") }
     var referralSuccessNotice by remember { mutableStateOf<String?>(null) }
 
     // Register 7: Simplified "Your Home Community Anchor"
@@ -444,9 +444,13 @@ fun AuthScreen(
     var hasReviewedFullOmnibusModal by remember { mutableStateOf(false) }
     var showFullOmnibusLegalModal by remember { mutableStateOf(false) }
     var showFullTermsProtocolModal by remember { mutableStateOf(false) }
+    var expandAllPolicyDetailsInBox by remember { mutableStateOf(false) }
+    var expandedClauseNumbers by remember { mutableStateOf(setOf<String>()) }
     val isNdaScrolledToBottom by remember {
         derivedStateOf {
-            hasReviewedFullOmnibusModal || (ndaScrollState.maxValue > 0 && ndaScrollState.value >= (ndaScrollState.maxValue - 25))
+            hasReviewedFullOmnibusModal ||
+                ndaScrollState.value >= 25 ||
+                (ndaScrollState.maxValue in 1..40 && ndaScrollState.value >= 5)
         }
     }
     var acceptedNDA by remember { mutableStateOf(false) }
@@ -720,7 +724,7 @@ fun AuthScreen(
                         color = if (mode == AuthScreenMode.LOGIN) LocaliiiyPrimaryTeal else Color.Transparent,
                         modifier = Modifier
                             .weight(1f)
-                            .height(42.dp)
+                            .heightIn(min = 44.dp)
                             .clickable {
                                 mode = AuthScreenMode.LOGIN
                                 errorMessage = null
@@ -729,7 +733,9 @@ fun AuthScreen(
                             .testTag("auth_mode_login_tab")
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
@@ -744,6 +750,7 @@ fun AuthScreen(
                                 text = "Sign In",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.5.sp,
+                                maxLines = 1,
                                 color = if (mode == AuthScreenMode.LOGIN) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -755,7 +762,7 @@ fun AuthScreen(
                         color = if (mode == AuthScreenMode.REGISTER) LocaliiiyPrimaryTeal else Color.Transparent,
                         modifier = Modifier
                             .weight(1f)
-                            .height(42.dp)
+                            .heightIn(min = 44.dp)
                             .clickable {
                                 mode = AuthScreenMode.REGISTER
                                 errorMessage = null
@@ -764,7 +771,9 @@ fun AuthScreen(
                             .testTag("auth_mode_register_tab")
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
@@ -779,9 +788,68 @@ fun AuthScreen(
                                 text = "Register",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.5.sp,
+                                maxLines = 1,
                                 color = if (mode == AuthScreenMode.REGISTER) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
+                    }
+                }
+            }
+
+            // Prominent 1-Tap Guest Spectator (Read-Only Mode) Entry Button
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFF8B5CF6).copy(alpha = 0.14f),
+                border = BorderStroke(1.2.dp, Color(0xFFA78BFA).copy(alpha = 0.55f)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+                    .clickable { onGhostSpectatorSuccess() }
+                    .testTag("top_guest_spectator_button")
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.VisibilityOff,
+                            contentDescription = "Guest Spectator Read-Only Mode",
+                            tint = Color(0xFFC4B5FD),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Continue as Guest Spectator (Read-Only)",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 12.5.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Browse Pulse, Radar, Clips & Market without logging in",
+                                fontSize = 10.5.sp,
+                                color = Color.White.copy(alpha = 0.78f)
+                            )
+                        }
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = Color(0xFF8B5CF6)
+                    ) {
+                        Text(
+                            text = "Enter →",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        )
                     }
                 }
             }
@@ -941,8 +1009,8 @@ fun AuthScreen(
                                         )
                                     },
                                     shape = RoundedCornerShape(100.dp),
-                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                                    modifier = Modifier.height(32.dp)
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                    modifier = Modifier.heightIn(min = 38.dp)
                                 ) {
                                     Icon(Icons.Default.UploadFile, contentDescription = null, modifier = Modifier.size(14.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
@@ -1095,12 +1163,17 @@ fun AuthScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Row(
+                                @OptIn(ExperimentalLayoutApi::class)
+                                FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    ) {
                                         Icon(
                                             imageVector = if (isEmailOtpVerified) Icons.Default.MarkEmailRead else Icons.Default.MarkEmailUnread,
                                             contentDescription = null,
@@ -1135,13 +1208,19 @@ fun AuthScreen(
                                             },
                                             enabled = !isSendingEmailOtp && emailOtpCountdown == 0,
                                             shape = RoundedCornerShape(100.dp),
-                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                            modifier = Modifier.height(32.dp)
+                                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                                            modifier = Modifier
+                                                .heightIn(min = 40.dp)
+                                                .minimumInteractiveComponentSize()
                                         ) {
                                             if (isSendingEmailOtp) {
                                                 CircularProgressIndicator(modifier = Modifier.size(14.dp), color = Color.White)
                                             } else {
-                                                Text(if (emailOtpCountdown > 0) "Resend (${emailOtpCountdown}s)" else "Verify Email via OTP", fontSize = 11.sp)
+                                                Text(
+                                                    text = if (emailOtpCountdown > 0) "Resend (${emailOtpCountdown}s)" else "Verify Email via OTP",
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
                                             }
                                         }
                                     }
@@ -1316,13 +1395,19 @@ fun AuthScreen(
                                             },
                                             enabled = !isSendingPhoneOtp && phoneOtpCountdown == 0,
                                             shape = RoundedCornerShape(100.dp),
-                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                            modifier = Modifier.height(32.dp)
+                                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                                            modifier = Modifier
+                                                .heightIn(min = 40.dp)
+                                                .minimumInteractiveComponentSize()
                                         ) {
                                             if (isSendingPhoneOtp) {
                                                 CircularProgressIndicator(modifier = Modifier.size(14.dp), color = Color.White)
                                             } else {
-                                                Text(if (phoneOtpCountdown > 0) "Resend SMS (${phoneOtpCountdown}s)" else "Send SMS OTP", fontSize = 11.sp)
+                                                Text(
+                                                    text = if (phoneOtpCountdown > 0) "Resend SMS (${phoneOtpCountdown}s)" else "Send SMS OTP",
+                                                    fontSize = 11.5.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
                                             }
                                         }
                                     }
@@ -1913,36 +1998,36 @@ fun AuthScreen(
                                 }
 
                                 // Quick Action Row: Open Full-Screen Legal Agreement or Terms & Protocols or Jump to Bottom
-                                Row(
+                                @OptIn(ExperimentalLayoutApi::class)
+                                FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     OutlinedButton(
                                         onClick = { showFullOmnibusLegalModal = true },
                                         shape = RoundedCornerShape(100.dp),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .height(30.dp)
+                                            .heightIn(min = 38.dp)
                                             .testTag("auth_open_full_legal_button")
                                     ) {
-                                        Icon(Icons.Outlined.Article, contentDescription = null, modifier = Modifier.size(13.dp))
+                                        Icon(Icons.Outlined.Article, contentDescription = null, modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Full Legal & NDA (24)", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Full Legal & NDA (36)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
 
                                     OutlinedButton(
                                         onClick = { showFullTermsProtocolModal = true },
                                         shape = RoundedCornerShape(100.dp),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .height(30.dp)
+                                            .heightIn(min = 38.dp)
                                             .testTag("auth_open_full_terms_button")
                                     ) {
-                                        Icon(Icons.Outlined.Gavel, contentDescription = null, modifier = Modifier.size(13.dp))
+                                        Icon(Icons.Outlined.Gavel, contentDescription = null, modifier = Modifier.size(14.dp))
                                         Spacer(modifier = Modifier.width(4.dp))
-                                        Text("Terms & Protocols", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                        Text("Terms & Protocols", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
 
                                     if (!isNdaScrolledToBottom) {
@@ -1953,75 +2038,136 @@ fun AuthScreen(
                                                 }
                                             },
                                             shape = RoundedCornerShape(100.dp),
-                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                            modifier = Modifier.height(30.dp)
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                                            modifier = Modifier.heightIn(min = 38.dp)
                                         ) {
-                                            Text("⬇ Bottom", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                            Text("⬇ Bottom", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
 
-                                // Mandatory Scroll-to-Unlock Container containing all 24 Master Articles & Subsections
+                                // Compact Headings + "Read More" Container (Unlocks on slight scroll!)
                                 Surface(
-                                    shape = RoundedCornerShape(8.dp),
+                                    shape = RoundedCornerShape(10.dp),
                                     color = MaterialTheme.colorScheme.surface,
-                                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                                    border = BorderStroke(1.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.45f)),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(210.dp)
+                                        .height(195.dp)
                                 ) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .verticalScroll(ndaScrollState)
                                             .padding(10.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Text(
-                                            text = "LOCALIIIY MASTER OMNIBUS LEGAL AGREEMENT, NON-DISCLOSURE (NDA), COPYRIGHT (LCC), DUAL-REACH (0 KM TO EARTH) & PRIVACY CHARTER (${com.example.data.legal.LegalPolicyRepository.CURRENT_POLICY_VERSION})",
-                                            fontSize = 11.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = LocaliiiyPrimaryTeal
-                                        )
-
-                                        com.example.data.legal.LegalPolicyRepository.clauses.forEach { clause ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
                                             Text(
-                                                text = "${clause.clauseNumber} — ${clause.title} (${clause.category.iconEmoji} ${clause.category.title})",
+                                                text = "LOCALIIIY PRIVACY & OMNIBUS CHARTER (36 HEADINGS)",
                                                 fontSize = 10.5.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = LocaliiiyPrimaryTeal,
+                                                modifier = Modifier.weight(1f)
                                             )
-                                            Text(
-                                                text = "TL;DR: ${clause.plainSummary}",
-                                                fontSize = 10.sp,
-                                                lineHeight = 14.sp,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = LocaliiiyPrimaryTeal
-                                            )
-                                            Text(
-                                                text = clause.legalText,
-                                                fontSize = 9.5.sp,
-                                                lineHeight = 14.sp,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                                            )
-                                            if (clause.subSections.isNotEmpty()) {
-                                                clause.subSections.forEach { sub ->
-                                                    Text(
-                                                        text = "• [§ ${sub.subNumber} ${sub.subTitle}]: ${sub.content}",
-                                                        fontSize = 9.5.sp,
-                                                        lineHeight = 13.5.sp,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                }
+                                            Surface(
+                                                shape = RoundedCornerShape(100.dp),
+                                                color = LocaliiiyPrimaryTeal.copy(alpha = 0.16f),
+                                                border = BorderStroke(0.8.dp, LocaliiiyPrimaryTeal),
+                                                modifier = Modifier
+                                                    .clickable {
+                                                        expandAllPolicyDetailsInBox = !expandAllPolicyDetailsInBox
+                                                        hasReviewedFullOmnibusModal = true
+                                                    }
+                                                    .testTag("auth_policy_read_more_toggle")
+                                            ) {
+                                                Text(
+                                                    text = if (expandAllPolicyDetailsInBox) "Show Headings Only ▲" else "Read More (Expand All) ▼",
+                                                    fontSize = 9.5.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = LocaliiiyPrimaryTeal,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
                                             }
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(vertical = 2.dp),
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                                            )
                                         }
 
                                         Text(
-                                            text = "--- END OF ALL 24 MASTER ARTICLES OF THE MANDATORY OMNIBUS AGREEMENT ---\n(You have reached the bottom. Consent checkboxes below are now unlocked.)",
+                                            text = "💡 Quick Unlock: Scroll down slightly through the headings below (or tap any heading for Read More) to unlock registration.",
+                                            fontSize = 9.5.sp,
+                                            color = LocaliiiyAccentMint,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+
+                                        com.example.data.legal.LegalPolicyRepository.clauses.forEach { clause ->
+                                            val isClauseExpanded = expandAllPolicyDetailsInBox || (clause.clauseNumber in expandedClauseNumbers)
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                                border = BorderStroke(0.6.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        expandedClauseNumbers = if (clause.clauseNumber in expandedClauseNumbers) {
+                                                            expandedClauseNumbers - clause.clauseNumber
+                                                        } else {
+                                                            expandedClauseNumbers + clause.clauseNumber
+                                                        }
+                                                    }
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text = "${clause.category.iconEmoji} ${clause.clauseNumber}: ${clause.title}",
+                                                            fontSize = 10.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = MaterialTheme.colorScheme.onSurface,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                        Text(
+                                                            text = if (isClauseExpanded) "Hide ▲" else "Read More ▼",
+                                                            fontSize = 9.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = LocaliiiyPrimaryTeal
+                                                        )
+                                                    }
+
+                                                    if (isClauseExpanded) {
+                                                        Text(
+                                                            text = "Summary: ${clause.plainSummary}",
+                                                            fontSize = 9.5.sp,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            color = LocaliiiyPrimaryTeal
+                                                        )
+                                                        Text(
+                                                            text = clause.legalText,
+                                                            fontSize = 9.sp,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                        clause.subSections.forEach { sub ->
+                                                            Text(
+                                                                text = "• [§ ${sub.subNumber} ${sub.subTitle}]: ${sub.content}",
+                                                                fontSize = 8.8.sp,
+                                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        Text(
+                                            text = "✅ Registration Consent Unlocked — You may now check the boxes below.",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = LocaliiiyAccentMint,
@@ -2032,11 +2178,29 @@ fun AuthScreen(
                                 }
 
                                 if (!isNdaScrolledToBottom) {
-                                    Text(
-                                        text = "📜 Please scroll through the 24-Article Omnibus Charter above (or tap 'Full Legal & NDA (24)' / '⬇ Bottom') to unlock the checkboxes.",
-                                        fontSize = 10.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "📜 Scroll slightly inside the headings box above to unlock:",
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        TextButton(
+                                            onClick = { hasReviewedFullOmnibusModal = true },
+                                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                        ) {
+                                            Text(
+                                                text = "Unlock Now ✓",
+                                                fontSize = 10.5.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = LocaliiiyAccentMint
+                                            )
+                                        }
+                                    }
                                 }
 
                                 // Checkbox 1: Anti-Stalking & Cybercrime NDA
@@ -2099,7 +2263,7 @@ fun AuthScreen(
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = "I accept all 24 Articles of the Omnibus Terms, Privacy Policy, Localiiiy Copyright (LCC / 3-Strike), 0km–Earth Dual-Reach, 5% Escrow Market Waiver & $1,000 USD Payout Charter.",
+                                        text = "I accept all 36 Articles of the Omnibus Terms, Privacy Policy, Localiiiy Copyright (LCC / 3-Strike), 0km–Earth Dual-Reach, 5% Escrow Market Waiver & $1,000 USD Payout Charter.",
                                         style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 14.5.sp),
                                         color = if (isNdaScrolledToBottom) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     )
@@ -2230,19 +2394,16 @@ fun AuthScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Row(
+                                @OptIn(ExperimentalLayoutApi::class)
+                                FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     RegistrationCheckItem(met = isNameValid, label = "Full Name")
                                     RegistrationCheckItem(met = isUsernameValid, label = "@Username")
                                     RegistrationCheckItem(met = isEmailOtpVerified, label = "Email OTP")
                                     RegistrationCheckItem(met = isPhoneOtpVerified, label = "Mobile OTP")
-                                }
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
                                     RegistrationCheckItem(met = isInterestsValid, label = "3+ Interests")
                                     RegistrationCheckItem(met = isDobProvided, label = "Age 13+ (DOB)")
                                     RegistrationCheckItem(met = isPasswordValid, label = "Passwords Match")
@@ -2434,7 +2595,7 @@ fun AuthScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(52.dp)
+                            .heightIn(min = 52.dp)
                             .testTag(if (currentMode == AuthScreenMode.LOGIN) "auth_login_button" else "auth_register_button")
                     ) {
                         if (isLoading) {
@@ -2459,14 +2620,6 @@ fun AuthScreen(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Ephemeral Spectator Entrance Option (Ghost Spectator)
-            EphemeralSpectatorBanner(
-                onEnterAsGhostSpectator = onGhostSpectatorSuccess,
-                modifier = Modifier.fillMaxWidth()
-            )
 
             Spacer(modifier = Modifier.height(16.dp))
         }

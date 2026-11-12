@@ -1,5 +1,5 @@
-// Localiiiy Service Worker v2.4.0 (100% Android Parity: Civic Tools, Tactical Radar & Bidirectional Auth)
-const CACHE_NAME = 'localiiiy-cache-v2.4.0-civic-radar-auth-100-sync';
+// Localiiiy Service Worker v2.9.0 (DEX-Optimized Build 29, Clean Underlined Task Bar & AI Sync)
+const CACHE_NAME = 'localiiiy-cache-v2.9.0-nov11-live';
 const STATIC_ASSETS = [
   './',
   './index.html',

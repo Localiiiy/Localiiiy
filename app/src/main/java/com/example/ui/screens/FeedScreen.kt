@@ -228,13 +228,14 @@ fun NeighborCreatorCard(
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(30.dp)
+                        .heightIn(min = 32.dp)
                 ) {
                     Text(
                         text = if (user.isConnected) "Connected" else "Connect",
                         fontSize = 9.5.sp,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 

@@ -159,19 +159,19 @@ interface LocaliiiyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOtherUsers(users: List<OtherUserEntity>)
 
-    @Query("DELETE FROM other_users WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    @Query("DELETE FROM other_users WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%' OR username IN ('arjun_goa', 'meera_konkan', 'rohan_coastal', 'priya_tech_hub', 'maya_lens', 'sam_bakes', 'elena_beats', 'elena.design', 'chloe.cafes', 'oliver_london', 'maya_sound', 'yuki_shibuya')")
     suspend fun clearDemoUsers()
 
-    @Query("DELETE FROM posts WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    @Query("DELETE FROM posts WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%' OR username IN ('arjun_goa', 'meera_konkan', 'rohan_coastal', 'priya_tech_hub', 'maya_lens', 'sam_bakes', 'elena_beats', 'elena.design', 'chloe.cafes', 'oliver_london', 'maya_sound', 'yuki_shibuya')")
     suspend fun clearDemoPosts()
 
-    @Query("DELETE FROM clips WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%'")
+    @Query("DELETE FROM clips WHERE username LIKE 'demo_%' OR username LIKE 'dummy_%' OR username LIKE 'test_%' OR username LIKE 'sample_%' OR username IN ('arjun_goa', 'meera_konkan', 'rohan_coastal', 'priya_tech_hub', 'maya_lens', 'sam_bakes', 'elena_beats', 'elena.design', 'chloe.cafes', 'oliver_london', 'maya_sound', 'yuki_shibuya')")
     suspend fun clearDemoClips()
 
-    @Query("DELETE FROM marketplace_items WHERE sellerUsername LIKE 'demo_%' OR sellerUsername LIKE 'dummy_%' OR sellerUsername LIKE 'test_%' OR sellerUsername LIKE 'sample_%' OR sellerUsername IN ('elena.design', 'chloe.cafes', 'oliver_london', 'maya_sound', 'yuki_shibuya')")
+    @Query("DELETE FROM marketplace_items WHERE sellerUsername LIKE 'demo_%' OR sellerUsername LIKE 'dummy_%' OR sellerUsername LIKE 'test_%' OR sellerUsername LIKE 'sample_%' OR sellerUsername IN ('arjun_goa', 'meera_konkan', 'rohan_coastal', 'priya_tech_hub', 'maya_lens', 'sam_bakes', 'elena_beats', 'elena.design', 'chloe.cafes', 'oliver_london', 'maya_sound', 'yuki_shibuya')")
     suspend fun clearDemoMarketplaceItems()
 
-    @Query("DELETE FROM notifications WHERE actionType = 'PROXIMITY_ALERT' OR username IN ('Elena Vance', 'elena.design', 'Chloe Dupont', 'chloe.cafes', 'Oliver Thorne', 'oliver_london', 'Maya Lin', 'maya_sound', 'Yuki Tanaka', 'yuki_shibuya', 'Neighborhood Hotspot 🚨')")
+    @Query("DELETE FROM notifications WHERE actionType = 'PROXIMITY_ALERT' OR username IN ('arjun_goa', 'meera_konkan', 'rohan_coastal', 'priya_tech_hub', 'maya_lens', 'sam_bakes', 'elena_beats', 'Elena Vance', 'elena.design', 'Chloe Dupont', 'chloe.cafes', 'Oliver Thorne', 'oliver_london', 'Maya Lin', 'maya_sound', 'Yuki Tanaka', 'yuki_shibuya', 'Neighborhood Hotspot 🚨')")
     suspend fun clearMockNotifications()
 
     @Query("UPDATE other_users SET isConnected = :isConnected, connectionsCount = connectionsCount + :delta WHERE username = :username")

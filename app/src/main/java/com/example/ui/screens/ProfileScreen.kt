@@ -530,7 +530,7 @@ fun ProfileScreen(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(38.dp)
+                                .heightIn(min = 40.dp)
                                 .testTag("edit_profile_button")
                         ) {
                             Icon(
@@ -542,6 +542,8 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "Edit Space",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -571,7 +573,7 @@ fun ProfileScreen(
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                             modifier = Modifier
                                 .weight(1f)
-                                .height(38.dp)
+                                .heightIn(min = 40.dp)
                                 .testTag("profile_share_space_button")
                         ) {
                             Icon(
@@ -699,7 +701,7 @@ fun ProfileScreen(
                                                 modifier = Modifier.size(12.dp)
                                             )
                                         },
-                                        modifier = Modifier.height(28.dp)
+                                        modifier = Modifier.heightIn(min = 32.dp)
                                     )
 
                                     FilterChip(
@@ -719,7 +721,7 @@ fun ProfileScreen(
                                                 modifier = Modifier.size(12.dp)
                                             )
                                         },
-                                        modifier = Modifier.height(28.dp)
+                                        modifier = Modifier.heightIn(min = 32.dp)
                                     )
                                 }
                             }
@@ -942,7 +944,7 @@ fun ProfileScreen(
                                 FilledTonalButton(
                                     onClick = onCreateContentClick,
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                    modifier = Modifier.height(32.dp)
+                                    modifier = Modifier.heightIn(min = 34.dp)
                                 ) {
                                     Text("+ New Clip", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }

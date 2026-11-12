@@ -63,9 +63,16 @@ fun LocaliiiyTheme(
         else -> 1.0f
     }
     val currentDensity = LocalDensity.current
+    val rawFontScale = currentDensity.fontScale * scaleFactor
+    // Non-linear accessibility font scaling curve (prevents 2.0x-3.0x OS scales from overflowing compact pills/cards)
+    val clampedFontScale = when {
+        rawFontScale <= 1.15f -> rawFontScale
+        rawFontScale <= 1.35f -> 1.15f + (rawFontScale - 1.15f) * 0.65f
+        else -> (1.28f + (rawFontScale - 1.35f) * 0.25f).coerceAtMost(1.45f)
+    }
     val scaledDensity = Density(
         density = currentDensity.density,
-        fontScale = currentDensity.fontScale * scaleFactor
+        fontScale = clampedFontScale
     )
 
     CompositionLocalProvider(LocalDensity provides scaledDensity) {

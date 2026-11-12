@@ -798,7 +798,19 @@ fun MarketConditionVideoTourModal(
         }
     }
 
-    val exoPlayer = remember(resolvedVideoUrl) {
+    val isEmulatorEnv = remember {
+        android.os.Build.FINGERPRINT.startsWith("generic") ||
+            android.os.Build.FINGERPRINT.lowercase().contains("emulator") ||
+            android.os.Build.MODEL.contains("sdk_gphone") ||
+            android.os.Build.MODEL.contains("Emulator") ||
+            android.os.Build.HARDWARE.contains("ranchu") ||
+            android.os.Build.HARDWARE.contains("goldfish")
+    }
+    LaunchedEffect(isEmulatorEnv) {
+        if (isEmulatorEnv) hasPlaybackError = true
+    }
+
+    val exoPlayer = remember(resolvedVideoUrl, isEmulatorEnv) {
         val renderersFactory = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true)
             .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF)
@@ -811,13 +823,15 @@ fun MarketConditionVideoTourModal(
                     try { stop() } catch (_: Exception) {}
                 }
             })
-            try {
-                val mediaItem = MediaItem.fromUri(Uri.parse(resolvedVideoUrl))
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = true
-            } catch (_: Exception) {
-                hasPlaybackError = true
+            if (!isEmulatorEnv) {
+                try {
+                    val mediaItem = MediaItem.fromUri(Uri.parse(resolvedVideoUrl))
+                    setMediaItem(mediaItem)
+                    prepare()
+                    playWhenReady = true
+                } catch (_: Exception) {
+                    hasPlaybackError = true
+                }
             }
         }
     }

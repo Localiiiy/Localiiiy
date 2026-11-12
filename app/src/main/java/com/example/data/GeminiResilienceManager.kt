@@ -26,6 +26,19 @@ data class ResilienceResult(
 object GeminiResilienceManager {
     private const val TAG = "GeminiResilienceMgr"
 
+    @Volatile
+    private var hasConfiguredAppCheckToken: Boolean = false
+
+    @Volatile
+    private var appCheckUnavailableInSession: Boolean = false
+
+    fun markAppCheckTokenConfigured(configured: Boolean) {
+        hasConfiguredAppCheckToken = configured
+        if (configured) {
+            appCheckUnavailableInSession = false
+        }
+    }
+
     private val primaryModel by lazy {
         Firebase.ai.generativeModel("gemini-3.8-flash")
     }
@@ -34,12 +47,37 @@ object GeminiResilienceManager {
         Firebase.ai.generativeModel("gemini-3.5-flash-lite")
     }
 
-    private val BACKOFF_DELAYS_MS = listOf(1000L, 2000L)
+    private val BACKOFF_DELAYS_MS = listOf(600L, 1200L)
+
+    private fun isFirebaseReadyForAi(): Boolean {
+        if (!hasConfiguredAppCheckToken || appCheckUnavailableInSession) {
+            return false
+        }
+        return try {
+            val app = com.google.firebase.FirebaseApp.getInstance()
+            val apiKey = app.options.apiKey.orEmpty()
+            apiKey.isNotBlank() &&
+                !apiKey.contains("PLACEHOLDER", ignoreCase = true) &&
+                !apiKey.startsWith("YOUR_", ignoreCase = true)
+        } catch (_: Exception) {
+            false
+        }
+    }
 
     suspend fun executeGeminiCallWithFallback(
         prompt: String,
         enableGrounding: Boolean = true
     ): ResilienceResult = withContext(Dispatchers.IO) {
+        if (!isFirebaseReadyForAi()) {
+            return@withContext ResilienceResult(
+                text = "",
+                modelUsed = "offline-hyperlocal-engine",
+                provider = "Localiiiy-Autonomous-Synthesizer",
+                isFallback = true,
+                searchQueries = listOf("Neighborhood live updates", "Community safety pulse", "Local transit alerts")
+            )
+        }
+
         val models = listOf(
             "gemini-3.8-flash" to primaryModel,
             "gemini-3.5-flash-lite" to fallbackModel
@@ -66,31 +104,35 @@ object GeminiResilienceManager {
                             }
                         )
                     } else {
-                        Log.w(TAG, "Model '$modelName' returned empty text on attempt ${attempt + 1}")
                         break
                     }
                 } catch (e: CancellationException) {
                     if (e is TimeoutCancellationException) {
-                        Log.e(TAG, "Generation timed out after 60s on '$modelName'", e)
                         break
                     }
                     throw e
                 } catch (e: Exception) {
                     val msg = e.localizedMessage ?: e.message.orEmpty()
-                    if (msg.contains("429") || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) || msg.contains("quota", ignoreCase = true)) {
+                    if (msg.contains("App Check", ignoreCase = true)) {
+                        appCheckUnavailableInSession = true
+                        return@withContext ResilienceResult(
+                            text = "",
+                            modelUsed = "offline-hyperlocal-engine",
+                            provider = "Localiiiy-Autonomous-Synthesizer",
+                            isFallback = true,
+                            searchQueries = listOf("Neighborhood live updates", "Community safety pulse", "Local transit alerts")
+                        )
+                    } else if (msg.contains("429") || msg.contains("RESOURCE_EXHAUSTED", ignoreCase = true) || msg.contains("quota", ignoreCase = true)) {
                         val jitter = Random.nextLong(50, 250)
                         val totalDelay = baseDelay + jitter
-                        Log.w(TAG, "Rate limited on '$modelName'. Backing off ${totalDelay}ms...", e)
                         delay(totalDelay)
                     } else {
-                        Log.e(TAG, "Firebase AI generation failed on '$modelName': $msg", e)
                         break
                     }
                 }
             }
         }
 
-        Log.w(TAG, "All cloud Firebase AI Logic endpoints unavailable.")
         return@withContext ResilienceResult(
             text = "",
             modelUsed = "offline-hyperlocal-engine",

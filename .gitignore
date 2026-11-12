@@ -29,6 +29,8 @@ debug.keystore.base64
 # 3. Compiled Android Binaries & Decompiler Tools (Prevents >100MB GitHub Push Failures & APK Decompilation)
 *.apk
 *.aab
+!Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab
+!/public/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab
 *.apks
 *.dex
 *.class
@@ -38,8 +40,6 @@ cfr.jar
 /download/
 /release/
 /public/downloads/
-/public/*.aab
-/public/*.apk
 /tmp/
 
 # 4. Gradle, Kotlin & Android Studio Build Directories

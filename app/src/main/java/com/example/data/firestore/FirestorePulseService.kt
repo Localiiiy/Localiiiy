@@ -244,4 +244,124 @@ fun appendPostRemarkToFirestore(
     }
 }
 
+/**
+ * Data model for persisting and restoring user's preferred Radar Range, HUD Theme,
+ * Far-Reach Signal Transmit state, and Premium subscription state in Cloud Firestore.
+ */
+data class RadarUserPreferences(
+    val uid: String = "",
+    val preferredRadarRadiusKm: Double = 50.0,
+    val preferredRadarHudTheme: String = "PHOSPHOR_GREEN",
+    val isFarReachTransmitActive: Boolean = false,
+    val farReachTransmitRange: String = "3KM",
+    val isPremiumConnected: Boolean = false,
+    val preferredRadarAuraIndex: Int = 0,
+    val preferredRadarTagline: String = "⚡ Open for Collabs",
+    val updatedAt: Long = System.currentTimeMillis()
+)
+
+fun saveRadarPreferencesToFirestore(
+    fallbackProfileKey: String,
+    preferredRadarRadiusKm: Double,
+    preferredRadarHudTheme: String,
+    isFarReachTransmitActive: Boolean,
+    farReachTransmitRange: String,
+    isPremiumConnected: Boolean,
+    preferredRadarAuraIndex: Int = 0,
+    preferredRadarTagline: String = "⚡ Open for Collabs"
+) {
+    try {
+        val currentUid = try {
+            FirebaseAuth.getInstance().currentUser?.uid
+        } catch (_: Throwable) {
+            null
+        } ?: fallbackProfileKey.ifBlank { "localiiiy_primary_user" }
+
+        val firestore = try {
+            FirebaseFirestore.getInstance("ai-studio-android-localiii-37ed0153-e156-425c-857b-5273dbd0fc55")
+        } catch (_: Throwable) {
+            try {
+                FirebaseFirestore.getInstance()
+            } catch (_: Throwable) {
+                null
+            }
+        } ?: return
+
+        val payload = mapOf(
+            "uid" to currentUid,
+            "preferredRadarRadiusKm" to preferredRadarRadiusKm,
+            "preferredRadarHudTheme" to preferredRadarHudTheme,
+            "isFarReachTransmitActive" to isFarReachTransmitActive,
+            "farReachTransmitRange" to farReachTransmitRange,
+            "isPremiumConnected" to isPremiumConnected,
+            "preferredRadarAuraIndex" to preferredRadarAuraIndex,
+            "preferredRadarTagline" to preferredRadarTagline,
+            "updatedAt" to System.currentTimeMillis()
+        )
+
+        firestore.collection("user_radar_preferences")
+            .document(currentUid)
+            .set(payload, com.google.firebase.firestore.SetOptions.merge())
+
+        firestore.collection("users")
+            .document(currentUid)
+            .set(payload, com.google.firebase.firestore.SetOptions.merge())
+    } catch (e: Throwable) {
+        Log.w("FirestorePulse", "Radar preferences saved locally (Firestore sync deferred): ${e.message}")
+    }
+}
+
+suspend fun fetchRadarPreferencesFromFirestore(fallbackProfileKey: String): RadarUserPreferences? {
+    return try {
+        val currentUid = try {
+            FirebaseAuth.getInstance().currentUser?.uid
+        } catch (_: Throwable) {
+            null
+        } ?: fallbackProfileKey.ifBlank { "localiiiy_primary_user" }
+
+        val firestore = try {
+            FirebaseFirestore.getInstance("ai-studio-android-localiii-37ed0153-e156-425c-857b-5273dbd0fc55")
+        } catch (_: Throwable) {
+            try {
+                FirebaseFirestore.getInstance()
+            } catch (_: Throwable) {
+                null
+            }
+        } ?: return null
+
+        val snap = firestore.collection("user_radar_preferences")
+            .document(currentUid)
+            .get()
+            .await()
+
+        val doc = if (snap.exists()) snap else {
+            firestore.collection("users").document(currentUid).get().await()
+        }
+
+        if (!doc.exists()) return null
+
+        val radiusKm = doc.getDouble("preferredRadarRadiusKm") ?: 50.0
+        val hudTheme = doc.getString("preferredRadarHudTheme") ?: "PHOSPHOR_GREEN"
+        val isFarReach = doc.getBoolean("isFarReachTransmitActive") ?: false
+        val farRange = doc.getString("farReachTransmitRange") ?: "3KM"
+        val isPremium = doc.getBoolean("isPremiumConnected") ?: false
+        val auraIdx = (doc.getLong("preferredRadarAuraIndex") ?: 0L).toInt()
+        val tagline = doc.getString("preferredRadarTagline") ?: "⚡ Open for Collabs"
+
+        RadarUserPreferences(
+            uid = currentUid,
+            preferredRadarRadiusKm = radiusKm,
+            preferredRadarHudTheme = hudTheme,
+            isFarReachTransmitActive = isFarReach,
+            farReachTransmitRange = farRange,
+            isPremiumConnected = isPremium,
+            preferredRadarAuraIndex = auraIdx,
+            preferredRadarTagline = tagline
+        )
+    } catch (e: Throwable) {
+        Log.w("FirestorePulse", "Could not fetch remote radar preferences, using local persisted view: ${e.message}")
+        null
+    }
+}
+
 

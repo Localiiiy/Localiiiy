@@ -11,6 +11,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -255,6 +256,9 @@ fun StudioScreen(
     onUserProfileClick: (String) -> Unit = {},
     isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
+    onFullscreenChange: (Boolean) -> Unit = {},
+    isPremiumSubscribed: Boolean = false,
+    onOpenPremium: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val effectiveVideos = remember(videos) {
@@ -268,7 +272,7 @@ fun StudioScreen(
     var showDeleteVideoConfirmDialog by remember { mutableStateOf(false) }
     var videoToDeleteId by remember { mutableStateOf<Long?>(null) }
 
-    var isVideoPreviewOnScrollEnabled by remember { mutableStateOf(true) }
+    var isVideoPreviewOnScrollEnabled by remember { mutableStateOf(false) }
     var manualPreviewVideoId by remember { mutableStateOf<Long?>(null) }
     var isPreviewMuted by remember { mutableStateOf(true) }
 
@@ -688,6 +692,129 @@ fun StudioScreen(
                     }
                 }
 
+                // 5.5. STUDIO AD-FREE STREAMING & CREATOR AD-REVENUE SPLIT BANNER (YouTube Premium Style)
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isPremiumSubscribed) Color(0xFF0A2416) else Color(0xFF1F1606),
+                        border = BorderStroke(
+                            1.2.dp,
+                            if (isPremiumSubscribed) Color(0xFF00E676).copy(alpha = 0.7f) else Color(0xFFFFD700).copy(alpha = 0.75f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .clickable {
+                                if (!isPremiumSubscribed) onOpenPremium()
+                            }
+                            .testTag("studio_ad_free_streaming_banner")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isPremiumSubscribed) {
+                                        "👑 TITAN AD-FREE STUDIO STREAMING: ACTIVE"
+                                    } else {
+                                        "📺 AD-SUPPORTED STREAMING • 55% Creator / 45% Platform Split"
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (isPremiumSubscribed) Color(0xFF00E676) else Color(0xFFFFD700)
+                                )
+                                Text(
+                                    text = if (isPremiumSubscribed) {
+                                        "Zero pre-roll or mid-roll ads • Background audio play & 4K 60fps HDR unlocked"
+                                    } else {
+                                        "Upgrade to Titan Premium for 100% Ad-Free Studio videos & background play (like YouTube Premium)"
+                                    },
+                                    fontSize = 10.sp,
+                                    color = Color.LightGray
+                                )
+                            }
+                            if (!isPremiumSubscribed) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(100.dp),
+                                    color = Color(0xFFFFD700),
+                                    modifier = Modifier.clickable { onOpenPremium() }
+                                ) {
+                                    Text(
+                                        text = "👑 Go Ad-Free",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color.Black,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5.6. TOOL #1: STUDIO PAY-PER-VIEW (PPV) & MOVIE RENTALS BAR (80% Creator / 20% Platform Split)
+                item {
+                    val context = LocalContext.current
+                    var ppvPassUnlocked by remember { mutableStateOf(false) }
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFF140D26),
+                        border = BorderStroke(1.dp, Color(0xFF8B5CF6).copy(alpha = 0.7f)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                            .testTag("studio_ppv_movie_rental_bar")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (ppvPassUnlocked) {
+                                        "🎟️ PPV PREMIERE PASS UNLOCKED • 4K Cinema & Concert Access ✓"
+                                    } else {
+                                        "🎬 STUDIO PAY-PER-VIEW (PPV) & PREMIERE RENTALS (₹49–₹199)"
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (ppvPassUnlocked) Color(0xFF00E676) else Color(0xFFD8B4FE)
+                                )
+                                Text(
+                                    text = "Creators earn 80% on every ticket/rental • 20% Platform Fee • Rent indie films & live concerts",
+                                    fontSize = 9.5.sp,
+                                    color = Color.LightGray
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (ppvPassUnlocked) Color(0xFF00E676).copy(alpha = 0.25f) else Color(0xFF8B5CF6),
+                                modifier = Modifier.clickable {
+                                    ppvPassUnlocked = true
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "🎟️ PPV Premiere Pass Unlocked (₹49)! ₹39.20 (80%) to Creator • ₹9.80 (20%) to Platform",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            ) {
+                                Text(
+                                    text = if (ppvPassUnlocked) "Pass Active ✓" else "🎟️ Rent ₹49",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = if (ppvPassUnlocked) Color(0xFF00E676) else Color.White,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // 6. Studio Spotlight Hero (Featured Video)
                 val spotlightVideo = filteredVideos.firstOrNull()
                 if (spotlightVideo != null && selectedCategory == "All" && searchQuery.isBlank()) {
@@ -950,10 +1077,13 @@ fun StudioScreen(
                 },
                 onOpenTip = { showTipDialog = true },
                 allVideos = effectiveVideos,
+                onFullscreenChange = onFullscreenChange,
                 onSelectNextVideo = { next ->
                     onVideoViewed(next.id)
                     onVideoClick(next)
-                }
+                },
+                isPremiumSubscribed = isPremiumSubscribed,
+                onOpenPremium = onOpenPremium
             )
         }
 
@@ -1047,7 +1177,7 @@ fun StudioHeader(
                 ),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
                 modifier = Modifier
-                    .height(36.dp)
+                    .heightIn(min = 36.dp)
                     .testTag("studio_upload_button")
             ) {
                 Icon(
@@ -1514,7 +1644,7 @@ fun StudioSpotlightHero(
                         onClick = onClick,
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
-                        modifier = Modifier.height(32.dp)
+                        modifier = Modifier.heightIn(min = 36.dp)
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -1705,9 +1835,27 @@ fun StudioPlayerModal(
     onMinimizeToMiniPlayer: () -> Unit = {},
     onOpenTip: () -> Unit = {},
     allVideos: List<StudioVideoEntity> = emptyList(),
-    onSelectNextVideo: (StudioVideoEntity) -> Unit = {}
+    onFullscreenChange: (Boolean) -> Unit = {},
+    onSelectNextVideo: (StudioVideoEntity) -> Unit = {},
+    isPremiumSubscribed: Boolean = false,
+    onOpenPremium: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    var isPlayerFullscreen by remember { mutableStateOf(false) }
+    val activeFullscreen = isPlayerFullscreen ||
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+
+    LaunchedEffect(activeFullscreen) {
+        onFullscreenChange(activeFullscreen)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            onFullscreenChange(false)
+        }
+    }
+
     var isDescriptionExpanded by remember { mutableStateOf(false) }
     var showComments by remember { mutableStateOf(true) }
     var newCommentText by remember { mutableStateOf("") }
@@ -1767,70 +1915,82 @@ fun StudioPlayerModal(
     }
 
     BackHandler {
-        (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        onClose()
+        if (activeFullscreen) {
+            isPlayerFullscreen = false
+            onFullscreenChange(false)
+            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        } else {
+            onFullscreenChange(false)
+            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            onClose()
+        }
     }
 
-    Dialog(
-        onDismissRequest = {
-            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-            onClose()
-        },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = if (activeFullscreen) Color.Black else MaterialTheme.colorScheme.background
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Top 4K Video Player
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(240.dp)
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Top 4K Video Player — expands edge-to-edge when activeFullscreen == true
+            Box(
+                modifier = if (activeFullscreen) {
+                    Modifier
+                        .fillMaxSize()
                         .background(Color.Black)
-                ) {
-                    if (isLockedByTier) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text("👑", fontSize = 32.sp)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "This studio video is reserved for @${video.creatorUsername}'s connections.\nRequires Bronze Backer tier or higher.",
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            Button(onClick = onUnlockTier) {
-                                Text("Join Tier & Unlock 🔓", fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    } else {
-                        StudioVideoPlayerComponent(
-                            video = video,
-                            onClose = {
-                                (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                                onClose()
-                            },
-                            onMinimizeToMiniPlayer = onMinimizeToMiniPlayer,
-                            onShareVideo = { showShareDialog = true },
-                            onReportVideo = { showReportModal = true },
-                            onBlockCreator = { showBlockConfirmDialog = true },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                } else {
+                    Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .aspectRatio(16f / 9f)
+                        .background(Color.Black)
                 }
+            ) {
+                if (isLockedByTier) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text("👑", fontSize = 32.sp)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "This studio video is reserved for @${video.creatorUsername}'s connections.\nRequires Bronze Backer tier or higher.",
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(onClick = onUnlockTier) {
+                            Text("Join Tier & Unlock 🔓", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                } else {
+                    StudioVideoPlayerComponent(
+                        video = video,
+                        isFullscreen = activeFullscreen,
+                        onFullscreenChange = { fs ->
+                            isPlayerFullscreen = fs
+                            onFullscreenChange(fs)
+                        },
+                        onClose = {
+                            isPlayerFullscreen = false
+                            onFullscreenChange(false)
+                            (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                            onClose()
+                        },
+                        onMinimizeToMiniPlayer = onMinimizeToMiniPlayer,
+                        onShareVideo = { showShareDialog = true },
+                        onReportVideo = { showReportModal = true },
+                        onBlockCreator = { showBlockConfirmDialog = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
 
-                // Details, Creator Bar, Description & Remarks
+            // Details, Creator Bar, Description & Remarks (Hidden in Fullscreen)
+            if (!activeFullscreen) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1852,6 +2012,139 @@ fun StudioPlayerModal(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        // Pre-Roll / Mid-Roll Ad & Ad-Free Upgrade Strip inside Video Player
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isPremiumSubscribed) Color(0xFF0A2416) else Color(0xFF241B08),
+                            border = BorderStroke(
+                                1.dp,
+                                if (isPremiumSubscribed) Color(0xFF00E676).copy(alpha = 0.6f) else Color(0xFFFFD700).copy(alpha = 0.65f)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (!isPremiumSubscribed) onOpenPremium()
+                                }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = if (isPremiumSubscribed) {
+                                        "👑 Ad-Free Titan Playback Active • Supporting @${video.creatorUsername}"
+                                    } else {
+                                        "📺 Sponsored Ad Active (55% to @${video.creatorUsername}) • Skip All Ads with Titan"
+                                    },
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isPremiumSubscribed) Color(0xFF00E676) else Color(0xFFFFE082),
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (!isPremiumSubscribed) {
+                                    Text(
+                                        text = "👑 Remove Ads",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Black,
+                                        color = Color(0xFFFFD700),
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Tool #1 & Tool #6 inside Studio Video Player: PPV Ticket Rental (80/20) + Virtual Gifts (70/30)
+                        var isPpvRented by remember(video.id) { mutableStateOf(false) }
+                        var lastGiftSent by remember(video.id) { mutableStateOf<String?>(null) }
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF130F24),
+                            border = BorderStroke(1.dp, Color(0xFF8B5CF6).copy(alpha = 0.55f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (isPpvRented) "🎟️ 4K PPV Premiere Ticket Active ✓" else "🎬 PPV Premiere Pass (80% Creator / 20% Platform)",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = if (isPpvRented) Color(0xFF00E676) else Color(0xFFD8B4FE)
+                                    )
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = if (isPpvRented) Color(0xFF00E676).copy(alpha = 0.2f) else Color(0xFF8B5CF6),
+                                        modifier = Modifier.clickable {
+                                            isPpvRented = true
+                                            android.widget.Toast.makeText(
+                                                context,
+                                                "🎟️ Unlocked @${video.creatorUsername}'s 4K Premiere! (₹39.20 to Creator • ₹9.80 Platform)",
+                                                android.widget.Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    ) {
+                                        Text(
+                                            text = if (isPpvRented) "UNLOCKED ✓" else "🎟️ Buy ₹49 Ticket",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Black,
+                                            color = if (isPpvRented) Color(0xFF00E676) else Color.White,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                }
+
+                                // Tool #6: Virtual Gifts Strip (70% Creator / 30% Platform)
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = if (lastGiftSent != null) "🎁 Sent $lastGiftSent!" else "🎁 Virtual Gifts (70/30):",
+                                        fontSize = 9.5.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFD700)
+                                    )
+                                    listOf(
+                                        Triple("☕ Chai", 19, "₹13.30"),
+                                        Triple("🔥 Fire", 49, "₹34.30"),
+                                        Triple("🚀 Rocket", 99, "₹69.30"),
+                                        Triple("👑 Crown", 299, "₹209.30")
+                                    ).forEach { (giftName, priceInr, creatorShare) ->
+                                        Surface(
+                                            shape = RoundedCornerShape(100.dp),
+                                            color = Color(0xFF281E05),
+                                            border = BorderStroke(0.8.dp, Color(0xFFFFD700).copy(alpha = 0.7f)),
+                                            modifier = Modifier.clickable {
+                                                lastGiftSent = giftName
+                                                android.widget.Toast.makeText(
+                                                    context,
+                                                    "🎁 Sent $giftName (₹$priceInr) to @${video.creatorUsername}! ($creatorShare to Creator • 30% Platform)",
+                                                    android.widget.Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        ) {
+                                            Text(
+                                                text = "$giftName ₹$priceInr",
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color(0xFFFFE082),
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     // Creator Info & Connect Button
@@ -1863,7 +2156,9 @@ fun StudioPlayerModal(
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable { onUserProfileClick(video.creatorUsername) }
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { onUserProfileClick(video.creatorUsername) }
                             ) {
                                 AsyncImage(
                                     model = video.creatorAvatar,
@@ -1876,7 +2171,13 @@ fun StudioPlayerModal(
                                 Spacer(modifier = Modifier.width(10.dp))
                                 Column {
                                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text(video.creatorFullName, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        Text(
+                                            video.creatorFullName,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
                                         if (video.isCreatorVerified) {
                                             Icon(
                                                 imageVector = Icons.Default.CheckCircle,
@@ -1889,16 +2190,20 @@ fun StudioPlayerModal(
                                     Text(
                                         text = "@${video.creatorUsername} • ${video.creatorConnectedCount}",
                                         fontSize = 11.5.sp,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
+                            Spacer(modifier = Modifier.width(8.dp))
                             Button(
                                 onClick = onConnect,
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (isCreatorConnected) MaterialTheme.colorScheme.surfaceVariant else Color(0xFF8B5CF6)
                                 ),
-                                shape = RoundedCornerShape(100.dp)
+                                shape = RoundedCornerShape(100.dp),
+                                modifier = Modifier.heightIn(min = 38.dp)
                             ) {
                                 Text(
                                     text = if (isCreatorConnected) "Connected" else "Connect",
@@ -1910,10 +2215,12 @@ fun StudioPlayerModal(
                         }
                     }
 
-                    // Action Row (Like, Remarks, Save, Tip, Share, More)
+                    // Action Row (Like, Remarks, Save, Tip, Share, More) — horizontally scrollable & font-scale resilient
                     item {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1933,7 +2240,7 @@ fun StudioPlayerModal(
                             OutlinedButton(
                                 onClick = onSave,
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                modifier = Modifier.height(34.dp)
+                                modifier = Modifier.heightIn(min = 38.dp)
                             ) {
                                 Icon(
                                     imageVector = if (video.isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
@@ -1946,7 +2253,7 @@ fun StudioPlayerModal(
                             OutlinedButton(
                                 onClick = onOpenTip,
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-                                modifier = Modifier.height(34.dp)
+                                modifier = Modifier.heightIn(min = 38.dp)
                             ) {
                                 Text("🪙 Tip", fontSize = 11.5.sp, fontWeight = FontWeight.Bold)
                             }
@@ -1954,7 +2261,7 @@ fun StudioPlayerModal(
                                 onClick = { showShareDialog = true },
                                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                                 modifier = Modifier
-                                    .height(34.dp)
+                                    .heightIn(min = 38.dp)
                                     .testTag("btn_share_studio_video")
                             ) {
                                 Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(14.dp))

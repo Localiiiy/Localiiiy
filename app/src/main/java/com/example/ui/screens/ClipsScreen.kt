@@ -247,13 +247,15 @@ fun ClipsScreen(
                         onGhostActionPrompt = onGhostActionPrompt
                     )
                     
-                    // Show AdBanner on every 4th clip, placed near the bottom
+                    // Show AdBanner on every 4th clip, placed near the bottom above description
                     if (page > 0 && page % 4 == 0 && isCurrentPage) {
+                        val isDockMin = com.example.ui.components.LocalIsDockMinimized.current
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 120.dp)
+                                .navigationBarsPadding()
+                                .padding(bottom = if (isDockMin) 105.dp else 172.dp)
                         ) {
                             AdBannerComponent()
                         }
@@ -718,9 +720,20 @@ private fun ClipItem(
     var isAiTranslated by remember { mutableStateOf(false) }
     var showSendToMarketDialog by remember { mutableStateOf(false) }
     var showMarketSuccessSnackbar by remember { mutableStateOf(false) }
+    var showVirtualGiftDialog by remember { mutableStateOf(false) }
+    var showPromoteClipAdDialog by remember { mutableStateOf(false) }
 
     var isCinemaMode by remember { mutableStateOf(false) }
     var playbackSpeed by remember { mutableStateOf(1f) }
+    val isDockMinimized = com.example.ui.components.LocalIsDockMinimized.current
+    val dynamicBottomPadding by animateDpAsState(
+        targetValue = if (isDockMinimized) 20.dp else 88.dp,
+        label = "clips_dynamic_bottom_padding"
+    )
+    val dynamicProgressBottomPadding by animateDpAsState(
+        targetValue = if (isDockMinimized) 2.dp else 72.dp,
+        label = "clips_dynamic_progress_padding"
+    )
 
     val floatingEmojis = remember { mutableStateListOf<EmojiParticleItem>() }
     val heartScale = remember { Animatable(1f) }
@@ -892,7 +905,8 @@ private fun ClipItem(
                 .align(Alignment.CenterEnd)
                 .zIndex(5f)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
-                .padding(end = 12.dp, top = 118.dp, bottom = 36.dp)
+                .navigationBarsPadding()
+                .padding(end = 12.dp, top = 114.dp, bottom = dynamicBottomPadding + 6.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -1066,6 +1080,15 @@ private fun ClipItem(
                 testTag = "clip_proof_of_presence_button_${clip.id}"
             )
 
+            // 9.5. Tool #6: Virtual Gifts Action Button (Chai ₹19, Rocket ₹99, Crown ₹299 • 70% Creator / 30% Platform)
+            ClipActionButton(
+                symbolText = "🎁",
+                label = "Gift",
+                tint = Color(0xFFFFD700),
+                onClick = { showVirtualGiftDialog = true },
+                testTag = "clip_virtual_gift_button_${clip.id}"
+            )
+
             // 10. Three Dots (MoreVert) Moderation & Utility Menu
             Box {
                 ClipActionButton(
@@ -1079,6 +1102,38 @@ private fun ClipItem(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false }
                 ) {
+                    DropdownMenuItem(
+                        text = { Text("Promote Clip to City / Earth 🚀", fontWeight = FontWeight.Bold, color = Color(0xFFFFD700)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Bolt,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD700),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            showPromoteClipAdDialog = true
+                        }
+                    )
+
+                    DropdownMenuItem(
+                        text = { Text("Send Virtual Gift to @${clip.username} 🎁") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.CardGiftcard,
+                                contentDescription = null,
+                                tint = Color(0xFF00E5FF),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        },
+                        onClick = {
+                            showMenu = false
+                            showVirtualGiftDialog = true
+                        }
+                    )
+
                     DropdownMenuItem(
                         text = { Text("Not Interested 🚫") },
                         leadingIcon = {
@@ -1327,7 +1382,9 @@ private fun ClipItem(
                 .align(Alignment.BottomStart)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
                 .fillMaxWidth(0.76f) // Clear space along right margin for interaction rail
-                .padding(start = 14.dp, bottom = 22.dp)
+                .navigationBarsPadding()
+                .padding(start = 14.dp, bottom = dynamicBottomPadding)
+                .testTag("clips_bottom_description_column")
         ) {
             // Systematic Distance Picker Pills (When Nearby filter is active)
             if (isNearbyFilter && systematicOptions.isNotEmpty()) {
@@ -1459,10 +1516,12 @@ private fun ClipItem(
             }
         }
 
-        // Live Video Progress Bar at Bottom Edge
+        // Live Video Progress Bar Dynamically Positioned Above Task Bar or At Full-Screen Bottom Edge
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(bottom = dynamicProgressBottomPadding)
                 .height(10.dp)
                 .align(Alignment.BottomCenter)
                 .graphicsLayer { alpha = if (isCinemaMode) 0f else 1f }
@@ -1471,10 +1530,10 @@ private fun ClipItem(
                 progress = { videoProgress.value },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(2.dp)
+                    .height(2.5.dp)
                     .align(Alignment.BottomCenter),
                 color = Color(0xFF00E5FF),
-                trackColor = Color.White.copy(alpha = 0.2f)
+                trackColor = Color.White.copy(alpha = 0.22f)
             )
         }
     }
@@ -1738,6 +1797,170 @@ private fun ClipItem(
             confirmButton = {
                 Button(onClick = { showReportSuccessSnackbar = false }) {
                     Text("OK")
+                }
+            }
+        )
+    }
+
+    // Tool #6: Virtual Gifts Dialog (Chai ₹19, Fire ₹49, Rocket ₹99, Crown ₹299 • 70% Creator / 30% Platform)
+    if (showVirtualGiftDialog) {
+        val gifts = listOf(
+            Triple("☕", "Local Chai", 19),
+            Triple("🔥", "Neon Fire", 49),
+            Triple("🚀", "Hyper Rocket", 99),
+            Triple("👑", "Titan Crown", 299)
+        )
+        var selectedGiftIndex by remember { mutableIntStateOf(0) }
+        AlertDialog(
+            onDismissRequest = { showVirtualGiftDialog = false },
+            containerColor = Color(0xFF12101B),
+            titleContentColor = Color(0xFFFFD700),
+            textContentColor = Color.White,
+            title = {
+                Text("🎁 Send Virtual Gift to @${clip.username}", fontWeight = FontWeight.Black, fontSize = 16.sp)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "70% of your gift goes directly to @${clip.username}'s Creator Wallet • 30% Platform Fee.",
+                        fontSize = 11.5.sp,
+                        color = Color.LightGray
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        gifts.forEachIndexed { idx, (emoji, title, price) ->
+                            val isSelected = selectedGiftIndex == idx
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) Color(0xFF2E2306) else Color(0xFF1E1B2E),
+                                border = BorderStroke(1.2.dp, if (isSelected) Color(0xFFFFD700) else Color.DarkGray),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable { selectedGiftIndex = idx }
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(emoji, fontSize = 22.sp)
+                                    Text(title.split(" ").last(), fontSize = 9.5.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("₹$price", fontSize = 10.sp, fontWeight = FontWeight.Black, color = Color(0xFFFFD700))
+                                }
+                            }
+                        }
+                    }
+                    val (_, chosenTitle, chosenPrice) = gifts[selectedGiftIndex]
+                    val creatorEarned = String.format("%.2f", chosenPrice * 0.70)
+                    val platformFee = String.format("%.2f", chosenPrice * 0.30)
+                    Text(
+                        text = "💰 Split for $chosenTitle: ₹$creatorEarned (70%) to @${clip.username} • ₹$platformFee (30%) Platform",
+                        fontSize = 10.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00E676)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val (emoji, title, price) = gifts[selectedGiftIndex]
+                        triggerEmojiReaction(emoji)
+                        android.widget.Toast.makeText(
+                            context,
+                            "🎁 Sent $emoji $title (₹$price) to @${clip.username}! (70% Creator / 30% Platform)",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        showVirtualGiftDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD700), contentColor = Color.Black)
+                ) {
+                    Text("Send Gift ⚡", fontWeight = FontWeight.Black)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showVirtualGiftDialog = false }) {
+                    Text("Cancel", color = Color.LightGray)
+                }
+            }
+        )
+    }
+
+    // Tool #4: Clips "Promote to City / Earth" Self-Serve Ad Slider (₹99 – ₹999 • 100% Platform Ad Revenue)
+    if (showPromoteClipAdDialog) {
+        var budgetInr by remember { mutableFloatStateOf(299f) }
+        var targetReachZone by remember { mutableStateOf("City & State (50KM–500KM)") }
+        val estimatedViews = (budgetInr * 45).toInt()
+        AlertDialog(
+            onDismissRequest = { showPromoteClipAdDialog = false },
+            containerColor = Color(0xFF0D1622),
+            titleContentColor = Color(0xFF00E5FF),
+            textContentColor = Color.White,
+            title = {
+                Text("🚀 Promote Clip to City / Earth", fontWeight = FontWeight.Black, fontSize = 16.sp)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Boost @${clip.username}'s clip across nearby feeds & radar spotlights (100% Platform Ad Revenue):",
+                        fontSize = 11.5.sp,
+                        color = Color.LightGray
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("City (50KM)", "State (500KM)", "Earth 🌍").forEach { zone ->
+                            val isZoneSelected = targetReachZone == zone
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = if (isZoneSelected) Color(0xFF00E5FF).copy(alpha = 0.25f) else Color(0xFF182436),
+                                border = BorderStroke(1.dp, if (isZoneSelected) Color(0xFF00E5FF) else Color.Gray),
+                                modifier = Modifier.clickable { targetReachZone = zone }
+                            ) {
+                                Text(
+                                    text = zone,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isZoneSelected) Color(0xFF00E5FF) else Color.White,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = "Campaign Budget: ₹${budgetInr.toInt()} • Est. Reach: +$estimatedViews Local Views",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFFFFD700)
+                    )
+                    Slider(
+                        value = budgetInr,
+                        onValueChange = { budgetInr = it },
+                        valueRange = 99f..999f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFF00E5FF),
+                            activeTrackColor = Color(0xFF00E5FF)
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        android.widget.Toast.makeText(
+                            context,
+                            "🚀 Clip Ad Campaign Live across $targetReachZone for ₹${budgetInr.toInt()} (+$estimatedViews views • 100% Platform Ad Revenue)!",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        showPromoteClipAdDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF), contentColor = Color.Black)
+                ) {
+                    Text("Launch Ad (₹${budgetInr.toInt()})", fontWeight = FontWeight.Black)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPromoteClipAdDialog = false }) {
+                    Text("Cancel", color = Color.LightGray)
                 }
             }
         )

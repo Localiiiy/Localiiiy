@@ -91,6 +91,7 @@ fun PostCard(
     modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val ambientLanguage = com.example.util.LocalAppLanguage.current
     var showBigHeart by remember { mutableStateOf(false) }
     var isCaptionExpanded by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
@@ -101,10 +102,28 @@ fun PostCard(
     var showNeighborhoodSheet by remember { mutableStateOf(false) }
     var showLightbox by remember { mutableStateOf(false) }
     var lightboxImage by remember { mutableStateOf<String?>(null) }
-    var translatedCaption by remember { mutableStateOf<String?>(null) }
+    var translatedCaption by remember(post.id, ambientLanguage) {
+        if (!ambientLanguage.code.startsWith("en") && post.caption.isNotBlank()) {
+            mutableStateOf<String?>(AiTranslationEngine.translate(post.caption, ambientLanguage.code))
+        } else {
+            mutableStateOf<String?>(null)
+        }
+    }
     var isTranslating by remember { mutableStateOf(false) }
+    var showAiTranslationSheet by remember { mutableStateOf(false) }
     var isAmplifiedToCity by remember { mutableStateOf(false) }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+
+    // Automatically refine caption translation with Gemini 2.5 Flash when user switches app language
+    LaunchedEffect(post.id, post.caption, ambientLanguage) {
+        if (!ambientLanguage.code.startsWith("en") && post.caption.isNotBlank()) {
+            translatedCaption = AiTranslationEngine.translateWithAi(
+                text = post.caption,
+                targetLangCode = ambientLanguage.code,
+                targetLangName = ambientLanguage.displayName
+            )
+        }
+    }
 
     // Section 2.5: Luminous Connection Aura Borders for connected users
     val isConnectedUser = post.isConnected
@@ -649,20 +668,21 @@ fun PostCard(
                         )
                     }
 
-                    if (onTranslateClick != null) {
-                        IconButton(
-                            onClick = onTranslateClick,
-                            modifier = Modifier
-                                .size(38.dp)
-                                .testTag("translate_button_${post.id}")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Outlined.Translate,
-                                contentDescription = "Translated by AI",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                    IconButton(
+                        onClick = {
+                            showAiTranslationSheet = true
+                            onTranslateClick?.invoke()
+                        },
+                        modifier = Modifier
+                            .size(38.dp)
+                            .testTag("translate_button_${post.id}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = "Translated by AI",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
 
@@ -738,7 +758,7 @@ fun PostCard(
                         fontSize = 13.sp,
                         lineHeight = 18.sp
                     ),
-                    maxLines = if (isCaptionExpanded) Int.MAX_VALUE else 2,
+                    maxLines = if (isCaptionExpanded) Int.MAX_VALUE else 3,
                     modifier = Modifier
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                         .clickable { isCaptionExpanded = !isCaptionExpanded }
@@ -773,42 +793,90 @@ fun PostCard(
                     }
                 }
 
-                // Section 2.12: Global Trend Translation Bridge
+                // Section 2.12: Global Trend AI Translation Bridge (Inline + Multi-Language Audio Sheet)
+                val targetLangForInline = if (ambientLanguage.code.startsWith("en")) {
+                    com.example.util.LocaliiiyLanguage.HI
+                } else {
+                    ambientLanguage
+                }
                 Row(
                     modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .clickable {
-                            if (translatedCaption == null) {
-                                isTranslating = true
-                                coroutineScope.launch {
-                                    delay(400)
-                                    translatedCaption = "✨ Translated to English: ${post.caption}"
-                                    isTranslating = false
-                                }
-                            } else {
-                                translatedCaption = null
-                            }
-                            onTranslateClick?.invoke()
-                        },
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp, vertical = 3.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Translate,
-                        contentDescription = null,
-                        tint = LocaliiiyPrimaryTeal,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Text(
-                        text = if (isTranslating) "Translating..." else if (translatedCaption != null) "Show original" else "Translate to English • Audio & Text",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 10.5.sp,
-                            fontWeight = FontWeight.Medium
-                        ),
-                        color = LocaliiiyPrimaryTeal
-                    )
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable {
+                                if (translatedCaption == null) {
+                                    isTranslating = true
+                                    coroutineScope.launch {
+                                        translatedCaption = AiTranslationEngine.translateWithAi(
+                                            text = post.caption,
+                                            targetLangCode = targetLangForInline.code,
+                                            targetLangName = targetLangForInline.displayName
+                                        )
+                                        isTranslating = false
+                                    }
+                                } else {
+                                    translatedCaption = null
+                                }
+                            }
+                            .padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null,
+                            tint = LocaliiiyPrimaryTeal,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Text(
+                            text = when {
+                                isTranslating -> "✨ Translating with Gemini AI..."
+                                translatedCaption != null -> "Show original (${targetLangForInline.flag} ${targetLangForInline.nativeName})"
+                                else -> "✨ Translate (${targetLangForInline.flag} ${targetLangForInline.nativeName})"
+                            },
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = LocaliiiyPrimaryTeal
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(100.dp),
+                        color = LocaliiiyPrimaryTeal.copy(alpha = 0.14f),
+                        border = BorderStroke(0.8.dp, LocaliiiyPrimaryTeal.copy(alpha = 0.4f)),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(100.dp))
+                            .clickable {
+                                showAiTranslationSheet = true
+                                onTranslateClick?.invoke()
+                            }
+                    ) {
+                        Text(
+                            text = "🌐 22 Languages & Audio",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = LocaliiiyPrimaryTeal,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                        )
+                    }
                 }
+            }
+
+            if (showAiTranslationSheet) {
+                AiTranslationBottomSheet(
+                    contentTitle = post.caption,
+                    authorHandle = "@${post.username}",
+                    contentTypeLabel = "Pulse Post",
+                    onDismiss = { showAiTranslationSheet = false }
+                )
             }
 
             // Section 2.7: Dual Velocity Progress Meter (Local vs Global)

@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import kotlinx.coroutines.launch
 import com.example.data.MarketplaceItemEntity
 import com.example.data.NotificationEntity
 import androidx.compose.ui.layout.ContentScale
@@ -27,6 +28,7 @@ import com.example.ui.components.AdBannerComponent
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.AdPlacement
@@ -226,12 +228,14 @@ fun PulseFeedComponent(
                     shape = RoundedCornerShape(20.dp),
                     color = if (currentPulseTab == "FEED") Color(0xFF10B981) else Color(0xFF1E293B),
                     onClick = { currentPulseTab = "FEED" },
-                    modifier = Modifier.weight(1f).height(36.dp)
+                    modifier = Modifier.weight(1f).heightIn(min = 38.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 6.dp, vertical = 8.dp)
                     ) {
                         Icon(
                             Icons.Default.RssFeed,
@@ -241,9 +245,11 @@ fun PulseFeedComponent(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Pulse Feed",
+                            text = LocalizationHelper.translate("Pulse Feed", currentLanguage),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             color = if (currentPulseTab == "FEED") Color.Black else Color.White
                         )
                     }
@@ -260,19 +266,23 @@ fun PulseFeedComponent(
                             currentPulseTab = "COMMUNITY"
                         }
                     },
-                    modifier = Modifier.weight(1.1f).height(36.dp)
+                    modifier = Modifier.weight(1.1f).heightIn(min = 38.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 6.dp, vertical = 8.dp)
                     ) {
                         Text("🏘️", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Local Community",
+                            text = LocalizationHelper.translate("Local Community", currentLanguage),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             color = if (currentPulseTab == "COMMUNITY") Color.Black else Color.White
                         )
                     }
@@ -285,19 +295,23 @@ fun PulseFeedComponent(
                     onClick = {
                         currentPulseTab = "UPGRADES"
                     },
-                    modifier = Modifier.weight(1f).height(36.dp)
+                    modifier = Modifier.weight(1f).heightIn(min = 38.dp)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 6.dp, vertical = 8.dp)
                     ) {
                         Text("🛡️", fontSize = 12.sp)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Civic Tools",
+                            text = LocalizationHelper.translate("Civic Tools", currentLanguage),
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             color = if (currentPulseTab == "UPGRADES") Color.Black else Color.White
                         )
                     }
@@ -461,7 +475,7 @@ fun PulseFeedComponent(
                                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981)),
                                                 shape = RoundedCornerShape(6.dp),
                                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                                modifier = Modifier.height(28.dp)
+                                                modifier = Modifier.heightIn(min = 32.dp)
                                             ) {
                                                 Text("Accept", fontSize = 10.5.sp, color = Color.Black, fontWeight = FontWeight.Bold)
                                             }
@@ -472,7 +486,7 @@ fun PulseFeedComponent(
                                                 border = BorderStroke(1.dp, Color(0xFF334155)),
                                                 shape = RoundedCornerShape(6.dp),
                                                 contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp),
-                                                modifier = Modifier.height(28.dp)
+                                                modifier = Modifier.heightIn(min = 32.dp)
                                             ) {
                                                 Text("Decline", fontSize = 10.5.sp)
                                             }
@@ -552,8 +566,8 @@ fun PulseFeedComponent(
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = if (isCurrentlyLive) Color(0xFF10B981) else Color.Red
                                     ),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                    modifier = Modifier.height(30.dp).testTag("btn_go_live")
+                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                                    modifier = Modifier.heightIn(min = 34.dp).testTag("btn_go_live")
                                 ) {
                                     Icon(
                                         imageVector = if (isCurrentlyLive) Icons.Default.CheckCircle else Icons.Default.Videocam,
@@ -831,7 +845,7 @@ fun PulseFeedComponent(
                                         Text(
                                             text = buildString {
                                                 if (strictChrono) append("Strict Chronological Feed")
-                                                else append("Browsing: ${filter.label}")
+                                                else append("${LocalizationHelper.getFilterLabel(filter.label, currentLanguage)} (${currentLanguage.flag} ${currentLanguage.nativeName})")
                                                 if (hashtag != null) append(" • $hashtag")
                                             },
                                             fontSize = 11.5.sp,
@@ -848,6 +862,10 @@ fun PulseFeedComponent(
                                 }
                             }
                         }
+
+                        // Built-in Pulse AI Translator Card (Direct in Pulse Feed!)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        PulseInlineAiTranslatorBar(currentLanguage = currentLanguage)
                     }
                 }
 
@@ -1336,6 +1354,7 @@ fun PulseClipCard(clip: ClipEntity, onClick: () -> Unit) {
 
 @Composable
 fun PulseMarketItemCard(item: MarketplaceItemEntity, onClick: () -> Unit) {
+    val activeCurrency = com.example.util.LocalAppCurrency.current
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -1356,8 +1375,211 @@ fun PulseMarketItemCard(item: MarketplaceItemEntity, onClick: () -> Unit) {
                 Text(text = item.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                 Text(text = "@${item.sellerUsername}", style = MaterialTheme.typography.bodySmall)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "$${item.price}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = com.example.util.CurrencyHelper.format(item.price, activeCurrency),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
 }
+
+@Composable
+fun PulseInlineAiTranslatorBar(
+    currentLanguage: LocaliiiyLanguage
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var isExpanded by remember { mutableStateOf(false) }
+    var inputText by remember {
+        mutableStateOf("Morning coffee meetup & neighborhood cleanup drive starting at 9 AM near Central Plaza!")
+    }
+    var selectedLang by remember(currentLanguage) {
+        val defaultCode = if (currentLanguage.code.startsWith("en")) "hi" else currentLanguage.code
+        mutableStateOf(SupportedAiLanguages.fromCodeOrName(defaultCode))
+    }
+    var translatedOutput by remember { mutableStateOf("") }
+    var isTranslating by remember { mutableStateOf(false) }
+    var showAudioSheet by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedLang, isExpanded) {
+        if (isExpanded && inputText.isNotBlank()) {
+            isTranslating = true
+            translatedOutput = AiTranslationEngine.translateWithAi(
+                text = inputText,
+                targetLangCode = selectedLang.code,
+                targetLangName = selectedLang.name
+            )
+            isTranslating = false
+        }
+    }
+
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF0B192C),
+        border = BorderStroke(1.dp, Color(0xFF00E5FF).copy(alpha = 0.5f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("pulse_inline_ai_translator_card")
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "🌐", fontSize = 16.sp)
+                    Column {
+                        Text(
+                            text = "Pulse AI Multi-Lingual Translator (${selectedLang.flag} ${selectedLang.nativeName})",
+                            fontSize = 11.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Powered by Gemini 2.5 Flash • Instant Indian Regional & Global Translation",
+                            fontSize = 9.5.sp,
+                            color = Color(0xFF00E5FF)
+                        )
+                    }
+                }
+                Surface(
+                    shape = RoundedCornerShape(100.dp),
+                    color = Color(0xFF00E5FF).copy(alpha = 0.18f),
+                    border = BorderStroke(0.8.dp, Color(0xFF00E5FF))
+                ) {
+                    Text(
+                        text = if (isExpanded) "Hide ▲" else "Translate ✨",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00E5FF),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = isExpanded) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    OutlinedTextField(
+                        value = inputText,
+                        onValueChange = { inputText = it },
+                        label = { Text("Enter Pulse Post or Community Text to Translate", fontSize = 11.sp) },
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, color = Color.White),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        maxLines = 3
+                    )
+
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(SupportedAiLanguages.ALL) { lang ->
+                            val isSel = selectedLang.code == lang.code
+                            Surface(
+                                shape = RoundedCornerShape(100.dp),
+                                color = if (isSel) Color(0xFF10B981) else Color(0xFF1E293B),
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(100.dp))
+                                    .clickable { selectedLang = lang }
+                            ) {
+                                Text(
+                                    text = "${lang.flag} ${lang.nativeName}",
+                                    fontSize = 10.5.sp,
+                                    fontWeight = if (isSel) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSel) Color.Black else Color.White,
+                                    modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                if (inputText.isNotBlank()) {
+                                    isTranslating = true
+                                    coroutineScope.launch {
+                                        translatedOutput = AiTranslationEngine.translateWithAi(
+                                            text = inputText,
+                                            targetLangCode = selectedLang.code,
+                                            targetLangName = selectedLang.name
+                                        )
+                                        isTranslating = false
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f).height(36.dp)
+                        ) {
+                            Text(
+                                text = if (isTranslating) "Translating..." else "Translate with Gemini AI ⚡",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showAudioSheet = true },
+                            border = BorderStroke(1.dp, Color(0xFF10B981)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Text("🔊 Audio TTS", fontSize = 11.sp, color = Color(0xFF10B981), fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    if (translatedOutput.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFF071120),
+                            border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.5f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Text(
+                                    text = "${selectedLang.flag} ${selectedLang.name} (${selectedLang.nativeName}) Translation:",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF10B981)
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(
+                                    text = translatedOutput,
+                                    fontSize = 12.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.White,
+                                    lineHeight = 17.sp
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showAudioSheet) {
+        AiTranslationBottomSheet(
+            contentTitle = inputText,
+            authorHandle = "Pulse AI Studio",
+            contentTypeLabel = "Pulse Translation",
+            onDismiss = { showAudioSheet = false }
+        )
+    }
+}
+

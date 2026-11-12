@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
         CyberstalkingIncidentEntity::class,
         MerchantBountyEntity::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -71,12 +71,8 @@ abstract class AppDatabase : RoomDatabase() {
             suspend fun populateInitialData(dao: LocaliiiyDao) {
                 dao.insertOrUpdateProfile(InitialData.defaultProfile)
                 dao.insertOrUpdatePrivacySettings(InitialData.defaultPrivacySettings)
-                
-                // Demo data has been removed for production launch
-                // dao.insertStories(InitialData.starterStories)
-                // dao.insertPosts(InitialData.starterPosts)
-                // dao.insertClips(InitialData.starterClips)
-                // dao.insertOtherUsers(InitialData.starterOtherUsers)
+                dao.insertPosts(InitialData.starterPosts)
+                dao.insertOtherUsers(InitialData.starterOtherUsers)
                 // dao.insertComments(InitialData.starterComments)
                 // dao.insertNotifications(InitialData.starterNotifications)
                 // dao.insertConversations(InitialData.starterConversations)

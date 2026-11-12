@@ -1,8 +1,14 @@
 package com.example.util
 
+import androidx.compose.runtime.compositionLocalOf
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.Locale
+
+/**
+ * Global CompositionLocal holding the active currency so all screens stay in sync.
+ */
+val LocalAppCurrency = compositionLocalOf { LocaliiiyCurrency.INR }
 
 /**
  * Comprehensive Worldwide Currency Engine for Localiiiy.
@@ -231,6 +237,124 @@ object CurrencyHelper {
             count >= 1_000_000 -> String.format(Locale.US, "%.1fM", count / 1_000_000.0).replace(".0M", "M")
             count >= 1_000 -> String.format(Locale.US, "%.1fK", count / 1_000.0).replace(".0K", "K")
             else -> count.toString()
+        }
+    }
+
+    /**
+     * Automatically resolves the official currency of the user's detected country or GPS coordinates.
+     * Supports all 160+ countries in LocaliiiyCurrency, Indian states/cities, GPS coordinates, and ISO country codes.
+     */
+    fun detectCurrencyForLocation(
+        countryName: String?,
+        locationName: String? = null,
+        lat: Double = 0.0,
+        lng: Double = 0.0,
+        fallbackCountryCode: String? = Locale.getDefault().country
+    ): LocaliiiyCurrency {
+        val inferredCountry = if (!countryName.isNullOrBlank() && !countryName.equals("Country", ignoreCase = true)) {
+            countryName.trim()
+        } else if (lat != 0.0 || lng != 0.0 || !locationName.isNullOrBlank()) {
+            LocationHelper.inferStateAndCountryFromCoordinates(lat, lng, locationName, countryName).second
+        } else {
+            ""
+        }
+
+        // Direct match against any of the 160+ countries in LocaliiiyCurrency
+        if (inferredCountry.isNotBlank()) {
+            val directCountryMatch = LocaliiiyCurrency.values().firstOrNull {
+                it.country.equals(inferredCountry, ignoreCase = true) ||
+                    inferredCountry.contains(it.country, ignoreCase = true)
+            }
+            if (directCountryMatch != null) return directCountryMatch
+        }
+
+        val normalized = "$inferredCountry ${locationName.orEmpty()}".lowercase(Locale.US)
+        when {
+            normalized.contains("india") || normalized.contains("goa") || normalized.contains("maharashtra") ||
+                normalized.contains("karnataka") || normalized.contains("delhi") || normalized.contains("mumbai") ||
+                normalized.contains("bengaluru") || normalized.contains("hyderabad") || normalized.contains("chennai") ||
+                normalized.contains("kolkata") || normalized.contains("pune") || normalized.contains("vasco") ||
+                normalized.contains("vaddem") || normalized.contains("panaji") || normalized.contains("margao") -> return LocaliiiyCurrency.INR
+            normalized.contains("united kingdom") || normalized.contains("uk") || normalized.contains("england") ||
+                normalized.contains("scotland") || normalized.contains("london") -> return LocaliiiyCurrency.GBP
+            normalized.contains("japan") || normalized.contains("tokyo") || normalized.contains("osaka") -> return LocaliiiyCurrency.JPY
+            normalized.contains("united arab emirates") || normalized.contains("uae") || normalized.contains("dubai") ||
+                normalized.contains("abu dhabi") -> return LocaliiiyCurrency.AED
+            normalized.contains("saudi arabia") || normalized.contains("riyadh") -> return LocaliiiyCurrency.SAR
+            normalized.contains("canada") || normalized.contains("toronto") || normalized.contains("vancouver") -> return LocaliiiyCurrency.CAD
+            normalized.contains("australia") || normalized.contains("sydney") || normalized.contains("melbourne") -> return LocaliiiyCurrency.AUD
+            normalized.contains("new zealand") || normalized.contains("auckland") -> return LocaliiiyCurrency.NZD
+            normalized.contains("singapore") -> return LocaliiiyCurrency.SGD
+            normalized.contains("hong kong") -> return LocaliiiyCurrency.HKD
+            normalized.contains("taiwan") || normalized.contains("taipei") -> return LocaliiiyCurrency.TWD
+            normalized.contains("china") || normalized.contains("beijing") || normalized.contains("shanghai") -> return LocaliiiyCurrency.CNY
+            normalized.contains("south korea") || normalized.contains("korea") || normalized.contains("seoul") -> return LocaliiiyCurrency.KRW
+            normalized.contains("brazil") || normalized.contains("brasil") || normalized.contains("sao paulo") -> return LocaliiiyCurrency.BRL
+            normalized.contains("mexico") || normalized.contains("méxico") -> return LocaliiiyCurrency.MXN
+            normalized.contains("germany") || normalized.contains("france") || normalized.contains("spain") ||
+                normalized.contains("italy") || normalized.contains("netherlands") || normalized.contains("belgium") ||
+                normalized.contains("austria") || normalized.contains("portugal") || normalized.contains("ireland") ||
+                normalized.contains("greece") || normalized.contains("finland") || normalized.contains("europe") -> return LocaliiiyCurrency.EUR
+            normalized.contains("united states") || normalized.contains("usa") || normalized.contains("new york") ||
+                normalized.contains("california") || normalized.contains("washington") || normalized.contains("texas") ||
+                normalized.contains("seattle") || normalized.contains("williamsburg") -> return LocaliiiyCurrency.USD
+        }
+
+        if (!fallbackCountryCode.isNullOrBlank() && !fallbackCountryCode.equals("US", ignoreCase = true)) {
+            return detectDefaultCurrency(fallbackCountryCode)
+        }
+
+        return LocaliiiyCurrency.INR
+    }
+
+    /**
+     * Auto-detects the user's preferred currency from their device ISO country code.
+     */
+    fun detectDefaultCurrency(countryCode: String? = Locale.getDefault().country): LocaliiiyCurrency {
+        return when (countryCode?.uppercase(Locale.US)) {
+            "IN" -> LocaliiiyCurrency.INR
+            "US" -> LocaliiiyCurrency.USD
+            "CA" -> LocaliiiyCurrency.CAD
+            "MX" -> LocaliiiyCurrency.MXN
+            "BR" -> LocaliiiyCurrency.BRL
+            "AR" -> LocaliiiyCurrency.ARS
+            "CL" -> LocaliiiyCurrency.CLP
+            "CO" -> LocaliiiyCurrency.COP
+            "PE" -> LocaliiiyCurrency.PEN
+            "GB", "UK" -> LocaliiiyCurrency.GBP
+            "CH" -> LocaliiiyCurrency.CHF
+            "SE" -> LocaliiiyCurrency.SEK
+            "NO" -> LocaliiiyCurrency.NOK
+            "DK" -> LocaliiiyCurrency.DKK
+            "PL" -> LocaliiiyCurrency.PLN
+            "TR" -> LocaliiiyCurrency.TRY
+            "RU" -> LocaliiiyCurrency.RUB
+            "JP" -> LocaliiiyCurrency.JPY
+            "CN" -> LocaliiiyCurrency.CNY
+            "KR" -> LocaliiiyCurrency.KRW
+            "AU" -> LocaliiiyCurrency.AUD
+            "NZ" -> LocaliiiyCurrency.NZD
+            "SG" -> LocaliiiyCurrency.SGD
+            "HK" -> LocaliiiyCurrency.HKD
+            "TW" -> LocaliiiyCurrency.TWD
+            "ID" -> LocaliiiyCurrency.IDR
+            "MY" -> LocaliiiyCurrency.MYR
+            "TH" -> LocaliiiyCurrency.THB
+            "PH" -> LocaliiiyCurrency.PHP
+            "VN" -> LocaliiiyCurrency.VND
+            "PK" -> LocaliiiyCurrency.PKR
+            "BD" -> LocaliiiyCurrency.BDT
+            "AE" -> LocaliiiyCurrency.AED
+            "SA" -> LocaliiiyCurrency.SAR
+            "QA" -> LocaliiiyCurrency.QAR
+            "KW" -> LocaliiiyCurrency.KWD
+            "IL" -> LocaliiiyCurrency.ILS
+            "ZA" -> LocaliiiyCurrency.ZAR
+            "NG" -> LocaliiiyCurrency.NGN
+            "KE" -> LocaliiiyCurrency.KES
+            "EG" -> LocaliiiyCurrency.EGP
+            "DE", "FR", "ES", "IT", "NL", "BE", "AT", "PT", "IE", "FI", "GR" -> LocaliiiyCurrency.EUR
+            else -> LocaliiiyCurrency.INR
         }
     }
 }

@@ -71,6 +71,16 @@ object GeminiImageService {
         baseImageUri: String? = null
     ): Result<String> = withContext(Dispatchers.IO) {
         try {
+            val app = try {
+                com.google.firebase.FirebaseApp.getInstance()
+            } catch (_: Exception) {
+                null
+            }
+            val apiKey = app?.options?.apiKey.orEmpty()
+            if (app == null || apiKey.isBlank() || apiKey.contains("PLACEHOLDER", ignoreCase = true) || apiKey.startsWith("YOUR_", ignoreCase = true)) {
+                return@withContext Result.failure(Exception("Firebase AI Logic requires an active Firebase configuration."))
+            }
+
             val inputBitmap = if (!baseImageUri.isNullOrBlank()) {
                 uriToBitmap(context, baseImageUri)
             } else {

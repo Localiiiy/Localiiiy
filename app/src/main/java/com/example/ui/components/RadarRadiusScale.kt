@@ -148,27 +148,46 @@ object SystematicDistanceScale {
     const val EARTH_KM = 20000.0
     const val GALAXY_KM = 10000000.0
 
-    fun getOptions(countryName: String? = null): List<SystematicDistanceOption> {
+    fun getOptions(
+        countryName: String? = null,
+        stateName: String? = null
+    ): List<SystematicDistanceOption> {
+        val stateDisplay = if (!stateName.isNullOrBlank() && !stateName.equals("State", ignoreCase = true)) {
+            stateName
+        } else {
+            "Goa"
+        }
         val countryDisplay = if (!countryName.isNullOrBlank() && !countryName.equals("Country", ignoreCase = true)) {
             countryName
         } else {
-            "Country"
+            "India"
+        }
+        val countryFlag = when {
+            countryDisplay.equals("India", ignoreCase = true) -> "🇮🇳"
+            countryDisplay.equals("United States", ignoreCase = true) || countryDisplay.equals("USA", ignoreCase = true) -> "🇺🇸"
+            countryDisplay.equals("United Kingdom", ignoreCase = true) || countryDisplay.equals("UK", ignoreCase = true) -> "🇬🇧"
+            countryDisplay.equals("UAE", ignoreCase = true) -> "🇦🇪"
+            else -> "🏳️"
         }
         return listOf(
             SystematicDistanceOption("3KM", 3.0, "3KM", "3 KM • Neighborhood", "📍", 1200, "Neighborhood range within 3 km"),
             SystematicDistanceOption("5KM", 5.0, "5KM", "5 KM • District", "🏙️", 1500, "District and local town scans within 5 km"),
             SystematicDistanceOption("50KM", 50.0, "50KM", "50 KM • Metro Region", "🚗", 2000, "Metropolitan area within 50 km"),
-            SystematicDistanceOption("100KM", 100.0, "100KM", "100 KM • State / Area", "🌲", 2500, "Statewide or territorial reach within 100 km"),
-            SystematicDistanceOption("500KM", 500.0, "500KM", "500 KM • Regional", "🚄", 3000, "Regional wide-area scan within 500 km"),
-            SystematicDistanceOption("1000KM", 1000.0, "1000KM", "1000KM", "✈️", 3600, "Subcontinental reach within 1,000 km"),
-            SystematicDistanceOption("COUNTRY", COUNTRY_DEFAULT_KM, countryDisplay, "$countryDisplay • Nationwide", "🇺🇸", 4200, "Nationwide reach across $countryDisplay"),
+            SystematicDistanceOption("100KM", 100.0, stateDisplay, "$stateDisplay • State / Territory (100 KM)", "🏛️", 2500, "Statewide reach across $stateDisplay"),
+            SystematicDistanceOption("500KM", 500.0, "$stateDisplay+", "$stateDisplay Region • 500 KM", "🚄", 3000, "Regional wide-area scan across $stateDisplay (500 km)"),
+            SystematicDistanceOption("1000KM", 1000.0, "1000KM", "1000KM • Subcontinental", "✈️", 3600, "Subcontinental reach within 1,000 km"),
+            SystematicDistanceOption("COUNTRY", COUNTRY_DEFAULT_KM, countryDisplay, "$countryDisplay • Nationwide", countryFlag, 4200, "Nationwide reach across $countryDisplay"),
             SystematicDistanceOption("EARTH", EARTH_KM, "Earth", "Earth • Global / Planetary", "🌍", 5000, "Planetary reach across Earth (20,000 km)"),
             SystematicDistanceOption("GALAXY", GALAXY_KM, "Galaxy", "Galaxy • Intergalactic", "🌌", 6000, "Intergalactic reach across the Milky Way Galaxy")
         )
     }
 
-    fun findOption(km: Double?, countryName: String? = null): SystematicDistanceOption {
-        val options = getOptions(countryName)
+    fun findOption(
+        km: Double?,
+        countryName: String? = null,
+        stateName: String? = null
+    ): SystematicDistanceOption {
+        val options = getOptions(countryName = countryName, stateName = stateName)
         if (km == null) return options.first()
         return options.minByOrNull { kotlin.math.abs(it.km - km) } ?: options.first()
     }
