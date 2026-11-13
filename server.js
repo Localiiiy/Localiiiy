@@ -29,6 +29,12 @@ const server = http.createServer((req, res) => {
     targetFile = 'privacy.html';
   } else if (cleanUrl === '/terms' || cleanUrl === '/terms.html') {
     targetFile = 'terms.html';
+  } else if (cleanUrl === '/download-aab') {
+    const aabFiles = fs.readdirSync(PUBLIC_DIR)
+      .filter((f) => f.endsWith('.aab'))
+      .sort()
+      .reverse();
+    targetFile = aabFiles[0] || 'Localiiiy-v3.5.0-build35-PLAYSTORE.aab';
   } else if (cleanUrl !== '/') {
     targetFile = cleanUrl.replace(/^\/+/, '');
   }
@@ -45,18 +51,25 @@ const server = http.createServer((req, res) => {
 
   const ext = path.extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || 'text/html; charset=utf-8';
+  const fileName = path.basename(filePath);
 
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
+  fs.stat(filePath, (statErr, stats) => {
+    if (statErr || !stats.isFile()) {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Not Found');
       return;
     }
-    res.writeHead(200, {
+    const headers = {
       'Content-Type': contentType,
+      'Content-Length': stats.size,
       'Cache-Control': 'no-cache, no-store, must-revalidate'
-    });
-    res.end(content);
+    };
+    if (ext === '.aab' || ext === '.apk') {
+      headers['Content-Disposition'] = `attachment; filename="${fileName}"`;
+      headers['X-Content-Type-Options'] = 'nosniff';
+    }
+    res.writeHead(200, headers);
+    fs.createReadStream(filePath).pipe(res);
   });
 });
 

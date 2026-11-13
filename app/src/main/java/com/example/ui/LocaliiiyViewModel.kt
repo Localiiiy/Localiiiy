@@ -378,7 +378,9 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         user: com.example.auth.AuthUserState,
         username: String,
         fullName: String,
-        neighborhood: String
+        neighborhood: String,
+        avatarUrl: String = "",
+        connectedInviter: String? = null
     ) {
         authPrefs.edit()
             .putBoolean("is_user_authenticated", true)
@@ -392,10 +394,16 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
         _ghostRestrictionPrompt.value = null
         viewModelScope.launch(Dispatchers.IO) {
             val current = repository.userProfile.firstOrNull() ?: InitialData.defaultProfile
+            val initialConnections = if (!connectedInviter.isNullOrBlank()) 1 else current.connectionsCount.coerceAtLeast(0)
+            val initialConnected = if (!connectedInviter.isNullOrBlank()) 1 else current.connectedCount.coerceAtLeast(0)
             val updated = current.copy(
                 username = username.ifBlank { current.username },
                 fullName = fullName.ifBlank { current.fullName },
                 neighborhood = neighborhood.ifBlank { current.neighborhood },
+                locationName = neighborhood.ifBlank { current.locationName },
+                avatarUrl = avatarUrl.ifBlank { current.avatarUrl },
+                connectionsCount = initialConnections,
+                connectedCount = initialConnected,
                 isVerified = true
             )
             repository.updateProfile(updated)
@@ -578,7 +586,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
                 val uid = auth.currentUser?.uid
-                val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                val firestore = com.example.auth.FirebaseAuthService.getFirestore(getApplication())
                 if (!uid.isNullOrBlank()) {
                     runCatching { firestore.collection("radar_beacons").document(uid).delete() }
                     runCatching { firestore.collection("users").document(uid).delete() }
@@ -1167,7 +1175,7 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 try {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     if (!uid.isNullOrBlank()) {
-                        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        com.example.auth.FirebaseAuthService.getFirestore(getApplication())
                             .collection("radar_beacons")
                             .document(uid)
                             .delete()
@@ -1266,12 +1274,12 @@ class LocaliiiyViewModel(application: Application) : AndroidViewModel(applicatio
                 category = "Local Creator",
                 locationName = neighborhood,
                 neighborhood = neighborhood,
-                neighborsCount = 18,
+                neighborsCount = 0,
                 latitude = 0.0,
                 longitude = 0.0,
                 postsCount = 0,
-                connectionsCount = 1,
-                connectedCount = 1,
+                connectionsCount = 0,
+                connectedCount = 0,
                 isVerified = false
             )
             repository.updateProfile(newProfile)

@@ -349,77 +349,12 @@ fun SignUpDialog(
                                 confirmPasswordError = "Passwords do not match"
                                 return@Button
                             }
-                            val code = (100000..999999).random().toString()
-                            generatedOtpCode = code
-                            step = 2
+                            step = 3
                         },
                         modifier = Modifier.fillMaxWidth().height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal)
                     ) {
-                        Text("Send OTP", fontWeight = FontWeight.Bold)
-                    }
-                } else if (step == 2) {
-                    // Step 2: OTP
-                    Text(
-                        text = "Verification Code",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "We sent a 6-digit verification code to ${if(mobile.isNotBlank()) mobile else email}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (generatedOtpCode.isNotBlank()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Code received: $generatedOtpCode",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LocaliiiyPrimaryTeal
-                            )
-                            TextButton(onClick = { otp = generatedOtpCode }) {
-                                Text("Auto-fill OTP", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = otp,
-                        onValueChange = { otp = it.take(6); otpError = null },
-                        label = { Text("Enter 6-digit OTP") },
-                        placeholder = { Text(if (generatedOtpCode.isNotEmpty()) generatedOtpCode else "123456") },
-                        isError = otpError != null,
-                        supportingText = { if (otpError != null) Text(otpError!!) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { step = 1 },
-                            modifier = Modifier.weight(1f).height(48.dp)
-                        ) {
-                            Text("Back")
-                        }
-                        Button(
-                            onClick = {
-                                if (otp.trim() == generatedOtpCode || otp.length == 6) {
-                                    step = 3
-                                } else {
-                                    otpError = "Invalid OTP code. Please enter the 6 digits sent."
-                                }
-                            },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = LocaliiiyPrimaryTeal)
-                        ) {
-                            Text("Verify", fontWeight = FontWeight.Bold)
-                        }
+                        Text("Continue", fontWeight = FontWeight.Bold)
                     }
                 } else {
                     // Step 3: Profile Setup

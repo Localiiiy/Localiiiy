@@ -20,7 +20,18 @@ object ShareHelper {
     const val DIRECT_APK_DOWNLOAD_URL = "https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live"
     const val PREVIEW_WEBAPP_URL = "https://localiiiy.web.app"
 
-    fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN): String {
+    fun buildPlayStoreInviteUrl(inviterHandle: String?): String {
+        val clean = inviterHandle?.trim()?.removePrefix("@")?.lowercase()
+            ?.replace(Regex("[^a-z0-9_.]"), "")
+        return if (!clean.isNullOrBlank()) {
+            "$GOOGLE_PLAY_STORE_URL&referrer=invite%3D$clean"
+        } else {
+            GOOGLE_PLAY_STORE_URL
+        }
+    }
+
+    fun getAppDownloadNote(language: LocaliiiyLanguage = LocaliiiyLanguage.EN, inviterHandle: String? = null): String {
+        val playUrl = buildPlayStoreInviteUrl(inviterHandle)
         val message = when (language) {
             LocaliiiyLanguage.HI -> "📲 Localiiiy डाउनलोड करें: Google Play Store या वेबऐप से चलाएं (Apple App Store: जल्द उपलब्ध)।"
             LocaliiiyLanguage.TE -> "📲 Localiiiy ని డౌన్‌లోడ్ చేసుకోండి: Google Play Store లేదా వెబ్‌యాప్ ద్వారా ఉపయోగించండి (Apple App Store: త్వరలో)."
@@ -32,7 +43,7 @@ object ShareHelper {
             LocaliiiyLanguage.AR -> "📲 حمّل Localiiiy من متجر Google Play (متجر Apple: قريباً)."
             else -> "📲 Download the app from Google Play Store • Apple App Store: Available Soon"
         }
-        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n🤖 Google Play Store: $GOOGLE_PLAY_STORE_URL\n🍎 Apple App Store: Available Soon"
+        return "$message\n🌐 Web App: $WEBAPP_BASE_URL\n🤖 Google Play Store: $playUrl\n🍎 Apple App Store: Available Soon"
     }
 
     fun buildDeepLink(itemType: String, id: Any): String {
@@ -139,7 +150,8 @@ object ShareHelper {
         }
 
         builder.append("\n━━━━━━━━━━━━━━━━━━━━\n")
-        builder.append(getAppDownloadNote(language))
+        val inviter = if (itemType.equals("invite", ignoreCase = true)) creatorHandle else null
+        builder.append(getAppDownloadNote(language, inviter))
 
         return builder.toString()
     }

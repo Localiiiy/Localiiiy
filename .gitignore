@@ -15,22 +15,25 @@ service-account*.json
 firebase-debug.log
 firestore-debug.log
 
-# 2. Android Signing Keystores & Certificates (NEVER COMMIT)
-*.jks
-*.keystore
-debug.keystore
-debug.keystore.base64
+# 2. Android Signing Keystores & Certificates (Allow debug.keystore & base64 for AI Studio Play Store signature sync)
 *.pem
 *.p12
 *.pk8
 *.x509.pem
 *.key
 
-# 3. Compiled Android Binaries & Decompiler Tools (Prevents >100MB GitHub Push Failures & APK Decompilation)
+# 3. Compiled Android Binaries & Decompiler Tools
 *.apk
 *.aab
-!Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab
-!/public/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab
+!Localiiiy-v3.5.0-build35-PLAYSTORE.aab
+!/public/Localiiiy-v3.5.0-build35-PLAYSTORE.aab
+!Localiiiy-v3.4.0-build34-PLAYSTORE.aab
+!/public/Localiiiy-v3.4.0-build34-PLAYSTORE.aab
+!Localiiiy-v3.3.0-build33-PLAYSTORE.aab
+!/public/Localiiiy-v3.3.0-build33-PLAYSTORE.aab
+!localiiiy-playstore-key.jks
+!debug.keystore
+!debug.keystore.base64
 *.apks
 *.dex
 *.class

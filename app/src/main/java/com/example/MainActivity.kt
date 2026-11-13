@@ -79,6 +79,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.appcheck.recaptcha.RecaptchaAppCheckProviderFactory
 import kotlinx.coroutines.launch
 
@@ -121,21 +122,19 @@ fun configureAppCheck(context: Context, intent: android.content.Intent?) {
             android.util.Log.d(APP_CHECK_TAG, "DebugAppCheckProviderFactory installed.")
         } else {
             val resId = context.resources.getIdentifier(RECAPTCHA_SITE_KEY_RES, "string", context.packageName)
-            if (resId != 0) {
-                val siteKey = context.getString(resId)
-                if (siteKey.isNotBlank()) {
-                    FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
-                        RecaptchaAppCheckProviderFactory.getInstance(siteKey)
-                    )
-                    com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(true)
-                    android.util.Log.d(APP_CHECK_TAG, "RecaptchaAppCheckProviderFactory installed.")
-                } else {
-                    com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(false)
-                    android.util.Log.e(APP_CHECK_TAG, "recaptcha_site_key resource string is blank.")
-                }
+            val siteKey = if (resId != 0) context.getString(resId) else ""
+            if (siteKey.isNotBlank()) {
+                FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+                    RecaptchaAppCheckProviderFactory.getInstance(siteKey)
+                )
+                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(true)
+                android.util.Log.d(APP_CHECK_TAG, "RecaptchaAppCheckProviderFactory installed.")
             } else {
-                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(false)
-                android.util.Log.e(APP_CHECK_TAG, "recaptcha_site_key string resource not found in package.")
+                FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+                    PlayIntegrityAppCheckProviderFactory.getInstance()
+                )
+                com.example.data.GeminiResilienceManager.markAppCheckTokenConfigured(true)
+                android.util.Log.d(APP_CHECK_TAG, "PlayIntegrityAppCheckProviderFactory installed.")
             }
         }
     } catch (e: Exception) {
@@ -146,6 +145,7 @@ fun configureAppCheck(context: Context, intent: android.content.Intent?) {
 
 class MainActivity : ComponentActivity(), SensorEventListener {
     private val deepLinkClipIdState = mutableStateOf<Long?>(null)
+    private val pendingInviteHandleState = mutableStateOf<String?>(null)
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     
@@ -163,7 +163,11 @@ class MainActivity : ComponentActivity(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         
+        pendingInviteHandleState.value = com.example.util.InstallReferrerHelper.getPendingInvite(this)
         parseDeepLink(intent)
+        com.example.util.InstallReferrerHelper.fetchPlayInstallReferrer(this) { inviteHandle ->
+            pendingInviteHandleState.value = inviteHandle
+        }
         enableEdgeToEdge()
         setContent {
             val viewModel: com.example.ui.LocaliiiyViewModel = viewModel()
@@ -203,7 +207,12 @@ class MainActivity : ComponentActivity(), SensorEventListener {
                 } else {
                     LocaliiiyApp(
                         deepLinkClipId = deepLinkClipIdState.value,
-                        onClearDeepLink = { deepLinkClipIdState.value = null }
+                        onClearDeepLink = { deepLinkClipIdState.value = null },
+                        invitedByHandle = pendingInviteHandleState.value,
+                        onClearInvitedByHandle = {
+                            pendingInviteHandleState.value = null
+                            com.example.util.InstallReferrerHelper.clearPendingInvite(this)
+                        }
                     )
                 }
             }
@@ -264,6 +273,11 @@ class MainActivity : ComponentActivity(), SensorEventListener {
     private fun parseDeepLink(intent: android.content.Intent?) {
         val data = intent?.data ?: return
         try {
+            val invite = com.example.util.InstallReferrerHelper.extractInviteFromUri(data)
+            if (!invite.isNullOrBlank()) {
+                com.example.util.InstallReferrerHelper.savePendingInvite(this, invite)
+                pendingInviteHandleState.value = invite
+            }
             val pathSegments = data.pathSegments
             val clipIndex = pathSegments.indexOf("clip")
             if (clipIndex != -1 && clipIndex + 1 < pathSegments.size) {
@@ -283,7 +297,9 @@ class MainActivity : ComponentActivity(), SensorEventListener {
 fun LocaliiiyApp(
     viewModel: LocaliiiyViewModel = viewModel(),
     deepLinkClipId: Long? = null,
-    onClearDeepLink: () -> Unit = {}
+    onClearDeepLink: () -> Unit = {},
+    invitedByHandle: String? = null,
+    onClearInvitedByHandle: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val connectivityObserver = remember(context) { com.example.util.NetworkConnectivityObserver(context) }
@@ -514,6 +530,7 @@ fun LocaliiiyApp(
                 AuthScreen(
                     initialMode = authInitialMode,
                     securityReason = authReason,
+                    invitedByHandle = invitedByHandle,
                     onDismiss = {
                         // Mandatory Gate: app requires login/registration before accessing dashboard
                     },
@@ -529,10 +546,11 @@ fun LocaliiiyApp(
                             snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
                         }
                     },
-                    onAuthSuccess = { user, username, fullName, neighborhood ->
-                        viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                    onAuthSuccess = { user, username, fullName, neighborhood, avatarUrl, connectedInviter ->
+                        viewModel.handleAuthSuccess(user, username, fullName, neighborhood, avatarUrl, connectedInviter)
+                        onClearInvitedByHandle()
                         coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Welcome @$username! Logged in securely. 🔒✨")
+                            snackbarHostState.showSnackbar("Welcome @$username! Signed in securely. 🔒✨")
                         }
                     }
                 )
@@ -1270,7 +1288,7 @@ fun LocaliiiyApp(
                                 discordHandle = dc
                             )
                             coroutineScope.launch {
-                                snackbarHostState.showSnackbar("Space ID & Social Handles Linked! ✨")
+                                snackbarHostState.showSnackbar("Profile & Social Handles Linked! ✨")
                             }
                         },
                         onPostClick = { post -> viewModel.openComments("POST", post.id) },
@@ -1690,12 +1708,13 @@ fun LocaliiiyApp(
         )
     }
 
-    // Advance Firebase Authentication Screen (Elevated above all top/bottom bars)
+    // Firebase Authentication Screen (Elevated above all top/bottom bars)
     if (showAuthScreen) {
         Box(modifier = Modifier.fillMaxSize().zIndex(5000f)) {
             AuthScreen(
                 initialMode = authInitialMode,
                 securityReason = authReason,
+                invitedByHandle = invitedByHandle,
                 onDismiss = { viewModel.closeAuthScreen() },
                 onGhostSpectatorSuccess = {
                     viewModel.enterAsGhostSpectator()
@@ -1709,10 +1728,11 @@ fun LocaliiiyApp(
                         snackbarHostState.showSnackbar("Local caches purged & session reset. 🧹")
                     }
                 },
-                onAuthSuccess = { user, username, fullName, neighborhood ->
-                    viewModel.handleAuthSuccess(user, username, fullName, neighborhood)
+                onAuthSuccess = { user, username, fullName, neighborhood, avatarUrl, connectedInviter ->
+                    viewModel.handleAuthSuccess(user, username, fullName, neighborhood, avatarUrl, connectedInviter)
+                    onClearInvitedByHandle()
                     coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Authenticated with Firebase as @$username! Content creation unlocked. 🔒✨")
+                        snackbarHostState.showSnackbar("Welcome @$username! Account ready. 🔒✨")
                     }
                 }
             )

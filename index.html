@@ -2037,11 +2037,11 @@
   <div id="globalTopStoreBar" style="position: relative; z-index: 10000; background: linear-gradient(90deg, #041E2B 0%, #063847 50%, #052E24 100%); border-bottom: 1px solid rgba(16, 185, 129, 0.45); padding: 7px 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);">
     <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 700; color: #F8FAFC; line-height: 1.3;">
       <span style="display: inline-flex; width: 8px; height: 8px; border-radius: 50%; background: #10B981; box-shadow: 0 0 8px #10B981; flex-shrink: 0;"></span>
-      <span><strong>Localiiiy v3.0.0 (Build 30)</strong> • DEX-Optimized Release, Enlarged Active Task Bar &amp; 5+ Local Pulse Newsroom Live</span>
+      <span><strong>Localiiiy v3.5.0 (Build 35)</strong> • Verified Play Store Upload Key, AD_ID Aligned &amp; 5+ Local Pulse Newsroom Live</span>
     </div>
     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-      <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(90deg, #00E5FF, #10B981); color: #032417; font-weight: 900; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(0, 229, 255, 0.4);">
-        <span>📦 Download .AAB (v3.0.0)</span>
+      <a href="/download-aab" download="Localiiiy-v3.5.0-build35-PLAYSTORE.aab" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(90deg, #00E5FF, #10B981); color: #032417; font-weight: 900; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(0, 229, 255, 0.4);">
+        <span>📦 Download .AAB (v3.5.0)</span>
       </a>
       <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" style="background: #10B981; color: #032417; font-weight: 800; font-size: 11px; padding: 5px 12px; border-radius: 999px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);">
         <svg width="12" height="12" viewBox="0 0 512 512"><path fill="#032417" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256-256L47 0zm363.7 282.8L104.6 459l220.7-224.7 85.4 48.5zm0-53.6l-85.4-55 60.1 60.1 25.3-5.1z"/></svg>
@@ -2174,13 +2174,12 @@
            GATE FORM 2: REGISTER (100% Android AuthScreen.kt 11-Section Parity)
            ================================================== -->
       <form class="auth-form" id="gateRegisterForm" style="display: none;" onsubmit="handleGateRegister(event)">
-        <!-- Section 1 & 2: Space Profile Photo (users/{uid}/space_avatar.jpg) -->
+        <!-- Profile Photo (Optional Gallery Upload Only — NO Space Profile Photo / Fake Portraits) -->
         <div style="text-align: center; background: rgba(255,255,255,0.025); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 12px;">
-          <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">Space Profile Photo</div>
-          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px;">Stored under users/{uid}/space_avatar.jpg</div>
-          <div style="position: relative; width: 78px; height: 78px; margin: 0 auto 8px; border-radius: 50%; border: 2px solid var(--primary-teal); overflow: hidden; cursor: pointer;" onclick="document.getElementById('gateAvatarFileInput').click()">
-            <img id="gateAvatarPreviewImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=80" alt="Space Avatar" style="width: 100%; height: 100%; object-fit: cover;">
-            <div style="position: absolute; bottom: 0; right: 0; background: var(--primary-teal); color: #041B26; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;">+</div>
+          <div style="font-size: 13px; font-weight: 800; color: #FFFFFF;">Profile Photo (Optional)</div>
+          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px;">Tap below to pick from your gallery</div>
+          <div id="gateAvatarPreview" style="position: relative; width: 78px; height: 78px; margin: 0 auto 8px; border-radius: 50%; border: 2px solid var(--primary-teal); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: rgba(0, 180, 216, 0.12);" onclick="document.getElementById('gateAvatarFileInput').click()">
+            <img id="gateAvatarPreviewImg" src="./app_logo_original.png" alt="Profile Photo Placeholder" style="width: 60%; height: 60%; object-fit: contain; opacity: 0.75;">
           </div>
           <input type="file" id="gateAvatarFileInput" accept="image/*" style="display: none;" onchange="handleGateAvatarUpload(event)">
           <div style="display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap;">
@@ -2205,26 +2204,16 @@
           <span id="gateUsernameStatus" style="font-size: 10.5px; color: var(--text-muted);">Debounced live check against Firestore usernames collection</span>
         </div>
 
-        <!-- Email Address + Mandatory Email OTP Verification -->
+        <!-- Email Address (Real Firebase Verification Link — NO Fake Sandbox OTP) -->
         <div class="form-field">
           <label>Email Address</label>
           <input type="email" class="form-input" id="gateRegEmail" placeholder="name@example.com" required>
-        </div>
-        <div class="otp-verify-box" id="gateEmailOtpBox">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <span id="gateEmailOtpTitle" style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Email OTP Verification (Mandatory)</span>
-            <button type="button" id="btnSendEmailOtp" onclick="dispatchGateEmailOtp()" style="background: var(--primary-teal); color: #041B26; border: none; font-weight: 800; font-size: 11px; padding: 5px 10px; border-radius: 999px; cursor: pointer;">Verify Email via OTP</button>
-          </div>
-          <div id="gateEmailOtpInputRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
-            <input type="text" id="gateEmailOtpInput" class="form-input" maxlength="6" placeholder="Enter 6-digit Email OTP" style="flex: 1; padding: 8px 10px; font-size: 12px;">
-            <button type="button" onclick="confirmGateEmailOtp()" style="background: var(--accent-mint); color: #042417; border: none; font-weight: 800; font-size: 11.5px; padding: 8px 12px; border-radius: 8px; cursor: pointer;">Verify Code</button>
-          </div>
-          <span id="gateEmailOtpStatus" style="font-size: 10.5px; color: var(--accent-mint);"></span>
+          <span style="font-size: 10.5px; color: var(--accent-mint);">Firebase Auth sends a real verification link to your inbox after account creation.</span>
         </div>
 
-        <!-- Section 3: Mobile Phone Number (Mandatory) + Country Code + SMS OTP -->
-        <div class="otp-verify-box" id="gatePhoneOtpBox">
-          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;" id="gatePhoneOtpTitle">Mobile Phone Number (Mandatory)</div>
+        <!-- Mobile Phone Number (Optional — Android App supports real Firebase SMS OTP) -->
+        <div class="form-field">
+          <label>Mobile Phone Number (Optional)</label>
           <div style="display: flex; gap: 6px;">
             <select id="gatePhoneCountryCode" class="form-select" style="width: 115px; padding: 8px; font-size: 12px;">
               <option value="+91">+91 (IN)</option>
@@ -2237,14 +2226,8 @@
               <option value="+65">+65 (SG)</option>
               <option value="+971">+971 (AE)</option>
             </select>
-            <input type="tel" id="gateRegPhone" class="form-input" placeholder="9876543210" style="flex: 1; padding: 8px 10px; font-size: 13px;" required>
-            <button type="button" id="btnSendPhoneOtp" onclick="dispatchGatePhoneOtp()" style="background: var(--primary-teal); color: #041B26; border: none; font-weight: 800; font-size: 11px; padding: 0 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;">Send SMS OTP</button>
+            <input type="tel" id="gateRegPhone" class="form-input" placeholder="9876543210 (Optional)" style="flex: 1; padding: 8px 10px; font-size: 13px;">
           </div>
-          <div id="gatePhoneOtpInputRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
-            <input type="text" id="gatePhoneOtpInput" class="form-input" maxlength="6" placeholder="Enter 6-digit SMS OTP" style="flex: 1; padding: 8px 10px; font-size: 12px;">
-            <button type="button" onclick="confirmGatePhoneOtp()" style="background: var(--accent-mint); color: #042417; border: none; font-weight: 800; font-size: 11.5px; padding: 8px 12px; border-radius: 8px; cursor: pointer;">Verify SMS</button>
-          </div>
-          <span id="gatePhoneOtpStatus" style="font-size: 10.5px; color: var(--accent-mint);"></span>
         </div>
 
         <!-- Password + Live Password Strength Indicator + Confirm Password -->
@@ -2258,22 +2241,10 @@
           <input type="password" class="form-input" id="gateRegConfirmPassword" placeholder="Re-enter password" required>
         </div>
 
-        <!-- Section 4: Deep-Linked Influencer Referrals & Auto-Connection -->
-        <div class="otp-verify-box">
-          <div style="font-size: 12px; font-weight: 700; color: #FFFFFF;">Creator Invite &amp; Auto-Connection (Optional)</div>
-          <input type="text" id="gateRegReferral" class="form-input" placeholder="Enter creator invite handle (Optional)" style="padding: 8px 10px; font-size: 12px;">
-        </div>
-
-        <!-- Section 5: Your Home Community Anchor -->
-        <div class="form-field">
-          <label>Your Home Community Anchor (~110m Privacy Grid)</label>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" class="form-input" id="gateRegNeighborhood" placeholder="Enter city or neighborhood" style="flex: 1;" required>
-            <button type="button" class="btn-hero-secondary" style="padding: 0 12px; font-size: 11.5px; white-space: nowrap;" onclick="autoDetectGateLocation()">
-              Auto GPS
-            </button>
-          </div>
-          <span id="gateGpsStatus" style="font-size: 10px; color: var(--accent-mint); min-height: 14px;"></span>
+        <!-- Invite Auto-Connection (ONLY displayed when installed/opened via shared Play Store invite link) -->
+        <div class="otp-verify-box" id="gateRegReferralBox" style="display: none;">
+          <div style="font-size: 12px; font-weight: 700; color: var(--accent-mint);">Play Store Invite Link • Auto-Connect</div>
+          <input type="text" id="gateRegReferral" class="form-input" readonly style="padding: 8px 10px; font-size: 12px;">
         </div>
 
         <!-- Section 7: Expanded Interest Constellation -->
@@ -2482,7 +2453,7 @@
         </div>
         <div style="display: flex; gap: 6px;">
           <button type="button" onclick="translateAllPulsePostsNow()" style="padding: 4px 10px; border-radius: 999px; border: 1px solid #00E5FF; background: rgba(0,229,255,0.16); color: #00E5FF; font-size: 10.5px; font-weight: 800; cursor: pointer;">🌐 Translate Pulse Posts</button>
-          <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" style="padding: 4px 10px; border-radius: 999px; border: 1px solid #10B981; background: rgba(16,185,129,0.2); color: #34D399; font-size: 10.5px; font-weight: 800; text-decoration: none;">⬇ Download .AAB (v3.0.0)</a>
+          <a href="/download-aab" download="Localiiiy-v3.5.0-build35-PLAYSTORE.aab" target="_blank" rel="noopener noreferrer" style="padding: 4px 10px; border-radius: 999px; border: 1px solid #10B981; background: rgba(16,185,129,0.2); color: #34D399; font-size: 10.5px; font-weight: 800; text-decoration: none;">⬇ Download .AAB (v3.5.0)</a>
         </div>
       </div>
 
@@ -3864,13 +3835,13 @@
           </div>
           <div class="logo-coral-beacon"></div>
         </div>
-        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Download Localiiiy (v3.0.0 Release)</h3>
-        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • Target SDK 36 (v3.0.0 • Build 30 DEX-Optimized) • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
+        <h3 style="font-size: 18px; font-weight: 800; margin-top: 6px;">Download Localiiiy (v3.5.0 Release)</h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Android 8.0+ • Target SDK 36 (v3.5.0 • Build 35 Verified SHA1: EF:0E:C2:78...) • Apple App Store: <strong style="color: #FCD34D;">Available Soon</strong></p>
       </div>
 
       <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
-        <a href="https://temp.sh/vPcOy/Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" download="Localiiiy-v3.0.0-build30-DEX-OPTIMIZED.aab" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; padding: 14px; font-weight: 800; background: linear-gradient(90deg, #10B981, #00B4D8); color: #041B26;">
-          📦 Download Play Console Release Bundle (.AAB v3.0.0)
+        <a href="/download-aab" download="Localiiiy-v3.5.0-build35-PLAYSTORE.aab" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; padding: 14px; font-weight: 800; background: linear-gradient(90deg, #10B981, #00B4D8); color: #041B26;">
+          📦 Download Play Console Release Bundle (.AAB v3.5.0)
         </a>
 
         <a href="https://play.google.com/store/apps/details?id=com.aistudio.localiiiy.live" target="_blank" rel="noopener noreferrer" class="btn-submit-auth ripple-effect" style="text-decoration: none; text-align: center; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 13.5px; padding: 12px; font-weight: 800;">
@@ -3976,10 +3947,6 @@
         <div class="form-field">
           <label>Choose @Username</label>
           <input type="text" class="form-input" id="regUsername" placeholder="@your_handle" required>
-        </div>
-        <div class="form-field">
-          <label>Home Community Anchor / Landmark</label>
-          <input type="text" class="form-input" id="regNeighborhood" placeholder="Auto-detect or enter city/landmark" required>
         </div>
         <div class="form-field">
           <label>Date of Birth (13+ Required • 13–17 Teen Ghost Default)</label>
@@ -4835,6 +4802,17 @@
         gate.classList.add('hidden');
         gate.style.display = 'none';
       }
+      const urlParams = new URLSearchParams(window.location.search || '');
+      const inviteParam = (urlParams.get('invite') || urlParams.get('refer') || urlParams.get('ref') || '').replace(/^@/, '').trim();
+      const referralBox = document.getElementById('gateRegReferralBox');
+      const referralInput = document.getElementById('gateRegReferral');
+      if (inviteParam && referralBox && referralInput) {
+        referralInput.value = inviteParam;
+        referralBox.style.display = 'block';
+      } else if (referralBox && referralInput) {
+        referralInput.value = '';
+        referralBox.style.display = 'none';
+      }
       if (currentUser.visibilityMode === 'GHOST') {
         isGhostMode = true;
         const toggle = document.getElementById('ghostToggleSwitch');
@@ -5016,121 +4994,13 @@
       }, 300);
     }
 
-    // Section 3: Email + Mandatory 6-Digit Email OTP Verification (5-attempt lockout, no backdoor)
+    // Real Email & Phone verification helpers (Sandbox OTP generators removed)
     function onGateEmailInputChanged() {
       emailOtpVerified = false;
-      const badge = document.getElementById('gateEmailOtpStatus');
-      if (badge) {
-        badge.textContent = 'Unverified • Click Send OTP to verify email';
-        badge.style.color = '#F59E0B';
-      }
     }
 
-    function dispatchGateEmailOtp() {
-      if (Date.now() < emailOtpLockoutUntil) {
-        const secs = Math.ceil((emailOtpLockoutUntil - Date.now()) / 1000);
-        showToast(`⏳ Too many failed attempts. Wait ${secs}s before retrying.`);
-        return;
-      }
-      const email = document.getElementById('gateRegEmail')?.value.trim();
-      if (!email || !email.includes('@') || !email.includes('.')) {
-        showToast('⚠️ Enter a valid email address first.');
-        return;
-      }
-      const rng = new Uint32Array(1);
-      window.crypto.getRandomValues(rng);
-      generatedEmailOtp = String(100000 + (rng[0] % 900000));
-      emailOtpVerified = false;
-      emailOtpFailedAttempts = 0;
-
-      const box = document.getElementById('gateEmailOtpBox');
-      if (box) box.style.display = 'block';
-      const status = document.getElementById('gateEmailOtpStatus');
-      if (status) {
-        status.innerHTML = `📨 Dispatched 6-digit verification code to <strong>${email}</strong>: <span style="background:rgba(0,229,255,0.18);color:#00E5FF;padding:1px 6px;border-radius:4px;font-family:monospace;font-weight:800;">${generatedEmailOtp}</span>`;
-        status.style.color = '#38BDF8';
-      }
-      showToast(`📨 Email OTP Code for ${email}: ${generatedEmailOtp}`);
-    }
-
-    function confirmGateEmailOtp() {
-      if (Date.now() < emailOtpLockoutUntil) {
-        showToast('⏳ Verification locked due to 5 failed attempts.');
-        return;
-      }
-      const entered = document.getElementById('gateEmailOtpInput')?.value.trim();
-      const status = document.getElementById('gateEmailOtpStatus');
-      if (generatedEmailOtp && entered === generatedEmailOtp) {
-        emailOtpVerified = true;
-        if (status) {
-          status.textContent = '✅ Email Verified via 6-Digit Cryptographic OTP';
-          status.style.color = '#10B981';
-        }
-        showToast('Email verified! ✅');
-      } else {
-        emailOtpFailedAttempts++;
-        if (emailOtpFailedAttempts >= 5) {
-          emailOtpLockoutUntil = Date.now() + 60000;
-          generatedEmailOtp = null;
-          if (status) {
-            status.textContent = '🔒 5 failed attempts. Locked for 60 seconds.';
-            status.style.color = '#EF4444';
-          }
-          showToast('🔒 Too many failed OTP attempts. Locked for 60s.');
-        } else {
-          if (status) {
-            status.textContent = `❌ Invalid OTP (${5 - emailOtpFailedAttempts} attempts remaining)`;
-            status.style.color = '#F87171';
-          }
-        }
-      }
-    }
-
-    // Section 4: Mandatory Mobile Phone Number + 6-Digit SMS OTP Verification
     function onGatePhoneInputChanged() {
       phoneOtpVerified = false;
-    }
-
-    function dispatchGatePhoneOtp() {
-      const code = document.getElementById('gatePhoneCountryCode')?.value || '+91';
-      const phone = document.getElementById('gateRegPhone')?.value.replace(/\D/g, '') || '';
-      if (phone.length < 7) {
-        showToast('⚠️ Please enter a valid mobile number (7–15 digits).');
-        return;
-      }
-      const rng = new Uint32Array(1);
-      window.crypto.getRandomValues(rng);
-      generatedPhoneOtp = String(100000 + (rng[0] % 900000));
-      phoneOtpVerified = false;
-      phoneOtpFailedAttempts = 0;
-
-      const box = document.getElementById('gatePhoneOtpBox');
-      if (box) box.style.display = 'block';
-      const status = document.getElementById('gatePhoneOtpStatus');
-      if (status) {
-        status.innerHTML = `📱 SMS OTP dispatched to <strong>${code} ${phone}</strong>: <span style="background:rgba(16,185,129,0.2);color:#34D399;padding:1px 6px;border-radius:4px;font-family:monospace;font-weight:800;">${generatedPhoneOtp}</span>`;
-        status.style.color = '#34D399';
-      }
-      showToast(`📱 SMS OTP for ${code} ${phone}: ${generatedPhoneOtp}`);
-    }
-
-    function confirmGatePhoneOtp() {
-      const entered = document.getElementById('gatePhoneOtpInput')?.value.trim();
-      const status = document.getElementById('gatePhoneOtpStatus');
-      if (generatedPhoneOtp && entered === generatedPhoneOtp) {
-        phoneOtpVerified = true;
-        if (status) {
-          status.textContent = '✅ Mobile Phone Verified via 6-Digit SMS OTP';
-          status.style.color = '#10B981';
-        }
-        showToast('Mobile number verified! ✅');
-      } else {
-        phoneOtpFailedAttempts++;
-        if (status) {
-          status.textContent = `❌ Incorrect SMS OTP code. Please check the code above.`;
-          status.style.color = '#F87171';
-        }
-      }
     }
 
     // Section 5: Password Strength Meter & Confirm Match
@@ -5282,15 +5152,6 @@
       }
       const username = `@${usernameClean}`;
 
-      if (!emailOtpVerified) {
-        showToast('⚠️ Please verify your 6-digit Email OTP code in Section 3 first.');
-        return;
-      }
-      if (!phoneOtpVerified) {
-        showToast('⚠️ Please verify your 6-digit Mobile SMS OTP code in Section 4 first.');
-        return;
-      }
-
       const password = document.getElementById('gateRegPassword')?.value || '';
       const confirmPw = document.getElementById('gateRegConfirmPassword')?.value || '';
       if (password.length < 6 || password !== confirmPw) {
@@ -5307,18 +5168,18 @@
       const c2 = document.getElementById('chkLegalPrivacy')?.checked;
       const c3 = document.getElementById('chkLegalZeroTolerance')?.checked;
       if (!c1 || !c2 || !c3) {
-        showToast('⚠️ Please unlock and check all 3 mandatory Legal Charter boxes in Section 11.');
+        showToast('⚠️ Please unlock and check all 3 mandatory Legal Charter boxes.');
         return;
       }
 
-      const neighborhood = document.getElementById('gateRegNeighborhood')?.value.trim() || 'Pike Place, Seattle';
+      const neighborhood = '';
       const email = document.getElementById('gateRegEmail')?.value.trim().toLowerCase() || '';
       const phoneCode = document.getElementById('gatePhoneCountryCode')?.value || '+91';
       const phoneNum = document.getElementById('gateRegPhone')?.value.replace(/\D/g, '') || '';
       const referral = document.getElementById('gateRegReferral')?.value.trim() || '';
       const visibilityMode = document.getElementById('gateRegVisibility')?.value || 'GHOST';
-      const avatarEmoji = document.getElementById('gateRegAvatarEmoji')?.value || '🧑‍🚀';
-      const bonusSparks = referral ? 150 : 100;
+      const avatarEmoji = document.getElementById('gateRegAvatarEmoji')?.value || '';
+      const bonusSparks = referral ? 50 : 0;
 
       let uid = 'usr_' + Date.now();
 
@@ -5329,9 +5190,11 @@
           if (cred && cred.user) {
             uid = cred.user.uid;
             await cred.user.updateProfile({ displayName: fullName });
+            try { await cred.user.sendEmailVerification(); } catch (_ve) {}
           }
         } catch (authErr) {
-          console.log('Firebase Auth account note:', authErr.message);
+          showToast(authErr.message || 'Authentication failed.');
+          return;
         }
 
         try {
@@ -5348,17 +5211,17 @@
             username: usernameClean,
             handle: username,
             email,
-            phone: `${phoneCode}${phoneNum}`,
+            phone: phoneNum ? `${phoneCode}${phoneNum}` : '',
             neighborhood,
             interests: selectedGateInterests,
             visibilityMode,
             isGhostMode: visibilityMode === 'GHOST',
             referredBy: referral,
             sparks: bonusSparks,
-            connectionsCount: referral ? 2 : 1,
+            connectionsCount: referral ? 1 : 0,
             avatarEmoji,
             legalCharterAccepted: true,
-            legalCharterVersion: 'v2.4.0-24-Articles',
+            legalCharterVersion: 'v2.4.0-36-Articles',
             platform: 'web_android_synced',
             createdAt: Date.now()
           }, { merge: true });
@@ -5373,14 +5236,14 @@
         username,
         neighborhood,
         email,
-        phone: `${phoneCode}${phoneNum}`,
+        phone: phoneNum ? `${phoneCode}${phoneNum}` : '',
         password,
         interests: selectedGateInterests,
         visibilityMode,
         avatarEmoji,
         avatarDataUrl: selectedGateAvatarDataUrl,
         sparks: bonusSparks,
-        connections: referral ? 2 : 1,
+        connections: referral ? 1 : 0,
         isGuestSpectator: false
       };
 
@@ -7107,7 +6970,7 @@
       const fullName = document.getElementById('regFullName').value.trim();
       const usernameClean = document.getElementById('regUsername').value.trim().replace(/^@/, '').toLowerCase().replace(/[^a-z0-9_]/g, '');
       const username = `@${usernameClean}`;
-      const neighborhood = document.getElementById('regNeighborhood').value.trim();
+      const neighborhood = '';
       const email = document.getElementById('regEmail').value.trim().toLowerCase();
       const password = document.getElementById('regPassword').value;
 
@@ -7115,7 +6978,10 @@
       if (isFirebaseLive && fbAuth && fbDb) {
         try {
           const cred = await fbAuth.createUserWithEmailAndPassword(email, password);
-          if (cred && cred.user) uid = cred.user.uid;
+          if (cred && cred.user) {
+            uid = cred.user.uid;
+            try { await cred.user.sendEmailVerification(); } catch (_ve) {}
+          }
           await fbDb.collection('usernames').doc(usernameClean).set({
             uid,
             username: usernameClean,
@@ -7130,13 +6996,16 @@
             handle: username,
             email,
             neighborhood,
-            visibilityMode: 'SHOW',
-            sparks: 100,
-            connectionsCount: 1,
+            visibilityMode: 'GHOST',
+            sparks: 0,
+            connectionsCount: 0,
             platform: 'web_android_synced',
             createdAt: Date.now()
           }, { merge: true });
-        } catch (_e) {}
+        } catch (regErr) {
+          showToast(regErr.message || 'Registration failed.');
+          return;
+        }
       }
 
       const newUser = {
@@ -7146,9 +7015,9 @@
         neighborhood,
         email,
         password,
-        connections: 1,
-        sparks: 100,
-        visibilityMode: 'SHOW',
+        connections: 0,
+        sparks: 0,
+        visibilityMode: 'GHOST',
         isGuestSpectator: false
       };
 

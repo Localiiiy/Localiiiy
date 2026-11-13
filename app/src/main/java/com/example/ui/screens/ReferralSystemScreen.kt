@@ -270,7 +270,8 @@ fun ReferralSystemScreen(
 
                                     Button(
                                         onClick = {
-                                            val shareText = "Hey neighbor! Join me on Localiiiy, the tracker-free neighborhood network. Use my code ${referralState.userReferralCode} to claim +100 bonus points and unlock a 2x Radar Reach boost: ${referralState.referralLink}"
+                                            val playInviteUrl = com.example.util.ShareHelper.buildPlayStoreInviteUrl(referralState.userReferralCode)
+                                            val shareText = "Hey neighbor! Join me on Localiiiy, the tracker-free neighborhood network.\n\nDownload on Google Play Store (auto-connects with my invite): $playInviteUrl\nOr open Web App: ${referralState.referralLink}\nInvite Code: ${referralState.userReferralCode}"
                                             val sendIntent = Intent().apply {
                                                 action = Intent.ACTION_SEND
                                                 putExtra(Intent.EXTRA_TEXT, shareText)
@@ -309,7 +310,7 @@ fun ReferralSystemScreen(
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Share our official download options so your neighbors can use the Web App or download the Android APK via Google Drive.",
+                            text = "Share your official Google Play Store invitation link so neighbors automatically connect with you after installing.",
                             fontSize = 11.sp,
                             color = Color.LightGray,
                             lineHeight = 14.sp,
@@ -321,9 +322,9 @@ fun ReferralSystemScreen(
                         Button(
                             onClick = {
                                 val webappLink = com.example.util.ShareHelper.WEBAPP_BASE_URL
-                                val driveApkLink = com.example.util.ShareHelper.GOOGLE_DRIVE_APK_URL
-                                val shareNote = "Neighbor, you need to try Localiiiy! It's a private, tracker-free neighborhood network where we can see what's happening nearby on a live radar. No ads, just community."
-                                val shareText = "$shareNote\n\n🌐 Web App: $webappLink\n📦 Android APK (Google Drive): $driveApkLink\n\nUse my invite code: ${referralState.userReferralCode} to claim +100 bonus points!"
+                                val playInviteLink = com.example.util.ShareHelper.buildPlayStoreInviteUrl(referralState.userReferralCode)
+                                val shareNote = "Neighbor, you need to try Localiiiy! It's a private, tracker-free neighborhood network. No ads, just community."
+                                val shareText = "$shareNote\n\n🤖 Google Play Store (Invite Link): $playInviteLink\n🌐 Web App: $webappLink\n\nInvite Code: ${referralState.userReferralCode}"
                                 val sendIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     putExtra(Intent.EXTRA_TEXT, shareText)
@@ -337,7 +338,7 @@ fun ReferralSystemScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3B82F6)),
                             contentPadding = PaddingValues(vertical = 6.dp)
                         ) {
-                            Text("Share Web App & Google Drive APK", fontWeight = FontWeight.Bold, fontSize = 11.5.sp)
+                            Text("Share Play Store Invite Link", fontWeight = FontWeight.Bold, fontSize = 11.5.sp)
                         }
                     }
                 }
